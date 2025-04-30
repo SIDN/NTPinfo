@@ -1,0 +1,31 @@
+stages:
+  - test
+
+image: python:3.13.3
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .cache/pip
+    - venv/
+
+before_script:
+  - python --version
+  - python -m venv venv
+  - source venv/bin/activate
+  - pip install --upgrade pip
+  - pip install -r server/requirements.txt
+  - pip install pytest pytest-cov
+
+server_tests:
+  stage: test
+  script:
+    - source venv/bin/activate
+    - pytest --cov=server --cov-report=term-missing server/tests/
+  coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+(\d+%)$/'
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
