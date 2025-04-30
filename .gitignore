@@ -3,7 +3,7 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 server/.venv/
-config.py
+/server/app/config.py
 
 # FastAPI logs
 *.log
