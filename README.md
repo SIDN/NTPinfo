@@ -1,1 +1,1 @@
-Readme will be added later.
+To run the client: npm run dev in the terminal (while in the "client" server).
