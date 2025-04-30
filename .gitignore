@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+server/.venv/
+
+# FastAPI logs
+*.log
+
+# PyCharm
+.idea/
+
+# VSCode settings
+.vscode/
+
+
+# Docker
+*.env
+*.DS_Store
+
+
+# OS specific
+Thumbs.db
+.DS_Store
+
