@@ -5,6 +5,7 @@ image: python:3.13.3
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  PYTHONPATH: "$CI_PROJECT_DIR"
 
 cache:
   key: ${CI_COMMIT_REF_SLUG}
