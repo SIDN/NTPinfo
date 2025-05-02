@@ -14,7 +14,7 @@
 *, *::before, *::after {
     box-sizing: border-box;
   }
-  
+
 
   * {
     margin: 0;
@@ -35,15 +35,16 @@
     background-color: var(--bg-clr-hero);
     padding: 1rem 2rem;
   }
-  
+
   .hero p, .hero h1 {
     color: var(--clr-font-dark);
-  } 
+  }
 
   .text-hero > p {
     color: var(--clr-font-dark);
     font-weight: 200;
     font-size: 1.5rem;
+    text-align: left;
   }
    .navbar {
     display: flex;
@@ -53,7 +54,8 @@
   .navbar a {
     font-size: 2rem;
     font-weight: bold;
-    color: var(--clr-font-dark)
+    color: var(--clr-font-dark);
+    /* border: 1px solid red; */
   }
 
   .navbar .img-and-text {
@@ -62,5 +64,9 @@
     align-items: center;
     gap: 1rem;
     justify-content: space-between;
+    /* border: 1px solid red; */
   }
-  
+
+  .navbar .img-and-text img {
+    translate: 0px 4px;
+  }
