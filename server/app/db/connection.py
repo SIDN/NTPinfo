@@ -55,3 +55,17 @@ def insert_measurement(measurement : NtpMeasurement) :
                     measurement.extra_details.root_delay.seconds, measurement.extra_details.ntp_last_sync_time.seconds,
                     measurement.extra_details.root_delay.fraction, measurement.extra_details.ntp_last_sync_time.fraction
                 ))
+
+
+# get all the measurements in the database
+def get_all_measurements() :
+    with pool.connection() as conn :
+        # if anything fails inside the transaction() block, it rolls back.
+        # otherwise, it commits when the block exits cleanly.
+        with conn.transaction() :
+            with conn.cursor() as cur :
+                cur.execute("""
+                    SELECT *
+                    FROM measurements m JOIN times t ON m.time_id = t.id
+                """)
+                return cur.fetchall()

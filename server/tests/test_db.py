@@ -7,6 +7,7 @@ from server.app.models.NtpServerInfo import NtpServerInfo
 from server.app.models.NtpTimestamps import NtpTimestamps
 from server.app.models.PreciseTime import PreciseTime
 from server.app.db.connection import insert_measurement
+from server.app.db.connection import get_all_measurements
 
 def test_insert_object():
     t1 = PreciseTime(10000, 0)
@@ -21,3 +22,6 @@ def test_insert_object():
     m = NtpMeasurement(server_details,times,main_details,extra)
 
     insert_measurement(m)
+
+def test_get_all():
+    print(get_all_measurements())
