@@ -31,9 +31,6 @@
 
 .open-popup-btn{
   display:flex;
-  position: relative;
-  bottom: -17em;
-  left: -12em;
   border-radius: 15px;
   border: 5px solid;
   padding: 0.6em 0.6em;
