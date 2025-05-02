@@ -11,6 +11,24 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* global variables */
+  --bg-clr-primary: #292f36;
+  --bg-clr-secondary: #323E4C;
+  --clr-font-white: #eff6ee;
+  --clr-font-dark: #1B2025;
+  --clr-green: #10A219;
+  --bg-clr-hero: #CDCFDA;
+  --clr-red-1: #ff6b6b;
+  --clr-red-2: #F2404C;
+  --clr-btn-selected-purple: #27263F;
+}
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
 }
 
 a {
@@ -28,6 +46,8 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+
+  background-color: var(--bg-clr-primary);
 }
 
 h1 {
@@ -54,7 +74,7 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
+@media (prefers-color-scheme: dark) {
   :root {
     color: #213547;
     background-color: #ffffff;
