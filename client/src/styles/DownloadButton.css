@@ -1,0 +1,32 @@
+:root {
+    line-height: 1.5;
+    /* global variables */
+  --bg-clr-primary: #292f36;
+  --bg-clr-secondary: #323E4C;
+  --clr-font-white: #eff6ee;
+  --clr-font-dark: #1B2025;
+  --clr-green: #10A219;
+  --bg-clr-hero: #CDCFDA;
+  --clr-red-1: #ff6b6b;
+  --clr-red-2: #F2404C;
+  --clr-btn-selected-purple: #27263F;
+}
+*, *::before, *::after {
+    box-sizing: border-box;
+  }
+  
+
+  * {
+    margin: 0;
+  }
+.download-btn {
+    padding: .5rem .75rem;
+    color: var(--clr-font-white);
+    background-color: transparent;
+    border: 4px solid var(--bg-clr-secondary);
+    border-radius: 15px;
+}
+
+.download-btn:focus, .download-btn:hover {
+    background-color: var(--clr-btn-selected-purple);
+}
