@@ -25,6 +25,42 @@
   }
 
   .hero {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     background-color: var(--bg-clr-hero);
+    padding: 1rem 2rem;
+  }
+  
+  .hero p, .hero h1 {
+    color: var(--clr-font-dark);
+  } 
+
+  .text-hero > p {
+    color: var(--clr-font-dark);
+    font-weight: 200;
+    font-size: 1.5rem;
+  }
+   .navbar {
+    display: flex;
+    gap: 5rem;
+  }
+
+  .navbar a {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--clr-font-dark)
+  }
+
+  .navbar .img-and-text {
+    display: flex;
+    padding-inline: .5rem;
+    align-items: center;
+    gap: 1rem;
+    justify-content: space-between;
   }
   
