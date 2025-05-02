@@ -1,0 +1,30 @@
+:root {
+    line-height: 1.5;
+    /* global variables */
+  --bg-clr-primary: #292f36;
+  --bg-clr-secondary: #323E4C;
+  --clr-font-white: #eff6ee;
+  --clr-font-dark: #1B2025;
+  --clr-green: #10A219;
+  --bg-clr-hero: #CDCFDA;
+  --clr-red-1: #ff6b6b;
+  --clr-red-2: #F2404C;
+  --clr-btn-selected-purple: #27263F;
+}
+*, *::before, *::after {
+    box-sizing: border-box;
+  }
+  
+
+  * {
+    margin: 0;
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  .hero {
+    background-color: var(--bg-clr-hero);
+  }
+  
