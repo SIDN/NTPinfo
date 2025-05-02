@@ -17,7 +17,7 @@
 .search-bar {
     display: flex;
     align-items: center;
-    width: 100%;
+    width: 150%;
     background-color: var(--clr-font-white);
     border-radius: 1rem;
     padding: 0.25rem;
@@ -60,4 +60,21 @@
     font-size: 1.2rem;
     font-weight: 600;
     color: var(--clr-font-white);
+  }
+
+  .search-section {
+    position: absolute;  /* keeps it fixed relative to the page */
+    top: 10rem;            /* adjust depending on .hero height */
+    left: 2rem;
+    max-width: 600px;
+  }
+
+  .search-bar-text {
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: var(--clr-font-white);
+    margin-bottom: 0.5rem;
+    text-align: left;
+    /* border: 1px solid red; */
+    width: 150%;
   }

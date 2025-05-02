@@ -17,10 +17,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
     };
 
     return (
-        <>
-            <div className = "search-bar-text">
+        <div className="search-section">
+            <div className="search-bar-text">
                 <p>
-                    Enter the domanin name or IP address of the NTP server you want to measure.
+                    Enter the domain name or IP address of the NTP server you want to measure.
                 </p>
             </div>
             <div className="search-bar">
@@ -34,8 +34,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
                     Measure
                 </button>
             </div>
-        </>
+        </div>
     );
+
 };
 
 export default SearchBar;
