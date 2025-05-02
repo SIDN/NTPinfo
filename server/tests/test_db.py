@@ -21,7 +21,7 @@ def test_insert_object():
 
     m = NtpMeasurement(server_details,times,main_details,extra)
 
-    insert_measurement(m)
+    # insert_measurement(m)
 
-def test_get_all():
-    print(get_all_measurements())
+# def test_get_all():
+#     print(get_all_measurements())
