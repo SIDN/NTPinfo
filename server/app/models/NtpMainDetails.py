@@ -2,7 +2,17 @@ from dataclasses import dataclass
 
 @dataclass
 class NtpMainDetails:
-    offset: float #this is what ntplib use
+    """
+    Represents the main measurements reported by an NTP server.
+    
+    Fields:
+        offset (float): Cclock offset between the client and server, in seconds
+        delay (float): Round-trip delay for NTP packet exchange, in seconds
+        stratum (int): Stratum level of the serve
+        precision (float): Precision of the system clock of the server 
+        reachability (str): Reachability register
+    """
+    offset: float 
     delay: float
     stratum: int
     precision: float
