@@ -3,6 +3,7 @@ import { useState } from 'react'
 import './App.css'
 import Hero from './components/Hero'
 import VisualizationPopup from './components/Visualization'
+import LineChart from './components/LineGraph'
 // import DownloadButton from './components/DownloadButton'
 
 // we use this as a dummy data type for the NTP measurements, this will be changed and improved once the API 
@@ -14,11 +15,15 @@ type NTPData = {
   jitter: number;
   reachability: number;
   passing: boolean;
+  time: number; //time at which the measurement was taken
 }
 
 type InputData = {
   data: NTPData[]
 }
+
+type Measurement = 'delay' | 'offset';
+
 function downloadJSON(data : InputData) {
     //parse to json string and make an object with the corresponding data
     var json = JSON.stringify(data)
@@ -51,12 +56,12 @@ function downloadCSV(data : InputData) {
 
 }
 
-
 function App() {
   // const [measured, setMeasured] = useState("measure")
   const [popupOpen, setPopupOpen] = useState(false);
   const [selOption1, setOption1] = useState("Last Hour");
   const [selOption2, setOption2] = useState("Hours");
+  const [selMeasurement, setSelMeasurement] = useState<Measurement>("delay");
 
   const dropdown = [
     {
@@ -74,6 +79,10 @@ function App() {
       className: "custom-time-dropdown"
     }
   ];
+
+  const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSelMeasurement(event.target.value as Measurement);
+  };
   //the dummy data will be used for the buttons, uncomment when the buttons actually get added to the page (if needed)
  /* const dummyData : InputData = {
     data : [{
@@ -84,6 +93,8 @@ function App() {
       reachability: 1,
       passing: true
     }]*/
+   const dummyData = [{offset: 0.3,delay: 0.3,stratum: 1,jitter: 1.8,reachability: 1,passing: true,time: Date.now()},{offset: 1.2,delay: 13.4,stratum: 2,jitter: 0.5,reachability: 1,passing: true,time: Date.now() - 40000},
+  {offset: 0.8,delay: 4.8,stratum: 2,jitter: 0.6,reachability: 1,passing: true,time: Date.now() - 20000}];
    return (
     <>
       <Hero />
@@ -92,8 +103,7 @@ function App() {
        
       <DownloadButton name="Download JSON" onclick={() => downloadJSON(dummyData)} />
       <DownloadButton name="Download CSV" onclick={() => downloadCSV(dummyData)} />
-      </div>
-      */}
+      </div>*/}
       <div>
         <button className="open-popup-btn" onClick={() => setPopupOpen(true)}>View Historical Data</button>
         <VisualizationPopup 
@@ -101,6 +111,29 @@ function App() {
         onClose={() => setPopupOpen(false)}
         dropdowns={dropdown}/>
       </div>
+      <div>
+      <label>
+          <input
+            type="radio"
+            name="measurement"
+            value="offset"
+            checked={selMeasurement === 'offset'}
+            onChange={handleMeasurementChange}
+          />
+          Jitter
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="measurement"
+            value="delay"
+            checked={selMeasurement === 'delay'}
+            onChange={handleMeasurementChange}
+          />
+          Jitter
+        </label>
+        <LineChart data = {dummyData} selectedMeasurement={selMeasurement}/>
+        </div>
     </>
    )
 }
