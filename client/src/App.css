@@ -1,8 +1,27 @@
 #root {
-  max-width: 1280px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  /* max-width: 1280px; */
   margin: 0 auto;
-  padding: 2rem;
+  /* margin: 0; */
+  padding: 0rem;
   text-align: center;
+
+}
+
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+
+}
+
+html {
+  padding-top: 10rem;
 }
 
 .logo {
@@ -37,3 +56,20 @@
   padding: 2em;
 }
 
+.app-container {
+  width: 100%;
+}
+
+.main-content {
+
+  max-width: 600px;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.search-wrapper {
+  margin-top: 0;
+  margin-left: 1rem;
+  /* max-width: 600px; */
+  width: 60%;
+}

@@ -1,0 +1,39 @@
+:root {
+    line-height: 1.5;
+    /* global variables */
+  --bg-clr-primary: #292f36;
+  --bg-clr-secondary: #323E4C;
+  --clr-font-white: #eff6ee;
+  --clr-font-dark: #1B2025;
+  --clr-green: #10A219;
+  --bg-clr-hero: #CDCFDA;
+  --clr-red-1: #ff6b6b;
+  --clr-red-2: #F2404C;
+  --clr-red-3: #c03039;
+  --clr-btn-selected-purple: #27263F;
+  --clr-search-placeholder: #b3b3b3;
+}
+
+
+.result-box {
+  /* top: 1rem;
+  left: 1rem;
+  margin-bottom: 150px; */
+  margin-left: 1rem;
+  grid-area: summary;
+  height: 300px;
+  width: 350px;
+  background-color: var(--bg-clr-secondary);
+  color: var(--clr-font-white);
+  font-weight: bold;
+  border-radius: 8px;
+  padding: 1rem
+}
+
+.result-text {
+  font-size: 1.7rem;
+  color: var(--clr-font-white);
+  text-align: left;
+  margin-left: 1rem;
+  margin-bottom: 1rem;
+}
