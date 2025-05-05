@@ -1,7 +1,7 @@
 stages:
   - test
 
-image: python:3.13.3
+image: docker:20.10.16
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -15,14 +15,14 @@ cache:
     - venv/
 
 before_script:
+  - apk add --no-cache python3 py3-pip
   - docker pull postgres:16
-  - python --version
-  - python -m venv venv
+  - python3 --version
+  - python3 -m venv venv
   - source venv/bin/activate
   - pip install --upgrade pip
   - pip install -r server/requirements.txt
   - pip install pytest pytest-cov
-  - apt-get update && apt-get install -y docker-compose
 
 server_tests:
   stage: test
