@@ -8,8 +8,13 @@ from server.app.models.NtpTimestamps import NtpTimestamps
 from server.app.models.PreciseTime import PreciseTime
 from server.app.db.connection import insert_measurement
 from server.app.db.connection import get_all_measurements
+# from db_fixture import db_conn
+# from db_fixture import create_tables
+from db_fixture import db_pool
+from db_fixture import create_tables_pool
+from db_fixture import clean_db_after_each_test
 
-def test_insert_object():
+def test_insert_object(db_pool):
     t1 = PreciseTime(10000, 0)
     t2 = PreciseTime(10002, 2**27)
     t3 = PreciseTime(10003, 10000)
@@ -21,7 +26,14 @@ def test_insert_object():
 
     m = NtpMeasurement(server_details,times,main_details,extra)
 
-    # insert_measurement(m)
+    create_tables_pool(db_pool)
+    insert_measurement(m, db_pool)
+
+    with db_pool.connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM measurements")
+            count = cur.fetchone()[0]
+            assert count == 1
 
 # def test_get_all():
 #     print(get_all_measurements())

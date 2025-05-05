@@ -1,6 +1,6 @@
-CREATE TABLE IF NOT EXISTS public.times
+CREATE TABLE IF NOT EXISTS times
 (
-    id bigint NOT NULL DEFAULT nextval('times_id_seq'::regclass),
+    id bigserial NOT NULL,
     client_sent bigint,
     client_sent_prec bigint NOT NULL,
     server_recv bigint,
@@ -14,9 +14,9 @@ CREATE TABLE IF NOT EXISTS public.times
 );
 
 
-CREATE TABLE IF NOT EXISTS public.measurements
+CREATE TABLE IF NOT EXISTS measurements
 (
-    id bigint NOT NULL DEFAULT nextval('measurements_id_seq'::regclass),
+    id bigserial NOT NULL,
     ntp_server_ip inet,
     ntp_server_name text COLLATE pg_catalog."default",
     ntp_version smallint,
