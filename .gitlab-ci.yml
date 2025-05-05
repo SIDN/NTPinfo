@@ -43,7 +43,7 @@ integration_tests:
   script:
     - docker-compose -f docker-compose.yml up -d
     - sleep 10
-    - pytest --cov=server --cov-report=term-missing server/tests/integration
+    - pytest --cov=server --cov-report=term-missing server/integration-tests
   after_script:
     - docker-compose -f docker-compose.yml down
   rules:
