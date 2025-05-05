@@ -3,7 +3,7 @@ from server.app.models.NtpExtraDetails import NtpExtraDetails
 class NtpValidation:
 
     @staticmethod
-    def is_valid(*details : NtpExtraDetails) -> bool:
+    def is_valid(details : NtpExtraDetails) -> bool:
         """
         Checks the validity of the details object.
         According to ntp, the 'leap' attribute has only 2 bits and if its value is 3 (11 in binary) 

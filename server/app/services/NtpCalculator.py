@@ -6,7 +6,7 @@ class NtpCalculator:
         pass
     
     @staticmethod
-    def calculate_offset(*timestamps: NtpTimestamps) -> float:
+    def calculate_offset(timestamps: NtpTimestamps) -> float:
         """
         Calculates the clock offset between client and server using NTP timestamps.
         Uses the formula  ((t2 - t1) + (t3 - t4)) / 2
@@ -33,7 +33,7 @@ class NtpCalculator:
         return offset_seconds + offset_fraction / (2 ** 32)
     
     @staticmethod
-    def calculate_delay(*timestamps: NtpTimestamps) -> float:
+    def calculate_delay(timestamps: NtpTimestamps) -> float:
         """
          Calculates round-trip delay between client and server using NTP timestamps.
 
@@ -54,7 +54,7 @@ class NtpCalculator:
         return (a.seconds - b.seconds) + (b.fraction - a.fraction) / (2 ** 32)
     
     @staticmethod
-    def calculate_float_time(*time : PreciseTime) -> float:
+    def calculate_float_time(time : PreciseTime) -> float:
         """
         Converts a PreciseTime object to a float in seconds.
 
