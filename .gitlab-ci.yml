@@ -1,12 +1,12 @@
 stages:
   - test
-  - integration_tests
 
 image: python:3.13.3
 
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   PYTHONPATH: "$CI_PROJECT_DIR"
+  DOCKER_DRIVER: overlay2
 
 cache:
   key: ${CI_COMMIT_REF_SLUG}
@@ -15,6 +15,7 @@ cache:
     - venv/
 
 before_script:
+  - docker pull postgres:16
   - python --version
   - python -m venv venv
   - source venv/bin/activate
@@ -28,24 +29,12 @@ server_tests:
   script:
     - source venv/bin/activate
     - pytest --cov=server --cov-report=term-missing server/tests/
-  coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+(\d+%)$/'
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-
-integration_tests:
-  stage: integration_tests
-  image: docker:20.10.16
-  services:
-    - docker:dind
-  variables:
-    DOCKER_DRIVER: overlay2
-  script:
     - docker-compose -f docker-compose.yml up -d
-    - sleep 10
+    - docker-compose exec db bash -c 'until pg_isready -U test_user; do sleep 1; done'
     - pytest --cov=server --cov-report=term-missing server/integration-tests
   after_script:
     - docker-compose -f docker-compose.yml down
+  coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+(\d+%)$/'
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
