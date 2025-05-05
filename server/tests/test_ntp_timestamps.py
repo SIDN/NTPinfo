@@ -16,7 +16,7 @@ def test_same_time():
     t = PreciseTime(10000, 10000)
     times = NtpTimestamps(t, t, t, t)
     assert NtpCalculator.calculate_offset(times) == 0.0
-    assert NtpCalculator.calculate_offset(times) == 0.0
+    assert NtpCalculator.calculate_delay(times) == 0.0
 
 def test_different_times_offset():
     t1 = PreciseTime(10000, 0)
