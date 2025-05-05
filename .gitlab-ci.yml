@@ -1,5 +1,6 @@
 stages:
   - test
+  - integration_tests
 
 image: python:3.13.3
 
@@ -20,6 +21,7 @@ before_script:
   - pip install --upgrade pip
   - pip install -r server/requirements.txt
   - pip install pytest pytest-cov
+  - apk add --no-cache docker-compose python3 py3-pip
 
 server_tests:
   stage: test
@@ -27,6 +29,23 @@ server_tests:
     - source venv/bin/activate
     - pytest --cov=server --cov-report=term-missing server/tests/
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+(\d+%)$/'
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+integration_tests:
+  stage: integration_tests
+  image: docker:20.10.16
+  services:
+    - docker:dind
+  variables:
+    DOCKER_DRIVER: overlay2
+  script:
+    - docker-compose -f docker-compose.yml up -d
+    - sleep 10
+    - pytest --cov=server --cov-report=term-missing server/tests/integration
+  after_script:
+    - docker-compose -f docker-compose.yml down
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
