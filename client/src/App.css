@@ -20,9 +20,11 @@ html, body, #root {
 
 }
 
-html {
+body { /* instead of html */
   padding-top: 10rem;
 }
+
+
 
 .logo {
   height: 6em;
