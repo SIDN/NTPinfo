@@ -3,6 +3,17 @@
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+
+  /* global variables */
+  --bg-clr-primary: #292f36;
+  --bg-clr-secondary: #323E4C;
+  --clr-font-white: #eff6ee;
+  --clr-font-dark: #1B2025;
+  --clr-green: #10A219;
+  --bg-clr-hero: #CDCFDA;
+  --clr-red-1: #ff6b6b;
+  --clr-red-2: #F2404C;
+  --clr-btn-selected-purple: #27263F;
 }
 
 .logo {
@@ -16,6 +27,22 @@
 }
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+.open-popup-btn{
+  display:flex;
+  border-radius: 15px;
+  border: 5px solid;
+  padding: 0.6em 0.6em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--bg-clr-primary);
+  border-color: var(--bg-clr-secondary);
+  cursor: pointer;
+}
+.open-popup-btn:hover{
+  background-color: var(--clr-btn-selected-purple);
 }
 
 @keyframes logo-spin {
@@ -37,3 +64,9 @@
   padding: 2em;
 }
 
+.download-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 1rem;
+}
