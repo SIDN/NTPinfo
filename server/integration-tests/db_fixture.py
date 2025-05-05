@@ -32,8 +32,8 @@ def create_tables(conn):
 
 @pytest.fixture(scope="session")
 def db_pool():
-    # dsn = "postgresql://test_user:test_password@localhost:5433/test_db"
-    dsn = "postgresql://test_user:test_password@db:5432/test_db"
+    dsn = "postgresql://test_user:test_password@localhost:5433/test_db"
+    # dsn = "postgresql://test_user:test_password@db:5432/test_db"
     pool = ConnectionPool(conninfo=dsn, max_size=5)
 
     for _ in range(10):
