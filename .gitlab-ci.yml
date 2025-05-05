@@ -21,7 +21,7 @@ before_script:
   - pip install --upgrade pip
   - pip install -r server/requirements.txt
   - pip install pytest pytest-cov
-  - apk add --no-cache docker-compose python3 py3-pip
+  - apt-get update && apt-get install -y docker-compose
 
 server_tests:
   stage: test
