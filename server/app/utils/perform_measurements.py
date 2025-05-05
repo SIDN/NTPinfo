@@ -32,16 +32,16 @@ def perform_ntp_measurement_ip(server_ip:str="pool.ntp.org",ntp_version:int=3) -
         )
 
         timestamps:NtpTimestamps = NtpTimestamps(
-            client_sent_time=PreciseTime(ntplib._to_int(response.ref_timestamp),ntplib._to_time(response.ref_timestamp)),
-            server_recv_time=PreciseTime(ntplib._to_int(response.orig_timestamp),ntplib._to_time(response.orig_timestamp)),
-            server_sent_time=PreciseTime(ntplib._to_int(response.recv_timestamp),ntplib._to_time(response.recv_timestamp)),
-            client_recv_time=PreciseTime(ntplib._to_int(response.tx_timestamp),ntplib._to_time(response.tx_timestamp))
+            client_sent_time=PreciseTime(ntplib._to_int(response.ref_timestamp),ntplib._to_frac(response.ref_timestamp)),
+            server_recv_time=PreciseTime(ntplib._to_int(response.orig_timestamp),ntplib._to_frac(response.orig_timestamp)),
+            server_sent_time=PreciseTime(ntplib._to_int(response.recv_timestamp),ntplib._to_frac(response.recv_timestamp)),
+            client_recv_time=PreciseTime(ntplib._to_int(response.tx_timestamp),ntplib._to_frac(response.tx_timestamp))
         )
 
 
         main_details:NtpMainDetails = NtpMainDetails(
-            offset=response.offset(),
-            delay=response.delay(),
+            offset=response.offset,
+            delay=response.delay,
             stratum=response.stratum,
             precision=response.precision,
             reachability=""
@@ -55,3 +55,42 @@ def perform_ntp_measurement_ip(server_ip:str="pool.ntp.org",ntp_version:int=3) -
     except Exception as e:
         print("Error", e)
         return None
+
+
+def print_ntp_measurement(measurement: NtpMeasurement):
+    print("=== NTP Measurement ===")
+
+    #Server Info
+    server=measurement.server_info
+    print(f"Server Name:           {server.ntp_server_name}")
+    print(f"Server IP:             {server.ntp_server_ip}")
+    print(f"NTP Version:           {server.ntp_version}")
+    print(f"Reference Parent IP:   {server.ntp_server_ref_parent_ip}")
+    print(f"Reference Name (Raw):  {server.ref_name}")
+
+    #Timestamps
+    timestamps=measurement.timestamps
+    print(f"Client sent time:      {timestamps.client_sent_time.seconds}.{timestamps.client_sent_time.fraction}")
+    print(f"Server recv time:      {timestamps.server_recv_time.seconds}.{timestamps.server_recv_time.fraction}")
+    print(f"Server sent time:      {timestamps.server_sent_time.seconds}.{timestamps.server_sent_time.fraction}")
+    print(f"Client recv time:      {timestamps.client_recv_time.seconds}.{timestamps.client_recv_time.fraction}")
+
+    #Main Details
+    main=measurement.main_details
+    print(f"Offset (s):            {main.offset}")
+    print(f"Delay (s):             {main.delay}")
+    print(f"Stratum:               {main.stratum}")
+    print(f"Precision:             {main.precision}")
+    print(f"Reachability:          {main.reachability}")
+
+    # Extra Details
+    extra=measurement.extra_details
+    print(f"Root Delay:            {extra.root_delay}")
+    print(f"Last Sync Time:        {extra.ntp_last_sync_time}")
+    print(f"Leap:                  {extra.leap}")
+
+    print("=========================")
+
+
+m=perform_ntp_measurement_ip()
+print_ntp_measurement(m)
