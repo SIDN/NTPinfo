@@ -45,12 +45,12 @@ def perform_ntp_measurement_ip(server_ip_str:str,ntp_version:int=3) -> NtpMeasur
     try:
         client = ntplib.NTPClient()
         response = client.request(server_ip_str, ntp_version, timeout=6)
-        return convert_ntp_response_to_measurement(response=response,server_ip_str=server_ip_str,server_name="",ntp_version=ntp_version)
+        return convert_ntp_response_to_measurement(response=response,server_ip_str=server_ip_str,server_name=None,ntp_version=ntp_version)
     except Exception as e:
         print("Error in measure from ip:", e)
         return None
 
-def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str:str, server_name:str, ntp_version:int=3) -> NtpMeasurement | None:
+def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str:str, server_name:None|str, ntp_version:int=3) -> NtpMeasurement | None:
     """
     This method converts a NTP response to a NTP measurement object
     args:
