@@ -1,15 +1,14 @@
-from datetime import datetime, timezone
-import socket
+import socket,ntplib
 from ipaddress import ip_address, IPv4Address, IPv6Address
-
-import ntplib
-
+from datetime import datetime, timezone
 from server.app.models.NtpExtraDetails import NtpExtraDetails
 from server.app.models.NtpMainDetails import NtpMainDetails
 from server.app.models.NtpMeasurement import NtpMeasurement
 from server.app.models.NtpServerInfo import NtpServerInfo
 from server.app.models.NtpTimestamps import NtpTimestamps
 from server.app.models.PreciseTime import PreciseTime
+from server.app.utils.validate import is_ip_address
+
 
 def perform_ntp_measurement_domain_name(server_name:str="pool.ntp.org",ntp_version:int=3) -> NtpMeasurement | None:
     """
@@ -41,6 +40,8 @@ def perform_ntp_measurement_ip(server_ip_str:str,ntp_version:int=3) -> NtpMeasur
     returns:
         NtpMeasurement | None: it returns the NTP measurement object or None if something wrong happened (usually timeouts)
     """
+    if is_ip_address(server_ip_str) is None:
+        return None
     #server_name is not available here. We can only use the ip which is initially a string
     try:
         client = ntplib.NTPClient()
@@ -50,7 +51,18 @@ def perform_ntp_measurement_ip(server_ip_str:str,ntp_version:int=3) -> NtpMeasur
         print("Error in measure from ip:", e)
         return None
 
-def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str:str, server_name:None|str, ntp_version:int=3) -> NtpMeasurement | None:
+def convert_timestamp_to_precise_time(t:float)->PreciseTime:
+    """
+    This method converts a timestamp to precise time.
+    args:
+        t (float): the timestamp
+    returns:
+        PreciseTime: the precise time
+        mypy
+    """
+    return PreciseTime(ntplib._to_int(t),ntplib._to_frac(t))
+
+def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str:str, server_name:str|None, ntp_version:int=3) -> NtpMeasurement | None:
     """
     This method converts a NTP response to a NTP measurement object
     args:
@@ -88,8 +100,8 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
         )
 
         extra_details:NtpExtraDetails = NtpExtraDetails(
-            root_delay=float_to_precise_time(response.root_delay),
-            ntp_last_sync_time=float_to_precise_time(response.ref_timestamp),
+            root_delay=convert_float_to_precise_time(response.root_delay),
+            ntp_last_sync_time=convert_float_to_precise_time(response.ref_timestamp),
             leap=response.leap
         )
 
@@ -97,6 +109,18 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
     except Exception as e:
         print("Error in convert response to measurement:", e)
         return None
+
+def convert_float_to_precise_time(value:float)->PreciseTime:
+    """
+    Converts a float value to a PreciseTime object.
+    args:
+        value (float): the float value to convert
+    returns:
+        a PreciseTime object
+    """
+    seconds=int(value)
+    fraction=ntplib._to_frac(value) #by default, a second is split into 2^32 parts
+    return PreciseTime(seconds,fraction)
 
 def ref_id_to_ip_or_name(ref_id: int, stratum: int) -> tuple[None, str] | tuple[IPv4Address | IPv6Address, None] | tuple[None, None]:
     """
@@ -120,17 +144,6 @@ def ref_id_to_ip_or_name(ref_id: int, stratum: int) -> tuple[None, str] | tuple[
         else:
             return None,None #invalid stratum!!
 
-def float_to_precise_time(value:float)->PreciseTime:
-    """
-    Converts a float value to a PreciseTime object.
-    args:
-        value (float): the float value to convert
-    returns:
-        a PreciseTime object
-    """
-    seconds=int(value)
-    fraction=ntplib._to_frac(value) #by default, a second is split into 2^32 parts
-    return PreciseTime(seconds,fraction)
 
 def ntp_precise_time_to_human_date(t:PreciseTime) -> str:
     """
@@ -193,5 +206,5 @@ def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
         print("Error:", e)
         return False
 
-m=perform_ntp_measurement_domain_name()
-print_ntp_measurement(m)
+# m=perform_ntp_measurement_domain_name()
+# print_ntp_measurement(m)
