@@ -1,12 +1,12 @@
 from ipaddress import IPv6Address, IPv4Address
 
-from app.models.NtpExtraDetails import NtpExtraDetails
-from app.models.NtpMainDetails import NtpMainDetails
-from app.models.NtpMeasurement import NtpMeasurement
-from app.models.NtpServerInfo import NtpServerInfo
-from app.models.NtpTimestamps import NtpTimestamps
-from app.models.PreciseTime import PreciseTime
-from app.db.connection import insert_measurement
+from server.app.models.NtpExtraDetails import NtpExtraDetails
+from server.app.models.NtpMainDetails import NtpMainDetails
+from server.app.models.NtpMeasurement import NtpMeasurement
+from server.app.models.NtpServerInfo import NtpServerInfo
+from server.app.models.NtpTimestamps import NtpTimestamps
+from server.app.models.PreciseTime import PreciseTime
+from server.app.db.connection import insert_measurement
 from app.db.connection import get_all_measurements
 # from db_fixture import db_conn
 # from db_fixture import create_tables

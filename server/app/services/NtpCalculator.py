@@ -1,8 +1,8 @@
-from app.models.NtpTimestamps import NtpTimestamps
-from app.models.PreciseTime import PreciseTime
+from server.app.models.NtpTimestamps import NtpTimestamps
+from server.app.models.PreciseTime import PreciseTime
 class NtpCalculator:
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
     
     @staticmethod
@@ -28,8 +28,8 @@ class NtpCalculator:
             timestamps.server_sent_time.fraction - timestamps.client_recv_time.fraction
         )
         
-        offset_seconds = (a.seconds + b.seconds) / 2.0
-        offset_fraction = (a.fraction + b.fraction) / 2.0
+        offset_seconds:float = (a.seconds + b.seconds) / 2.0
+        offset_fraction:float = (a.fraction + b.fraction) / 2.0
         return offset_seconds + offset_fraction / (2 ** 32)
     
     @staticmethod
@@ -51,7 +51,8 @@ class NtpCalculator:
             timestamps.server_sent_time.seconds - timestamps.server_recv_time.seconds,
             timestamps.server_sent_time.fraction - timestamps.server_recv_time.fraction
         )
-        return (a.seconds - b.seconds) + (b.fraction - a.fraction) / (2 ** 32)
+        ans:float=(a.seconds - b.seconds) + (b.fraction - a.fraction) / (2 ** 32)
+        return ans
     
     @staticmethod
     def calculate_float_time(time : PreciseTime) -> float:
@@ -64,5 +65,6 @@ class NtpCalculator:
         returns:
             float: Time in seconds
         """
-        return time.seconds + time.fraction / (2 ** 32)
+        ans:float=time.seconds + time.fraction / (2 ** 32)
+        return ans
         
