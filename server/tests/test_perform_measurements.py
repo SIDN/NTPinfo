@@ -4,7 +4,7 @@ from app.utils.perform_measurements import *
 #import unittest
 from unittest.mock import patch, MagicMock
 #from app.models.NtpMeasurement import NtpMeasurement
-from server.app.models.PreciseTime import PreciseTime
+from app.models.PreciseTime import PreciseTime
 
 def test_ntp_precise_time_to_human_date():
     t=PreciseTime(None,12345)

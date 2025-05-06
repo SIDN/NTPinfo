@@ -1,4 +1,4 @@
-from server.app.models.NtpMeasurement import NtpMeasurement
+from app.models.NtpMeasurement import NtpMeasurement
 
 # inserts measurements in the database
 def insert_measurement(measurement : NtpMeasurement, pool) :
