@@ -24,7 +24,6 @@ before_script:
   - pip wheel --wheel-dir=.cache/wheels -r server/requirements.txt
   - pip install --no-index --find-links=.cache/wheels -r server/requirements.txt
   - pip install pytest pytest-cov
-  -
 typecheck:
   stage: typecheck
   script:
