@@ -79,7 +79,29 @@ def get_measurements_timestamps(pool, ip: IPv4Address | IPv6Address, start: Prec
         with conn.transaction():
             with conn.cursor() as cur:
                 cur.execute("""
-                            SELECT *
+                            SELECT m.id,
+                                   m.ntp_server_ip,
+                                   m.ntp_server_name,
+                                   m.ntp_version,
+                                   m.ntp_server_ref_parent,
+                                   m.ref_name,
+                                   m.time_offset,
+                                   m.delay,
+                                   m.stratum,
+                                   m.precision,
+                                   m.reachability,
+                                   m.root_delay,
+                                   m.root_delay_prec,
+                                   m.ntp_last_sync_time,
+                                   m.ntp_last_sync_time_prec,
+                                   t.client_sent,
+                                   t.client_sent_prec,
+                                   t.server_recv,
+                                   t.server_recv_prec,
+                                   t.server_sent,
+                                   t.server_sent_prec,
+                                   t.client_recv,
+                                   t.client_recv_prec
                             FROM measurements m
                                      JOIN times t ON m.time_id = t.id
                             WHERE m.ntp_server_ip = %(ip)s
@@ -92,4 +114,30 @@ def get_measurements_timestamps(pool, ip: IPv4Address | IPv6Address, start: Prec
                                 "end_t": end.seconds,
                                 "end_t_precision": end.fraction
                             })
-                return cur.fetchall()
+                columns = [
+                    "id",
+                    "ntp_server_ip",
+                    "ntp_server_name",
+                    "ntp_version",
+                    "ntp_server_ref_parent_ip",
+                    "ref_name",
+                    "offset",
+                    "delay",
+                    "stratum",
+                    "precision",
+                    "reachability",
+                    "root_delay",
+                    "root_delay_prec",
+                    "ntp_last_sync_time",
+                    "ntp_last_sync_time_prec",
+                    "client_sent",
+                    "client_sent_prec",
+                    "server_recv",
+                    "server_recv_prec",
+                    "server_sent",
+                    "server_sent_prec",
+                    "client_recv",
+                    "client_recv_prec"
+                ]
+
+                return [dict(zip(columns, row)) for row in cur]

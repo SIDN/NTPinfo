@@ -64,4 +64,7 @@ async def read_historic_data_time(ip: IPv4Address | IPv6Address, dn: str = None,
     start_test = datetime.fromisoformat(start_str)
     end_test = datetime.fromisoformat(end_str)
     result = fetch_historic_data_with_timestamps(ip, dn, start_test, end_test)
-    print(result)
+    formatted_results = [get_format(entry) for entry in result]
+    return {
+        "measurements": formatted_results
+    }

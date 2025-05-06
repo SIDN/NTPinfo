@@ -45,4 +45,21 @@ def fetch_historic_data_with_timestamps(ip: IPv4Address | IPv6Address, dn: str, 
     # end_pt = datetime_to_ntp_time(end)
     start_pt = PreciseTime(450, 20)
     end_pt = PreciseTime(1200, 100)
-    return get_measurements_timestamps(pool, ip, start_pt, end_pt)
+    raw_data = get_measurements_timestamps(pool, ip, start_pt, end_pt)
+    measurements = []
+    for entry in raw_data:
+        server_info = NtpServerInfo(entry['ntp_version'], entry['ntp_server_ip'], entry['ntp_server_name'],
+                                    entry['ntp_server_ref_parent_ip'], entry['ref_name'])
+        extra_details = NtpExtraDetails(PreciseTime(entry['root_delay'], entry['root_delay_prec']),
+                                        PreciseTime(entry['ntp_last_sync_time'], entry['ntp_last_sync_time_prec']),
+                                        0)
+        main_details = NtpMainDetails(entry['offset'], entry['delay'], entry['stratum'],
+                                      entry['precision'], entry['reachability'])
+        time_stamps = NtpTimestamps(PreciseTime(entry['client_sent'], entry['client_sent_prec']),
+                                    PreciseTime(entry['server_recv'], entry['server_recv_prec']),
+                                    PreciseTime(entry['server_sent'], entry['server_sent_prec']),
+                                    PreciseTime(entry['client_recv'], entry['client_recv_prec']),
+                                    )
+        measurement = NtpMeasurement(server_info, time_stamps, main_details, extra_details)
+        measurements.append(measurement)
+    return measurements
