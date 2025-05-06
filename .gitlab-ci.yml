@@ -8,17 +8,20 @@ variables:
   PYTHONPATH: "$CI_PROJECT_DIR"
 
 cache:
-  key: ${CI_COMMIT_REF_SLUG}
+  key:
+    files:
+      - server/requirements.txt
   paths:
     - .cache/pip
-    - venv/
+    - .cache/wheels
 
 before_script:
   - python --version
   - python -m venv venv
   - source venv/bin/activate
   - pip install --upgrade pip
-  - pip install -r server/requirements.txt
+  - pip wheel --wheel-dir=.cache/wheels -r server/requirements.txt
+  - pip install --no-index --find-links=.cache/wheels -r server/requirements.txt
   - pip install pytest pytest-cov
 
 server_tests:
