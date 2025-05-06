@@ -1,8 +1,10 @@
 from dataclasses import dataclass
-from server.app.models.NtpExtraDetails import NtpExtraDetails
-from server.app.models.NtpServerInfo import NtpServerInfo
-from server.app.models.NtpMainDetails import NtpMainDetails
-from server.app.models.NtpTimestamps import NtpTimestamps
+from app.models.NtpExtraDetails import NtpExtraDetails
+from app.models.NtpServerInfo import NtpServerInfo
+from app.models.NtpMainDetails import NtpMainDetails
+from app.models.NtpTimestamps import NtpTimestamps
+
+
 @dataclass
 class NtpMeasurement:
     """

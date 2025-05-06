@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from server.app.models.PreciseTime import PreciseTime
+from app.models.PreciseTime import PreciseTime
+
 
 @dataclass
 class NtpExtraDetails:
