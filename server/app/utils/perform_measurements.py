@@ -58,7 +58,6 @@ def convert_timestamp_to_precise_time(t:float)->PreciseTime:
         t (float): the timestamp
     returns:
         PreciseTime: the precise time
-        mypy
     """
     return PreciseTime(ntplib._to_int(t),ntplib._to_frac(t))
 
@@ -66,10 +65,10 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
     """
     This method converts a NTP response to a NTP measurement object
     args:
-        response: the NTP response to convert
-        server_ip_str: the ip address of the ntp server in string format
-        server_name: the name of the ntp server
-        ntp_version: the version of the ntp that you want to use
+        response (ntplib.NTPStats): the NTP response to convert
+        server_ip_str (str): the ip address of the ntp server in string format
+        server_name (str|None): the name of the ntp server
+        ntp_version (int): the version of the ntp that you want to use
     returns:
         NtpMeasurement | None: it returns a NTP measurement object if converting was successful
     """
@@ -148,7 +147,7 @@ def ref_id_to_ip_or_name(ref_id: int, stratum: int) -> tuple[None, str] | tuple[
 def ntp_precise_time_to_human_date(t:PreciseTime) -> str:
     """
     Converts a PreciseTime object to a human-readable time string in UTC. (ex:'2025-05-05 14:30:15.123456 UTC')
-    We need to shift from ntptime to unix time so we need to subtract all the seconds from 1900 to 1970
+    We need to shift from ntp time to unix time so we need to subtract all the seconds from 1900 to 1970
 
     args:
         t (PreciseTime): The PreciseTime object.
@@ -167,6 +166,8 @@ def ntp_precise_time_to_human_date(t:PreciseTime) -> str:
 def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
     """
         It prints the ntp measurement in a human-readable format and returns True if the printing was successful.
+        args:
+            measurement (NtpMeasurement): the NtpMeasurement object.
     """
     try:
         print("=== NTP Measurement ===")
