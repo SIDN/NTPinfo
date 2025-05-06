@@ -29,7 +29,7 @@ before_script:
 typecheck:
   stage: typecheck
   script:
-    - source venv/bin/activate
+    - source server/venv/bin/activate
     # run mypy against your packages
     - mypy server/app --strict
   rules:
