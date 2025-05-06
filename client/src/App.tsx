@@ -4,6 +4,7 @@ import './App.css'
 import Hero from './components/Hero'
 import SearchBar from './components/SearchBar'
 import ResultSummary from './components/ResultSummary'
+import Graphs from './components/Graphs'
 
 function App() {
 
@@ -30,14 +31,19 @@ function App() {
 // +    </div>
 
     <div className="app-container">
-+      <Hero />
-+      <div className="search-wrapper">
-+        <SearchBar onSearch={handleSearch} />
-+      </div>
-+
-+      <ResultSummary />
-+    </div>
-  )
+      <Hero />
+      <div className="search-wrapper">
+        <SearchBar onSearch={handleSearch} />
+      </div>
+        <div className="result-text">
+          <p>Results</p>
+        </div>
+      <div className="results-and-graph">
+        <ResultSummary />
+        <Graphs />
+      </div>
+    </div>
+    )
 }
 
 export default App

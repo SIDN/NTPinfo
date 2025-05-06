@@ -12,9 +12,6 @@ function ResultSummary() {
     });
     return (
         <>
-            <div className="result-text">
-                <p>Results</p>
-            </div>
             <div className="result-box">
                 <div className="metric"><span>Offset</span><span>{data.offset} ms</span></div>
                 <div className="metric"><span>Delay</span><span>{data.delay} ms</span></div>
@@ -22,7 +19,7 @@ function ResultSummary() {
                 <div className="metric"><span>Stratum</span><span>{data.stratum}</span></div>
                 <div className="metric"><span>Reachability</span><span>{data.reachability}%</span></div>
                 <div className="status-line">
-                    <span className="status-label">STATUS:</span>
+                    <span className="status-label">STATUS:&nbsp;</span>
                     <span className={`status-value ${data.status.toLowerCase()}`}>{data.status}</span>
                 </div>
             </div>

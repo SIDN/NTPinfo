@@ -24,8 +24,6 @@ body { /* instead of html */
   padding-top: 10rem;
 }
 
-
-
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -74,4 +72,20 @@ body { /* instead of html */
   margin-left: 1rem;
   /* max-width: 600px; */
   width: 60%;
+}
+
+.results-and-graph {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  flex-wrap: wrap;
+}
+
+.result-text {
+  font-size: 1.7rem;
+  color: var(--clr-font-white);
+  text-align: left;
+  margin-left: 1rem;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
 }
