@@ -2,7 +2,9 @@ from ipaddress import IPv4Address, IPv6Address
 
 from fastapi import FastAPI, HTTPException
 from app.main import measure
+from app.main import fetch_historic_data_with_timestamps
 from app.models.NtpMeasurement import NtpMeasurement
+from datetime import datetime
 
 
 def get_format(measurement: NtpMeasurement):
@@ -40,11 +42,26 @@ def read_root():
 
 
 @app.post("/measurements/")
-async def read_item(ip: IPv4Address | IPv6Address = None, dn: str = None):
+async def read_data_measurement(ip: IPv4Address | IPv6Address, dn: str = None):
     # the case in which none of them are mentioned
-    if ip == None and dn is None:
+    if ip == None:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
     result = measure(ip, dn)
     return {
         "measurement": get_format(result)
     }
+
+
+@app.get("/measurements/history/")
+async def read_historic_data_time(ip: IPv4Address | IPv6Address, dn: str = None,
+                                  start: datetime = None, end: datetime = None):
+    if ip == None:
+        raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
+    start_str = "2024-05-01T12:00:00"
+    end_str = "2024-05-01T12:30:00"
+
+    # Convert to datetime
+    start_test = datetime.fromisoformat(start_str)
+    end_test = datetime.fromisoformat(end_str)
+    result = fetch_historic_data_with_timestamps(ip, dn, start_test, end_test)
+    print(result)

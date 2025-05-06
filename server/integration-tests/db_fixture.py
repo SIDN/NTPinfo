@@ -3,6 +3,7 @@ import psycopg
 import time
 from psycopg_pool import ConnectionPool
 
+
 @pytest.fixture(scope="session")
 def db_conn():
     for _ in range(10):
@@ -24,11 +25,13 @@ def db_conn():
 
     conn.close()
 
+
 def create_tables(conn):
     with conn.cursor() as cur:
         with open("sql-scripts/setup-db.sql", "r") as f:
             cur.execute(f.read())
         conn.commit()
+
 
 @pytest.fixture(scope="session")
 def db_pool():
@@ -59,12 +62,12 @@ def create_tables_pool(pool):
                 cur.execute(f.read())
             conn.commit()
 
-@pytest.fixture(scope="function", autouse=True)
-def clean_db_after_each_test(db_pool):
-    # fixture to truncate tables after each test
-    with db_pool.connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute("TRUNCATE TABLE measurements, times RESTART IDENTITY CASCADE;")
-            conn.commit()
-
-    yield
+# @pytest.fixture(scope="function", autouse=True)
+# def clean_db_after_each_test(db_pool):
+#     # fixture to truncate tables after each test
+#     with db_pool.connection() as conn:
+#         with conn.cursor() as cur:
+#             cur.execute("TRUNCATE TABLE measurements, times RESTART IDENTITY CASCADE;")
+#             conn.commit()
+#
+#     yield
