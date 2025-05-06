@@ -43,6 +43,10 @@ Jinja2~=3.1.6
 python-multipart~=0.0.20
 psycopg2-binary>=2.9.10
 ntplib~=0.4.0
+pytest-cov~=6.1.1
+black~=24.4.2
+mypy~=1.10.0
+
 python-dotenv
 psycopg[binary,pool]
 
