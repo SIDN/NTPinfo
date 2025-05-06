@@ -1,13 +1,13 @@
 from ipaddress import IPv6Address, IPv4Address, ip_address
 
-from app.models.NtpExtraDetails import NtpExtraDetails
-from app.models.NtpMainDetails import NtpMainDetails
-from app.models.NtpMeasurement import NtpMeasurement
-from app.models.NtpServerInfo import NtpServerInfo
-from app.models.NtpTimestamps import NtpTimestamps
-from app.models.PreciseTime import PreciseTime
-from app.services.NtpCalculator import NtpCalculator
-from app.services.NtpValidation import NtpValidation
+from server.app.models.NtpExtraDetails import NtpExtraDetails
+from server.app.models.NtpMainDetails import NtpMainDetails
+from server.app.models.NtpMeasurement import NtpMeasurement
+from server.app.models.NtpServerInfo import NtpServerInfo
+from server.app.models.NtpTimestamps import NtpTimestamps
+from server.app.models.PreciseTime import PreciseTime
+from server.app.services.NtpCalculator import NtpCalculator
+from server.app.services.NtpValidation import NtpValidation
 
 def test_calculate_float_time():
     t = PreciseTime(10000, 2**29)

@@ -25,3 +25,8 @@ server/.venv/
 Thumbs.db
 .DS_Store
 
+# pipeline
+run_pipeline.sh
+.cache/
+.coverage
+venv/
