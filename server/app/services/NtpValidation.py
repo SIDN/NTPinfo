@@ -1,4 +1,4 @@
-from server.app.models.NtpExtraDetails import NtpExtraDetails
+from app.models.NtpExtraDetails import NtpExtraDetails
 
 class NtpValidation:
 

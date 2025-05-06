@@ -17,6 +17,7 @@ cache:
     - .cache/wheels
 
 before_script:
+  - cd server
   - python --version
   - python -m venv venv
   - source venv/bin/activate
@@ -24,6 +25,7 @@ before_script:
   - pip wheel --wheel-dir=.cache/wheels -r server/requirements.txt
   - pip install --no-index --find-links=.cache/wheels -r server/requirements.txt
   - pip install pytest pytest-cov
+  - cd ..
 typecheck:
   stage: typecheck
   script:
@@ -38,7 +40,7 @@ typecheck:
 server_tests:
   stage: test
   script:
-    - source venv/bin/activate
+    - source server/venv/bin/activate
     - pytest --cov=server --cov-report=term-missing server/tests/
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+(\d+%)$/'
   rules:

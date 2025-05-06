@@ -1,5 +1,5 @@
-from server.app.models.NtpTimestamps import NtpTimestamps
-from server.app.models.PreciseTime import PreciseTime
+from app.models.NtpTimestamps import NtpTimestamps
+from app.models.PreciseTime import PreciseTime
 class NtpCalculator:
 
     def __init__(self):

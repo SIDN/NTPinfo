@@ -1,10 +1,9 @@
 from ipaddress import IPv6Address, IPv4Address, ip_address
 
-from server.app.utils.perform_measurements import ntp_precise_time_to_human_date, ref_id_to_ip_or_name, \
-    perform_ntp_measurement_domain_name, perform_ntp_measurement_ip, print_ntp_measurement
-import unittest
+from app.utils.perform_measurements import *
+#import unittest
 from unittest.mock import patch, MagicMock
-from server.app.models.NtpMeasurement import NtpMeasurement
+#from app.models.NtpMeasurement import NtpMeasurement
 from server.app.models.PreciseTime import PreciseTime
 
 def test_ntp_precise_time_to_human_date():
@@ -22,8 +21,8 @@ def test_ref_id_to_ip_or_name():
     assert ip is None
     assert name is None
 
-@patch("server.app.utils.perform_measurements.socket.getaddrinfo")
-@patch("server.app.utils.perform_measurements.ntplib.NTPClient.request")
+@patch("app.utils.perform_measurements.socket.getaddrinfo")
+@patch("app.utils.perform_measurements.ntplib.NTPClient.request")
 def test_perform_ntp_measurement_domain_name(mock_request, mock_getaddrinfo):
     # Mock socket.getaddrinfo
     mock_getaddrinfo.return_value = [(None, None, None, None, ("123.45.67.89", 0))]
@@ -72,7 +71,7 @@ def test_perform_ntp_measurement_domain_name(mock_request, mock_getaddrinfo):
     assert result.extra_details.leap == 0
 
 
-@patch("server.app.utils.perform_measurements.ntplib.NTPClient.request")
+@patch("app.utils.perform_measurements.ntplib.NTPClient.request")
 def test_perform_ntp_measurement_ip(mock_request):
 
     # Create a fake ntplib response

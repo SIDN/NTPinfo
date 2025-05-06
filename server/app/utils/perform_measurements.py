@@ -1,13 +1,13 @@
 import socket,ntplib
 from ipaddress import ip_address, IPv4Address, IPv6Address
 from datetime import datetime, timezone
-from server.app.models.NtpExtraDetails import NtpExtraDetails
-from server.app.models.NtpMainDetails import NtpMainDetails
-from server.app.models.NtpMeasurement import NtpMeasurement
-from server.app.models.NtpServerInfo import NtpServerInfo
-from server.app.models.NtpTimestamps import NtpTimestamps
-from server.app.models.PreciseTime import PreciseTime
-from server.app.utils.validate import is_ip_address
+from app.models.NtpExtraDetails import NtpExtraDetails
+from app.models.NtpMainDetails import NtpMainDetails
+from app.models.NtpMeasurement import NtpMeasurement
+from app.models.NtpServerInfo import NtpServerInfo
+from app.models.NtpTimestamps import NtpTimestamps
+from app.models.PreciseTime import PreciseTime
+from app.utils.validate import is_ip_address
 
 
 def perform_ntp_measurement_domain_name(server_name:str="pool.ntp.org",ntp_version:int=3) -> NtpMeasurement | None:
