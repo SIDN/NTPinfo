@@ -1,3 +1,5 @@
+from typing import Any, cast, List, Tuple
+
 from psycopg_pool import ConnectionPool
 
 from server.app.models.NtpMeasurement import NtpMeasurement
@@ -30,7 +32,11 @@ def insert_measurement(measurement : NtpMeasurement, pool: ConnectionPool) -> No
                 ))
 
                 # used because we have it as a foreign key in the measurements table
-                time_id = cur.fetchone()[0]
+                row = cur.fetchone()
+                if row is None:
+                    raise ValueError("Expected a result from INSERT RETURNING id, but got None")
+                time_id = row[0]
+                #time_id = cur.fetchone()[0]
 
                 cur.execute("""
                     INSERT INTO measurements(
@@ -59,7 +65,7 @@ def insert_measurement(measurement : NtpMeasurement, pool: ConnectionPool) -> No
 
 
 # get all the measurements in the database
-def get_all_measurements(pool: ConnectionPool) :
+def get_all_measurements(pool: ConnectionPool) -> list[tuple[Any, ...]]:
     with pool.connection() as conn :
         # if anything fails inside the transaction() block, it rolls back.
         # otherwise, it commits when the block exits cleanly.
@@ -69,4 +75,4 @@ def get_all_measurements(pool: ConnectionPool) :
                     SELECT *
                     FROM measurements m JOIN times t ON m.time_id = t.id
                 """)
-                return cur.fetchall()
+                return cast(List[Tuple[Any, ...]], cur.fetchall())
