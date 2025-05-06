@@ -1,6 +1,8 @@
 import { useState, useRef } from "react";
 import Dropdown from "./Dropdown";
 import '../styles/Popup.css'
+import { NTPData } from "../types";
+import LineChart from "./LineGraph";
 
 interface DropdownConfig {
     label: string;
@@ -8,21 +10,29 @@ interface DropdownConfig {
     selectedValue: string;
     onSelect: (value: string) => void;
     className: string;
-  }
+}
 
 interface PopupDropdownProps{
     isOpen: boolean
     onClose: () => void
     dropdowns: DropdownConfig[]
+    data: NTPData[]
 }
 
-export default function VisualizationPopup({isOpen, onClose, dropdowns}: PopupDropdownProps ) {
+type Measurement = 'delay' | 'offset'
+
+export default function VisualizationPopup({isOpen, onClose, dropdowns, data}: PopupDropdownProps ) {
     const popupRef = useRef(null)
 
     const [isCustomChecked, setCustomChecked] = useState(false)
     const [isOffsetChecked, setOffsetChecked] = useState(true)
     const [isDelayChecked, setDelayChecked] = useState(false)
     const [textVal, setTextVal] = useState("")
+    const [selMeasurement, setSelMeasurement] = useState<Measurement>("delay");
+
+    const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSelMeasurement(event.target.value as Measurement);
+      };
 
     // useEffect(() => {
     //     function handleClickOutside(event: MouseEvent) {
@@ -83,23 +93,51 @@ export default function VisualizationPopup({isOpen, onClose, dropdowns}: PopupDr
                             className={dropdowns[1].className}/>
                         </div>
                     )}
-                    {/*Checkbox for showing offset data*/} 
-                    <label className="checkbox-measurement-label">
+                    {/*Radio for showing offset data*/} 
+                    <label className="radio-measurement-label">
                         <input
-                        type = "checkbox"
+                            type="radio"
+                            name="measurement"
+                            value="offset"
+                            checked={selMeasurement === 'offset'}
+                            onChange={handleMeasurementChange}
+                        />
+                        Offset
+                    </label>
+                    {/*Radio for showing delay data*/} 
+                    <label className="radio-measurement-label">
+                        <input
+                            type="radio"
+                            name="measurement"
+                            value="delay"
+                            checked={selMeasurement === 'delay'}
+                            onChange={handleMeasurementChange}
+                        />
+                        Delay
+                    </label>
+
+                    
+                    {/*<label className="checkbox-measurement-label">
+                        <input
+                        type = "radio"
+                        name = "measurement-type"
                         checked = {isOffsetChecked}
                         onChange={() => setOffsetChecked(!isOffsetChecked)}/>
                         Offset
                     </label>
 
-                    {/*Checkbox for showing delay data*/} 
+                    
                     <label className="checkbox-measurement-label">
                         <input
-                        type = "checkbox"
+                        type = "radio"
+                        name = "measurement-type"
                         checked = {isDelayChecked}
                         onChange={() => setDelayChecked(!isDelayChecked)}/>
                         Delay
-                    </label>
+                    </label>*/}
+                </div>
+                <div className="chart-box">
+                    <LineChart data = {data} selectedMeasurement = {selMeasurement}/>
                 </div>
             </div>
         </div>

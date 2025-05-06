@@ -102,7 +102,8 @@ function App() {
         <VisualizationPopup 
         isOpen={popupOpen} 
         onClose={() => setPopupOpen(false)}
-        dropdowns={dropdown}/>
+        dropdowns={dropdown}
+        data = {dummyData}/>
       </div>
       <div>
       <label>
