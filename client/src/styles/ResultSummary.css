@@ -33,7 +33,7 @@
 
   margin-left: 1rem;
   grid-area: summary;
-  height: auto;
+  height: 310px;
   width: 350px;
   background-color: var(--bg-clr-secondary);
   color: var(--clr-font-white);
@@ -55,7 +55,7 @@
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  margin-top: 0.5rem;
+  margin-top: 4rem;
 }
 
 .result-text { /* now used in App.css */

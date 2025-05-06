@@ -52,13 +52,15 @@ body { /* instead of html */
   display:flex;
   border-radius: 15px;
   border: 5px solid;
-  padding: 0.6em 0.6em;
+  /* padding: 0.6em 0.6em; */
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
   background-color: var(--bg-clr-primary);
   border-color: var(--bg-clr-secondary);
   cursor: pointer;
+
+  padding: .5rem .75rem;
 }
 .open-popup-btn:hover{
   background-color: var(--clr-btn-selected-purple);
@@ -115,9 +117,56 @@ body { /* instead of html */
   margin-left: 1rem;
   margin-bottom: 1rem;
   margin-top: 1rem;
-}.download-buttons {
+}
+
+.download-buttons {
   display: flex;
   align-items: center;
-  justify-content: space-evenly;
+  /* justify-content: space-evenly; */
+  padding-left: 2rem;
   gap: 1rem;
+}
+
+.graphs {
+  display: flex;
+  gap: 1rem;
+  /* margin-top: 1rem; */
+  flex: 2 1 400px;
+}
+
+.graph-box {
+  /* flex: 1; */
+  height: 150px;
+  background-color: #2a2a3c;
+  /* border-radius: 8px; */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: white;
+  width: 500px;
+
+
+  margin-left: 1rem;
+  grid-area: summary;
+  height: auto;
+  width: 600px;
+  background-color: var(--bg-clr-secondary);
+  color: var(--clr-font-white);
+  font-weight: bold;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+
+  /* max-width: 600px;
+  height: auto;
+  padding: 1rem; */
+
+
+}
+
+.graph-box canvas {
+  max-height: 200px;
 }

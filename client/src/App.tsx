@@ -5,7 +5,7 @@ import Hero from './components/Hero'
 import SearchBar from './components/SearchBar'
 import ResultSummary from './components/ResultSummary'
 import Graphs from './components/Graphs'
-
+import DownloadButton from './components/DownloadButton'
 import VisualizationPopup from './components/Visualization'
 import LineChart from './components/LineGraph'
 // import DownloadButton from './components/DownloadButton'
@@ -92,16 +92,37 @@ function App() {
     setSelMeasurement(event.target.value as Measurement);
   };
   //the dummy data will be used for the buttons, uncomment when the buttons actually get added to the page (if needed)
- /* const dummyData : InputData = {
+  const dummyData : InputData = {
     data : [{
       offset: 0.3,
       delay: 0.3,
       stratum: 1,
       jitter: 1.8,
       reachability: 1,
-      passing: true
-    }]*/
-   const dummyData = [{offset: 0.3,delay: 0.3,stratum: 1,jitter: 1.8,reachability: 1,passing: true,time: Date.now()},{offset: 1.2,delay: 13.4,stratum: 2,jitter: 0.5,reachability: 1,passing: true,time: Date.now() - 40000},
+      passing: true,
+      time: Date.now() - 20000
+      },
+      {
+        offset: 1.2,
+        delay: 13.4,
+        stratum: 2,
+        jitter: 0.5,
+        reachability: 1,
+        passing: true,
+        time: Date.now() - 40000
+      },
+      {
+        offset: 0.8,
+        delay: 4.8,
+        stratum: 2,
+        jitter: 0.6,
+        reachability: 1,
+        passing: true,
+        time: Date.now() - 20000
+      }
+     ]}
+  //this will be merged with dummyData, temporary solution
+  const chartData = [{offset: 0.3,delay: 0.3,stratum: 1,jitter: 1.8,reachability: 1,passing: true,time: Date.now()},{offset: 1.2,delay: 13.4,stratum: 2,jitter: 0.5,reachability: 1,passing: true,time: Date.now() - 40000},
   {offset: 0.8,delay: 4.8,stratum: 2,jitter: 0.6,reachability: 1,passing: true,time: Date.now() - 20000}];
    return (
     // <>
@@ -130,23 +151,50 @@ function App() {
         </div>
       <div className="results-and-graph">
         <ResultSummary />
-        <Graphs />
+        {/* <Graphs /> */}
+        <div className="graphs">
+          <div className='graph-box'>
+            <label>
+              <input
+                type="radio"
+                name="measurement"
+                value="offset"
+                checked={selMeasurement === 'offset'}
+                onChange={handleMeasurementChange}
+              />
+              Jitter
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="measurement"
+                value="delay"
+                checked={selMeasurement === 'delay'}
+                onChange={handleMeasurementChange}
+              />
+              Jitter
+            </label>
+            <LineChart data = {chartData} selectedMeasurement={selMeasurement}/>
+          </div>
+        </div>
       </div>
-      {/*These are commented for now, will be added later to avoid conflicts in the current version
+      {/* These are commented for now, will be added later to avoid conflicts in the current version */}
+
       <div className="download-buttons">
 
-      <DownloadButton name="Download JSON" onclick={() => downloadJSON(dummyData)} />
-      <DownloadButton name="Download CSV" onclick={() => downloadCSV(dummyData)} />
-      </div>*/}
-      <div>
-        <button className="open-popup-btn" onClick={() => setPopupOpen(true)}>View Historical Data</button>
-        <VisualizationPopup
-        isOpen={popupOpen}
-        onClose={() => setPopupOpen(false)}
-        dropdowns={dropdown}/>
+        <DownloadButton name="Download JSON" onclick={() => downloadJSON(dummyData)} />
+        <DownloadButton name="Download CSV" onclick={() => downloadCSV(dummyData)} />
+        <div>
+          <button className="open-popup-btn" onClick={() => setPopupOpen(true)}>View Historical Data</button>
+          <VisualizationPopup
+          isOpen={popupOpen}
+          onClose={() => setPopupOpen(false)}
+          dropdowns={dropdown}/>
+        </div>
       </div>
-      <div>
-      <label>
+
+      {/* <div>
+        <label>
           <input
             type="radio"
             name="measurement"
@@ -166,8 +214,10 @@ function App() {
           />
           Jitter
         </label>
-        <LineChart data = {dummyData} selectedMeasurement={selMeasurement}/>
-        </div>
+        <LineChart data = {chartData} selectedMeasurement={selMeasurement}/>
+      </div> */}
+
+
     </div>
      )
 }
