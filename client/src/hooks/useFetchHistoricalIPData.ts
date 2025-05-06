@@ -3,8 +3,8 @@ import axios from "axios";
 import { NTPData } from "../types";
 import { transformJSONData } from "../transformJSONData";
 
-export const useFetchIPData = () => {
-    const [data, setData] = useState<NTPData | null>(null);
+export const useFetchHistoricalIPData = () => {
+    const [data, setData] = useState<NTPData[] | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<Error | null>(null);
 
@@ -14,7 +14,7 @@ export const useFetchIPData = () => {
         try {
             const resp = await axios.get(endpoint);
             const transformedData = transformJSONData(resp.data);
-            setData(transformedData ? transformedData[0] : null);
+            setData(transformedData ? transformedData : null);
         } catch (err: any) {
             setError(err);
         } finally {
