@@ -1,7 +1,9 @@
+from psycopg_pool import ConnectionPool
+
 from server.app.models.NtpMeasurement import NtpMeasurement
 
 # inserts measurements in the database
-def insert_measurement(measurement : NtpMeasurement, pool) :
+def insert_measurement(measurement : NtpMeasurement, pool: ConnectionPool) -> None:
 
     # uses a connection pool because connecting everytime
     # to the database is inefficient and can quickly exhaust resource
@@ -57,7 +59,7 @@ def insert_measurement(measurement : NtpMeasurement, pool) :
 
 
 # get all the measurements in the database
-def get_all_measurements(pool) :
+def get_all_measurements(pool: ConnectionPool) :
     with pool.connection() as conn :
         # if anything fails inside the transaction() block, it rolls back.
         # otherwise, it commits when the block exits cleanly.

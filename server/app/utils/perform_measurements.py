@@ -51,7 +51,7 @@ def perform_ntp_measurement_ip(server_ip_str:str,ntp_version:int=3) -> NtpMeasur
         print("Error in measure from ip:", e)
         return None
 
-def convert_timestamp_to_precise_time(t:float)->PreciseTime:
+def convert_timestamp_to_precise_time(t:float) -> PreciseTime:
     """
     This method converts a timestamp to precise time.
     args:
@@ -109,7 +109,7 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
         print("Error in convert response to measurement:", e)
         return None
 
-def convert_float_to_precise_time(value:float)->PreciseTime:
+def convert_float_to_precise_time(value:float) -> PreciseTime:
     """
     Converts a float value to a PreciseTime object.
     args:
