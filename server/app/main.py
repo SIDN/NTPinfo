@@ -1,5 +1,3 @@
-from ipaddress import IPv4Address, IPv6Address
-
 from server.app.db.connection import insert_measurement
 from server.app.db.connection import get_measurements_timestamps_ip, get_measurements_timestamps_dn
 from server.app.models.NtpExtraDetails import NtpExtraDetails
@@ -19,16 +17,26 @@ from datetime import datetime
 
 
 def measure(server: str) -> NtpMeasurement | None:
-    # t1 = PreciseTime(10000, 0)
-    # t2 = PreciseTime(10002, 2 ** 27)
-    # t3 = PreciseTime(10003, 10000)
-    # t4 = PreciseTime(10004, 10000)
-    # server_details = NtpServerInfo(3, IPv4Address('192.0.2.1'), "local", IPv6Address('2001:db8::1'), "reference")
-    # times = NtpTimestamps(t1, t2, t3, t4)
-    # main_details = NtpMainDetails(0.009, 0, 1, 0, "stable")
-    # extra = NtpExtraDetails(PreciseTime(100000, 0), PreciseTime(100000, 0), 0)
-    #
-    # m = NtpMeasurement(server_details, times, main_details, extra
+    """
+    Performs an NTP measurement for a given server (IP or domain name) and stores the result in the database.
+
+    This function determines whether the input is an IP address or a domain name,
+    then performs an NTP measurement using the appropriate method. The result is inserted
+    into the database and returned.
+
+    Args:
+        server (str): A string representing either an IPv4/IPv6 address or a domain name.
+
+    Returns:
+        NtpMeasurement | None:
+            - A populated `NtpMeasurement` object if the measurement is successful.
+            - `None` if an exception occurs during the measurement process.
+
+    Notes:
+        - If the server string is empty or improperly formatted, this may raise exceptions internally,
+          which are caught and logged to stdout.
+        - This function modifies persistent state by inserting a measurement into the database.
+    """
     try:
         if is_ip_address(server) is not None:
             m = perform_ntp_measurement_ip(server)
@@ -44,6 +52,29 @@ def measure(server: str) -> NtpMeasurement | None:
 
 
 def fetch_historic_data_with_timestamps(server: str, start: datetime, end: datetime):
+    """
+    Fetches and reconstructs NTP measurements from the database within a specific time range.
+
+    Converts the provided human-readable datetime range into NTP-compatible timestamps,
+    queries the database based on whether the server is an IP address or domain name,
+    and reconstructs each result as an `NtpMeasurement` object.
+
+    Args:
+        server (str): An IPv4/IPv6 address or domain name string for which measurements should be fetched.
+        start (datetime): The start of the time range (in local or UTC timezone).
+        end (datetime): The end of the time range (in local or UTC timezone).
+
+    Returns:
+        list[NtpMeasurement]: A list of `NtpMeasurement` objects representing the historical data
+        for the given server within the time window.
+
+    Notes:
+        - The input datetimes are converted to UTC before processing.
+        - IP addresses are validated using the `is_ip_address()` utility function.
+        - Data is fetched using `get_measurements_timestamps_ip` or `get_measurements_timestamps_dn`
+          depending on the server type.
+        - The `PreciseTime` wrapper is used to reconstruct accurate timestamps from database fields.
+    """
     start_pt = human_date_to_ntp_precise_time(ensure_utc(start))
     end_pt = human_date_to_ntp_precise_time(ensure_utc(end))
     print(start_pt)

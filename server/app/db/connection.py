@@ -4,13 +4,25 @@ from server.app.models.PreciseTime import PreciseTime
 from server.app.models.NtpMeasurement import NtpMeasurement
 
 
-# inserts measurements in the database
 def insert_measurement(measurement: NtpMeasurement, pool):
-    # uses a connection pool because connecting everytime
-    # to the database is inefficient and can quickly exhaust resource
+    """
+    Inserts a new NTP measurement into the database.
+
+    This function stores both the raw timestamps (in the `times` table) and the
+    processed measurement data (in the `measurements` table). It uses a connection pool
+    for efficiency and wraps operations in a transaction to ensure atomicity.
+
+    Args:
+        measurement (NtpMeasurement): The measurement data to store.
+        pool: A psycopg `ConnectionPool` used for managing PostgreSQL connections efficiently.
+
+    Notes:
+        - Timestamps are stored with both second and fractional parts.
+        - A foreign key (`time_id`) is used to link `measurements` to the `times` table.
+        - Any failure within the transaction block results in automatic rollback.
+    """
+
     with pool.connection() as conn:
-        # if anything fails inside the transaction() block, it rolls back.
-        # otherwise, it commits when the block exits cleanly.
         with conn.transaction():
             with conn.cursor() as cur:
                 cur.execute("""
@@ -59,11 +71,20 @@ def insert_measurement(measurement: NtpMeasurement, pool):
                             ))
 
 
-# get all the measurements in the database
 def get_all_measurements(pool):
+    """
+    Retrieves all measurements from the database.
+
+    This function performs a join between the `measurements` and `times` tables,
+    returning every record in the database without any filtering.
+
+    Args:
+        pool: A psycopg `ConnectionPool` used to acquire database connections.
+
+    Returns:
+        list: A list of tuples, each representing a full measurement record joined with its timestamps.
+    """
     with pool.connection() as conn:
-        # if anything fails inside the transaction() block, it rolls back.
-        # otherwise, it commits when the block exits cleanly.
         with conn.transaction():
             with conn.cursor() as cur:
                 cur.execute("""
@@ -75,6 +96,25 @@ def get_all_measurements(pool):
 
 
 def get_measurements_timestamps_ip(pool, ip: IPv4Address | IPv6Address, start: PreciseTime, end: PreciseTime):
+    """
+    Fetches measurements for a specific IP address within a precise time range.
+
+    This function queries the `measurements` table, joined with the `times` table,
+    and filters the results by:
+        - The NTP server IP (`ntp_server_ip`)
+        - The timestamp range (`client_sent` field) between `start` and `end`
+
+    Args:
+        pool: A psycopg `ConnectionPool` used to manage PostgreSQL connections.
+        ip (IPv4Address | IPv6Address): The IP address of the NTP server.
+        start (PreciseTime): The start of the time range to filter on.
+        end (PreciseTime): The end of the time range to filter on.
+
+    Returns:
+        list[dict]: A list of measurement records (as dictionaries), each including:
+            - Measurement metadata (IP, version, stratum, etc.)
+            - Timing data (client/server send/receive with fractions)
+    """
     with pool.connection() as conn:
         with conn.transaction():
             with conn.cursor() as cur:
@@ -143,6 +183,23 @@ def get_measurements_timestamps_ip(pool, ip: IPv4Address | IPv6Address, start: P
 
 
 def get_measurements_timestamps_dn(pool, dn: str, start: PreciseTime, end: PreciseTime):
+    """
+    Fetches measurements for a specific domain name within a precise time range.
+
+    Similar to `get_measurements_timestamps_ip`, but filters by `ntp_server_name`
+    instead of `ntp_server_ip`.
+
+    Args:
+        pool: A psycopg `ConnectionPool` used to manage PostgreSQL connections.
+        dn (str): The domain name of the NTP server.
+        start (PreciseTime): The start of the time range to filter on.
+        end (PreciseTime): The end of the time range to filter on.
+
+    Returns:
+        list[dict]: A list of measurement records (as dictionaries), each including:
+            - Measurement metadata (domain name, version, etc.)
+            - Timing data (client/server send/receive with precision)
+    """
     with pool.connection() as conn:
         with conn.transaction():
             with conn.cursor() as cur:

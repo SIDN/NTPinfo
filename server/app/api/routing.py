@@ -8,6 +8,19 @@ from datetime import datetime, timezone
 
 
 def get_format(measurement: NtpMeasurement):
+    """
+    Format an NTP measurement object into a dictionary suitable for JSON serialization.
+
+    Args:
+        measurement (NtpMeasurement): An object representing the NTP measurement result.
+
+    Returns:
+        dict: A dictionary containing key measurement details like this:
+            - Server info (ntp version, IP, name, reference IP, reference)
+            - Timestamps (client sent time, server receive time, server sent time, client receive time)
+            - Measurement metrics (offset, delay, stratum, precision, reachability)
+            - Extra details (root delay, last sync time, leap indicator)
+    """
     return {
         "ntp_version": measurement.server_info.ntp_version,
         "ntp_server_ip": measurement.server_info.ntp_server_ip,
@@ -34,26 +47,42 @@ def get_format(measurement: NtpMeasurement):
 
 
 app = FastAPI()
+"""
+Creates a FastAPI application instance.
+This instance is used to define all API endpoints and serve the application.
+"""
 
 
 @app.get("/")
 def read_root():
+    """
+    Root endpoint for basic service health check.
+
+    Returns:
+        dict: A simple JSON message {"Hello": "World"}
+    """
     return {"Hello": "World"}
-
-
-"""
-API endpoint
-args:
-    time (PreciseTime): A single PreciseTime object, representing a single timestamp
-
-returns:
-    float: Time in seconds
-"""
 
 
 @app.post("/measurements/")
 async def read_data_measurement(server: str):
-    # the case in which none of them are mentioned
+    """
+    Compute a live NTP measurement for a given server (IP or domain).
+
+    This endpoint attempts to measure NTP synchronization metrics for a provided server.
+    It uses the `measure()` function to perform the measurement, and returns a formatted
+    result using `get_format()`.
+
+    Args:
+        server (str): IP address (IPv4/IPv6) or domain name of the NTP server.
+
+    Returns:
+        dict: On success, returns {"measurement": <formatted_measurement_dict>}
+              On failure, returns {"Error": "Could not perform measurement, dns or ip not reachable."}
+
+    Raises:
+        HTTPException: 400 error if `server` parameter is empty.
+    """
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
     result = measure(server)
@@ -69,6 +98,24 @@ async def read_data_measurement(server: str):
 @app.get("/measurements/history/")
 async def read_historic_data_time(server: str,
                                   start: datetime = None, end: datetime = None):
+    """
+    Retrieve historic NTP measurements for a given server and optional time range.
+
+    This endpoint fetches past measurement data for the specified server using the
+    `fetch_historic_data_with_timestamps()` function. It can optionally filter results
+    based on a time range (start and end datetime).
+
+    Args:
+        server (str): IP address or domain name of the NTP server.
+        start (datetime, optional): Start timestamp for data filtering.
+        end (datetime, optional): End timestamp for data filtering.
+
+    Returns:
+        dict: A dictionary containing a list of formatted measurements under "measurements".
+
+    Raises:
+        HTTPException: 400 error if `server` parameter is empty.
+    """
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'domain name' must be provided")
 
