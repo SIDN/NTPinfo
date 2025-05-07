@@ -1,5 +1,6 @@
 import ipaddress
 from datetime import datetime, timezone
+from ipaddress import IPv4Address, IPv6Address
 
 
 def is_ip_address(ip_str: str) -> str | None:
@@ -41,7 +42,7 @@ def ensure_utc(dt: datetime) -> datetime:
     return dt.astimezone(timezone.utc)
 
 
-def parse_ip(ip_str):
+def parse_ip(ip_str: str) -> IPv4Address | IPv6Address | None:
     """
     Parses and validates a string as an IPv4 or IPv6 address.
 

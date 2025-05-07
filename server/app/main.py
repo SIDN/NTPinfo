@@ -40,18 +40,20 @@ def measure(server: str) -> NtpMeasurement | None:
     try:
         if is_ip_address(server) is not None:
             m = perform_ntp_measurement_ip(server)
-            insert_measurement(m, pool)
+            if m is not None:
+                insert_measurement(m, pool)
             return m
         else:
             m = perform_ntp_measurement_domain_name(server)
-            insert_measurement(m, pool)
+            if m is not None:
+                insert_measurement(m, pool)
             return m
     except Exception as e:
         print("Performing measurement error message:", e)
         return None
 
 
-def fetch_historic_data_with_timestamps(server: str, start: datetime, end: datetime):
+def fetch_historic_data_with_timestamps(server: str, start: datetime, end: datetime) -> list[NtpMeasurement]:
     """
     Fetches and reconstructs NTP measurements from the database within a specific time range.
 

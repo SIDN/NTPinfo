@@ -2,9 +2,11 @@ from ipaddress import IPv4Address, IPv6Address
 
 from server.app.models.PreciseTime import PreciseTime
 from server.app.models.NtpMeasurement import NtpMeasurement
+from psycopg_pool import ConnectionPool
+from typing import Any
 
 
-def insert_measurement(measurement: NtpMeasurement, pool):
+def insert_measurement(measurement: NtpMeasurement, pool: ConnectionPool) -> None:
     """
     Inserts a new NTP measurement into the database.
 
@@ -43,35 +45,38 @@ def insert_measurement(measurement: NtpMeasurement, pool):
                             ))
 
                 # used because we have it as a foreign key in the measurements table
-                time_id = cur.fetchone()[0]
+                row = cur.fetchone()
+                if row is None:
+                    raise ValueError("Expected a result from INSERT RETURNING id, but got None")
+                time_id = row[0]
 
-                cur.execute("""
-                            INSERT INTO measurements(ntp_server_ip, ntp_server_name,
-                                                     ntp_version, ntp_server_ref_parent,
-                                                     ref_name, time_id,
-                                                     time_offset, delay,
-                                                     stratum, precision,
-                                                     reachability,
-                                                     root_delay,
-                                                     ntp_last_sync_time,
-                                                     root_delay_prec,
-                                                     ntp_last_sync_time_prec)
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                            """, (
-                                measurement.server_info.ntp_server_ip, measurement.server_info.ntp_server_name,
-                                measurement.server_info.ntp_version, measurement.server_info.ntp_server_ref_parent_ip,
-                                measurement.server_info.ref_name, time_id,
-                                measurement.main_details.offset, measurement.main_details.delay,
-                                measurement.main_details.stratum, measurement.main_details.precision,
-                                measurement.main_details.reachability,
-                                measurement.extra_details.root_delay.seconds,
-                                measurement.extra_details.ntp_last_sync_time.seconds,
-                                measurement.extra_details.root_delay.fraction,
-                                measurement.extra_details.ntp_last_sync_time.fraction
-                            ))
+            cur.execute("""
+                        INSERT INTO measurements(ntp_server_ip, ntp_server_name,
+                                                 ntp_version, ntp_server_ref_parent,
+                                                 ref_name, time_id,
+                                                 time_offset, delay,
+                                                 stratum, precision,
+                                                 reachability,
+                                                 root_delay,
+                                                 ntp_last_sync_time,
+                                                 root_delay_prec,
+                                                 ntp_last_sync_time_prec)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        """, (
+                            measurement.server_info.ntp_server_ip, measurement.server_info.ntp_server_name,
+                            measurement.server_info.ntp_version, measurement.server_info.ntp_server_ref_parent_ip,
+                            measurement.server_info.ref_name, time_id,
+                            measurement.main_details.offset, measurement.main_details.delay,
+                            measurement.main_details.stratum, measurement.main_details.precision,
+                            measurement.main_details.reachability,
+                            measurement.extra_details.root_delay.seconds,
+                            measurement.extra_details.ntp_last_sync_time.seconds,
+                            measurement.extra_details.root_delay.fraction,
+                            measurement.extra_details.ntp_last_sync_time.fraction
+                        ))
 
 
-def get_all_measurements(pool):
+def get_all_measurements(pool: ConnectionPool) -> list[tuple]:
     """
     Retrieves all measurements from the database.
 
@@ -95,7 +100,9 @@ def get_all_measurements(pool):
                 return cur.fetchall()
 
 
-def get_measurements_timestamps_ip(pool, ip: IPv4Address | IPv6Address, start: PreciseTime, end: PreciseTime):
+def get_measurements_timestamps_ip(pool: ConnectionPool, ip: IPv4Address | IPv6Address | None, start: PreciseTime,
+                                   end: PreciseTime) -> list[
+    dict[str, Any]]:
     """
     Fetches measurements for a specific IP address within a precise time range.
 
@@ -182,7 +189,8 @@ def get_measurements_timestamps_ip(pool, ip: IPv4Address | IPv6Address, start: P
                 return [dict(zip(columns, row)) for row in cur]
 
 
-def get_measurements_timestamps_dn(pool, dn: str, start: PreciseTime, end: PreciseTime):
+def get_measurements_timestamps_dn(pool: ConnectionPool, dn: str, start: PreciseTime, end: PreciseTime) -> list[
+    dict[str, Any]]:
     """
     Fetches measurements for a specific domain name within a precise time range.
 

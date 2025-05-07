@@ -7,7 +7,7 @@ from server.app.models.NtpServerInfo import NtpServerInfo
 from server.app.models.NtpTimestamps import NtpTimestamps
 from server.app.models.PreciseTime import PreciseTime
 from server.app.db.connection import insert_measurement
-from server.app.db.connection import get_all_measurements
+from app.db.connection import get_all_measurements
 # from db_fixture import db_conn
 # from db_fixture import create_tables
 # from db_fixture import db_pool

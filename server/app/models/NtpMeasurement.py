@@ -4,7 +4,6 @@ from server.app.models.NtpServerInfo import NtpServerInfo
 from server.app.models.NtpMainDetails import NtpMainDetails
 from server.app.models.NtpTimestamps import NtpTimestamps
 
-
 @dataclass
 class NtpMeasurement:
     """

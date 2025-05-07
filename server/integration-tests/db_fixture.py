@@ -6,6 +6,9 @@ from psycopg_pool import ConnectionPool
 
 @pytest.fixture(scope="session")
 def db_conn():
+    """
+    It connects to a database.
+    """
     for _ in range(10):
         try:
             conn = psycopg.connect(
@@ -27,6 +30,12 @@ def db_conn():
 
 
 def create_tables(conn):
+    """
+    It creates the tables in the database.
+
+    Args:
+        conn (psycopg.connect): A database connection.
+    """
     with conn.cursor() as cur:
         with open("sql-scripts/setup-db.sql", "r") as f:
             cur.execute(f.read())

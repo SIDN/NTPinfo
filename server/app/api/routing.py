@@ -5,9 +5,10 @@ from server.app.main import measure
 from server.app.main import fetch_historic_data_with_timestamps
 from server.app.models.NtpMeasurement import NtpMeasurement
 from datetime import datetime, timezone
+from typing import Any, Optional
 
 
-def get_format(measurement: NtpMeasurement):
+def get_format(measurement: NtpMeasurement) -> dict[str, Any]:
     """
     Format an NTP measurement object into a dictionary suitable for JSON serialization.
 
@@ -54,7 +55,7 @@ This instance is used to define all API endpoints and serve the application.
 
 
 @app.get("/")
-def read_root():
+def read_root() -> dict[str, str]:
     """
     Root endpoint for basic service health check.
 
@@ -65,7 +66,7 @@ def read_root():
 
 
 @app.post("/measurements/")
-async def read_data_measurement(server: str):
+async def read_data_measurement(server: str) -> dict[str, Any]:
     """
     Compute a live NTP measurement for a given server (IP or domain).
 
@@ -86,7 +87,7 @@ async def read_data_measurement(server: str):
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
     result = measure(server)
-    if result != None:
+    if result is not None:
         return {
             "measurement": get_format(result)
         }
@@ -97,7 +98,7 @@ async def read_data_measurement(server: str):
 
 @app.get("/measurements/history/")
 async def read_historic_data_time(server: str,
-                                  start: datetime = None, end: datetime = None):
+                                  start: datetime, end: datetime) -> dict[str, Any]:
     """
     Retrieve historic NTP measurements for a given server and optional time range.
 
