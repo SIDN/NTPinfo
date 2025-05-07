@@ -1,4 +1,6 @@
 stages:
+  - typecheck
+  - lint
   - test
 
 image: python:3.13.3
@@ -22,7 +24,24 @@ before_script:
   - pip install --upgrade pip
   - pip wheel --wheel-dir=.cache/wheels -r server/requirements.txt
   - pip install --no-index --find-links=.cache/wheels -r server/requirements.txt
-  - pip install pytest pytest-cov
+
+typecheck:
+  stage: typecheck
+  script:
+    - source venv/bin/activate
+    - mypy
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+lint:
+  stage: lint
+  script:
+    - source venv/bin/activate
+    - flake8 server/
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 server_tests:
   stage: test

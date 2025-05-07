@@ -5,7 +5,7 @@ from psycopg_pool import ConnectionPool
 load_dotenv()
 
 DB_CONFIG = {
-    "dbname" : os.getenv('DB_NAME'),
+    "dbname": os.getenv('DB_NAME'),
     'user': os.getenv('DB_USER'),
     'password': os.getenv('DB_PASSWORD'),
     'host': os.getenv('DB_HOST'),

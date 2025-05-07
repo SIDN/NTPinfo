@@ -17,4 +17,4 @@ class NtpServerInfo:
     ntp_server_ip: IPv4Address | IPv6Address
     ntp_server_name: None | str
     ntp_server_ref_parent_ip: None | IPv4Address | IPv6Address
-    ref_name: str
+    ref_name: None | str

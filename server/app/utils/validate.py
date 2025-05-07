@@ -1,6 +1,6 @@
 import ipaddress
 
-def is_ip_address(ip_str:str) -> str | None:
+def is_ip_address(ip_str: str) -> str | None:
     """
     It verifies if the given string is a valid IPv4 or IPv6 address. If not, it returns None.
     args:
