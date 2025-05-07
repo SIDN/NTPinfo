@@ -28,8 +28,8 @@ class NtpCalculator:
             timestamps.server_sent_time.fraction - timestamps.client_recv_time.fraction
         )
         
-        offset_seconds:float = (a.seconds + b.seconds) / 2.0
-        offset_fraction:float = (a.fraction + b.fraction) / 2.0
+        offset_seconds: float = (a.seconds + b.seconds) / 2.0
+        offset_fraction: float = (a.fraction + b.fraction) / 2.0
         return offset_seconds + offset_fraction / (2 ** 32)
     
     @staticmethod
@@ -37,10 +37,10 @@ class NtpCalculator:
         """
          Calculates round-trip delay between client and server using NTP timestamps.
 
-        args:
+        Args:
             timestamps (NtpTimestamps): A single NTP timestamps object, containing data about the 4 key timestamps
 
-        returns:
+        Returns:
             float: Delay in seconds
         """
         a = PreciseTime(
@@ -51,20 +51,20 @@ class NtpCalculator:
             timestamps.server_sent_time.seconds - timestamps.server_recv_time.seconds,
             timestamps.server_sent_time.fraction - timestamps.server_recv_time.fraction
         )
-        ans:float=(a.seconds - b.seconds) + (b.fraction - a.fraction) / (2 ** 32)
+        ans: float=(a.seconds - b.seconds) + (b.fraction - a.fraction) / (2 ** 32)
         return ans
     
     @staticmethod
-    def calculate_float_time(time : PreciseTime) -> float:
+    def calculate_float_time(time: PreciseTime) -> float:
         """
         Converts a PreciseTime object to a float in seconds.
 
-        args:
+        Args:
             time (PreciseTime): A single PreciseTime object, representing a single timestamp
 
-        returns:
+        Returns:
             float: Time in seconds
         """
-        ans:float=time.seconds + time.fraction / (2 ** 32)
+        ans: float=time.seconds + time.fraction / (2 ** 32)
         return ans
         

@@ -5,15 +5,15 @@ from psycopg_pool import ConnectionPool
 from server.app.models.NtpMeasurement import NtpMeasurement
 
 # inserts measurements in the database
-def insert_measurement(measurement : NtpMeasurement, pool: ConnectionPool) -> None:
+def insert_measurement(measurement: NtpMeasurement, pool: ConnectionPool) -> None:
 
     # uses a connection pool because connecting everytime
     # to the database is inefficient and can quickly exhaust resource
-    with pool.connection() as conn :
+    with pool.connection() as conn:
         # if anything fails inside the transaction() block, it rolls back.
         # otherwise, it commits when the block exits cleanly.
-        with conn.transaction() :
-            with conn.cursor() as cur :
+        with conn.transaction():
+            with conn.cursor() as cur:
 
                 cur.execute("""
                     INSERT INTO times (
@@ -66,11 +66,11 @@ def insert_measurement(measurement : NtpMeasurement, pool: ConnectionPool) -> No
 
 # get all the measurements in the database
 def get_all_measurements(pool: ConnectionPool) -> list[tuple[Any, ...]]:
-    with pool.connection() as conn :
+    with pool.connection() as conn:
         # if anything fails inside the transaction() block, it rolls back.
         # otherwise, it commits when the block exits cleanly.
-        with conn.transaction() :
-            with conn.cursor() as cur :
+        with conn.transaction():
+            with conn.cursor() as cur:
                 cur.execute("""
                     SELECT *
                     FROM measurements m JOIN times t ON m.time_id = t.id

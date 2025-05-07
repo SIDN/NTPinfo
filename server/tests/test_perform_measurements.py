@@ -35,6 +35,7 @@ def test_perform_ntp_measurement_domain_name(mock_request, mock_getaddrinfo):
     mock_response.orig_timestamp = 3948758384.0
     mock_response.recv_timestamp = 3948758385.0
     mock_response.tx_timestamp = 3948758386.0
+    mock_response.dest_timestamp = 3948758389.2
 
     mock_response.offset = 0.001
     mock_response.delay = 0.002
@@ -53,9 +54,9 @@ def test_perform_ntp_measurement_domain_name(mock_request, mock_getaddrinfo):
     assert result.server_info.ntp_server_ip == IPv4Address("123.45.67.89")
     assert result.server_info.ntp_server_name == "mock.ntp.server"
     assert result.server_info.ntp_server_ref_parent_ip == IPv4Address("94.198.159.14")
-    assert result.server_info.ref_name == None
+    assert result.server_info.ref_name is None
 
-    assert result.timestamps.client_sent_time == PreciseTime(seconds=3948758383, fraction=858992640)
+    assert result.timestamps.client_sent_time == PreciseTime(seconds=3948758389, fraction=858992640)
     assert result.timestamps.server_recv_time == PreciseTime(seconds=3948758384, fraction=0)
     assert result.timestamps.server_sent_time == PreciseTime(seconds=3948758385, fraction=0)
     assert result.timestamps.client_recv_time == PreciseTime(seconds=3948758386, fraction=0)
@@ -82,6 +83,7 @@ def test_perform_ntp_measurement_ip(mock_request):
     mock_response.orig_timestamp = 3948758384.0
     mock_response.recv_timestamp = 3948758385.0
     mock_response.tx_timestamp = 3948758386.0
+    mock_response.dest_timestamp = 3948758389.2
 
     mock_response.offset = 0.001
     mock_response.delay = 0.002
@@ -98,11 +100,11 @@ def test_perform_ntp_measurement_ip(mock_request):
 
     assert result.server_info.ntp_version == 3
     assert result.server_info.ntp_server_ip == IPv4Address("123.45.67.89")
-    assert result.server_info.ntp_server_name == None
+    assert result.server_info.ntp_server_name is None
     assert result.server_info.ntp_server_ref_parent_ip == IPv4Address("94.198.159.14")
-    assert result.server_info.ref_name == None
+    assert result.server_info.ref_name is None
 
-    assert result.timestamps.client_sent_time == PreciseTime(seconds=3948758383, fraction=858992640)
+    assert result.timestamps.client_sent_time == PreciseTime(seconds=3948758389, fraction=858992640)
     assert result.timestamps.server_recv_time == PreciseTime(seconds=3948758384, fraction=0)
     assert result.timestamps.server_sent_time == PreciseTime(seconds=3948758385, fraction=0)
     assert result.timestamps.client_recv_time == PreciseTime(seconds=3948758386, fraction=0)

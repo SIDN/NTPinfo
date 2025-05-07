@@ -47,6 +47,14 @@ pytest-cov~=6.1.1
 black~=24.4.2
 mypy~=1.10.0
 
+#checkstyle/lint rules
+flake8~=7.0.0
+flake8-bugbear~=24.2.6
+flake8-comprehensions~=3.14.0
+flake8-import-order~=0.18.2
+flake8-docstrings~=1.7.0
+pydocstyle~=6.3.0
+
 python-dotenv
 psycopg[binary,pool]
 
