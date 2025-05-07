@@ -1,13 +1,4 @@
-export type NTPData = {
-    offset: number
-    RTT: number
-    stratum: number
-    jitter: number
-    reachability: number
-    status: string
-    time: number
-  }
-  
+import { NTPData } from "../types"  
 export type Measurement = 'delay' | 'offset'
 //this server map will only be kept temporarily as a placeholder for the actual API calls to get data from the NTP servers
 export const ntpMap = new Map<string, NTPData>([
