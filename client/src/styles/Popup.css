@@ -1,16 +1,5 @@
-:root {
-    line-height: 1.5;
-    /* global variables */
-  --bg-clr-primary: #292f36;
-  --bg-clr-secondary: #323E4C;
-  --clr-font-white: #eff6ee;
-  --clr-font-dark: #1B2025;
-  --clr-green: #10A219;
-  --bg-clr-hero: #CDCFDA;
-  --clr-red-1: #ff6b6b;
-  --clr-red-2: #F2404C;
-  --clr-btn-selected-purple: #27263F;
-}
+@import '../index.css';
+
 *, *::before, *::after {
     box-sizing: border-box;
 }
@@ -85,7 +74,7 @@ a {
     color: var(--clr-font-white);
 }
 
-.checkbox-measurement-label{
+.radio-measurement-label{
     display: flex;
     align-items: center;
     gap: 0.5em;
@@ -99,9 +88,10 @@ a {
     width: 1.4em;
 }
 
-.checkbox-measurement-label input{
-    height: 1.4em;
-    width: 1.4em;
+.radio-measurement-label input{
+    transform: scale(1.4);
+    transform-origin: center;
+    appearance: auto;
 }
 
 
@@ -154,4 +144,12 @@ a {
 
 .custom-time-dropdown{
     position: relative;
+}
+
+.chart-box{
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 2em;
+    height: 90%;
 }
