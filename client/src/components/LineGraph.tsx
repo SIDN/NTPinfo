@@ -19,10 +19,8 @@ type ChartInputData = {
     selectedMeasurement: Measurement;
 };
 
-// Register the required components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-// Line chart options
 const options = {
   responsive: true,
   plugins: {
