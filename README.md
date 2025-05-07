@@ -79,7 +79,10 @@ of `"client_sent_time"` to know when the measurement was taken.
 
 ##### **APIs**
 
-All of
+All of the APIs converts the JSON received from the back-end to the desired type by using the **transformJSONData** function.
+The format for the API link is `url/user_input/client_ip` for fetching measurement data, and `url/historical/user_input/client_ip`
+for fetching historical data. The IP is be transmitted to the back-end for both rate limiting and for using NTP measurements from
+the NTP servers that the client IP would access for those that support it, such as Apple, Microsoft, AWS and pool.ntp. 
 
 * **useFetchIPData**
     * uses the IP address provided by the user to send a request for a time measurement on the NTP server with the given IP.
@@ -90,8 +93,6 @@ All of
     of time specified by the user from the NTP server with the given IP adress.
     * returns 4-tuple consisting of the received data as an array of `NTPValue` variables: ```data```, if the measurement is currently still ongoing as a `boolean`: ```loading```
     if an error occurred as an `Error`: ```error```, and the function for fecthing data from an API endpoint as a `string`: ```fetchData```.
-* **useFetchDNData**
-* **useFetchHistoricalDNData**
 
 #### TypeScript Components
 
@@ -117,5 +118,3 @@ For the better running, understanding and modularity of the code, several sectio
     * The `Custom` button allows the user to input a time period of their choice using the new fields that appear.
     * The `Delay` and `Offset` radios are used to pick the option of which measurement to be shown.
     * The **DownloadButtons** allow the user to download the data for the data during the selected time period.
-
-To run the client: npm run dev in the terminal (while in the "client" server).
