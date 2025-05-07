@@ -87,8 +87,8 @@ function App() {
     }
   ]
   //dummy data for chart.js, will be deleted once we properly integrate it
-  const chartData = [{offset: 0.3,delay: 0.3,stratum: 1,jitter: 1.8,reachability: 1,status: 'PASSING',time: Date.now()},{offset: 1.2,delay: 13.4,stratum: 2,jitter: 0.5,reachability: 1,status: 'PASSING',time: Date.now() - 40000},
-  {offset: 0.8,delay: 4.8,stratum: 2,jitter: 0.6,reachability: 1,status: 'PASSING',time: Date.now() - 20000}]
+  const chartData = [{offset: 0.3,RTT: 0.3,stratum: 1,jitter: 1.8,reachability: 1,status: 'PASSING',time: Date.now()},{offset: 1.2,RTT: 13.4,stratum: 2,jitter: 0.5,reachability: 1,status: 'PASSING',time: Date.now() - 40000},
+  {offset: 0.8,RTT: 4.8,stratum: 2,jitter: 0.6,reachability: 1,status: 'PASSING',time: Date.now() - 20000}]
   
   //
   //functions for handling state changes
@@ -160,7 +160,7 @@ function App() {
           isOpen={popupOpen}
           onClose={() => setPopupOpen(false)}
           dropdowns={dropdown}
-          data = {dummyData.data}/>
+          data = {chartData}/>
         </div>
       </div>)}
     </div>
