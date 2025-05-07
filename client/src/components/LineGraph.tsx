@@ -9,8 +9,8 @@ import {
     Legend,
 } from 'chart.js'
 import { Line } from 'react-chartjs-2'
-import { NTPData } from '../utils/tempData';
 ChartJS.defaults.color = 'rgba(239,246,238,1)'
+import { NTPData } from '../types'
 
 type Measurement = 'delay' | 'offset'
   
@@ -19,10 +19,8 @@ type ChartInputData = {
     selectedMeasurement: Measurement;
 }
 
-// Register the required components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-// Line chart options
 const options = {
   responsive: true,
   plugins: {

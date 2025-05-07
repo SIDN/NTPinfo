@@ -8,11 +8,9 @@ import ResultSummary from './components/ResultSummary'
 import DownloadButton from './components/DownloadButton'
 import VisualizationPopup from './components/Visualization'
 import LineChart from './components/LineGraph'
-import { ntpMap, NTPData } from './utils/tempData.ts'
-// import DownloadButton from './components/DownloadButton'
+import { ntpMap} from './utils/tempData.ts'
 
-// we use this as a dummy data type for the NTP measurements, this will be changed and improved once the API
-// is finished
+import { NTPData } from './types'
 
 type InputData = {
   data: NTPData[]
@@ -161,7 +159,8 @@ function App() {
           <VisualizationPopup
           isOpen={popupOpen}
           onClose={() => setPopupOpen(false)}
-          dropdowns={dropdown}/>
+          dropdowns={dropdown}
+          data = {dummyData.data}/>
         </div>
       </div>)}
     </div>
