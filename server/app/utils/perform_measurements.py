@@ -22,8 +22,8 @@ def perform_ntp_measurement_domain_name(server_name: str="pool.ntp.org", ntp_ver
         NtpMeasurement | None: it returns the NTP measurement object or None if something wrong happened (usually timeouts).
     """
     #get the ip from domain name, the DNS of the server is used
-    info=socket.getaddrinfo(server_name, None)[0]
-    ip_str=info[4][0]
+    info = socket.getaddrinfo(server_name, None)[0]
+    ip_str = info[4][0]
     #server_ip=ip_address(ip_str)
     try:
         client = ntplib.NTPClient()
@@ -87,9 +87,9 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
         NtpMeasurement | None: it returns a NTP measurement object if converting was successful.
     """
     try:
-        ref_ip, ref_name=ref_id_to_ip_or_name(response.ref_id,
+        ref_ip, ref_name = ref_id_to_ip_or_name(response.ref_id,
                                              response.stratum)
-        server_ip=ip_address(server_ip_str)
+        server_ip = ip_address(server_ip_str)
         server_info: NtpServerInfo = NtpServerInfo(
             ntp_version=ntp_version,
             ntp_server_ip=server_ip,
@@ -134,8 +134,8 @@ def convert_float_to_precise_time(value: float) -> PreciseTime:
     Returns:
         a PreciseTime object
     """
-    seconds=int(value)
-    fraction=ntplib._to_frac(value) #by default, a second is split into 2^32 parts
+    seconds = int(value)
+    fraction = ntplib._to_frac(value) #by default, a second is split into 2^32 parts
     return PreciseTime(seconds, fraction)
 
 def ref_id_to_ip_or_name(ref_id: int, stratum: int) \
@@ -175,8 +175,8 @@ def ntp_precise_time_to_human_date(t: PreciseTime) -> str:
         str: the date in UTC format or empty, depending on whether the PreciseTime object could be converted to UTC.
     """
     try:
-        timestamp=ntplib._to_time(t.seconds-ntplib.NTP.NTP_DELTA, t.fraction)
-        dt=datetime.fromtimestamp(timestamp, tz=timezone.utc)
+        timestamp = ntplib._to_time(t.seconds - ntplib.NTP.NTP_DELTA, t.fraction)
+        dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
         return dt.strftime("%Y-%m-%d %H:%M:%S.%f UTC")
     except Exception as e:
         print(e)
@@ -184,16 +184,16 @@ def ntp_precise_time_to_human_date(t: PreciseTime) -> str:
 
 def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
     """
-    It prints the ntp measurement in a human-readable format and returns True if the printing was successful.
+        It prints the ntp measurement in a human-readable format and returns True if the printing was successful.
 
-    Args:
-        measurement (NtpMeasurement): the NtpMeasurement object.
+        Args:
+            measurement (NtpMeasurement): the NtpMeasurement object.
     """
     try:
         print("=== NTP Measurement ===")
 
         #Server Info
-        server=measurement.server_info
+        server = measurement.server_info
         print(f"Server Name:           {server.ntp_server_name}")
         print(f"Server IP:             {server.ntp_server_ip}")
         print(f"NTP Version:           {server.ntp_version}")
@@ -201,14 +201,14 @@ def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
         print(f"Reference Name (Raw):  {server.ref_name}")
 
         #Timestamps
-        timestamps=measurement.timestamps
+        timestamps = measurement.timestamps
         print(f"Client sent time:      {ntp_precise_time_to_human_date(timestamps.client_sent_time)} : s: {timestamps.client_sent_time.seconds} f: {timestamps.client_sent_time.fraction}")
         print(f"Server recv time:      {ntp_precise_time_to_human_date(timestamps.server_recv_time)} : s: {timestamps.server_recv_time.seconds} f: {timestamps.server_recv_time.fraction}")
         print(f"Server sent time:      {ntp_precise_time_to_human_date(timestamps.server_sent_time)} : s: {timestamps.server_sent_time.seconds} f: {timestamps.server_sent_time.fraction}")
         print(f"Client recv time:      {ntp_precise_time_to_human_date(timestamps.client_recv_time)} : s: {timestamps.client_recv_time.seconds} f: {timestamps.client_recv_time.fraction}")
 
         #Main Details
-        main=measurement.main_details
+        main = measurement.main_details
         print(f"Offset (s):            {main.offset}")
         print(f"Delay (s):             {main.delay}")
         print(f"Stratum:               {main.stratum}")
@@ -216,7 +216,7 @@ def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
         print(f"Reachability:          {main.reachability}")
 
         # Extra Details
-        extra=measurement.extra_details
+        extra = measurement.extra_details
         print(f"Root Delay:            {ntplib._to_time(extra.root_delay.seconds, extra.root_delay.fraction)}")
         print(f"Last Sync Time:        {ntp_precise_time_to_human_date(extra.ntp_last_sync_time)}")
         print(f"Leap:                  {extra.leap}")

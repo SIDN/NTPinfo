@@ -1,6 +1,6 @@
 [flake8]
-select = E111,E114,E231,C901,E203
+select = E111,E114,E225,E226,E231,C901,E203,D102,D103
 max-complexity = 10
 ignore =
-exclude = .git,__pycache__,build,dist,venv,.venv,.mypy_cache,tests
+exclude = .git,__pycache__,build,dist,venv,.venv,.mypy_cache,tests,integration-tests
 max-line-length = 140

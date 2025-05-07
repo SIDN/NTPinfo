@@ -51,7 +51,7 @@ class NtpCalculator:
             timestamps.server_sent_time.seconds - timestamps.server_recv_time.seconds,
             timestamps.server_sent_time.fraction - timestamps.server_recv_time.fraction
         )
-        ans: float=(a.seconds - b.seconds) + (b.fraction - a.fraction) / (2 ** 32)
+        ans: float = (a.seconds - b.seconds) + (b.fraction - a.fraction) / (2 ** 32)
         return ans
     
     @staticmethod
@@ -65,6 +65,5 @@ class NtpCalculator:
         Returns:
             float: Time in seconds
         """
-        ans: float=time.seconds + time.fraction / (2 ** 32)
+        ans: float = time.seconds + time.fraction / (2 ** 32)
         return ans
-        

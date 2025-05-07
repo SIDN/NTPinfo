@@ -6,6 +6,15 @@ from server.app.models.NtpMeasurement import NtpMeasurement
 
 # inserts measurements in the database
 def insert_measurement(measurement: NtpMeasurement, pool: ConnectionPool) -> None:
+    """
+    A method to insert a measurement into the database.
+
+    Args:
+        measurement (NtpMeasurement): The measurement to insert.
+        pool (ConnectionPool): The connection to the database.
+    Returns:
+        None: It returns nothing.
+    """
 
     # uses a connection pool because connecting everytime
     # to the database is inefficient and can quickly exhaust resource
@@ -66,6 +75,15 @@ def insert_measurement(measurement: NtpMeasurement, pool: ConnectionPool) -> Non
 
 # get all the measurements in the database
 def get_all_measurements(pool: ConnectionPool) -> list[tuple[Any, ...]]:
+    """
+    A method to get all measurements from the database.
+
+    Args:
+        pool (ConnectionPool): The connection to the database.
+
+    Returns:
+        list[tuple[Any, ...]]: A list of tuples containing the measurement data.
+    """
     with pool.connection() as conn:
         # if anything fails inside the transaction() block, it rolls back.
         # otherwise, it commits when the block exits cleanly.
