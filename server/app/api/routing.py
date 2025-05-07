@@ -1,9 +1,9 @@
 from ipaddress import IPv4Address, IPv6Address
 
 from fastapi import FastAPI, HTTPException
-from app.main import measure
-from app.main import fetch_historic_data_with_timestamps
-from app.models.NtpMeasurement import NtpMeasurement
+from server.app.main import measure
+from server.app.main import fetch_historic_data_with_timestamps
+from server.app.models.NtpMeasurement import NtpMeasurement
 from datetime import datetime
 
 

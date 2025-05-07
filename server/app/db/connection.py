@@ -1,7 +1,7 @@
 from ipaddress import IPv4Address, IPv6Address
 
-from app.models.PreciseTime import PreciseTime
-from app.models.NtpMeasurement import NtpMeasurement
+from server.app.models.PreciseTime import PreciseTime
+from server.app.models.NtpMeasurement import NtpMeasurement
 
 
 # inserts measurements in the database

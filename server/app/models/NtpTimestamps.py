@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from app.models.PreciseTime import PreciseTime
+from server.app.models.PreciseTime import PreciseTime
 
 
 @dataclass

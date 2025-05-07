@@ -1,13 +1,13 @@
 from ipaddress import IPv4Address, IPv6Address
 
-from app.db.connection import get_measurements_timestamps
-from app.models.NtpExtraDetails import NtpExtraDetails
-from app.models.NtpMainDetails import NtpMainDetails
-from app.models.NtpMeasurement import NtpMeasurement
-from app.models.NtpServerInfo import NtpServerInfo
-from app.models.NtpTimestamps import NtpTimestamps
-from app.models.PreciseTime import PreciseTime
-from app.db.config import pool
+from server.app.db.connection import get_measurements_timestamps
+from server.app.models.NtpExtraDetails import NtpExtraDetails
+from server.app.models.NtpMainDetails import NtpMainDetails
+from server.app.models.NtpMeasurement import NtpMeasurement
+from server.app.models.NtpServerInfo import NtpServerInfo
+from server.app.models.NtpTimestamps import NtpTimestamps
+from server.app.models.PreciseTime import PreciseTime
+from server.app.db.config import pool
 from datetime import datetime, timezone
 
 print("Hello World!")
