@@ -6,7 +6,7 @@ from psycopg_pool import ConnectionPool
 from typing import Any
 
 
-def insert_measurement(measurement: NtpMeasurement, pool: ConnectionPool) -> None:
+def insert_measurement(measurement: NtpMeasurement, pool: Any) -> None:
     """
     Inserts a new NTP measurement into the database.
 
@@ -50,30 +50,30 @@ def insert_measurement(measurement: NtpMeasurement, pool: ConnectionPool) -> Non
                     raise ValueError("Expected a result from INSERT RETURNING id, but got None")
                 time_id = row[0]
 
-            cur.execute("""
-                        INSERT INTO measurements(ntp_server_ip, ntp_server_name,
-                                                 ntp_version, ntp_server_ref_parent,
-                                                 ref_name, time_id,
-                                                 time_offset, delay,
-                                                 stratum, precision,
-                                                 reachability,
-                                                 root_delay,
-                                                 ntp_last_sync_time,
-                                                 root_delay_prec,
-                                                 ntp_last_sync_time_prec)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                        """, (
-                            measurement.server_info.ntp_server_ip, measurement.server_info.ntp_server_name,
-                            measurement.server_info.ntp_version, measurement.server_info.ntp_server_ref_parent_ip,
-                            measurement.server_info.ref_name, time_id,
-                            measurement.main_details.offset, measurement.main_details.delay,
-                            measurement.main_details.stratum, measurement.main_details.precision,
-                            measurement.main_details.reachability,
-                            measurement.extra_details.root_delay.seconds,
-                            measurement.extra_details.ntp_last_sync_time.seconds,
-                            measurement.extra_details.root_delay.fraction,
-                            measurement.extra_details.ntp_last_sync_time.fraction
-                        ))
+                cur.execute("""
+                            INSERT INTO measurements(ntp_server_ip, ntp_server_name,
+                                                     ntp_version, ntp_server_ref_parent,
+                                                     ref_name, time_id,
+                                                     time_offset, delay,
+                                                     stratum, precision,
+                                                     reachability,
+                                                     root_delay,
+                                                     ntp_last_sync_time,
+                                                     root_delay_prec,
+                                                     ntp_last_sync_time_prec)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            """, (
+                                measurement.server_info.ntp_server_ip, measurement.server_info.ntp_server_name,
+                                measurement.server_info.ntp_version, measurement.server_info.ntp_server_ref_parent_ip,
+                                measurement.server_info.ref_name, time_id,
+                                measurement.main_details.offset, measurement.main_details.delay,
+                                measurement.main_details.stratum, measurement.main_details.precision,
+                                measurement.main_details.reachability,
+                                measurement.extra_details.root_delay.seconds,
+                                measurement.extra_details.ntp_last_sync_time.seconds,
+                                measurement.extra_details.root_delay.fraction,
+                                measurement.extra_details.ntp_last_sync_time.fraction
+                            ))
 
 
 def get_all_measurements(pool: ConnectionPool) -> list[tuple]:

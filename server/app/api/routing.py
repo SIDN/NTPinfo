@@ -5,7 +5,13 @@ from server.app.main import measure
 from server.app.main import fetch_historic_data_with_timestamps
 from server.app.models.NtpMeasurement import NtpMeasurement
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, Optional, Coroutine
+
+from ipaddress import ip_address
+
+
+def ip_to_str(ip: Optional[IPv4Address | IPv6Address]) -> Optional[str]:
+    return str(ip) if ip is not None else None
 
 
 def get_format(measurement: NtpMeasurement) -> dict[str, Any]:
@@ -24,9 +30,9 @@ def get_format(measurement: NtpMeasurement) -> dict[str, Any]:
     """
     return {
         "ntp_version": measurement.server_info.ntp_version,
-        "ntp_server_ip": measurement.server_info.ntp_server_ip,
+        "ntp_server_ip": ip_to_str(measurement.server_info.ntp_server_ip),
         "ntp_server_name": measurement.server_info.ntp_server_name,
-        "ntp_server_ref_parent_ip": measurement.server_info.ntp_server_ref_parent_ip,
+        "ntp_server_ref_parent_ip": ip_to_str(measurement.server_info.ntp_server_ref_parent_ip),
         "ref_name": measurement.server_info.ref_name,
 
         "client_sent_time": measurement.timestamps.server_sent_time,
@@ -98,7 +104,7 @@ async def read_data_measurement(server: str) -> dict[str, Any]:
 
 @app.get("/measurements/history/")
 async def read_historic_data_time(server: str,
-                                  start: datetime, end: datetime) -> dict[str, Any]:
+                                  start: datetime, end: datetime) -> dict[str, list[dict[str, Any]]]:
     """
     Retrieve historic NTP measurements for a given server and optional time range.
 
@@ -120,12 +126,11 @@ async def read_historic_data_time(server: str,
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'domain name' must be provided")
 
-    utc_time_from_9am = datetime(2025, 5, 7, 7, 0, tzinfo=timezone.utc)
-    current_utc_time = datetime(2025, 5, 7, 11, 15, tzinfo=timezone.utc)
-
-    start_test = utc_time_from_9am
-    end_test = current_utc_time
-
+    # utc_time_from_9am = datetime(2025, 5, 7, 7, 0, tzinfo=timezone.utc)
+    # current_utc_time = datetime(2025, 5, 7, 11, 15, tzinfo=timezone.utc)
+    #
+    # start_test = utc_time_from_9am
+    # end_test = current_utc_time
     result = fetch_historic_data_with_timestamps(server, start, end)
     formatted_results = [get_format(entry) for entry in result]
     return {

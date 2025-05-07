@@ -45,6 +45,7 @@ def measure(server: str) -> NtpMeasurement | None:
             return m
         else:
             m = perform_ntp_measurement_domain_name(server)
+
             if m is not None:
                 insert_measurement(m, pool)
             return m
