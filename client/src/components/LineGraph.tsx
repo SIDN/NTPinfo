@@ -10,16 +10,7 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 ChartJS.defaults.color = 'rgba(239,246,238,1)'
-
-type NTPData = {
-    offset: number;
-    delay: number;
-    stratum: number;
-    jitter: number;
-    reachability: number;
-    passing: boolean;
-    time: number;
-};
+import { NTPData } from '../types';
 
 type Measurement = 'delay' | 'offset'
   
@@ -28,10 +19,8 @@ type ChartInputData = {
     selectedMeasurement: Measurement;
 };
 
-// Register the required components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-// Line chart options
 const options = {
   responsive: true,
   plugins: {

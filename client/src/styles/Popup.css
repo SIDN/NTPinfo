@@ -85,7 +85,7 @@ a {
     color: var(--clr-font-white);
 }
 
-.checkbox-measurement-label{
+.radio-measurement-label{
     display: flex;
     align-items: center;
     gap: 0.5em;
@@ -99,9 +99,10 @@ a {
     width: 1.4em;
 }
 
-.checkbox-measurement-label input{
-    height: 1.4em;
-    width: 1.4em;
+.radio-measurement-label input{
+    transform: scale(1.4);
+    transform-origin: center;
+    appearance: auto;
 }
 
 
@@ -154,4 +155,12 @@ a {
 
 .custom-time-dropdown{
     position: relative;
+}
+
+.chart-box{
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 2em;
+    height: 90%;
 }

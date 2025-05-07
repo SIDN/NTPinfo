@@ -9,18 +9,11 @@ import DownloadButton from './components/DownloadButton'
 import VisualizationPopup from './components/Visualization'
 import LineChart from './components/LineGraph'
 // import DownloadButton from './components/DownloadButton'
+import { NTPData } from './types'
 
 // we use this as a dummy data type for the NTP measurements, this will be changed and improved once the API
 // is finished
-type NTPData = {
-  offset: number;
-  delay: number;
-  stratum: number;
-  jitter: number;
-  reachability: number;
-  passing: boolean;
-  time: number; //time at which the measurement was taken
-}
+//NTPData
 
 type InputData = {
   data: NTPData[]
@@ -189,7 +182,8 @@ function App() {
           <VisualizationPopup
           isOpen={popupOpen}
           onClose={() => setPopupOpen(false)}
-          dropdowns={dropdown}/>
+          dropdowns={dropdown}
+          data = {dummyData.data}/>
         </div>
       </div>
 
