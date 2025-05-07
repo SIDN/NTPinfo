@@ -177,6 +177,28 @@ def ntp_precise_time_to_human_date(t: PreciseTime) -> str:
         return ""
 
 
+def human_date_to_ntp_precise_time(dt: datetime) -> PreciseTime:
+    """
+    Converts a UTC datetime object to a PreciseTime object in NTP time.
+
+    Args:
+        dt (datetime): A timezone-aware datetime object in UTC.
+
+    Returns:
+        PreciseTime: The corresponding NTP time.
+    """
+    if dt.tzinfo is None:
+        raise ValueError("Input datetime must be timezone-aware (UTC)")
+
+    unix_timestamp = dt.timestamp()
+    ntp_timestamp = unix_timestamp + ntplib.NTP.NTP_DELTA
+
+    ntp_seconds = int(ntp_timestamp)
+    ntp_fraction = int((ntp_timestamp - ntp_seconds) * (2 ** 32))
+
+    return PreciseTime(ntp_seconds, ntp_fraction)
+
+
 def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
     """
         It prints the ntp measurement in a human-readable format and returns True if the printing was successful.

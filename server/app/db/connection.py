@@ -74,7 +74,7 @@ def get_all_measurements(pool):
                 return cur.fetchall()
 
 
-def get_measurements_timestamps(pool, ip: IPv4Address | IPv6Address, start: PreciseTime, end: PreciseTime):
+def get_measurements_timestamps_ip(pool, ip: IPv4Address | IPv6Address, start: PreciseTime, end: PreciseTime):
     with pool.connection() as conn:
         with conn.transaction():
             with conn.cursor() as cur:
@@ -105,14 +105,81 @@ def get_measurements_timestamps(pool, ip: IPv4Address | IPv6Address, start: Prec
                             FROM measurements m
                                      JOIN times t ON m.time_id = t.id
                             WHERE m.ntp_server_ip = %(ip)s
-                              AND (t.client_sent >= %(start_t)s AND t.client_sent_prec >= %(start_t_precision)s
-                                AND t.client_sent <= %(end_t)s AND t.client_sent_prec <= %(end_t_precision)s)
+                              AND (t.client_sent >= %(start_t)s AND t.client_sent <= %(end_t)s)
                             """, {
                                 "ip": ip,
                                 "start_t": start.seconds,
                                 "start_t_precision": start.fraction,
                                 "end_t": end.seconds,
                                 "end_t_precision": end.fraction
+                            })
+                columns = [
+                    "id",
+                    "ntp_server_ip",
+                    "ntp_server_name",
+                    "ntp_version",
+                    "ntp_server_ref_parent_ip",
+                    "ref_name",
+                    "offset",
+                    "delay",
+                    "stratum",
+                    "precision",
+                    "reachability",
+                    "root_delay",
+                    "root_delay_prec",
+                    "ntp_last_sync_time",
+                    "ntp_last_sync_time_prec",
+                    "client_sent",
+                    "client_sent_prec",
+                    "server_recv",
+                    "server_recv_prec",
+                    "server_sent",
+                    "server_sent_prec",
+                    "client_recv",
+                    "client_recv_prec"
+                ]
+
+                return [dict(zip(columns, row)) for row in cur]
+
+
+def get_measurements_timestamps_dn(pool, dn: str, start: PreciseTime, end: PreciseTime):
+    with pool.connection() as conn:
+        with conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute("""
+                            SELECT m.id,
+                                   m.ntp_server_ip,
+                                   m.ntp_server_name,
+                                   m.ntp_version,
+                                   m.ntp_server_ref_parent,
+                                   m.ref_name,
+                                   m.time_offset,
+                                   m.delay,
+                                   m.stratum,
+                                   m.precision,
+                                   m.reachability,
+                                   m.root_delay,
+                                   m.root_delay_prec,
+                                   m.ntp_last_sync_time,
+                                   m.ntp_last_sync_time_prec,
+                                   t.client_sent,
+                                   t.client_sent_prec,
+                                   t.server_recv,
+                                   t.server_recv_prec,
+                                   t.server_sent,
+                                   t.server_sent_prec,
+                                   t.client_recv,
+                                   t.client_recv_prec
+                            FROM measurements m
+                                     JOIN times t ON m.time_id = t.id
+                            WHERE m.ntp_server_name = %(dn)s
+                              AND (t.client_sent >= %(start_t)s AND t.client_sent <= %(end_t)s)
+                            """, {
+                                "dn": dn,
+                                "start_t": start.seconds,
+                                # "start_t_precision": start.fraction,
+                                "end_t": end.seconds,
+                                # "end_t_precision": end.fraction
                             })
                 columns = [
                     "id",

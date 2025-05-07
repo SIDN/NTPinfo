@@ -1,7 +1,7 @@
 from ipaddress import IPv4Address, IPv6Address
 
 from server.app.db.connection import insert_measurement
-from server.app.db.connection import get_measurements_timestamps
+from server.app.db.connection import get_measurements_timestamps_ip, get_measurements_timestamps_dn
 from server.app.models.NtpExtraDetails import NtpExtraDetails
 from server.app.models.NtpMainDetails import NtpMainDetails
 from server.app.models.NtpMeasurement import NtpMeasurement
@@ -10,13 +10,15 @@ from server.app.models.NtpTimestamps import NtpTimestamps
 from server.app.models.PreciseTime import PreciseTime
 from server.app.db.config import pool
 from server.app.utils.perform_measurements import perform_ntp_measurement_ip
+from server.app.utils.perform_measurements import human_date_to_ntp_precise_time
 from server.app.utils.perform_measurements import perform_ntp_measurement_domain_name
-from datetime import datetime, timezone
+from server.app.utils.validate import is_ip_address
+from server.app.utils.validate import ensure_utc
+from server.app.utils.validate import parse_ip
+from datetime import datetime
 
-print("Hello World!")
 
-
-def measure(ip: IPv4Address | IPv6Address, dn: str) -> NtpMeasurement | None:
+def measure(server: str) -> NtpMeasurement | None:
     # t1 = PreciseTime(10000, 0)
     # t2 = PreciseTime(10002, 2 ** 27)
     # t3 = PreciseTime(10003, 10000)
@@ -26,35 +28,35 @@ def measure(ip: IPv4Address | IPv6Address, dn: str) -> NtpMeasurement | None:
     # main_details = NtpMainDetails(0.009, 0, 1, 0, "stable")
     # extra = NtpExtraDetails(PreciseTime(100000, 0), PreciseTime(100000, 0), 0)
     #
-    # m = NtpMeasurement(server_details, times, main_details, extra)
+    # m = NtpMeasurement(server_details, times, main_details, extra
     try:
-        m = perform_ntp_measurement_domain_name(dn)
-        insert_measurement(m, pool)
-        return m
+        if is_ip_address(server) is not None:
+            m = perform_ntp_measurement_ip(server)
+            insert_measurement(m, pool)
+            return m
+        else:
+            m = perform_ntp_measurement_domain_name(server)
+            insert_measurement(m, pool)
+            return m
     except Exception as e:
         print("Performing measurement error message:", e)
         return None
 
 
-def datetime_to_ntp_time(dt: datetime) -> PreciseTime:
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
+def fetch_historic_data_with_timestamps(server: str, start: datetime, end: datetime):
+    start_pt = human_date_to_ntp_precise_time(ensure_utc(start))
+    end_pt = human_date_to_ntp_precise_time(ensure_utc(end))
+    print(start_pt)
+    print(end_pt)
+    # start_pt = PreciseTime(450, 20)
+    # end_pt = PreciseTime(1200, 100)
+    # raw_data = get_measurements_timestamps_ip(pool, ip, start_pt, end_pt)
+    raw_data = None
+    if is_ip_address(server) is not None:
+        raw_data = get_measurements_timestamps_ip(pool, parse_ip(server), start_pt, end_pt)
+    else:
+        raw_data = get_measurements_timestamps_dn(pool, server, start_pt, end_pt)
 
-    ntp_epoch = datetime(1900, 1, 1, tzinfo=timezone.utc)
-    delta = (dt - ntp_epoch).total_seconds()  # float
-
-    ntp_seconds = int(delta)
-    ntp_fraction = int((delta - ntp_seconds) * (2 ** 32))
-
-    return PreciseTime(ntp_seconds, ntp_fraction)
-
-
-def fetch_historic_data_with_timestamps(ip: IPv4Address | IPv6Address, dn: str, start: datetime, end: datetime):
-    # start_pt = datetime_to_ntp_time(start)
-    # end_pt = datetime_to_ntp_time(end)
-    start_pt = PreciseTime(450, 20)
-    end_pt = PreciseTime(1200, 100)
-    raw_data = get_measurements_timestamps(pool, ip, start_pt, end_pt)
     measurements = []
     for entry in raw_data:
         server_info = NtpServerInfo(entry['ntp_version'], entry['ntp_server_ip'], entry['ntp_server_name'],

@@ -4,7 +4,7 @@ from fastapi import FastAPI, HTTPException
 from server.app.main import measure
 from server.app.main import fetch_historic_data_with_timestamps
 from server.app.models.NtpMeasurement import NtpMeasurement
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 def get_format(measurement: NtpMeasurement):
@@ -38,15 +38,25 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
-    return {"Hello": "Worlds"}
+    return {"Hello": "World"}
+
+
+"""
+API endpoint
+args:
+    time (PreciseTime): A single PreciseTime object, representing a single timestamp
+
+returns:
+    float: Time in seconds
+"""
 
 
 @app.post("/measurements/")
-async def read_data_measurement(ip: IPv4Address | IPv6Address = None, dn: str = None):
+async def read_data_measurement(server: str):
     # the case in which none of them are mentioned
-    if ip == None and dn is None:
+    if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
-    result = measure(ip, dn)
+    result = measure(server)
     if result != None:
         return {
             "measurement": get_format(result)
@@ -57,17 +67,18 @@ async def read_data_measurement(ip: IPv4Address | IPv6Address = None, dn: str = 
 
 
 @app.get("/measurements/history/")
-async def read_historic_data_time(ip: IPv4Address | IPv6Address, dn: str = None,
+async def read_historic_data_time(server: str,
                                   start: datetime = None, end: datetime = None):
-    if ip == None:
-        raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
-    start_str = "2024-05-01T12:00:00"
-    end_str = "2024-05-01T12:30:00"
+    if len(server) == 0:
+        raise HTTPException(status_code=400, detail="Either 'ip' or 'domain name' must be provided")
 
-    # Convert to datetime
-    start_test = datetime.fromisoformat(start_str)
-    end_test = datetime.fromisoformat(end_str)
-    result = fetch_historic_data_with_timestamps(ip, dn, start_test, end_test)
+    utc_time_from_9am = datetime(2025, 5, 7, 7, 0, tzinfo=timezone.utc)
+    current_utc_time = datetime(2025, 5, 7, 11, 15, tzinfo=timezone.utc)
+
+    start_test = utc_time_from_9am
+    end_test = current_utc_time
+
+    result = fetch_historic_data_with_timestamps(server, start, end)
     formatted_results = [get_format(entry) for entry in result]
     return {
         "measurements": formatted_results
