@@ -28,6 +28,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
                     type="text"
                     value={query}
                     onChange={handleInputChange}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") {handleSearch()}
+                      }}
                     placeholder="time.google.com"
                 />
                 <button onClick={handleSearch}>

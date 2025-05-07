@@ -21,7 +21,9 @@
   --bg-clr-hero: #CDCFDA;
   --clr-red-1: #ff6b6b;
   --clr-red-2: #F2404C;
-  --clr-btn-selected-purple: #27263F;
+  --clr-red-3: #c03039;
+  --clr-btn-selected-purple: #0d0d0e;
+  --clr-search-placeholder: #b3b3b3;
 }
 *, *::before, *::after {
   box-sizing: border-box;
@@ -68,10 +70,6 @@ button {
 }
 button:hover {
   border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
 }
 
 @media (prefers-color-scheme: dark) {
