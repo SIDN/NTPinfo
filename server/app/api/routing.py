@@ -42,13 +42,17 @@ def read_root():
 
 
 @app.post("/measurements/")
-async def read_data_measurement(ip: IPv4Address | IPv6Address, dn: str = None):
+async def read_data_measurement(ip: IPv4Address | IPv6Address = None, dn: str = None):
     # the case in which none of them are mentioned
-    if ip == None:
+    if ip == None and dn is None:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
     result = measure(ip, dn)
+    if result != None:
+        return {
+            "measurement": get_format(result)
+        }
     return {
-        "measurement": get_format(result)
+        "Error": "Could not perform measurement, dns or ip not reachable."
     }
 
 
