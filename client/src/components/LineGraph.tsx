@@ -7,26 +7,17 @@ import {
     Title,
     Tooltip,
     Legend,
-} from 'chart.js';
-import { Line } from 'react-chartjs-2';
+} from 'chart.js'
+import { Line } from 'react-chartjs-2'
+import { NTPData } from '../utils/tempData';
 ChartJS.defaults.color = 'rgba(239,246,238,1)'
-
-type NTPData = {
-    offset: number;
-    delay: number;
-    stratum: number;
-    jitter: number;
-    reachability: number;
-    passing: boolean;
-    time: number;
-};
 
 type Measurement = 'delay' | 'offset'
   
 type ChartInputData = {
     data: NTPData[];
     selectedMeasurement: Measurement;
-};
+}
 
 // Register the required components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
