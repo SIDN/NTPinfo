@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from server.app.models.PreciseTime import PreciseTime
 
+
 @dataclass
 class NtpTimestamps:
     """
@@ -13,8 +14,7 @@ class NtpTimestamps:
         server_sent_time (PreciseTime): Time when the response was sent by the server (t3)
         client_recv_time (PreciseTime): Time when the response was received by the client (t4)
     """
-    client_sent_time: PreciseTime #t1
-    server_recv_time: PreciseTime #t2
-    server_sent_time: PreciseTime #t3
-    client_recv_time: PreciseTime #t4
-    
+    client_sent_time: PreciseTime  # t1
+    server_recv_time: PreciseTime  # t2
+    server_sent_time: PreciseTime  # t3
+    client_recv_time: PreciseTime  # t4
