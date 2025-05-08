@@ -3,6 +3,7 @@ import Dropdown from "./Dropdown";
 import '../styles/Popup.css'
 import { NTPData } from "../types";
 import LineChart from "./LineGraph";
+import { Measurement } from "../types";
 
 interface DropdownConfig {
     label: string;
@@ -19,8 +20,6 @@ interface PopupDropdownProps{
     data: NTPData[]
 }
 
-type Measurement = 'delay' | 'offset'
-
 export default function VisualizationPopup({isOpen, onClose, dropdowns, data}: PopupDropdownProps ) {
     const popupRef = useRef(null)
 
@@ -28,7 +27,7 @@ export default function VisualizationPopup({isOpen, onClose, dropdowns, data}: P
     const [isOffsetChecked, setOffsetChecked] = useState(true)
     const [isDelayChecked, setDelayChecked] = useState(false)
     const [textVal, setTextVal] = useState("")
-    const [selMeasurement, setSelMeasurement] = useState<Measurement>("delay");
+    const [selMeasurement, setSelMeasurement] = useState<Measurement>("RTT");
 
     const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSelMeasurement(event.target.value as Measurement);
@@ -109,8 +108,8 @@ export default function VisualizationPopup({isOpen, onClose, dropdowns, data}: P
                         <input
                             type="radio"
                             name="measurement"
-                            value="delay"
-                            checked={selMeasurement === 'delay'}
+                            value="RTT"
+                            checked={selMeasurement === 'RTT'}
                             onChange={handleMeasurementChange}
                         />
                         Delay

@@ -7,3 +7,5 @@ export type NTPData = {
   status: string
   time: number
 }
+
+export type Measurement = 'RTT' | 'offset'

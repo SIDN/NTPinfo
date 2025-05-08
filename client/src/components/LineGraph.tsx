@@ -11,8 +11,7 @@ import {
 import { Line } from 'react-chartjs-2'
 ChartJS.defaults.color = 'rgba(239,246,238,1)'
 import { NTPData } from '../types'
-
-type Measurement = 'delay' | 'offset'
+import { Measurement } from '../types'
   
 type ChartInputData = {
     data: NTPData[];
@@ -36,7 +35,7 @@ const options = {
 
 export default function LineChart({data, selectedMeasurement}: ChartInputData) {
     const measurementMap = {
-        delay: 'Delay (ms)',
+        RTT: 'Round-trip time (ms)',
         offset: 'Offset (ms)'
     };
 

@@ -11,12 +11,11 @@ import LineChart from './components/LineGraph'
 import { ntpMap} from './utils/tempData.ts'
 
 import { NTPData } from './types'
+import { Measurement } from './types'
 
 type InputData = {
   data: NTPData[]
 }
-
-type Measurement = 'delay' | 'offset';
 
 /**
  * Downloads the measurement data in a JSON format.
@@ -67,7 +66,7 @@ function App() {
   const [popupOpen, setPopupOpen] = useState(false)
   const [selOption1, setOption1] = useState("Last Hour")
   const [selOption2, setOption2] = useState("Hours")
-  const [selMeasurement, setSelMeasurement] = useState<Measurement>("delay")
+  const [selMeasurement, setSelMeasurement] = useState<Measurement>("RTT")
 
   //dropdown format
   const dropdown = [
@@ -140,8 +139,8 @@ function App() {
               <input
                 type="radio"
                 name="measurement"
-                value="delay"
-                checked={selMeasurement === 'delay'}
+                value="RTT"
+                checked={selMeasurement === 'RTT'}
                 onChange={handleMeasurementChange}
               />
               Jitter
