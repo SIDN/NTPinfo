@@ -57,4 +57,3 @@ pydocstyle~=6.3.0
 
 python-dotenv
 psycopg[binary,pool]
-

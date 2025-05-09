@@ -139,6 +139,12 @@ async def read_historic_data_time(server: str,
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'domain name' must be provided")
 
+    if start >= end:
+        raise HTTPException(status_code=400, detail="'start' must be earlier than 'end'")
+
+    if end > datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="'end' cannot be in the future")
+
     # utc_time_from_9am = datetime(2025, 5, 7, 7, 0, tzinfo=timezone.utc)
     # current_utc_time = datetime(2025, 5, 7, 11, 15, tzinfo=timezone.utc)
     #

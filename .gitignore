@@ -4,7 +4,7 @@ __pycache__/
 *.egg-info/
 server/.venv/
 #/server/app/db/config.py
-/server/app/db/.env
+/.env
 
 # FastAPI logs
 *.log
