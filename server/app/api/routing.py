@@ -7,6 +7,7 @@ from server.app.models.NtpMeasurement import NtpMeasurement
 from datetime import datetime, timezone
 from typing import Any, Optional, Coroutine
 from fastapi.middleware.cors import CORSMiddleware
+from server.app.models.MeasurementRequest import MeasurementRequest
 
 from ipaddress import ip_address
 
@@ -94,24 +95,26 @@ def read_root() -> dict[str, str]:
 
 
 @app.post("/measurements/")
-async def read_data_measurement(server: str) -> dict[str, Any]:
+async def read_data_measurement(payload: MeasurementRequest) -> dict[str, Any]:
     """
     Compute a live NTP measurement for a given server (IP or domain).
 
-    This endpoint attempts to measure NTP synchronization metrics for a provided server.
-    It uses the `measure()` function to perform the measurement, and returns a formatted
-    result using `get_format()`.
+    This endpoint receives a JSON payload containing the server to be measured.
+    It uses the `measure()` function to perform the NTP synchronization measurement,
+    and formats the result using `get_format()`.
 
     Args:
-        server (str): IP address (IPv4/IPv6) or domain name of the NTP server.
+        payload (MeasurementRequest): A Pydantic model containing:
+            - server (str): IP address (IPv4/IPv6) or domain name of the NTP server.
 
     Returns:
-        dict: On success, returns {"measurement": <formatted_measurement_dict>}
-              On failure, returns {"Error": "Could not perform measurement, dns or ip not reachable."}
+        dict: On success, returns {"measurement": <formatted_measurement_dict>}.
+              On failure, returns {"Error": "Could not perform measurement, DNS or IP not reachable."}
 
     Raises:
-        HTTPException: 400 error if `server` parameter is empty.
+        HTTPException: 400 error if the `server` field is empty.
     """
+    server = payload.server
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
     result = measure(server)
