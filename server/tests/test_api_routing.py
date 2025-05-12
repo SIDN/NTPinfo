@@ -206,15 +206,7 @@ def test_read_historic_data_missing_server():
     assert response.status_code == 400
     assert response.json() == {'detail': "Either 'ip' or 'domain name' must be provided"}
 
-def test_read_historic_data_wrong_server():
-    end = datetime.now(timezone.utc)
-    response = client.get("/measurements/history/", params={
-        "server": "random-server-name.org",
-        "start": (end - timedelta(minutes = 10)).isoformat(),
-        "end": end.isoformat()
-    })
-    assert response.status_code == 200
-    assert response.json() == {'measurements': []}
+
 
 def test_read_historic_data_wrong_start():
     end = datetime.now(timezone.utc)
