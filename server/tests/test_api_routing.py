@@ -137,7 +137,7 @@ def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_mea
     measurement = mock_measurement()
     mock_perform_measurement.return_value = measurement
 
-    response = client.post("/measurements/", params = {"server": "pool.ntp.org"})
+    response = client.post("/measurements/", json = {"server": "pool.ntp.org"})
     assert response.status_code == 200
     assert "measurement" in response.json()
     assert response.json()["measurement"]["ntp_server_name"] == "pool.ntp.org"
@@ -145,12 +145,12 @@ def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_mea
     mock_insert.assert_called_once_with(measurement, mock_insert.call_args[0][1])
 
 def test_read_data_measurement_missing_server():
-    response = client.post("/measurements/", params = {"server": None})
+    response = client.post("/measurements/", json = {"server": ""})
     assert response.status_code == 400
     assert response.json() == {"detail": "Either 'ip' or 'dn' must be provided"}
 
 def test_read_data_measurement_wrong_server():
-    response = client.post("/measurements/", params = {"server": "random-server-name.org"})
+    response = client.post("/measurements/", json = {"server": "random-server-name.org"})
     assert response.status_code == 200
     assert response.json() == {"Error": "Could not perform measurement, dns or ip not reachable."}
 
