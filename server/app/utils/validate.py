@@ -6,6 +6,7 @@ import dns.name
 def is_valid_domain_name(domain_name: str) -> bool:
     """
     This method verifies if the given string could be a valid domain name. It verifies the syntax.
+    It offers only a basic validation of the syntax. It is just enough for a dns to consider it.
 
     Args:
         domain_name (str): The string to check.

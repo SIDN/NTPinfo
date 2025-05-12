@@ -1,6 +1,6 @@
 from ipaddress import IPv4Address, IPv6Address
 
-from server.app.utils.validate import is_ip_address
+from server.app.utils.validate import is_ip_address, is_valid_domain_name
 from server.app.utils.validate import ensure_utc
 from server.app.utils.validate import parse_ip
 from datetime import datetime, timezone, tzinfo, timedelta
@@ -29,3 +29,10 @@ def test_parse_ip():
     assert parse_ip("2001:db8:85a3::8a2e:370:7334") == IPv6Address("2001:db8:85a3::8a2e:370:7334")
     assert parse_ip("123.45.67.89.69") is None
     assert parse_ip("2001:db8:85a3::8a2e:370:7334::3442") is None
+
+def test_is_valid_domain_name():
+    assert is_valid_domain_name("example.com") is True
+    assert is_valid_domain_name(2) is False
+    assert is_valid_domain_name("a,,d..j") is False
+    assert is_valid_domain_name("..") is False
+    assert is_valid_domain_name("aaa") is True
