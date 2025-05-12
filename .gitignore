@@ -6,6 +6,8 @@ server/.venv/
 #/server/app/db/config.py
 /.env
 
+client/src/.env
+
 # FastAPI logs
 *.log
 

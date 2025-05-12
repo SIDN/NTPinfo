@@ -1,16 +1,16 @@
 import { NTPData } from "./types";
 
-export const transformJSONData = (fetchedData: any[]): NTPData[] | null => {
-    if (!fetchedData || fetchedData.length == 0) 
-        return null;
+export const transformJSONData = (fetchedData: any): NTPData | null => {
+    if (!fetchedData) 
+        return null
     
-    return fetchedData.map(data => ({
-        offset: data.offset,
-        delay: data.delay,
-        stratum: data.stratum,
-        jitter: data.precision,
-        reachability: data.reachability,
-        passing: true,
-        time: data.client_sent_time
-    }));
+    return {
+        offset: fetchedData.offset,
+        RTT: fetchedData.delay,
+        stratum: fetchedData.stratum,
+        jitter: fetchedData.precision,
+        reachability: 1,
+        status: fetchedData.reachability,
+        time: fetchedData.client_sent_time.seconds
+    }
 };
