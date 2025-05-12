@@ -2,7 +2,7 @@ from unittest.mock import patch, Mock, MagicMock
 
 from fastapi.testclient import TestClient
 from ipaddress import IPv4Address, IPv6Address
-from server.app.api.routing import app
+from server.app.main import app
 from server.app.models.NtpExtraDetails import NtpExtraDetails
 from server.app.models.NtpMainDetails import NtpMainDetails
 from server.app.models.NtpMeasurement import NtpMeasurement
@@ -10,7 +10,6 @@ from server.app.models.NtpServerInfo import NtpServerInfo
 from server.app.models.NtpTimestamps import NtpTimestamps
 from server.app.models.PreciseTime import PreciseTime
 from datetime import datetime, timezone, timedelta
-import server.app.api.routing as routing
 
 client = TestClient(app)
 
@@ -100,38 +99,15 @@ def get_mock_data():
         }
     ]
 
-def test_ip_to_str():
-    assert routing.ip_to_str(IPv4Address("123.45.67.89")) == "123.45.67.89"
-    assert routing.ip_to_str(IPv6Address("2001:db8:3333:4444:5555:6666:7777:8888")) == "2001:db8:3333:4444:5555:6666:7777:8888"
-    assert routing.ip_to_str(None) is None
-
-def test_get_format():
-    measurement = mock_measurement()
-
-    formatted_measurement = routing.get_format(measurement)
-
-    assert formatted_measurement["ntp_version"] == 4
-    assert formatted_measurement["ntp_server_ip"] == "192.168.0.1"
-    assert formatted_measurement["ntp_server_name"] == "pool.ntp.org"
-    assert formatted_measurement["ntp_server_ref_parent_ip"] is None
-    assert formatted_measurement["ref_name"] is None
-    assert formatted_measurement["offset"] == 0.123
-    assert formatted_measurement["delay"] == 0.456
-    assert formatted_measurement["stratum"] == 2
-    assert formatted_measurement["precision"] == -20.0
-    assert formatted_measurement["reachability"] == ""
-    assert formatted_measurement["leap"] == 0
-
-
 def test_read_root():
     response = client.get("/")
     assert response.status_code == 200
     assert response.json() == {"Hello": "World"}
 
 
-@patch("server.app.main.perform_ntp_measurement_domain_name")
-@patch("server.app.main.insert_measurement")
-@patch("server.app.main.is_ip_address")
+@patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
+@patch("server.app.services.api_services.insert_measurement")
+@patch("server.app.services.api_services.is_ip_address")
 def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_measurement):
     mock_is_ip.return_value = None
     measurement = mock_measurement()
@@ -154,10 +130,10 @@ def test_read_data_measurement_wrong_server():
     assert response.status_code == 200
     assert response.json() == {"Error": "Could not perform measurement, dns or ip not reachable."}
 
-@patch("server.app.main.get_measurements_timestamps_dn")
-@patch("server.app.main.get_measurements_timestamps_ip")
-@patch("server.app.main.is_ip_address")
-@patch("server.app.main.human_date_to_ntp_precise_time")
+@patch("server.app.services.api_services.get_measurements_timestamps_dn")
+@patch("server.app.services.api_services.get_measurements_timestamps_ip")
+@patch("server.app.services.api_services.is_ip_address")
+@patch("server.app.services.api_services.human_date_to_ntp_precise_time")
 def test_read_historic_data_ip(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, mock_get_dn):
     end = datetime.now(timezone.utc)
     mock_is_ip.return_value = IPv4Address("192.168.0.1")
@@ -179,10 +155,10 @@ def test_read_historic_data_ip(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, 
     mock_get_ip.assert_called_once()
     mock_get_dn.assert_not_called()
 
-@patch("server.app.main.get_measurements_timestamps_dn")
-@patch("server.app.main.get_measurements_timestamps_ip")
-@patch("server.app.main.is_ip_address")
-@patch("server.app.main.human_date_to_ntp_precise_time")
+@patch("server.app.services.api_services.get_measurements_timestamps_dn")
+@patch("server.app.services.api_services.get_measurements_timestamps_ip")
+@patch("server.app.services.api_services.is_ip_address")
+@patch("server.app.services.api_services.human_date_to_ntp_precise_time")
 def test_read_historic_data_dn(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, mock_get_dn):
     end = datetime.now(timezone.utc)
     mock_is_ip.return_value = None

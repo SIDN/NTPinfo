@@ -1,89 +1,16 @@
-from ipaddress import IPv4Address, IPv6Address
 
-from fastapi import FastAPI, HTTPException
-from server.app.main import measure
-from server.app.main import fetch_historic_data_with_timestamps
-from server.app.models.NtpMeasurement import NtpMeasurement
+from fastapi import HTTPException, APIRouter
+
+
 from datetime import datetime, timezone
-from typing import Any, Optional, Coroutine
-from fastapi.middleware.cors import CORSMiddleware
+from typing import Any
+
 from server.app.models.MeasurementRequest import MeasurementRequest
+from server.app.services.api_services import get_format, measure, fetch_historic_data_with_timestamps
 
-from ipaddress import ip_address
+router = APIRouter()
 
-
-def ip_to_str(ip: Optional[IPv4Address | IPv6Address]) -> Optional[str]:
-    """
-    Converts an IP address (either IPv4 or IPv6) to its string representation.
-
-    This function takes an `IPv4Address` or `IPv6Address` object and converts it to
-    a string. If the input IP is `None`, it returns `None`.
-
-    Args:
-        ip (Optional[IPv4Address | IPv6Address]): The IP address to be converted.
-            It can be either an `IPv4Address` or `IPv6Address` object, or `None`.
-
-    Returns:
-        Optional[str]: The string representation of the IP address, or `None` if the input is `None`.
-    """
-    return str(ip) if ip is not None else None
-
-
-def get_format(measurement: NtpMeasurement) -> dict[str, Any]:
-    """
-    Format an NTP measurement object into a dictionary suitable for JSON serialization.
-
-    Args:
-        measurement (NtpMeasurement): An object representing the NTP measurement result.
-
-    Returns:
-        dict: A dictionary containing key measurement details like this:
-            - Server info (ntp version, IP, name, reference IP, reference)
-            - Timestamps (client sent time, server receive time, server sent time, client receive time)
-            - Measurement metrics (offset, delay, stratum, precision, reachability)
-            - Extra details (root delay, last sync time, leap indicator)
-    """
-    return {
-        "ntp_version": measurement.server_info.ntp_version,
-        "ntp_server_ip": ip_to_str(measurement.server_info.ntp_server_ip),
-        "ntp_server_name": measurement.server_info.ntp_server_name,
-        "ntp_server_ref_parent_ip": ip_to_str(measurement.server_info.ntp_server_ref_parent_ip),
-        "ref_name": measurement.server_info.ref_name,
-
-        "client_sent_time": measurement.timestamps.server_sent_time,
-        "server_recv_time": measurement.timestamps.server_recv_time,
-        "server_sent_time": measurement.timestamps.server_sent_time,
-        "client_recv_time": measurement.timestamps.client_recv_time,
-
-        "offset": measurement.main_details.offset,
-        "delay": measurement.main_details.delay,
-        "stratum": measurement.main_details.stratum,
-        "precision": measurement.main_details.precision,
-        "reachability": measurement.main_details.reachability,
-
-        "root_delay": measurement.extra_details.root_delay,
-        "ntp_last_sync_time": measurement.extra_details.ntp_last_sync_time,
-        # if it has value = 3 => invalid
-        "leap": measurement.extra_details.leap
-    }
-
-
-app = FastAPI()
-"""
-Creates a FastAPI application instance.
-This instance is used to define all API endpoints and serve the application.
-"""
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-@app.get("/")
+@router.get("/")
 def read_root() -> dict[str, str]:
     """
     Root endpoint for basic service health check.
@@ -93,8 +20,7 @@ def read_root() -> dict[str, str]:
     """
     return {"Hello": "World"}
 
-
-@app.post("/measurements/")
+@router.post("/measurements/")
 async def read_data_measurement(payload: MeasurementRequest) -> dict[str, Any]:
     """
     Compute a live NTP measurement for a given server (IP or domain).
@@ -127,7 +53,7 @@ async def read_data_measurement(payload: MeasurementRequest) -> dict[str, Any]:
     }
 
 
-@app.get("/measurements/history/")
+@router.get("/measurements/history/")
 async def read_historic_data_time(server: str,
                                   start: datetime, end: datetime) -> dict[str, list[dict[str, Any]]]:
     """

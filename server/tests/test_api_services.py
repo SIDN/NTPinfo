@@ -1,13 +1,62 @@
-import pytest
+from server.app.services.api_services import *
 from unittest.mock import patch, MagicMock
 from server.app.models.NtpMeasurement import NtpMeasurement
-from server.app.main import measure, fetch_historic_data_with_timestamps
 from datetime import datetime
 
+def mock_precise(seconds = 1234567890, fraction = 0) -> PreciseTime:
+    return PreciseTime(seconds = seconds, fraction = fraction)
 
-@patch("server.app.main.insert_measurement")
-@patch("server.app.main.perform_ntp_measurement_domain_name")
-@patch("server.app.main.perform_ntp_measurement_ip")
+def test_ip_to_str():
+    assert ip_to_str(IPv4Address("123.45.67.89")) == "123.45.67.89"
+    assert ip_to_str(IPv6Address("2001:db8:3333:4444:5555:6666:7777:8888")) == "2001:db8:3333:4444:5555:6666:7777:8888"
+    assert ip_to_str(None) is None
+
+def test_get_format():
+    measurement = NtpMeasurement(
+        server_info = NtpServerInfo(
+            ntp_version = 4,
+            ntp_server_ip = IPv4Address("192.168.0.1"),
+            ntp_server_name = "pool.ntp.org",
+            ntp_server_ref_parent_ip = None,
+            ref_name = None
+        ),
+        timestamps=NtpTimestamps(
+            client_sent_time = mock_precise(1),
+            server_recv_time = mock_precise(2),
+            server_sent_time = mock_precise(3),
+            client_recv_time = mock_precise(4),
+        ),
+        main_details=NtpMainDetails(
+            offset = 0.123,
+            delay = 0.456,
+            stratum = 2,
+            precision = -20.0,
+            reachability = ""
+        ),
+        extra_details = NtpExtraDetails(
+            root_delay = mock_precise(5),
+            ntp_last_sync_time = mock_precise(6),
+            leap = 0
+        )
+    )
+
+    formatted_measurement = get_format(measurement)
+
+    assert formatted_measurement["ntp_version"] == 4
+    assert formatted_measurement["ntp_server_ip"] == "192.168.0.1"
+    assert formatted_measurement["ntp_server_name"] == "pool.ntp.org"
+    assert formatted_measurement["ntp_server_ref_parent_ip"] is None
+    assert formatted_measurement["ref_name"] is None
+    assert formatted_measurement["offset"] == 0.123
+    assert formatted_measurement["delay"] == 0.456
+    assert formatted_measurement["stratum"] == 2
+    assert formatted_measurement["precision"] == -20.0
+    assert formatted_measurement["reachability"] == ""
+    assert formatted_measurement["leap"] == 0
+
+@patch("server.app.services.api_services.insert_measurement")
+@patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
+@patch("server.app.services.api_services.perform_ntp_measurement_ip")
 def test_measure_with_ip(mock_measure_ip, mock_measure_domain, mock_insert):
     fake_measurement = MagicMock(spec=NtpMeasurement)
     mock_measure_ip.return_value = fake_measurement
@@ -20,9 +69,9 @@ def test_measure_with_ip(mock_measure_ip, mock_measure_domain, mock_insert):
     mock_measure_domain.assert_not_called()
 
 
-@patch("server.app.main.insert_measurement")
-@patch("server.app.main.perform_ntp_measurement_domain_name")
-@patch("server.app.main.perform_ntp_measurement_ip")
+@patch("server.app.services.api_services.insert_measurement")
+@patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
+@patch("server.app.services.api_services.perform_ntp_measurement_ip")
 def test_measure_with_domain(mock_measure_ip, mock_measure_domain, mock_insert):
     fake_measurement = MagicMock(spec=NtpMeasurement)
     mock_measure_domain.return_value = fake_measurement
@@ -36,9 +85,9 @@ def test_measure_with_domain(mock_measure_ip, mock_measure_domain, mock_insert):
     mock_measure_ip.assert_not_called()
 
 
-@patch("server.app.main.insert_measurement")
-@patch("server.app.main.perform_ntp_measurement_domain_name")
-@patch("server.app.main.perform_ntp_measurement_ip")
+@patch("server.app.services.api_services.insert_measurement")
+@patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
+@patch("server.app.services.api_services.perform_ntp_measurement_ip")
 def test_measure_with_invalid_ip(mock_measure_ip, mock_measure_domain, mock_insert):
     fake_measurement = MagicMock(spec=NtpMeasurement)
     mock_measure_ip.return_value = None
@@ -52,9 +101,9 @@ def test_measure_with_invalid_ip(mock_measure_ip, mock_measure_domain, mock_inse
     mock_insert.assert_called_once_with(fake_measurement, mock_insert.call_args[0][1])
 
 
-@patch("server.app.main.insert_measurement")
-@patch("server.app.main.perform_ntp_measurement_domain_name")
-@patch("server.app.main.perform_ntp_measurement_ip")
+@patch("server.app.services.api_services.insert_measurement")
+@patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
+@patch("server.app.services.api_services.perform_ntp_measurement_ip")
 def test_measure_with_unresolvable_input(mock_measure_ip, mock_measure_domain, mock_insert):
     mock_measure_ip.return_value = None
     mock_measure_domain.return_value = None
@@ -67,9 +116,9 @@ def test_measure_with_unresolvable_input(mock_measure_ip, mock_measure_domain, m
     mock_insert.assert_not_called()
 
 
-@patch("server.app.main.insert_measurement")
-@patch("server.app.main.perform_ntp_measurement_domain_name")
-@patch("server.app.main.perform_ntp_measurement_ip")
+@patch("server.app.services.api_services.insert_measurement")
+@patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
+@patch("server.app.services.api_services.perform_ntp_measurement_ip")
 def test_measure_with_exception(mock_measure_ip, mock_measure_domain, mock_insert):
     mock_measure_ip.return_value = None
     mock_measure_domain.side_effect = Exception("DNS failure")
@@ -82,8 +131,8 @@ def test_measure_with_exception(mock_measure_ip, mock_measure_domain, mock_inser
     mock_insert.assert_not_called()
 
 
-@patch("server.app.main.get_measurements_timestamps_ip")
-@patch("server.app.main.parse_ip")
+@patch("server.app.services.api_services.get_measurements_timestamps_ip")
+@patch("server.app.services.api_services.parse_ip")
 def test_fetch_historic_data_empty_result(mock_parse_ip, mock_get_ip):
     mock_parse_ip.return_value = "10.0.0.5"
     mock_get_ip.return_value = []
@@ -95,9 +144,9 @@ def test_fetch_historic_data_empty_result(mock_parse_ip, mock_get_ip):
     assert results == []
 
 
-@patch("server.app.main.get_measurements_timestamps_ip")
-@patch("server.app.main.get_measurements_timestamps_dn")
-@patch("server.app.main.parse_ip")
+@patch("server.app.services.api_services.get_measurements_timestamps_ip")
+@patch("server.app.services.api_services.get_measurements_timestamps_dn")
+@patch("server.app.services.api_services.parse_ip")
 def test_fetch_historic_data_ip(mock_parse_ip, mock_get_dn, mock_get_ip):
     mock_parse_ip.return_value = "192.168.1.1"
     mock_get_ip.return_value = [
@@ -143,8 +192,8 @@ def test_fetch_historic_data_ip(mock_parse_ip, mock_get_dn, mock_get_ip):
     mock_get_dn.assert_not_called()
 
 
-@patch("server.app.main.get_measurements_timestamps_ip")
-@patch("server.app.main.get_measurements_timestamps_dn")
+@patch("server.app.services.api_services.get_measurements_timestamps_ip")
+@patch("server.app.services.api_services.get_measurements_timestamps_dn")
 def test_fetch_historic_data_domain_name(mock_get_dn, mock_get_ip):
     mock_get_ip.return_value = []
     mock_get_dn.return_value = [
