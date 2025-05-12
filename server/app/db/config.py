@@ -37,7 +37,7 @@ This string follows the format:
 It is required by most PostgreSQL drivers, including `psycopg`, to initiate connections.
 """
 
-pool = ConnectionPool(conninfo=dsn, max_size=5)
+pool = ConnectionPool(conninfo=dsn, max_size = 20)
 """
 Creates a PostgreSQL connection pool using `psycopg_pool.ConnectionPool`.
 
