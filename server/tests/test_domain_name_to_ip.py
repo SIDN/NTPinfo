@@ -2,7 +2,7 @@
 import socket
 from unittest.mock import patch, MagicMock
 
-from app.utils.domain_name_to_ip import domain_name_to_ip_default, domain_name_to_ip_close_to_client
+from server.app.utils.domain_name_to_ip import domain_name_to_ip_default, domain_name_to_ip_close_to_client
 
 
 @patch("server.app.utils.perform_measurements.socket.getaddrinfo")
