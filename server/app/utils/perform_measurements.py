@@ -32,6 +32,8 @@ def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", clien
     else:
         domain_ips = domain_name_to_ip_close_to_client(server_name, client_ip)
 
+    if domain_ips is None:
+        return None
     #domain_ips contains a list of ips that are good to use. We can simply use the first one
     ip_str = domain_ips[0]
     try:
