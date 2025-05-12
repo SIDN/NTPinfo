@@ -1,14 +1,31 @@
 import ipaddress
 from datetime import datetime, timezone
 from ipaddress import IPv4Address, IPv6Address
+import dns.name
 
+def is_valid_domain_name(domain_name: str) -> bool:
+    """
+    This method verifies if the given string could be a valid domain name. It verifies the syntax.
+    It offers only a basic validation of the syntax. It is just enough for a dns to consider it.
+
+    Args:
+        domain_name (str): The string to check.
+    Returns:
+        bool: True if the string could be a valid domain name, False otherwise.
+    """
+    try:
+        dns.name.from_text(domain_name)
+        return True
+    except Exception:
+        return False
 
 def is_ip_address(ip_str: str) -> str | None:
     """
     It verifies if the given string is a valid IPv4 or IPv6 address. If not, it returns None.
-    args:
+
+    Args:
         ip_str (str): ip address
-    returns:
+    Returns:
         str | None
     """
     try:

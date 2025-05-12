@@ -1,6 +1,8 @@
 import socket, ntplib
 from ipaddress import ip_address, IPv4Address, IPv6Address
 from datetime import datetime, timezone
+
+from server.app.utils.domain_name_to_ip import domain_name_to_ip_default, domain_name_to_ip_close_to_client
 from server.app.models.NtpExtraDetails import NtpExtraDetails
 from server.app.models.NtpMainDetails import NtpMainDetails
 from server.app.models.NtpMeasurement import NtpMeasurement
@@ -10,22 +12,30 @@ from server.app.models.PreciseTime import PreciseTime
 from server.app.utils.validate import is_ip_address
 
 
-def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org",
+def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", client_ip: str|None=None,
                                         ntp_version: int = 3) -> NtpMeasurement | None:
     """
     This method performs a NTP measurement on a NTP server from its domain name.
 
     Args:
         server_name (str): the name of the ntp server
+        client_ip (str|None): the ip address of the client (if given)
         ntp_version (int): the version of the ntp that you want to use
 
     Returns:
         NtpMeasurement | None: it returns the NTP measurement object or None if something wrong happened (usually timeouts).
     """
-    # get the ip from domain name, the DNS of the server is used
-    info = socket.getaddrinfo(server_name, None)[0]
-    ip_str = info[4][0]
-    # server_ip=ip_address(ip_str)
+    domain_ips: list[str] | None
+
+    if client_ip is None:  #if we do not have the client_ip available, use this server as a "client ip"
+        domain_ips = domain_name_to_ip_default(server_name)
+    else:
+        domain_ips = domain_name_to_ip_close_to_client(server_name, client_ip)
+
+    if domain_ips is None:
+        return None
+    #domain_ips contains a list of ips that are good to use. We can simply use the first one
+    ip_str = domain_ips[0]
     try:
         client = ntplib.NTPClient()
         response = client.request(server_name, ntp_version, timeout=6)
@@ -264,5 +274,6 @@ def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
         print("Error:", e)
         return False
 
-# m=perform_ntp_measurement_domain_name("ntp.time.com",3)
+# m=perform_ntp_measurement_domain_name("77.175.129.186",3)
+# m=perform_ntp_measurement_domain_name("pool.ntp.org","83.25.24.10")
 # print_ntp_measurement(m)
