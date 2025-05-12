@@ -1,5 +1,6 @@
 from unittest.mock import patch, Mock, MagicMock
 
+import pytest
 from fastapi.testclient import TestClient
 from ipaddress import IPv4Address, IPv6Address
 from server.app.main import app
@@ -10,8 +11,23 @@ from server.app.models.NtpServerInfo import NtpServerInfo
 from server.app.models.NtpTimestamps import NtpTimestamps
 from server.app.models.PreciseTime import PreciseTime
 from datetime import datetime, timezone, timedelta
+from server.app.db.config import pool
 
-client = TestClient(app)
+client = None
+
+@pytest.fixture(scope="function", autouse = True)
+def setup_and_teardown():
+    global client
+    client = TestClient(app)
+    yield client
+    client.close()
+
+@pytest.fixture(scope="session", autouse = True)
+def close_pool_after_tests():
+    yield
+    if pool:
+        pool.close()
+
 
 def mock_precise(seconds = 1234567890, fraction = 0) -> PreciseTime:
     return PreciseTime(seconds = seconds, fraction = fraction)
@@ -219,4 +235,5 @@ def test_read_historic_data_wrong_end():
     })
     assert response.status_code == 400
     assert response.json() == {"detail": "'end' cannot be in the future"}
+
 
