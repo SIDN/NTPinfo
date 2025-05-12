@@ -46,7 +46,7 @@ def test_perform_ntp_measurement_domain_name(mock_request, mock_getaddrinfo):
     mock_response.leap = 0
     mock_request.return_value = mock_response
 
-    result = perform_ntp_measurement_domain_name("mock.ntp.server",3)
+    result = perform_ntp_measurement_domain_name("mock.ntp.server")
 
     assert result is not None
 

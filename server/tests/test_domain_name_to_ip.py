@@ -2,7 +2,8 @@
 import socket
 from unittest.mock import patch, MagicMock
 
-from app.utils.domain_name_to_ip import domain_name_to_ip_default
+from app.utils.domain_name_to_ip import domain_name_to_ip_default, domain_name_to_ip_close_to_client
+
 
 @patch("server.app.utils.perform_measurements.socket.getaddrinfo")
 def test_domain_name_to_ip_default_error(mock_getaddrinfo):
@@ -53,3 +54,35 @@ def test_domain_name_to_ip_default_more_ips(mock_getaddrinfo):
     result = domain_name_to_ip_default(domain_name="ro.pool.ntp.org")
 
     assert result == mock_ans
+
+
+def test_domain_name_to_ip_close_to_client_invalid_domain_name():
+    result = domain_name_to_ip_close_to_client(domain_name="intp.org....",client_ip="83.25.24.10")
+
+    assert result is None
+
+
+@patch('dns.query.udp')
+def test_domain_name_to_ip_close_to_client_normal_case(mock_udp):
+    udp_mock_response_1 = MagicMock()
+    udp_mock_response_1.answer = [
+        MagicMock(items=[MagicMock(address='51.68.141.5'),
+                         MagicMock(address='178.215.228.24'),
+                         MagicMock(address='89.161.47.132'),
+                         MagicMock(address='193.59.134.156')
+                         ])
+    ]
+    udp_mock_response_2 = MagicMock()
+    udp_mock_response_2.answer = [
+        MagicMock(items=[MagicMock(address='164.92.156.55'),
+                         MagicMock(address='87.251.32.230'),
+                         MagicMock(address='149.143.87.82'),
+                         MagicMock(address='178.239.19.62')
+                         ])
+    ]
+    mock_udp.side_effect = [udp_mock_response_1, udp_mock_response_2]
+
+    mock_ans=['51.68.141.5', '178.215.228.24', '89.161.47.132', '193.59.134.156', '164.92.156.55', '87.251.32.230', '149.143.87.82', '178.239.19.62']
+
+    result = domain_name_to_ip_close_to_client(domain_name="pool.ntp.org",client_ip="83.25.24.10")
+    assert set(result) == set(mock_ans)

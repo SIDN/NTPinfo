@@ -68,7 +68,9 @@ def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str, mask: in
         for ans in response.answer:
             for i in ans.items:
                 ips.append(i.address)
+    #remove duplicates
+    ips=list(set(ips))
     return ips
 
 #example of usage:
-#print(domain_name_to_ip_close_to_client("pool.ntp.org", "83.25.24.10"))
+print(domain_name_to_ip_close_to_client("pool.ntp.org", "83.25.24.10"))
