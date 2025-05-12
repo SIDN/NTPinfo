@@ -72,7 +72,7 @@ function App() {
   const [res, setRes] = useState<any>(null)
 
   const {ipInfo, fetchIP, clearIP, loading: ipLoading, error: ipError} = useIPInfo()
-  //const {fetchData, loading: apiDataLoading, error: apiErrorLoading} = useFetchIPData()
+  const {fetchData, loading: apiDataLoading, error: apiErrorLoading} = useFetchIPData()
 
   //dropdown format
   const dropdown = [
@@ -117,14 +117,21 @@ function App() {
     if (!ipData)
       return;
 
-    /*const fullurl = `http://localhost:8000/measurements/${query}?ip=${ipData.ip}`
+    /*const payload = {
+      domain: query,
+      ip: ipData.ip,
+    }*/
+    const server: string = query
+    const fullurl = `http://localhost:8000/measurements/${server}`
     const apiResp = await fetchData(fullurl)
+
+    console.log(apiResp)
 
     setRes({
       input: query,
       ipInfo: ipData,
       apiData: apiResp
-    })*/
+    })
 
     clearIP();
   }
