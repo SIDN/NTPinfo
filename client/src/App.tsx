@@ -10,7 +10,7 @@ import VisualizationPopup from './components/Visualization'
 import LineChart from './components/LineGraph'
 import { ntpMap} from './utils/tempData.ts'
 import { useFetchIPData } from './hooks/useFetchIPData.ts'
-import { useIPInfo, IPInfoData } from './hooks/useIPInfo.ts'
+import { useFetchHistoricalIPData } from './hooks/useFetchHistoricalIPData.ts'
 
 import { NTPData } from './types'
 import { Measurement } from './types'
@@ -71,7 +71,8 @@ function App() {
   const [selMeasurement, setSelMeasurement] = useState<Measurement>("RTT")
   const [res, setRes] = useState<any>(null)
 
-  const {fetchData, loading: apiDataLoading, error: apiErrorLoading} = useFetchIPData()
+  const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading} = useFetchIPData()
+  const {fetchData: fetchHistoricalData, loading: apiHistoricalLoading, error: apiHistoricalError} = useFetchHistoricalIPData()
 
   //dropdown format
   const dropdown = [
@@ -109,7 +110,7 @@ function App() {
     setLoaded(true)
   }
 
-  const handleFetch = async (query: string) => {
+  const handleMeasurementFetch = async (query: string) => {
     if (query.length == 0)
       return
 
@@ -117,14 +118,22 @@ function App() {
       server: query
     }
     const fullurl = `http://localhost:8000/measurements/`
-    const apiResp = await fetchData(fullurl, payload)
-
-    console.log(apiResp)
+    const apiResp = await fetchMeasurementData(fullurl, payload)
 
     setRes({
       input: query,
       apiData: apiResp
     })
+  }
+
+  const handleHistoricalFetch = async(query: string) => {
+    if (query.length == 0)
+      return
+
+    const fullurl = `http://localhost:8000/measurements/history/?server=${query}&start=2025-05-12T00:00:00Z&end=2025-05-12T18:00:00Z`
+    const apiResp = await fetchHistoricalData(fullurl)
+
+    console.log(apiResp)
   }
 
   const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,7 +147,7 @@ function App() {
     <div className="app-container">
       <Hero />
       <div className="search-wrapper">
-        <SearchBar onSearch={handleFetch} />
+        <SearchBar onSearch={handleHistoricalFetch} />
       </div>
         <div className="result-text">
           {(loaded && measured && (<p>Results</p>)) || (measured && <p>Loading...</p>)}
