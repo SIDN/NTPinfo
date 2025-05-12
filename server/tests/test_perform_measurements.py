@@ -3,7 +3,6 @@ from ipaddress import IPv6Address, IPv4Address, ip_address
 from server.app.utils.perform_measurements import *
 #import unittest
 from unittest.mock import patch, MagicMock
-#from app.models.NtpMeasurement import NtpMeasurement
 from server.app.models.PreciseTime import PreciseTime
 
 def test_ntp_precise_time_to_human_date():

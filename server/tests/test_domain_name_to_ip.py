@@ -1,7 +1,5 @@
-
 import socket
 from unittest.mock import patch, MagicMock
-
 from server.app.utils.domain_name_to_ip import domain_name_to_ip_default, domain_name_to_ip_close_to_client
 
 
