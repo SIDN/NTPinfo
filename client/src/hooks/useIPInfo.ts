@@ -4,28 +4,39 @@ import axios from "axios";
 export interface IPInfoData {
     ip: string,
     loc?: string,
-    country?: string
+    country?: string,
+    is_anycast?: boolean
 }
 
-export const useIPInfo = () => {
-    const [ipInfo,setIPInfo] = useState<IPInfoData | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<Error | null>(null);
+const transformIpData = (input: any): IPInfoData => ({
+    ip: input.ip,
+    loc: input.loc,
+    country: input.country,
+    is_anycast: input.is_anycast
+})
 
-    const fetchIP = async () => {
+export const useIPInfo = () => {
+    const [ipInfo,setIPInfo] = useState<IPInfoData | null>(null)
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<Error | null>(null)
+
+    const fetchIP = async (): Promise<IPInfoData | null> => {
         setLoading(true);
         setError(null);
         try{
-            const res = await axios.get(`https://ipinfo.io/json?token=${import.meta.env.VITE_IPINFO_TOKEN}`);
-            setIPInfo(res ? res.data : null);
+            const res = await axios.get(`https://ipinfo.io/json?token=${import.meta.env.VITE_IPINFO_TOKEN}`)
+            const data = transformIpData(res.data)
+            setIPInfo(data)
+            return data
         } catch (err: any) {
-            setError(err);
+            setError(err)
+            return null
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
     }
 
-    const clearIP = () => setIPInfo(null);
+    const clearIP = () => setIPInfo(null)
 
-    return {ipInfo, fetchIP, clearIP, loading, error};
+    return {ipInfo, fetchIP, clearIP, loading, error}
 }

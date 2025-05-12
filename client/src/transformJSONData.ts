@@ -6,11 +6,11 @@ export const transformJSONData = (fetchedData: any[]): NTPData[] | null => {
     
     return fetchedData.map(data => ({
         offset: data.offset,
-        delay: data.delay,
+        RTT: data.delay,
         stratum: data.stratum,
         jitter: data.precision,
         reachability: data.reachability,
-        passing: true,
+        status: data.reachability,
         time: data.client_sent_time
     }));
 };

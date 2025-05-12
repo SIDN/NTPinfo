@@ -9,6 +9,8 @@ import DownloadButton from './components/DownloadButton'
 import VisualizationPopup from './components/Visualization'
 import LineChart from './components/LineGraph'
 import { ntpMap} from './utils/tempData.ts'
+import { useFetchIPData } from './hooks/useFetchIPData.ts'
+import { useIPInfo, IPInfoData } from './hooks/useIPInfo.ts'
 
 import { NTPData } from './types'
 import { Measurement } from './types'
@@ -67,6 +69,10 @@ function App() {
   const [selOption1, setOption1] = useState("Last Hour")
   const [selOption2, setOption2] = useState("Hours")
   const [selMeasurement, setSelMeasurement] = useState<Measurement>("RTT")
+  const [res, setRes] = useState<any>(null)
+
+  const {ipInfo, fetchIP, clearIP, loading: ipLoading, error: ipError} = useIPInfo()
+  //const {fetchData, loading: apiDataLoading, error: apiErrorLoading} = useFetchIPData()
 
   //dropdown format
   const dropdown = [
@@ -104,6 +110,25 @@ function App() {
     setLoaded(true)
   }
 
+  const handleFetch = async (query: string) => {
+    if (query.length == 0)
+      return
+    const ipData = await fetchIP();
+    if (!ipData)
+      return;
+
+    /*const fullurl = `http://localhost:8000/measurements/${query}?ip=${ipData.ip}`
+    const apiResp = await fetchData(fullurl)
+
+    setRes({
+      input: query,
+      ipInfo: ipData,
+      apiData: apiResp
+    })*/
+
+    clearIP();
+  }
+
   const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelMeasurement(event.target.value as Measurement);
   }
@@ -115,7 +140,7 @@ function App() {
     <div className="app-container">
       <Hero />
       <div className="search-wrapper">
-        <SearchBar onSearch={handleSearch} />
+        <SearchBar onSearch={handleFetch} />
       </div>
         <div className="result-text">
           {(loaded && measured && (<p>Results</p>)) || (measured && <p>Loading...</p>)}
