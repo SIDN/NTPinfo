@@ -6,6 +6,7 @@ from server.app.main import fetch_historic_data_with_timestamps
 from server.app.models.NtpMeasurement import NtpMeasurement
 from datetime import datetime, timezone
 from typing import Any, Optional, Coroutine
+from fastapi.middleware.cors import CORSMiddleware
 
 from ipaddress import ip_address
 
@@ -71,6 +72,14 @@ app = FastAPI()
 Creates a FastAPI application instance.
 This instance is used to define all API endpoints and serve the application.
 """
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")
