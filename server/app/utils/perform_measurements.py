@@ -25,7 +25,7 @@ def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", clien
     Returns:
         NtpMeasurement | None: it returns the NTP measurement object or None if something wrong happened (usually timeouts).
     """
-    domain_ips: list[str] = []
+    domain_ips: list[str] | None
 
     if client_ip is None:  #if we do not have the client_ip available, use this server as a "client ip"
         domain_ips = domain_name_to_ip_default(server_name)
