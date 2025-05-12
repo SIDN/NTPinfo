@@ -71,7 +71,6 @@ function App() {
   const [selMeasurement, setSelMeasurement] = useState<Measurement>("RTT")
   const [res, setRes] = useState<any>(null)
 
-  const {ipInfo, fetchIP, clearIP, loading: ipLoading, error: ipError} = useIPInfo()
   const {fetchData, loading: apiDataLoading, error: apiErrorLoading} = useFetchIPData()
 
   //dropdown format
@@ -113,27 +112,19 @@ function App() {
   const handleFetch = async (query: string) => {
     if (query.length == 0)
       return
-    const ipData = await fetchIP();
-    if (!ipData)
-      return;
 
-    /*const payload = {
-      domain: query,
-      ip: ipData.ip,
-    }*/
-    const server: string = query
-    const fullurl = `http://localhost:8000/measurements/${server}`
-    const apiResp = await fetchData(fullurl)
+    const payload = {
+      server: query
+    }
+    const fullurl = `http://localhost:8000/measurements/`
+    const apiResp = await fetchData(fullurl, payload)
 
     console.log(apiResp)
 
     setRes({
       input: query,
-      ipInfo: ipData,
       apiData: apiResp
     })
-
-    clearIP();
   }
 
   const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {

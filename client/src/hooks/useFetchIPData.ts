@@ -8,14 +8,19 @@ export const useFetchIPData = () => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<Error | null>(null)
 
-    const fetchData = async (endpoint: string) => {
+    const fetchData = async (endpoint: string, payload: {server: string}) => {
         setLoading(true);
         setError(null);
         try {
-            const resp = await axios.post(endpoint)
-            const transformedData = transformJSONData(resp.data)
-            setData(transformedData ? transformedData[0] : null)
-            return transformedData ? transformedData[0] : null
+            const resp = await axios.post(endpoint,payload, {
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                }
+            )
+            const transformedData = transformJSONData(resp.data.measurement)
+            setData(transformedData)
+            return transformedData
         } catch (err: any) {
             setError(err)
             return null
