@@ -1,42 +1,48 @@
+from ipaddress import ip_address
+
 from server.app.services.api_services import *
 from unittest.mock import patch, MagicMock
 from server.app.models.NtpMeasurement import NtpMeasurement
 from datetime import datetime
 
-def mock_precise(seconds = 1234567890, fraction = 0) -> PreciseTime:
-    return PreciseTime(seconds = seconds, fraction = fraction)
+
+def mock_precise(seconds=1234567890, fraction=0) -> PreciseTime:
+    return PreciseTime(seconds=seconds, fraction=fraction)
+
 
 def test_ip_to_str():
     assert ip_to_str(IPv4Address("123.45.67.89")) == "123.45.67.89"
     assert ip_to_str(IPv6Address("2001:db8:3333:4444:5555:6666:7777:8888")) == "2001:db8:3333:4444:5555:6666:7777:8888"
     assert ip_to_str(None) is None
 
+
 def test_get_format():
     measurement = NtpMeasurement(
-        server_info = NtpServerInfo(
-            ntp_version = 4,
-            ntp_server_ip = IPv4Address("192.168.0.1"),
-            ntp_server_name = "pool.ntp.org",
-            ntp_server_ref_parent_ip = None,
-            ref_name = None
+        vantage_point_ip=ip_address('127.0.0.1'),
+        server_info=NtpServerInfo(
+            ntp_version=4,
+            ntp_server_ip=IPv4Address("192.168.0.1"),
+            ntp_server_name="pool.ntp.org",
+            ntp_server_ref_parent_ip=None,
+            ref_name=None
         ),
         timestamps=NtpTimestamps(
-            client_sent_time = mock_precise(1),
-            server_recv_time = mock_precise(2),
-            server_sent_time = mock_precise(3),
-            client_recv_time = mock_precise(4),
+            client_sent_time=mock_precise(1),
+            server_recv_time=mock_precise(2),
+            server_sent_time=mock_precise(3),
+            client_recv_time=mock_precise(4),
         ),
         main_details=NtpMainDetails(
-            offset = 0.123,
-            delay = 0.456,
-            stratum = 2,
-            precision = -20.0,
-            reachability = ""
+            offset=0.123,
+            delay=0.456,
+            stratum=2,
+            precision=-20.0,
+            reachability=""
         ),
-        extra_details = NtpExtraDetails(
-            root_delay = mock_precise(5),
-            ntp_last_sync_time = mock_precise(6),
-            leap = 0
+        extra_details=NtpExtraDetails(
+            root_delay=mock_precise(5),
+            ntp_last_sync_time=mock_precise(6),
+            leap=0
         )
     )
 
@@ -53,6 +59,7 @@ def test_get_format():
     assert formatted_measurement["precision"] == -20.0
     assert formatted_measurement["reachability"] == ""
     assert formatted_measurement["leap"] == 0
+
 
 @patch("server.app.services.api_services.insert_measurement")
 @patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
@@ -152,6 +159,7 @@ def test_fetch_historic_data_ip(mock_parse_ip, mock_get_dn, mock_get_ip):
     mock_get_ip.return_value = [
         {
             "id": 1,
+            'vantage_point_ip': '127.0.0.1',
             "ntp_server_ip": "192.168.1.1",
             "ntp_server_name": "test",
             "ntp_version": 3,
@@ -199,6 +207,7 @@ def test_fetch_historic_data_domain_name(mock_get_dn, mock_get_ip):
     mock_get_dn.return_value = [
         {
             "id": 1,
+            'vantage_point_ip': '127.0.0.1',
             "ntp_server_ip": "192.168.1.1",
             "ntp_server_name": "time.google.com",
             "ntp_version": 3,

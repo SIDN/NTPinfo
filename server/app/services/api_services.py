@@ -47,6 +47,7 @@ def get_format(measurement: NtpMeasurement) -> dict[str, Any]:
             - Extra details (root delay, last sync time, leap indicator)
     """
     return {
+        # "vantage": ip_to_str(measurement.vantage_point_ip),
         "ntp_version": measurement.server_info.ntp_version,
         "ntp_server_ip": ip_to_str(measurement.server_info.ntp_server_ip),
         "ntp_server_name": measurement.server_info.ntp_server_name,
@@ -148,6 +149,7 @@ def fetch_historic_data_with_timestamps(server: str, start: datetime, end: datet
 
     measurements = []
     for entry in raw_data:
+        vantage_point_ip = entry['vantage_point_ip']
         server_info = NtpServerInfo(entry['ntp_version'], entry['ntp_server_ip'], entry['ntp_server_name'],
                                     entry['ntp_server_ref_parent_ip'], entry['ref_name'])
         extra_details = NtpExtraDetails(PreciseTime(entry['root_delay'], entry['root_delay_prec']),
@@ -160,6 +162,6 @@ def fetch_historic_data_with_timestamps(server: str, start: datetime, end: datet
                                     PreciseTime(entry['server_sent'], entry['server_sent_prec']),
                                     PreciseTime(entry['client_recv'], entry['client_recv_prec']),
                                     )
-        measurement = NtpMeasurement(server_info, time_stamps, main_details, extra_details)
+        measurement = NtpMeasurement(vantage_point_ip, server_info, time_stamps, main_details, extra_details)
         measurements.append(measurement)
     return measurements

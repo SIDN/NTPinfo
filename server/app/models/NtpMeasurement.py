@@ -1,8 +1,11 @@
 from dataclasses import dataclass
+from ipaddress import IPv4Address, IPv6Address
+
 from server.app.models.NtpExtraDetails import NtpExtraDetails
 from server.app.models.NtpServerInfo import NtpServerInfo
 from server.app.models.NtpMainDetails import NtpMainDetails
 from server.app.models.NtpTimestamps import NtpTimestamps
+
 
 @dataclass
 class NtpMeasurement:
@@ -15,6 +18,7 @@ class NtpMeasurement:
         main_details (NtpMainDetails): Key metrics 
         extra_details (NtpExtraDetails): Additional fields
     """
+    vantage_point_ip: IPv4Address | IPv6Address
     server_info: NtpServerInfo
     timestamps: NtpTimestamps
     main_details: NtpMainDetails
