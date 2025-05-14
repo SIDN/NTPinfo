@@ -1,6 +1,6 @@
 
 from fastapi import HTTPException, APIRouter
-
+from fastapi import Request
 
 from datetime import datetime, timezone
 from typing import Any
@@ -21,7 +21,7 @@ def read_root() -> dict[str, str]:
     return {"Hello": "World"}
 
 @router.post("/measurements/")
-async def read_data_measurement(payload: MeasurementRequest) -> dict[str, Any]:
+async def read_data_measurement(payload: MeasurementRequest, request: Request) -> dict[str, Any]:
     """
     Compute a live NTP measurement for a given server (IP or domain).
 
@@ -32,6 +32,7 @@ async def read_data_measurement(payload: MeasurementRequest) -> dict[str, Any]:
     Args:
         payload (MeasurementRequest): A Pydantic model containing:
             - server (str): IP address (IPv4/IPv6) or domain name of the NTP server.
+        request (Request): The Request object that gives you the IP of the client.
 
     Returns:
         dict: On success, returns {"measurement": <formatted_measurement_dict>}.
@@ -43,14 +44,19 @@ async def read_data_measurement(payload: MeasurementRequest) -> dict[str, Any]:
     server = payload.server
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
-    result = measure(server)
-    if result is not None:
+    client_ip = request.client.host
+    # print(client_ip)
+    client_ip = "83.25.24.10"
+    response = measure(server, client_ip)
+    if response is not None:
+        result, other_server_ips = response
         return {
-            "measurement": get_format(result)
+            "measurement": get_format(result,other_server_ips)
         }
-    return {
-        "Error": "Could not perform measurement, dns or ip not reachable."
-    }
+    else:
+        return {
+            "Error": "Could not perform measurement, dns or ip not reachable."
+        }
 
 
 @router.get("/measurements/history/")

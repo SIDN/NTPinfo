@@ -1,6 +1,7 @@
 import socket, ntplib
 from ipaddress import ip_address, IPv4Address, IPv6Address
 from datetime import datetime, timezone
+from typing import Any
 
 from server.app.utils.domain_name_to_ip import domain_name_to_ip_default, domain_name_to_ip_close_to_client
 from server.app.models.NtpExtraDetails import NtpExtraDetails
@@ -13,7 +14,7 @@ from server.app.utils.validate import is_ip_address
 
 
 def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", client_ip: str|None=None,
-                                        ntp_version: int = 3) -> NtpMeasurement | None:
+                                        ntp_version: int = 3) -> tuple[NtpMeasurement, list[str]] | None:
     """
     This method performs a NTP measurement on a NTP server from its domain name.
 
@@ -32,7 +33,11 @@ def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", clien
     else:
         domain_ips = domain_name_to_ip_close_to_client(server_name, client_ip)
 
+    #if the domain name is invalid
     if domain_ips is None:
+        return None
+    #in case it is [] (it could not get the IPs for that domain name
+    if not domain_ips:
         return None
     #domain_ips contains a list of ips that are good to use. We can simply use the first one
     ip_str = domain_ips[0]
@@ -42,7 +47,7 @@ def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", clien
         return convert_ntp_response_to_measurement(response=response,
                                                    server_ip_str=ip_str,
                                                    server_name=server_name,
-                                                   ntp_version=ntp_version)
+                                                   ntp_version=ntp_version),domain_ips
     except Exception as e:
         print("Error in measure from name:", e)
         return None
