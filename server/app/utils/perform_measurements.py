@@ -43,11 +43,15 @@ def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", clien
     ip_str = domain_ips[0]
     try:
         client = ntplib.NTPClient()
-        response = client.request(server_name, ntp_version, timeout=6)
-        return convert_ntp_response_to_measurement(response=response,
+        response_from_ntplib = client.request(server_name, ntp_version, timeout=6)
+        r = convert_ntp_response_to_measurement(response=response_from_ntplib,
                                                    server_ip_str=ip_str,
                                                    server_name=server_name,
-                                                   ntp_version=ntp_version),domain_ips
+                                                   ntp_version=ntp_version)
+        if r is None:
+            return None
+        else:
+            return r, domain_ips
     except Exception as e:
         print("Error in measure from name:", e)
         return None

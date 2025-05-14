@@ -101,15 +101,15 @@ def measure(server: str, client_ip: Optional[str]=None) -> tuple[NtpMeasurement,
                 insert_measurement(m, pool)
                 return m, None  #we have only one server ip so "other_server_ips" is None
             #the measurement failed
-            print("The ntp server "+server+" is not responding.")
+            print("The ntp server " + server + " is not responding.")
             return None
         else:
             ans = perform_ntp_measurement_domain_name(server, client_ip)
             if ans is not None:
                 m, server_ips = ans
                 insert_measurement(m, pool)
-                return m,server_ips
-            print("The ntp server "+server+" is not responding.")
+                return m, server_ips
+            print("The ntp server " + server + " is not responding.")
             return None
     except Exception as e:
         print("Performing measurement error message:", e)

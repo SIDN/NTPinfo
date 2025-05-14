@@ -49,12 +49,12 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request) -
 
     # print(client_ip)
     #client_ip = "83.25.24.10"
-    print(client_ip)
+    #print(client_ip)
     response = measure(server, client_ip)
     if response is not None:
         result, other_server_ips = response
         return {
-            "measurement": get_format(result,other_server_ips)
+            "measurement": get_format(result, other_server_ips)
         }
     else:
         return {
