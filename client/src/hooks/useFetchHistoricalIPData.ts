@@ -8,6 +8,16 @@ export const useFetchHistoricalIPData = () => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<Error | null>(null)
 
+    /**
+     * Get the historical data for a specific server in between two chosen time stamps
+     * @param endpoint the link to the endpoint that will provide the data: under the form 
+     * /measurements/history/?server=${query}&start=${startDate}&end=${endDate}, where 
+     * server is the one provided by the user
+     * startDate the start time from when the measurements were taken
+     * endDate the end time until when the measurements were taken
+     * The dates should be provided in ISO 8601 format
+     * @returns 
+     */
     const fetchData = async (endpoint: string) => {
         setLoading(true)
         setError(null)

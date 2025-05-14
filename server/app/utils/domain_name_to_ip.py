@@ -73,4 +73,5 @@ def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str, mask: in
     return ips
 
 #example of usage:
-#print(domain_name_to_ip_close_to_client("pool.ntp.org", "83.25.24.10"))
+print(domain_name_to_ip_close_to_client("pool.ntp.org", "83.25.24.10"))
+#dig +short +subnet=83.25.24.10/24 pool.ntp.org @50.116.32.247

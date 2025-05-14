@@ -32,7 +32,7 @@ def ip_to_str(ip: Optional[IPv4Address | IPv6Address]) -> Optional[str]:
     return str(ip) if ip is not None else None
 
 
-def get_format(measurement: NtpMeasurement) -> dict[str, Any]:
+def get_format(measurement: NtpMeasurement, other_server_ips: list[str]|None=None) -> dict[str, Any]:
     """
     Format an NTP measurement object into a dictionary suitable for JSON serialization.
 
@@ -47,6 +47,7 @@ def get_format(measurement: NtpMeasurement) -> dict[str, Any]:
             - Extra details (root delay, last sync time, leap indicator)
     """
     return {
+        # "vantage": ip_to_str(measurement.vantage_point_ip),
         "ntp_version": measurement.server_info.ntp_version,
         "ntp_server_ip": ip_to_str(measurement.server_info.ntp_server_ip),
         "ntp_server_name": measurement.server_info.ntp_server_name,
@@ -67,11 +68,12 @@ def get_format(measurement: NtpMeasurement) -> dict[str, Any]:
         "root_delay": measurement.extra_details.root_delay,
         "ntp_last_sync_time": measurement.extra_details.ntp_last_sync_time,
         # if it has value = 3 => invalid
-        "leap": measurement.extra_details.leap
+        "leap": measurement.extra_details.leap,
+        # if the server has multiple IPs addresses we should show them to the client
+        "other_server_ips": other_server_ips
     }
 
-
-def measure(server: str) -> NtpMeasurement | None:
+def measure(server: str, client_ip: Optional[str]=None) -> tuple[NtpMeasurement, list[str]|None] | None:
     """
     Performs an NTP measurement for a given server (IP or domain name) and stores the result in the database.
 
@@ -81,10 +83,11 @@ def measure(server: str) -> NtpMeasurement | None:
 
     Args:
         server (str): A string representing either an IPv4/IPv6 address or a domain name.
+        client_ip (Optional[str]): The client IP or None if it was not provided.
 
     Returns:
-        NtpMeasurement | None:
-            - A populated `NtpMeasurement` object if the measurement is successful.
+        tuple[NtpMeasurement, list[str]] | None:
+            - A pair with a populated `NtpMeasurement` object if the measurement is successful and a list of other server ip near the client ip.
             - `None` if an exception occurs during the measurement process.
 
     Notes:
@@ -97,13 +100,18 @@ def measure(server: str) -> NtpMeasurement | None:
             m = perform_ntp_measurement_ip(server)
             if m is not None:
                 insert_measurement(m, pool)
-            return m
+                return m, None  #we have only one server ip so "other_server_ips" is None
+            #the measurement failed
+            print("The ntp server " + server + " is not responding.")
+            return None
         else:
-            m = perform_ntp_measurement_domain_name(server)
-
-            if m is not None:
+            ans = perform_ntp_measurement_domain_name(server, client_ip)
+            if ans is not None:
+                m, server_ips = ans
                 insert_measurement(m, pool)
-            return m
+                return m, server_ips
+            print("The ntp server " + server + " is not responding.")
+            return None
     except Exception as e:
         print("Performing measurement error message:", e)
         return None
@@ -148,6 +156,7 @@ def fetch_historic_data_with_timestamps(server: str, start: datetime, end: datet
 
     measurements = []
     for entry in raw_data:
+        vantage_point_ip = entry['vantage_point_ip']
         server_info = NtpServerInfo(entry['ntp_version'], entry['ntp_server_ip'], entry['ntp_server_name'],
                                     entry['ntp_server_ref_parent_ip'], entry['ref_name'])
         extra_details = NtpExtraDetails(PreciseTime(entry['root_delay'], entry['root_delay_prec']),
@@ -160,6 +169,6 @@ def fetch_historic_data_with_timestamps(server: str, start: datetime, end: datet
                                     PreciseTime(entry['server_sent'], entry['server_sent_prec']),
                                     PreciseTime(entry['client_recv'], entry['client_recv_prec']),
                                     )
-        measurement = NtpMeasurement(server_info, time_stamps, main_details, extra_details)
+        measurement = NtpMeasurement(vantage_point_ip, server_info, time_stamps, main_details, extra_details)
         measurements.append(measurement)
     return measurements

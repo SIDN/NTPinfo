@@ -1,6 +1,7 @@
 import socket, ntplib
 from ipaddress import ip_address, IPv4Address, IPv6Address
 from datetime import datetime, timezone
+from typing import Any
 
 from app.services.NtpCalculator import NtpCalculator
 from app.services.api_services import ip_to_str
@@ -34,8 +35,35 @@ def calculate_jitter_from_measurements(initial_measurement: NtpMeasurement, time
 
     return NtpCalculator.calculate_jitter(offsets)
 
+def get_server_ip() -> IPv4Address | IPv6Address | None:
+    """
+    Determines the outward-facing IP address of the server by opening a
+    dummy UDP connection to a well-known external host (Google DNS).
+
+    Returns:
+        Optional[Union[IPv4Address, IPv6Address]]: The server's external IP address
+        as an IPv4Address or IPv6Address object, or None if detection fails.
+
+    Raises:
+        ValueError: If the detected IP address is not a valid IPv4 or IPv6 address.
+    """
+    # use a dummy connection to get the outward-facing IP
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+    except Exception as e:
+        return None
+    finally:
+        s.close()
+    try:
+        return ip_address(ip)
+    except ValueError:
+        return None
+
+
 def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", client_ip: str|None=None,
-                                        ntp_version: int = 3) -> NtpMeasurement | None:
+                                        ntp_version: int = 3) -> tuple[NtpMeasurement, list[str]] | None:
     """
     This method performs a NTP measurement on a NTP server from its domain name.
 
@@ -49,22 +77,30 @@ def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", clien
     """
     domain_ips: list[str] | None
 
-    if client_ip is None:  #if we do not have the client_ip available, use this server as a "client ip"
+    if client_ip is None:  # if we do not have the client_ip available, use this server as a "client ip"
         domain_ips = domain_name_to_ip_default(server_name)
     else:
         domain_ips = domain_name_to_ip_close_to_client(server_name, client_ip)
 
+    # if the domain name is invalid
     if domain_ips is None:
         return None
-    #domain_ips contains a list of ips that are good to use. We can simply use the first one
+    # in case it is [] (it could not get the IPs for that domain name
+    if not domain_ips:
+        return None
+    # domain_ips contains a list of ips that are good to use. We can simply use the first one
     ip_str = domain_ips[0]
     try:
         client = ntplib.NTPClient()
-        response = client.request(server_name, ntp_version, timeout=6)
-        return convert_ntp_response_to_measurement(response=response,
+        response_from_ntplib = client.request(server_name, ntp_version, timeout=6)
+        r = convert_ntp_response_to_measurement(response=response_from_ntplib,
                                                    server_ip_str=ip_str,
                                                    server_name=server_name,
                                                    ntp_version=ntp_version)
+        if r is None:
+            return None
+        else:
+            return r, domain_ips
     except Exception as e:
         print("Error in measure from name:", e)
         return None
@@ -124,6 +160,9 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
         NtpMeasurement | None: it returns a NTP measurement object if converting was successful.
     """
     try:
+        vantage_point_ip_temp = get_server_ip()
+        if vantage_point_ip_temp is not None:
+            vantage_point_ip = vantage_point_ip_temp
         ref_ip, ref_name = ref_id_to_ip_or_name(response.ref_id,
                                                 response.stratum)
         server_ip = ip_address(server_ip_str)
@@ -159,7 +198,7 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
             leap=response.leap
         )
 
-        return NtpMeasurement(server_info, timestamps, main_details, extra_details)
+        return NtpMeasurement(vantage_point_ip, server_info, timestamps, main_details, extra_details)
     except Exception as e:
         print("Error in convert response to measurement:", e)
         return None
@@ -256,7 +295,7 @@ def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
     """
     try:
         print("=== NTP Measurement ===")
-
+        print(f"Vantage Point IP:      {measurement.vantage_point_ip}")
         # Server Info
         server = measurement.server_info
         print(f"Server Name:           {server.ntp_server_name}")

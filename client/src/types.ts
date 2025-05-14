@@ -3,7 +3,7 @@ export type NTPData = {
   RTT: number
   stratum: number
   jitter: number
-  reachability: number
+  precision: number
   status: string
   time: number
 }

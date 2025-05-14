@@ -45,6 +45,7 @@ def test_different_times_delay():
 
 
 def test_create_object():
+    vantage_point_ip = ip_address('127.0.0.1')
     t1 = PreciseTime(10000, 0)
     t2 = PreciseTime(10002, 2 ** 27)
     t3 = PreciseTime(10003, 10000)
@@ -55,7 +56,7 @@ def test_create_object():
     extra = NtpExtraDetails(PreciseTime(100000, 0), PreciseTime(100000, 0), 0)
     extra_invalid = NtpExtraDetails(PreciseTime(100000, 0), PreciseTime(100000, 0), 3)
 
-    measurements = NtpMeasurement(server_details, times, maindetails, extra)
+    measurements = NtpMeasurement(vantage_point_ip, server_details, times, maindetails, extra)
 
     assert NtpValidation.is_valid(measurements.extra_details) == True
     assert NtpValidation.is_valid(extra_invalid) == False

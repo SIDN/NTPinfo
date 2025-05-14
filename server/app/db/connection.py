@@ -51,7 +51,7 @@ def insert_measurement(measurement: NtpMeasurement, pool: Any) -> None:
                 time_id = row[0]
 
                 cur.execute("""
-                            INSERT INTO measurements(ntp_server_ip, ntp_server_name,
+                            INSERT INTO measurements(vantage_point_ip, ntp_server_ip, ntp_server_name,
                                                      ntp_version, ntp_server_ref_parent,
                                                      ref_name, time_id,
                                                      time_offset, delay,
@@ -61,8 +61,9 @@ def insert_measurement(measurement: NtpMeasurement, pool: Any) -> None:
                                                      ntp_last_sync_time,
                                                      root_delay_prec,
                                                      ntp_last_sync_time_prec)
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                             """, (
+                                measurement.vantage_point_ip,
                                 measurement.server_info.ntp_server_ip, measurement.server_info.ntp_server_name,
                                 measurement.server_info.ntp_version, measurement.server_info.ntp_server_ref_parent_ip,
                                 measurement.server_info.ref_name, time_id,
@@ -127,6 +128,7 @@ def get_measurements_timestamps_ip(pool: ConnectionPool, ip: IPv4Address | IPv6A
             with conn.cursor() as cur:
                 cur.execute("""
                             SELECT m.id,
+                                   m.vantage_point_ip,
                                    m.ntp_server_ip,
                                    m.ntp_server_name,
                                    m.ntp_version,
@@ -162,6 +164,7 @@ def get_measurements_timestamps_ip(pool: ConnectionPool, ip: IPv4Address | IPv6A
                             })
                 columns = [
                     "id",
+                    "vantage_point_ip",
                     "ntp_server_ip",
                     "ntp_server_name",
                     "ntp_version",
@@ -213,6 +216,7 @@ def get_measurements_timestamps_dn(pool: ConnectionPool, dn: str, start: Precise
             with conn.cursor() as cur:
                 cur.execute("""
                             SELECT m.id,
+                                   m.vantage_point_ip,
                                    m.ntp_server_ip,
                                    m.ntp_server_name,
                                    m.ntp_version,
@@ -248,6 +252,7 @@ def get_measurements_timestamps_dn(pool: ConnectionPool, dn: str, start: Precise
                             })
                 columns = [
                     "id",
+                    "vantage_point_ip",
                     "ntp_server_ip",
                     "ntp_server_name",
                     "ntp_version",
