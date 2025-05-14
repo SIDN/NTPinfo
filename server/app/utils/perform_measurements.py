@@ -16,6 +16,7 @@ from server.app.utils.validate import is_ip_address
 
 def calculate_jitter_from_measurements(initial_measurement: NtpMeasurement, times: int = 1) -> float:
     """
+    For a single measurement, calculates a burst of measurements to calculate the jitter.
     Args:
         initial_measurement (NtpMeasurement): measurement that is actually saved in the DB, serving as the "mean" for the standard deviation.
         times (int): number of measurements performed to calculate jitter.

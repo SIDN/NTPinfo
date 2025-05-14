@@ -2,7 +2,7 @@ from ipaddress import IPv4Address, IPv6Address
 from typing import Any, Optional, Coroutine
 from server.app.utils.validate import ensure_utc, is_ip_address, parse_ip
 from server.app.utils.perform_measurements import perform_ntp_measurement_ip, perform_ntp_measurement_domain_name
-from server.app.utils.perform_measurements import human_date_to_ntp_precise_time, ntp_precise_time_to_human_date
+from server.app.utils.perform_measurements import human_date_to_ntp_precise_time, ntp_precise_time_to_human_date, calculate_jitter_from_measurements
 from datetime import datetime
 from server.app.db.connection import insert_measurement
 from server.app.db.connection import get_measurements_timestamps_ip, get_measurements_timestamps_dn
@@ -73,7 +73,7 @@ def get_format(measurement: NtpMeasurement, other_server_ips: list[str]|None=Non
         "other_server_ips": other_server_ips
     }
 
-def measure(server: str, client_ip: Optional[str]=None) -> tuple[NtpMeasurement, list[str]|None] | None:
+def measure(server: str, client_ip: Optional[str]=None, jitter_flag: bool=False, measurement_no: int=0) -> tuple[NtpMeasurement, float | None, list[str]|None] | None:
     """
     Performs an NTP measurement for a given server (IP or domain name) and stores the result in the database.
 
@@ -84,10 +84,12 @@ def measure(server: str, client_ip: Optional[str]=None) -> tuple[NtpMeasurement,
     Args:
         server (str): A string representing either an IPv4/IPv6 address or a domain name.
         client_ip (Optional[str]): The client IP or None if it was not provided.
+        jitter_flag (bool): Boolean representing whether the client wants to perform multiple measurements to get the jitter.
+        measurement_no (int) : How many extra measurements to perform if the jitter_flag is True.
 
     Returns:
-        tuple[NtpMeasurement, list[str]] | None:
-            - A pair with a populated `NtpMeasurement` object if the measurement is successful and a list of other server ip near the client ip.
+        tuple[NtpMeasurement, float | None, list[str]] | None:
+            - A pair with a populated `NtpMeasurement` object if the measurement is successful, the jitter is the jitter_flag is True, and a list of other server ip near the client ip.
             - `None` if an exception occurs during the measurement process.
 
     Notes:
@@ -100,7 +102,8 @@ def measure(server: str, client_ip: Optional[str]=None) -> tuple[NtpMeasurement,
             m = perform_ntp_measurement_ip(server)
             if m is not None:
                 insert_measurement(m, pool)
-                return m, None  #we have only one server ip so "other_server_ips" is None
+                jitter = calculate_jitter_from_measurements(m, measurement_no) if jitter_flag else None
+                return m, jitter, None  #we have only one server ip so "other_server_ips" is None
             #the measurement failed
             print("The ntp server " + server + " is not responding.")
             return None
@@ -109,7 +112,9 @@ def measure(server: str, client_ip: Optional[str]=None) -> tuple[NtpMeasurement,
             if ans is not None:
                 m, server_ips = ans
                 insert_measurement(m, pool)
-                return m, server_ips
+
+                jitter = calculate_jitter_from_measurements(m, measurement_no) if jitter_flag else None
+                return m, jitter, server_ips
             print("The ntp server " + server + " is not responding.")
             return None
     except Exception as e:
