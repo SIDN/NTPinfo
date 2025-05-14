@@ -14,11 +14,11 @@ import { NTPData } from '../types'
 import { Measurement } from '../types'
   
 type ChartInputData = {
-    data: NTPData[];
-    selectedMeasurement: Measurement;
+    data: NTPData[] | null
+    selectedMeasurement: Measurement
 }
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
 const options = {
   responsive: true,
@@ -37,7 +37,9 @@ export default function LineChart({data, selectedMeasurement}: ChartInputData) {
     const measurementMap = {
         RTT: 'Round-trip time (ms)',
         offset: 'Offset (ms)'
-    };
+    }
+    if (data == null)
+      return null
 
     const chartData = {
         labels: data.map(d => new Date(d.time).toLocaleTimeString()),
@@ -51,6 +53,6 @@ export default function LineChart({data, selectedMeasurement}: ChartInputData) {
                 tension: 0.1
             }
         ]
-    };
-  return <Line options={options} data={chartData} />;
+    }
+  return <Line options={options} data={chartData} />
 }

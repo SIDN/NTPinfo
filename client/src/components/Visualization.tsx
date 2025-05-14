@@ -17,7 +17,7 @@ interface PopupDropdownProps{
     isOpen: boolean
     onClose: () => void
     dropdowns: DropdownConfig[]
-    data: NTPData[]
+    data: NTPData[] | null
 }
 
 export default function VisualizationPopup({isOpen, onClose, dropdowns, data}: PopupDropdownProps ) {
