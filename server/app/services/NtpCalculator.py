@@ -85,6 +85,6 @@ class NtpCalculator:
 
         s = np.sum([(offset - offsets[0]) ** 2 for offset in offsets[1:]])
         denominator = len(offsets) - 1
-        jitter = np.sqrt(s * 1.0 / denominator)
+        jitter: float = np.sqrt(s * 1.0 / denominator)
 
         return jitter

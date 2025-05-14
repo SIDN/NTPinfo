@@ -2,6 +2,8 @@ import socket, ntplib
 from ipaddress import ip_address, IPv4Address, IPv6Address
 from datetime import datetime, timezone
 
+from app.services.NtpCalculator import NtpCalculator
+from app.services.api_services import ip_to_str
 from server.app.utils.domain_name_to_ip import domain_name_to_ip_default, domain_name_to_ip_close_to_client
 from server.app.models.NtpExtraDetails import NtpExtraDetails
 from server.app.models.NtpMainDetails import NtpMainDetails
@@ -11,6 +13,26 @@ from server.app.models.NtpTimestamps import NtpTimestamps
 from server.app.models.PreciseTime import PreciseTime
 from server.app.utils.validate import is_ip_address
 
+def calculate_jitter_from_measurements(initial_measurement: NtpMeasurement, times: int = 1) -> float:
+    """
+    Args:
+        initial_measurement (NtpMeasurement): measurement that is actually saved in the DB, serving as the "mean" for the standard deviation.
+        times (int): number of measurements performed to calculate jitter.
+
+    Returns:
+        float: jitter in seconds.
+    """
+    offsets = [NtpCalculator.calculate_offset(initial_measurement.timestamps)]
+
+    for _ in range(times):
+        measurement = perform_ntp_measurement_ip(
+               ip_to_str(initial_measurement.server_info.ntp_server_ip),
+               initial_measurement.server_info.ntp_version
+        )
+
+        offsets.append(NtpCalculator.calculate_offset(measurement.timestamps))
+
+    return NtpCalculator.calculate_jitter(offsets)
 
 def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", client_ip: str|None=None,
                                         ntp_version: int = 3) -> NtpMeasurement | None:
