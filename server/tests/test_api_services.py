@@ -46,7 +46,7 @@ def test_get_format():
         )
     )
 
-    formatted_measurement = get_format(measurement)
+    formatted_measurement = get_format(measurement,["192.168.10.1"])
 
     assert formatted_measurement["ntp_version"] == 4
     assert formatted_measurement["ntp_server_ip"] == "192.168.0.1"
@@ -59,6 +59,7 @@ def test_get_format():
     assert formatted_measurement["precision"] == -20.0
     assert formatted_measurement["reachability"] == ""
     assert formatted_measurement["leap"] == 0
+    assert formatted_measurement["other_server_ips"] == ["192.168.10.1"]
 
 
 @patch("server.app.services.api_services.insert_measurement")
@@ -70,7 +71,7 @@ def test_measure_with_ip(mock_measure_ip, mock_measure_domain, mock_insert):
 
     result = measure("192.168.1.1")
 
-    assert result is fake_measurement
+    assert result == (fake_measurement,None)
     mock_measure_ip.assert_called_once_with("192.168.1.1")
     mock_insert.assert_called_once_with(fake_measurement, mock_insert.call_args[0][1])  # pool
     mock_measure_domain.assert_not_called()
@@ -81,13 +82,13 @@ def test_measure_with_ip(mock_measure_ip, mock_measure_domain, mock_insert):
 @patch("server.app.services.api_services.perform_ntp_measurement_ip")
 def test_measure_with_domain(mock_measure_ip, mock_measure_domain, mock_insert):
     fake_measurement = MagicMock(spec=NtpMeasurement)
-    mock_measure_domain.return_value = fake_measurement
+    mock_measure_domain.return_value = (fake_measurement, ["1.2.3.4"])
     mock_measure_ip.return_value = None
 
     result = measure("pool.ntp.org")
 
-    assert result is fake_measurement
-    mock_measure_domain.assert_called_once_with("pool.ntp.org")
+    assert result == (fake_measurement, ["1.2.3.4"])
+    mock_measure_domain.assert_called_once_with("pool.ntp.org",None)
     mock_insert.assert_called_once_with(fake_measurement, mock_insert.call_args[0][1])  # pool
     mock_measure_ip.assert_not_called()
 
@@ -97,14 +98,15 @@ def test_measure_with_domain(mock_measure_ip, mock_measure_domain, mock_insert):
 @patch("server.app.services.api_services.perform_ntp_measurement_ip")
 def test_measure_with_invalid_ip(mock_measure_ip, mock_measure_domain, mock_insert):
     fake_measurement = MagicMock(spec=NtpMeasurement)
+    fake_ips = ["4.3.2.1"]
     mock_measure_ip.return_value = None
-    mock_measure_domain.return_value = fake_measurement
+    mock_measure_domain.return_value = (fake_measurement, fake_ips)
 
     result = measure("not.an.ip")
 
-    assert result is fake_measurement
+    assert result == (fake_measurement, fake_ips)
     mock_measure_ip.assert_not_called()
-    mock_measure_domain.assert_called_once_with("not.an.ip")
+    mock_measure_domain.assert_called_once_with("not.an.ip",None)
     mock_insert.assert_called_once_with(fake_measurement, mock_insert.call_args[0][1])
 
 
@@ -119,7 +121,7 @@ def test_measure_with_unresolvable_input(mock_measure_ip, mock_measure_domain, m
 
     assert result is None
     mock_measure_ip.assert_not_called()
-    mock_measure_domain.assert_called_once_with("not.an.ip")
+    mock_measure_domain.assert_called_once_with("not.an.ip",None)
     mock_insert.assert_not_called()
 
 
@@ -134,7 +136,7 @@ def test_measure_with_exception(mock_measure_ip, mock_measure_domain, mock_inser
 
     assert result is None
     mock_measure_ip.assert_not_called()
-    mock_measure_domain.assert_called_once_with("invalid.server")
+    mock_measure_domain.assert_called_once_with("invalid.server",None)
     mock_insert.assert_not_called()
 
 

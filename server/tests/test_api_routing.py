@@ -136,24 +136,27 @@ def test_read_root():
 def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_measurement):
     mock_is_ip.return_value = None
     measurement = mock_measurement()
-    mock_perform_measurement.return_value = measurement
+    mock_perform_measurement.return_value = (measurement, ["83.25.24.10"])
 
-    response = client.post("/measurements/", json={"server": "pool.ntp.org"})
+    headers = {"X-Forwarded-For": "83.25.24.10"}
+    response = client.post("/measurements/", json = {"server": "pool.ntp.org"},headers=headers)
     assert response.status_code == 200
     assert "measurement" in response.json()
     assert response.json()["measurement"]["ntp_server_name"] == "pool.ntp.org"
-    mock_perform_measurement.assert_called_with("pool.ntp.org")
+    mock_perform_measurement.assert_called_with("pool.ntp.org", "83.25.24.10")
     mock_insert.assert_called_once_with(measurement, mock_insert.call_args[0][1])
 
 
 def test_read_data_measurement_missing_server():
-    response = client.post("/measurements/", json={"server": ""})
+    headers = {"X-Forwarded-For": "83.25.24.10"}
+    response = client.post("/measurements/", json = {"server": ""},headers=headers)
     assert response.status_code == 400
     assert response.json() == {"detail": "Either 'ip' or 'dn' must be provided"}
 
 
 def test_read_data_measurement_wrong_server():
-    response = client.post("/measurements/", json={"server": "random-server-name.org"})
+    headers = {"X-Forwarded-For": "83.25.24.10"}
+    response = client.post("/measurements/", json = {"server": "random-server-name.org"},headers=headers)
     assert response.status_code == 200
     assert response.json() == {"Error": "Could not perform measurement, dns or ip not reachable."}
 
