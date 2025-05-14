@@ -129,7 +129,9 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
         NtpMeasurement | None: it returns a NTP measurement object if converting was successful.
     """
     try:
-        vantage_point_ip = get_server_ip()
+        vantage_point_ip_temp = get_server_ip()
+        if vantage_point_ip_temp is not None:
+            vantage_point_ip = vantage_point_ip_temp
         ref_ip, ref_name = ref_id_to_ip_or_name(response.ref_id,
                                                 response.stratum)
         server_ip = ip_address(server_ip_str)
