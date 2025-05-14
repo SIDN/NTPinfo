@@ -8,9 +8,9 @@ import ResultSummary from './components/ResultSummary'
 import DownloadButton from './components/DownloadButton'
 import VisualizationPopup from './components/Visualization'
 import LineChart from './components/LineGraph'
-import { ntpMap} from './utils/tempData.ts'
 import { useFetchIPData } from './hooks/useFetchIPData.ts'
 import { useFetchHistoricalIPData } from './hooks/useFetchHistoricalIPData.ts'
+import { dateFormatConversion } from './dateFormatConversion.ts'
 
 import { NTPData } from './types'
 import { Measurement } from './types'
@@ -63,13 +63,12 @@ function App() {
   // states we need to define 
   //
   const [ntpData, setNtpData] = useState<NTPData | null>(null)
-  const [loaded, setLoaded] = useState(false) //will be deleted when adding API communication
-  const [measured, setMeasured] = useState(false) // will be deleted when adding API communication
+  const [chartData, setChartData] = useState<NTPData[] | null>(null)
+  const [measured, setMeasured] = useState(false)
   const [popupOpen, setPopupOpen] = useState(false)
   const [selOption1, setOption1] = useState("Last Hour")
   const [selOption2, setOption2] = useState("Hours")
   const [selMeasurement, setSelMeasurement] = useState<Measurement>("RTT")
-  const [res, setRes] = useState<any>(null)
 
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading} = useFetchIPData()
   const {fetchData: fetchHistoricalData, loading: apiHistoricalLoading, error: apiHistoricalError} = useFetchHistoricalIPData()
@@ -92,8 +91,7 @@ function App() {
     }
   ]
   //dummy data for chart.js, will be deleted once we properly integrate it
-  const chartData = [{offset: 0.3,RTT: 0.3,stratum: 1,jitter: 1.8,reachability: 1,status: 'PASSING',time: Date.now()},{offset: 1.2,RTT: 13.4,stratum: 2,jitter: 0.5,reachability: 1,status: 'PASSING',time: Date.now() - 40000},
-  {offset: 0.8,RTT: 4.8,stratum: 2,jitter: 0.6,reachability: 1,status: 'PASSING',time: Date.now() - 20000}]
+
   
   //
   //functions for handling state changes
@@ -102,38 +100,24 @@ function App() {
   const handleSearch = async (query: string) => {
     if (query.length == 0)
       return
-    setLoaded(false) 
-    setMeasured(true)
-    const data = ntpMap.get(query)
-    setNtpData(data ?? null)
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    setLoaded(true)
-  }
-
-  const handleMeasurementFetch = async (query: string) => {
-    if (query.length == 0)
-      return
-
+    
     const payload = {
       server: query
     }
-    const fullurl = `http://localhost:8000/measurements/`
-    const apiResp = await fetchMeasurementData(fullurl, payload)
 
-    setRes({
-      input: query,
-      apiData: apiResp
-    })
-  }
+    const fullurlMeasurementData = `http://localhost:8000/measurements/`
+    const apiMeasurementResp = await fetchMeasurementData(fullurlMeasurementData,payload)
 
-  const handleHistoricalFetch = async(query: string) => {
-    if (query.length == 0)
-      return
-
-    const fullurl = `http://localhost:8000/measurements/history/?server=${query}&start=2025-05-12T00:00:00Z&end=2025-05-12T18:00:00Z`
-    const apiResp = await fetchHistoricalData(fullurl)
-
-    console.log(apiResp)
+    const startDate = dateFormatConversion(Date.now()-86400000)
+    const endDate = dateFormatConversion(Date.now())
+    const fullurlHistoricalData = `http://localhost:8000/measurements/history/?server=${query}&start=${startDate}&end=${endDate}`
+    const apiHistoricalResp = await fetchHistoricalData(fullurlHistoricalData)
+    
+    setMeasured(true)
+    const data = apiMeasurementResp
+    const chartData = apiHistoricalResp
+    setNtpData(data ?? null)
+    setChartData(chartData ?? null)
   }
 
   const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,12 +131,12 @@ function App() {
     <div className="app-container">
       <Hero />
       <div className="search-wrapper">
-        <SearchBar onSearch={handleHistoricalFetch} />
+        <SearchBar onSearch={handleSearch} />
       </div>
         <div className="result-text">
-          {(loaded && measured && (<p>Results</p>)) || (measured && <p>Loading...</p>)}
+          {(!apiDataLoading && measured && (<p>Results</p>)) || (apiDataLoading && <p>Loading...</p>)}
         </div>
-      {(ntpData && loaded && (<div className="results-and-graph">
+      {(ntpData && !apiDataLoading && (<div className="results-and-graph">
         <ResultSummary data={ntpData}/>
        
         <div className="graphs">
@@ -165,7 +149,7 @@ function App() {
                 checked={selMeasurement === 'offset'}
                 onChange={handleMeasurementChange}
               />
-              Jitter
+              Offset
             </label>
             <label>
               <input
@@ -175,13 +159,13 @@ function App() {
                 checked={selMeasurement === 'RTT'}
                 onChange={handleMeasurementChange}
               />
-              Jitter
+              Round-trip time
             </label>
             <LineChart data = {chartData} selectedMeasurement={selMeasurement}/>
           </div>
         </div>
-      </div>)) || (!ntpData && loaded && <ResultSummary data={ntpData}/>)}
-      {ntpData && loaded && (<div className="download-buttons">
+      </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData}/>)}
+      {ntpData && !apiDataLoading && (<div className="download-buttons">
      
         <DownloadButton name="Download JSON" onclick={() => downloadJSON({data : [ntpData]})} />
         <DownloadButton name="Download CSV" onclick={() => downloadCSV({data : [ntpData]})} />
