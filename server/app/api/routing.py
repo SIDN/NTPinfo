@@ -44,9 +44,12 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request) -
     server = payload.server
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
-    client_ip = request.client.host
+    #client_ip = request.client.host
+    client_ip = request.headers.get("X-Forwarded-For", request.client.host)
+
     # print(client_ip)
-    client_ip = "83.25.24.10"
+    #client_ip = "83.25.24.10"
+    print(client_ip)
     response = measure(server, client_ip)
     if response is not None:
         result, other_server_ips = response
