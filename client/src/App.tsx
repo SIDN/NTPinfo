@@ -4,7 +4,6 @@ import './App.css'
 import Hero from './components/Hero'
 import SearchBar from './components/SearchBar'
 import ResultSummary from './components/ResultSummary'
-//import Graphs from './components/Graphs'
 import DownloadButton from './components/DownloadButton'
 import VisualizationPopup from './components/Visualization'
 import LineChart from './components/LineGraph'
@@ -70,6 +69,7 @@ function App() {
   const [selOption2, setOption2] = useState("Hours")
   const [selMeasurement, setSelMeasurement] = useState<Measurement>("RTT")
 
+  //Varaibles to log and use API hooks
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading} = useFetchIPData()
   const {fetchData: fetchHistoricalData, loading: apiHistoricalLoading, error: apiHistoricalError} = useFetchHistoricalIPData()
 
@@ -90,13 +90,12 @@ function App() {
       className: "custom-time-dropdown"
     }
   ]
-  //dummy data for chart.js, will be deleted once we properly integrate it
-
   
   //
   //functions for handling state changes
   //
   
+  //main function called when measuring by pressing the button
   const handleSearch = async (query: string) => {
     if (query.length == 0)
       return
@@ -105,14 +104,17 @@ function App() {
       server: query
     }
 
+    // Get the response from the measurement data API
     const fullurlMeasurementData = `http://localhost:8000/measurements/`
     const apiMeasurementResp = await fetchMeasurementData(fullurlMeasurementData,payload)
 
+    //Get data from past day from historical data API to chart in the graph
     const startDate = dateFormatConversion(Date.now()-86400000)
     const endDate = dateFormatConversion(Date.now())
     const fullurlHistoricalData = `http://localhost:8000/measurements/history/?server=${query}&start=${startDate}&end=${endDate}`
     const apiHistoricalResp = await fetchHistoricalData(fullurlHistoricalData)
     
+    //update data stored and show the data again
     setMeasured(true)
     const data = apiMeasurementResp
     const chartData = apiHistoricalResp
@@ -120,6 +122,7 @@ function App() {
     setChartData(chartData ?? null)
   }
 
+  //function to determine what value to use on the y axis of the graph
   const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelMeasurement(event.target.value as Measurement);
   }
