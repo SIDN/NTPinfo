@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS measurements
     ntp_last_sync_time bigint,
     root_delay_prec bigint,
     ntp_last_sync_time_prec bigint,
+    vantage_point_ip inet,
     CONSTRAINT measurements_pkey PRIMARY KEY (id),
     CONSTRAINT fk FOREIGN KEY (time_id)
         REFERENCES public.times (id) MATCH SIMPLE

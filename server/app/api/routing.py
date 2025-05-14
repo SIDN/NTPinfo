@@ -3,7 +3,7 @@ from fastapi import HTTPException, APIRouter
 from fastapi import Request
 
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Optional
 
 from server.app.models.MeasurementRequest import MeasurementRequest
 from server.app.services.api_services import get_format, measure, fetch_historic_data_with_timestamps
@@ -44,12 +44,17 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request) -
     server = payload.server
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
-    #client_ip = request.client.host
-    client_ip = request.headers.get("X-Forwarded-For", request.client.host)
 
-    # print(client_ip)
-    #client_ip = "83.25.24.10"
-    #print(client_ip)
+    #get the client IP from the request
+    client_ip: Optional[str]
+    if request.client is None:
+        client_ip = None
+    else:
+        try:
+            client_ip = request.headers.get("X-Forwarded-For", request.client.host)
+        except Exception as e:
+            client_ip = None
+
     response = measure(server, client_ip)
     if response is not None:
         result, other_server_ips = response
