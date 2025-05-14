@@ -19,8 +19,7 @@ The database used to store measurements uses `PostgreSQL` for its persistance.
 
 The design for the two tables used to store data are as follows:
 > * **measurements**
-    >
-* id -                      `bigint`, **Non-nullable**, ***primary key***, key to identify each measurement
+>    * id -                      `bigint`, **Non-nullable**, ***primary key***, key to identify each measurement
 >    * ntp_server_ip -           `inet`, the IP adress of the NTP server that was measured. Supports IPv4 or IPv6.
 >    * ntp_server_name -         `text`, the name of the NTP server that was measured.
 >    * ntp_version -             `smallint`, the version of NTP used for the measurement.
@@ -37,8 +36,7 @@ The design for the two tables used to store data are as follows:
 >    * root_delay_prec -         `bigint`,
 >    * ntp_last_sync_time -      `bigint`,
 >* **times**
-   >
-* id -         `bigint`, **Non-nullable**, ***primary key***, key to identify each measurement
+>  * id -         `bigint`, **Non-nullable**, ***primary key***, key to identify each measurement
 >  * client_sent -             `bigint`, the time the request was sent by the client in Epoch time.
 >  * client_sent_prec -        `bigint`, the 32 bits of accuracy for the client sent time.
 >  * server_recv -             `bigint`, the time the request was received by the server in Epoch time.
