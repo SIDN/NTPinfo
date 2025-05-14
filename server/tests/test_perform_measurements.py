@@ -45,9 +45,11 @@ def test_perform_ntp_measurement_domain_name(mock_request, mock_getaddrinfo):
     mock_response.leap = 0
     mock_request.return_value = mock_response
 
-    result = perform_ntp_measurement_domain_name("mock.ntp.server")
+    result_tuple = perform_ntp_measurement_domain_name("mock.ntp.server",None)
 
-    assert result is not None
+    assert result_tuple is not None
+    result,l = result_tuple
+    assert l == ["123.45.67.89"]
 
     assert result.server_info.ntp_version == 3
     assert result.server_info.ntp_server_ip == IPv4Address("123.45.67.89")
