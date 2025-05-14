@@ -8,6 +8,12 @@ export const useFetchIPData = () => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<Error | null>(null)
 
+    /**
+     * send a post request to the back-end
+     * @param endpoint the endpoint to make the post call to
+     * @param payload the server that will be measured
+     * @returns the data received from the measurement as NTPData, or null
+     */
     const fetchData = async (endpoint: string, payload: {server: string}) => {
         setLoading(true);
         setError(null);
