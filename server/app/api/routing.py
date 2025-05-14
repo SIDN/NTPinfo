@@ -21,7 +21,7 @@ def read_root() -> dict[str, str]:
     return {"Hello": "World"}
 
 @router.post("/measurements/")
-async def read_data_measurement(payload: MeasurementRequest, request:Request) -> dict[str, Any]:
+async def read_data_measurement(payload: MeasurementRequest) -> dict[str, Any]:
     """
     Compute a live NTP measurement for a given server (IP or domain).
 
@@ -43,13 +43,6 @@ async def read_data_measurement(payload: MeasurementRequest, request:Request) ->
     server = payload.server
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
-    forwarded = request.headers.get("X-Forwarded-For")
-    if forwarded:
-        client_ip = forwarded.split(",")[0].strip()
-    else:
-        client_ip = request.client.host
-
-    print(f"Client IP: {client_ip}")
     result = measure(server)
     if result is not None:
         return {
