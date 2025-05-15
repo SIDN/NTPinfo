@@ -46,7 +46,7 @@ ntplib~=0.4.0
 pytest-cov~=6.1.1
 black~=24.4.2
 mypy~=1.10.0
-
+numpy~=2.2.5
 #checkstyle/lint rules
 flake8~=7.0.0
 flake8-bugbear~=24.2.6

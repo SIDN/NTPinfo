@@ -32,12 +32,14 @@ def ip_to_str(ip: Optional[IPv4Address | IPv6Address]) -> Optional[str]:
     return str(ip) if ip is not None else None
 
 
-def get_format(measurement: NtpMeasurement, other_server_ips: list[str]|None=None) -> dict[str, Any]:
+def get_format(measurement: NtpMeasurement, jitter: float|None=None, other_server_ips: list[str]|None=None) -> dict[str, Any]:
     """
     Format an NTP measurement object into a dictionary suitable for JSON serialization.
 
     Args:
         measurement (NtpMeasurement): An object representing the NTP measurement result.
+        jitter (float|None): Optional jitter value if multiple measurements are performed.
+        other_server_ips (list[str]|None): An optional list of IP addresses if the measurement is performed on a domain name.
 
     Returns:
         dict: A dictionary containing key measurement details like this:
@@ -70,7 +72,8 @@ def get_format(measurement: NtpMeasurement, other_server_ips: list[str]|None=Non
         # if it has value = 3 => invalid
         "leap": measurement.extra_details.leap,
         # if the server has multiple IPs addresses we should show them to the client
-        "other_server_ips": other_server_ips
+        "other_server_ips": other_server_ips,
+        "jitter": jitter
     }
 
 def measure(server: str, client_ip: Optional[str]=None, jitter_flag: bool=False, measurement_no: int=0) -> tuple[NtpMeasurement, float | None, list[str]|None] | None:
