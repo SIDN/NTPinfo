@@ -101,12 +101,14 @@ function App() {
       return
     
     const payload = {
-      server: query
+      server: query,
+      jitter_flag: false,
+      measurements_no: 0
     }
 
     // Get the response from the measurement data API
     const fullurlMeasurementData = `http://localhost:8000/measurements/`
-    const apiMeasurementResp = await fetchMeasurementData(fullurlMeasurementData,payload)
+    const apiMeasurementResp = await fetchMeasurementData(fullurlMeasurementData, payload)
 
     //Get data from past day from historical data API to chart in the graph
     const startDate = dateFormatConversion(Date.now()-86400000)
