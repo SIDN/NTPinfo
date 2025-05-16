@@ -148,10 +148,11 @@ def test_calculate_jitter_from_measurements(mock_perform):
     other_measurements = [
         make_mock_measurement(5),
         make_mock_measurement(3),
-        make_mock_measurement(6),
+        make_mock_measurement(4),
+        make_mock_measurement(6)
     ]
     mock_perform.side_effect = other_measurements
-    times = 3
+    times = 4
     res = calculate_jitter_from_measurements(fake_initial_measurement, times)
 
     offsets = [NtpCalculator.calculate_offset(fake_initial_measurement.timestamps)] + [NtpCalculator.calculate_offset(m.timestamps) for m in other_measurements]
@@ -160,3 +161,28 @@ def test_calculate_jitter_from_measurements(mock_perform):
 
     assert res == expected
     assert mock_perform.call_count == times
+
+@patch("server.app.utils.perform_measurements.perform_ntp_measurement_ip")
+
+def test_calculate_jitter_from_measurements_with_none(mock_perform):
+    fake_initial_measurement = make_mock_measurement(1)
+
+    other_measurements = [
+        make_mock_measurement(5),
+        make_mock_measurement(3),
+        None,
+        None,
+        make_mock_measurement(6)
+    ]
+    mock_perform.side_effect = other_measurements
+    times = 5
+    res = calculate_jitter_from_measurements(fake_initial_measurement, times)
+
+    offsets = [NtpCalculator.calculate_offset(fake_initial_measurement.timestamps)]
+    for m in other_measurements[:1]:
+        offsets.append(NtpCalculator.calculate_offset(m.timestamps))
+
+    expected = NtpCalculator.calculate_jitter(offsets)
+
+    assert res == expected
+    assert mock_perform.call_count == 3

@@ -24,14 +24,16 @@ def calculate_jitter_from_measurements(initial_measurement: NtpMeasurement, time
         float: jitter in seconds.
     """
     offsets = [NtpCalculator.calculate_offset(initial_measurement.timestamps)]
-
+    measurements_done = 0
     for _ in range(times):
         measurement = perform_ntp_measurement_ip(
                str(initial_measurement.server_info.ntp_server_ip),
                initial_measurement.server_info.ntp_version
         )
-        if measurement:
-            offsets.append(NtpCalculator.calculate_offset(measurement.timestamps))
+        if measurement is None:
+            break
+        offsets.append(NtpCalculator.calculate_offset(measurement.timestamps))
+        measurements_done += 1
 
     return float(NtpCalculator.calculate_jitter(offsets))
 
