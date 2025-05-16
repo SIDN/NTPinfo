@@ -5,6 +5,24 @@ from server.app.utils.perform_measurements import *
 from unittest.mock import patch, MagicMock
 from server.app.models.PreciseTime import PreciseTime
 
+def make_mock_measurement(seconds_offset: int) -> NtpMeasurement:
+    fake_measurement = MagicMock(spec=NtpMeasurement)
+
+    timestamps = NtpTimestamps(
+        PreciseTime(0, 0),
+        PreciseTime(seconds_offset // 4, 0),
+        PreciseTime(seconds_offset // 2, 0),
+        PreciseTime(seconds_offset, 0)
+    )
+    fake_server_info = MagicMock()
+    fake_server_info.ntp_server_ip = IPv4Address("1.2.3.4")
+    fake_server_info.ntp_version = 4
+    fake_measurement.timestamps = timestamps
+    fake_measurement.server_info = fake_server_info
+
+    return fake_measurement
+
+
 def test_ntp_precise_time_to_human_date():
     t=PreciseTime(None,12345)
     assert ntp_precise_time_to_human_date(t)==""
@@ -122,3 +140,49 @@ def test_perform_ntp_measurement_ip(mock_request):
 
     assert  print_ntp_measurement(result) == True
     assert  print_ntp_measurement(23) == False
+
+@patch("server.app.utils.perform_measurements.perform_ntp_measurement_ip")
+def test_calculate_jitter_from_measurements(mock_perform):
+    fake_initial_measurement = make_mock_measurement(1)
+
+    other_measurements = [
+        make_mock_measurement(5),
+        make_mock_measurement(3),
+        make_mock_measurement(4),
+        make_mock_measurement(6)
+    ]
+    mock_perform.side_effect = other_measurements
+    times = 4
+    res = calculate_jitter_from_measurements(fake_initial_measurement, times)
+
+    offsets = [NtpCalculator.calculate_offset(fake_initial_measurement.timestamps)] + [NtpCalculator.calculate_offset(m.timestamps) for m in other_measurements]
+
+    expected = NtpCalculator.calculate_jitter(offsets)
+
+    assert res == expected
+    assert mock_perform.call_count == times
+
+@patch("server.app.utils.perform_measurements.perform_ntp_measurement_ip")
+
+def test_calculate_jitter_from_measurements_with_none(mock_perform):
+    fake_initial_measurement = make_mock_measurement(1)
+
+    other_measurements = [
+        make_mock_measurement(5),
+        make_mock_measurement(3),
+        None,
+        None,
+        make_mock_measurement(6)
+    ]
+    mock_perform.side_effect = other_measurements
+    times = 5
+    res = calculate_jitter_from_measurements(fake_initial_measurement, times)
+
+    offsets = [NtpCalculator.calculate_offset(fake_initial_measurement.timestamps)]
+    for m in other_measurements[:1]:
+        offsets.append(NtpCalculator.calculate_offset(m.timestamps))
+
+    expected = NtpCalculator.calculate_jitter(offsets)
+
+    assert res == expected
+    assert mock_perform.call_count == 3

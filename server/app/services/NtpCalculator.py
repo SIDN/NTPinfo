@@ -1,10 +1,13 @@
 from server.app.models.NtpTimestamps import NtpTimestamps
 from server.app.models.PreciseTime import PreciseTime
+import numpy as np
+
+
 class NtpCalculator:
 
     def __init__(self) -> None:
         pass
-    
+
     @staticmethod
     def calculate_offset(timestamps: NtpTimestamps) -> float:
         """
@@ -27,11 +30,11 @@ class NtpCalculator:
             timestamps.server_sent_time.seconds - timestamps.client_recv_time.seconds,
             timestamps.server_sent_time.fraction - timestamps.client_recv_time.fraction
         )
-        
+
         offset_seconds: float = (a.seconds + b.seconds) / 2.0
         offset_fraction: float = (a.fraction + b.fraction) / 2.0
         return offset_seconds + offset_fraction / (2 ** 32)
-    
+
     @staticmethod
     def calculate_delay(timestamps: NtpTimestamps) -> float:
         """
@@ -53,7 +56,7 @@ class NtpCalculator:
         )
         ans: float = (a.seconds - b.seconds) + (b.fraction - a.fraction) / (2 ** 32)
         return ans
-    
+
     @staticmethod
     def calculate_float_time(time: PreciseTime) -> float:
         """
@@ -63,7 +66,27 @@ class NtpCalculator:
             time (PreciseTime): A single PreciseTime object, representing a single timestamp
 
         Returns:
-            float: Time in seconds
+            float: Time in seconds.
         """
         ans: float = time.seconds + time.fraction / (2 ** 32)
         return ans
+
+    @staticmethod
+    def calculate_jitter(offsets: list[float]) -> float:
+        """
+        Calculates the jitter of multiple NTP measurements based on their offsets.
+
+        Args:
+            offsets (list[float]): A list of floats representing the offsets to calculate jitter.
+
+        Returns:
+            float: Jitter in seconds.
+        """
+        if len(offsets) <= 1:
+            return 0.0
+
+        s = np.sum([(offset - offsets[0]) ** 2 for offset in offsets[1:]])
+        denominator = len(offsets) - 1
+        jitter: float = float(np.sqrt(s / denominator))
+
+        return jitter

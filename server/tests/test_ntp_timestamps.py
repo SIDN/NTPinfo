@@ -1,5 +1,7 @@
 from ipaddress import IPv6Address, IPv4Address, ip_address
 
+import numpy as np
+
 from server.app.models.NtpExtraDetails import NtpExtraDetails
 from server.app.models.NtpMainDetails import NtpMainDetails
 from server.app.models.NtpMeasurement import NtpMeasurement
@@ -58,3 +60,31 @@ def test_create_object():
 
     assert NtpValidation.is_valid(measurements.extra_details) == True
     assert NtpValidation.is_valid(extra_invalid) == False
+
+
+def test_no_jitter():
+    assert NtpCalculator.calculate_jitter([]) == 0.0
+    assert NtpCalculator.calculate_jitter([0.02]) == 0.0
+
+def test_jitter_two_offsets():
+    offsets = [0.02, 0.01]
+    assert NtpCalculator.calculate_jitter(offsets) == np.absolute(0.02 - 0.01)
+
+def test_jitter_equal_offsets():
+    offsets = [0.5, 0.5, 0.5, 0.5]
+    assert NtpCalculator.calculate_jitter(offsets) == 0.0
+
+def test_jitter_different_offsets():
+    offsets = [0.0023, 0.0019, 0.0025, 0.0021, 0.0024]
+    result = NtpCalculator.calculate_jitter(offsets)
+    expected = ((0.0019 - 0.0023) ** 2 + (0.0025 - 0.0023) ** 2 +
+                (0.0021 - 0.0023) ** 2 + (0.0024 - 0.0023) ** 2) / 4
+    expected = expected ** 0.5
+    assert result == expected
+
+def test_jitter_negative_offsets():
+    offsets = [-0.002, -0.001, -0.003]
+    result = NtpCalculator.calculate_jitter(offsets)
+    expected = ((-0.001 + 0.002)**2 + (-0.003 + 0.002)**2) / 2
+    expected = expected ** 0.5
+    assert result == expected
