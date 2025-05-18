@@ -96,14 +96,14 @@ function App() {
   //
   
   //main function called when measuring by pressing the button
-  const handleSearch = async (query: string) => {
+  const handleSearch = async (query: string, jitter_flag: boolean, measurements_no: number) => {
     if (query.length == 0)
       return
     
     const payload = {
       server: query,
-      jitter_flag: false,
-      measurements_no: 0
+      jitter_flag: jitter_flag,
+      measurements_no: jitter_flag ? measurements_no : 0
     }
 
     // Get the response from the measurement data API

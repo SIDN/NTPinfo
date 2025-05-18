@@ -61,3 +61,16 @@
     /* border: 1px solid red; */
     width: 100%;
   }
+
+  .jitter-options {
+    
+    padding: .7rem;
+    display: flex;
+    align-items: center;
+    color: var(--clr-font-white);
+    gap: 10px;
+  }
+  
+  #measurements-no-box  {
+    margin-top: 2px;
+  }
