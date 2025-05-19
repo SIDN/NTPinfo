@@ -109,7 +109,7 @@ def perform_edns_query(domain_name: str, resolver_name: str, ecs: dns.edns.ECSOp
 
 
 def edns_response_to_ips(response: dns.message.Message, client_ip: str, mask: int,
-                        resolvers: list[str], depth: int=0, max_depth: int=0) -> list[str]:
+                        resolvers: list[str], depth: int=0, max_depth: int=2) -> list[str]:
     """
     This method takes the IPs from the response. In case the response has a CNAME, it will
     recursively try to get an IP from that CNAME. In the worst case, it will be redirected "max_depth" times.
@@ -128,7 +128,7 @@ def edns_response_to_ips(response: dns.message.Message, client_ip: str, mask: in
     """
     ips: list[str] = []
     for ans in response.answer:
-        # take into consideration IPv4,IPv6 and CNAME (which redirects to another domain name
+        # take into consideration IPv4,IPv6 and CNAME (which redirects to another domain name)
         if ans.rdtype in (dns.rdatatype.A, dns.rdatatype.AAAA):
             for i in ans.items:
                 ips.append(i.address)
@@ -138,21 +138,21 @@ def edns_response_to_ips(response: dns.message.Message, client_ip: str, mask: in
                 next_domain_name = str(list(ans.items)[0]).rstrip('.')
                 print("redirecting to ", next_domain_name)
                 if depth < max_depth:
-                    a = domain_name_to_ip_close_to_client(next_domain_name, client_ip, mask, resolvers, depth + 1)
+                    a = domain_name_to_ip_close_to_client(next_domain_name, client_ip, mask, resolvers, depth + 1, max_depth)
                     if a is not None:
                         ips += a
     return ips
 #example of usage:
-dn = "time.apple.com"
-client = "88.31.57.92"
-ans = domain_name_to_ip_close_to_client(dn, client, 24)
-print(ans)
-print([get_country_from_ip(x) for x in ans])
+# dn = "time.apple.com"
+# client = "88.31.57.92"
+# ans = domain_name_to_ip_close_to_client(dn, client, 24)
+# print(ans)
+# print([get_country_from_ip(x) for x in ans])
 #print([get_country_from_ip(x) for x in domain_name_to_ip_close_to_client(dn, client_ip,16)])
 #print(domain_name_to_ip_close_to_client(dn, client_ip,24))
 #dig +short +subnet=83.25.24.10/24 pool.ntp.org @50.116.32.247
-print("By default: ")
-print(domain_name_to_ip_default(dn))
+# print("By default: ")
+# print(domain_name_to_ip_default(dn))
 #Cehia: 85.161.47.136
 #Poland: 83.25.24.10
 #Spain: 88.31.57.92

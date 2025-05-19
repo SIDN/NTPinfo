@@ -38,6 +38,7 @@ def get_format(measurement: NtpMeasurement, other_server_ips: list[str]|None=Non
 
     Args:
         measurement (NtpMeasurement): An object representing the NTP measurement result.
+        other_server_ips (list[str]|None): An optional list of IP addresses to use for this measurement object.
 
     Returns:
         dict: A dictionary containing key measurement details like this:
