@@ -1,6 +1,6 @@
 
 import '../styles/ResultSummary.css'
-import { NTPData } from '../types'
+import { NTPData } from '../utils/types.ts'
 
 function ResultSummary({data} : {data : NTPData | null}) {
     if (data == null)

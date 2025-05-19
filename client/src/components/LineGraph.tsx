@@ -10,8 +10,8 @@ import {
 } from 'chart.js'
 import { Line } from 'react-chartjs-2'
 ChartJS.defaults.color = 'rgba(239,246,238,1)'
-import { NTPData } from '../types'
-import { Measurement } from '../types'
+import { NTPData } from '../utils/types.ts'
+import { Measurement } from '../utils/types.ts'
   
 type ChartInputData = {
     data: NTPData[] | null

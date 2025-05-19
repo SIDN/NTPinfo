@@ -1,4 +1,4 @@
-import { NTPData } from "./types";
+import { NTPData } from "./types.ts";
 
 export const transformJSONData = (fetchedData: any): NTPData | null => {
     if (!fetchedData) 

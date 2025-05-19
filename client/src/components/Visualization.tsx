@@ -1,9 +1,9 @@
 import { useState, useRef } from "react";
 import Dropdown from "./Dropdown";
 import '../styles/Popup.css'
-import { NTPData } from "../types";
+import { NTPData } from "../utils/types.ts";
 import LineChart from "./LineGraph";
-import { Measurement } from "../types";
+import { Measurement } from "../utils/types.ts";
 
 interface DropdownConfig {
     label: string;

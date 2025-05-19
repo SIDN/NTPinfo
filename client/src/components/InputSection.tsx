@@ -1,11 +1,11 @@
 import '../styles/SearchBar.css'
 import React, { useState } from 'react';
 
-interface SearchBarProps {
+interface InputProps {
     onSearch: (query: string, jitterFlag: boolean, measurementsNo: number) => void;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
+const InputSection: React.FC<InputProps> = ({ onSearch }) => {
     const [query, setQuery] = useState('');
     const [jitterFlag, setJitterFlag] = useState(false);
     const [measurementsNo, setMeasurementsNo] = useState(1);
@@ -65,4 +65,4 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
 
 };
 
-export default SearchBar;
+export default InputSection;

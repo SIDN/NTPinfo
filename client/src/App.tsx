@@ -2,17 +2,17 @@ import { useState } from 'react'
 
 import './App.css'
 import Hero from './components/Hero'
-import SearchBar from './components/SearchBar'
+import InputSection from './components/InputSection.tsx'
 import ResultSummary from './components/ResultSummary'
 import DownloadButton from './components/DownloadButton'
 import VisualizationPopup from './components/Visualization'
 import LineChart from './components/LineGraph'
 import { useFetchIPData } from './hooks/useFetchIPData.ts'
 import { useFetchHistoricalIPData } from './hooks/useFetchHistoricalIPData.ts'
-import { dateFormatConversion } from './dateFormatConversion.ts'
+import { dateFormatConversion } from './utils/dateFormatConversion.ts'
 
-import { NTPData } from './types'
-import { Measurement } from './types'
+import { NTPData } from './utils/types.ts'
+import { Measurement } from './utils/types.ts'
 
 type InputData = {
   data: NTPData[]
@@ -24,14 +24,14 @@ type InputData = {
  */
 function downloadJSON(data : InputData) {
     //parse to json string and make an object with the corresponding data
-    var json = JSON.stringify(data)
-    var blob = new Blob([json], { type: 'application/json' })
-    //create a temporary download link for the data
-    var downloadLink = document.createElement('a')
-    downloadLink.href = window.URL.createObjectURL(blob)
-    downloadLink.download = "data.json"
-    downloadLink.click()
-    window.URL.revokeObjectURL(downloadLink.href)
+  const json = JSON.stringify(data);
+  const blob = new Blob([json], {type: 'application/json'});
+  //create a temporary download link for the data
+  const downloadLink = document.createElement('a');
+  downloadLink.href = window.URL.createObjectURL(blob)
+  downloadLink.download = "data.json"
+  downloadLink.click()
+  window.URL.revokeObjectURL(downloadLink.href)
 
 }
 /**
@@ -40,16 +40,16 @@ function downloadJSON(data : InputData) {
  */
 function downloadCSV(data : InputData) {
 
-  var json = JSON.parse(JSON.stringify(data))
+  const json = JSON.parse(JSON.stringify(data));
   //get headers of csv
   const headers = Object.keys(json.data[0])
   const values = json.data.map((row : NTPData) =>
-    headers.map((key) => JSON.stringify((row as any)[key])).join(','))
+      headers.map((key) => JSON.stringify((row as any)[key])).join(','))
 
   const csvData = [headers.join(','), ...values].join('\n')
-  var blob = new Blob([csvData], { type: 'text/csv' })
+  const blob = new Blob([csvData], {type: 'text/csv'});
   //create a temporary download link for the data
-  var downloadLink = document.createElement('a')
+  const downloadLink = document.createElement('a');
   downloadLink.href = window.URL.createObjectURL(blob)
   downloadLink.download = "data.csv"
   downloadLink.click()
@@ -136,7 +136,7 @@ function App() {
     <div className="app-container">
       <Hero />
       <div className="search-wrapper">
-        <SearchBar onSearch={handleSearch} />
+        <InputSection onSearch={handleSearch} />
       </div>
         <div className="result-text">
           {(!apiDataLoading && measured && (<p>Results</p>)) || (apiDataLoading && <p>Loading...</p>)}
