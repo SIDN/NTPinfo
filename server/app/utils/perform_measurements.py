@@ -313,6 +313,6 @@ def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
         print("Error:", e)
         return False
 
-# m=perform_ntp_measurement_domain_name("77.175.129.186",3)
-# m=perform_ntp_measurement_domain_name("pool.ntp.org","83.25.24.10")
+# m,t=perform_ntp_measurement_domain_name("time.google.com")
+# m,t=perform_ntp_measurement_domain_name("pool.ntp.org","83.25.24.10")
 # print_ntp_measurement(m)

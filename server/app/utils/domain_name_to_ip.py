@@ -3,8 +3,7 @@ import dns.message
 import dns.query
 import dns.edns
 import dns.rdatatype
-
-from server.app.utils.validate import is_valid_domain_name
+from server.app.utils.validate import is_valid_domain_name, get_country_from_ip
 
 
 def domain_name_to_ip_default(domain_name: str) -> list[str] | None:
@@ -30,14 +29,6 @@ def domain_name_to_ip_default(domain_name: str) -> list[str] | None:
         return None
 
 
-import requests
-def get_country_from_ip(ip):
-    #return ""
-    response = requests.get(f"https://ipinfo.io/{ip}/json")
-    data = response.json()
-    return data.get("country", "Unknown")
-
-
 def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str, mask: int = 24,
                                                     resolvers: list[str] = ['8.8.8.8', '1.1.1.1'],
                                                     depth: int = 0, max_depth: int = 2) -> list[str] | None:
@@ -47,6 +38,7 @@ def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str, mask: in
     and in case the queries return a domain name, this method recursively tries to solve them. It uses "depth"
     and "max_depth" to prevent infinite loops in redirecting.
     If the name is not a domain name, it will return an empty list.
+    If the EDNS query does not return a CNAME, depth and max_depth would not be used.
 
     Args:
         domain_name(str): The domain name.
@@ -61,15 +53,15 @@ def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str, mask: in
     """
     if not is_valid_domain_name(domain_name):
         return None
-    ips = []
+    ips: list[str] = []
 
     try:
         # create a EDNS client subnet, which will be used to tell a close DNS server to the client
         ecs = dns.edns.ECSOption(address=client_ip, srclen=mask, scopelen=0)
         # we try for all resolvers because some of them may not accept some domain names
         for r in resolvers:
-            # stop if we already found some IP addresses
-            if len(ips)!=0:
+            # stop if we already found some IP addresses. Remove this "if" if you want to get more IPs
+            if len(ips) != 0:
                 break
 
             response = perform_edns_query(domain_name, r, ecs)
@@ -129,11 +121,12 @@ def edns_response_to_ips(response: dns.message.Message, client_ip: str, mask: in
         mask(int): The DNS MASK. (how many bits of the ip)
         resolvers(list): A list of popular DNS resolvers that are ECS-capable. They are used in the CNAME case.
         depth(int): The depth of the EDNS query.
+        max_depth(int): The maximum depth of the EDNS query.
 
     Returns:
         list(str): A list of IPs taken from the response.
     """
-    ips=[]
+    ips: list[str] = []
     for ans in response.answer:
         # take into consideration IPv4,IPv6 and CNAME (which redirects to another domain name
         if ans.rdtype in (dns.rdatatype.A, dns.rdatatype.AAAA):
@@ -145,12 +138,14 @@ def edns_response_to_ips(response: dns.message.Message, client_ip: str, mask: in
                 next_domain_name = str(list(ans.items)[0]).rstrip('.')
                 print("redirecting to ", next_domain_name)
                 if depth < max_depth:
-                    ips += domain_name_to_ip_close_to_client(next_domain_name, client_ip, mask, resolvers, depth + 1)
+                    a = domain_name_to_ip_close_to_client(next_domain_name, client_ip, mask, resolvers, depth + 1)
+                    if a is not None:
+                        ips += a
     return ips
 #example of usage:
-dn="time.apple.com"
-client="8.31.57.92"
-ans=domain_name_to_ip_close_to_client(dn, client,24)
+dn = "time.apple.com"
+client = "88.31.57.92"
+ans = domain_name_to_ip_close_to_client(dn, client, 24)
 print(ans)
 print([get_country_from_ip(x) for x in ans])
 #print([get_country_from_ip(x) for x in domain_name_to_ip_close_to_client(dn, client_ip,16)])
