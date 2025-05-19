@@ -1,7 +1,7 @@
 import { useState } from "react"
 import axios from "axios"
-import { NTPData } from "../types"
-import { transformJSONData } from "../transformJSONData"
+import { NTPData } from "../utils/types.ts"
+import { transformJSONData } from "../utils/transformJSONData.ts"
 
 export const useFetchIPData = () => {
     const [data, setData] = useState<NTPData | null>(null)
@@ -11,10 +11,10 @@ export const useFetchIPData = () => {
     /**
      * send a post request to the back-end
      * @param endpoint the endpoint to make the post call to
-     * @param payload the server that will be measured
+     * @param payload the server that will be measured, as well as the choice of the user whether to calculate the jitter
      * @returns the data received from the measurement as NTPData, or null
      */
-    const fetchData = async (endpoint: string, payload: {server: string}) => {
+    const fetchData = async (endpoint: string, payload: {server: string, jitter_flag : boolean, measurements_no : number | null}) => {
         setLoading(true);
         setError(null);
         try {

@@ -65,3 +65,7 @@ h2#not-found {
 .status-value.failing {
   color: var(--clr-red-1);
 }
+
+.status-value.unstable {
+  color: var(--clr-yellow);
+}

@@ -1,14 +1,14 @@
-import { NTPData } from "./types";
+import { NTPData } from "./types.ts";
 
 export const transformJSONData = (fetchedData: any): NTPData | null => {
     if (!fetchedData) 
         return null
     
     return {
-        offset: fetchedData.offset.toFixed(10),
-        RTT: fetchedData.delay.toFixed(10),
+        offset: fetchedData.offset,
+        RTT: fetchedData.delay,
         stratum: fetchedData.stratum,
-        jitter: fetchedData.precision,
+        jitter: fetchedData.jitter,
         precision: fetchedData.precision,
         status: fetchedData.reachability,
         time: fetchedData.client_sent_time.seconds
