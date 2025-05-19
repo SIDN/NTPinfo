@@ -70,7 +70,53 @@
     color: var(--clr-font-white);
     gap: 10px;
   }
+  .custom-checkbox {
+    display: flex;
+    gap: 5px;
+    cursor: pointer;
+    align-items: center;
+    font-size: 1.1rem;
+  }
+
+  .custom-checkbox input[type="checkbox"] {
+    display: none;
+  }
+
+  .custom-checkbox .checkmark {
+    height: 1rem;
+    width: 1rem;
+    background-color: white;
+    border-radius: 5px;
+    display: inline-block;
+    position: relative;
+    transition: background-color 0.2s, border 0.2s;
+  }
   
+  .custom-checkbox input[type="checkbox"]:checked + .checkmark{
+    background-color: var(--clr-red-2);
+  }
+
+  .custom-checkbox .checkmark::after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.custom-checkbox input[type="checkbox"]:checked + .checkmark::after {
+    display: block;
+    left: 5px;
+    top: 2px;
+    width: 6px;
+    height: 10px;
+    border: solid var(--clr-font-white);
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+  }
   #measurements-no-box  {
     margin-top: 2px;
+    background-color: var(--clr-font-white);
+    color: var(--clr-font-dark);
+    color-scheme: light;
+    border-radius: 5px;
+    border-color: transparent;
   }

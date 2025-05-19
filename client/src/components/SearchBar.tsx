@@ -40,13 +40,15 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
                 </button>
             </div>
             <form className="jitter-options" onSubmit={(e) => e.preventDefault()}>
-                <input
-                    type="checkbox"
-                    id="jitter-check"
-                    checked={jitterFlag}
-                    onChange={(e) => setJitterFlag(e.target.checked)}
+                <label className="custom-checkbox">
+                    <input type="checkbox"
+                           id="jitter-check"
+                           checked={jitterFlag}
+                           onChange={(e) => setJitterFlag(e.target.checked)}
                 />
-                <label htmlFor="jitter-check"> Perform extra measurements to calculate jitter (max. 10) </label>
+                <span className="checkmark"></span>
+                    Perform extra measurements to calculate jitter
+                </label>
 
                  {jitterFlag && (<input
                     id="measurements-no-box"

@@ -5,8 +5,8 @@ export const transformJSONData = (fetchedData: any): NTPData | null => {
         return null
     
     return {
-        offset: fetchedData.offset.toFixed(10),
-        RTT: fetchedData.delay.toFixed(10),
+        offset: fetchedData.offset,
+        RTT: fetchedData.delay,
         stratum: fetchedData.stratum,
         jitter: fetchedData.jitter,
         precision: fetchedData.precision,

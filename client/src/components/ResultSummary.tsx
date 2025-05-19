@@ -9,11 +9,11 @@ function ResultSummary({data} : {data : NTPData | null}) {
     return (
         <>
             <div className="result-box">
-                <div className="metric"><span>Offset</span><span>{data.offset} s</span></div>
-                <div className="metric"><span>Round-trip time</span><span>{data.RTT} s</span></div>
+                <div className="metric"><span>Offset</span><span>{data.offset !== null ? `${data.offset.toFixed(10)} s` : 'N/A'}</span></div>
+                <div className="metric"><span>Round-trip time</span><span>{data.RTT !== null ? `${data.RTT.toFixed(10)} s` : 'N/A'}</span></div>
                 <div className="metric">
                 <span>Jitter</span>
-                <span>{data.jitter !== null ? `${data.jitter} s` : 'N/A'}</span>
+                <span>{data.jitter !== null ? `${data.jitter.toFixed(10)} s` : 'N/A'}</span>
                 </div>
                 <div className="metric"><span>Precision</span><span>2<sup>{data.precision}</sup></span></div>
                 <div className="metric"><span>Stratum</span><span>{data.stratum}</span></div>
