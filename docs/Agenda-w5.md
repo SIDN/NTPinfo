@@ -1,7 +1,7 @@
 | Key | Value                                                         |
 | --- |---------------------------------------------------------------|
 | Date: | 13-05-2025                                                  |
-| Time: | 14:20 - 14:50                                               |
+| Time: | 10:00                                                       |
 | Location: | Unknown                                                 |
 | Chair: | Calin-Mihai Olaru                                          |
 | Minute Taker: | Mihai-Valentin Nicolae                              |
