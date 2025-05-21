@@ -11,6 +11,9 @@ export const transformJSONData = (fetchedData: any): NTPData | null => {
         jitter: fetchedData.jitter,
         precision: fetchedData.precision,
         status: fetchedData.reachability,
-        time: fetchedData.client_sent_time.seconds
+        time: fetchedData.client_sent_time.seconds,
+        ip: fetchedData.ntp_server_ip,
+        ip_list: fetchedData.other_server_ips,
+        server_name: fetchedData.ntp_server_name
     }
 };
