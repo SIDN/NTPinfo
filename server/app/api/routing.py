@@ -1,14 +1,14 @@
-
 from fastapi import HTTPException, APIRouter, Request
-
 
 from datetime import datetime, timezone
 from typing import Any, Optional
 
+from server.app.rate_limiter import limiter
 from server.app.models.MeasurementRequest import MeasurementRequest
 from server.app.services.api_services import get_format, measure, fetch_historic_data_with_timestamps
 
 router = APIRouter()
+
 
 @router.get("/")
 def read_root() -> dict[str, str]:
@@ -20,7 +20,9 @@ def read_root() -> dict[str, str]:
     """
     return {"Hello": "World"}
 
+
 @router.post("/measurements/")
+@limiter.limit("5/minute")
 async def read_data_measurement(payload: MeasurementRequest, request: Request) -> dict[str, Any]:
     """
     Compute a live NTP measurement for a given server (IP or domain).
@@ -45,7 +47,7 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request) -
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
 
-    #get the client IP from the request
+    # get the client IP from the request
     client_ip: Optional[str]
     if request.client is None:
         client_ip = None
@@ -63,13 +65,14 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request) -
         }
     else:
         return {
-            "Error": "Could not perform measurement, dns or ip not reachable."
+            "error": "Could not perform measurement, dns or ip not reachable."
         }
 
 
 @router.get("/measurements/history/")
+@limiter.limit("5/minute")
 async def read_historic_data_time(server: str,
-                                  start: datetime, end: datetime) -> dict[str, list[dict[str, Any]]]:
+                                  start: datetime, end: datetime, request: Request) -> dict[str, list[dict[str, Any]]]:
     """
     Retrieve historic NTP measurements for a given server and optional time range.
 

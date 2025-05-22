@@ -54,6 +54,7 @@ flake8-comprehensions~=3.14.0
 flake8-import-order~=0.18.2
 flake8-docstrings~=1.7.0
 pydocstyle~=6.3.0
+slowapi~=0.1.9
 
 python-dotenv
 psycopg[binary,pool]
