@@ -31,6 +31,8 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request) -
     It uses the `measure()` function to perform the NTP synchronization measurement,
     and formats the result using `get_format()`.
 
+    This endpoint is also limited to 5 requests per minute to prevent abuse and reduce server load.
+
     Args:
         payload (MeasurementRequest): A Pydantic model containing:
             - server (str): IP address (IPv4/IPv6) or domain name of the NTP server.
@@ -80,10 +82,13 @@ async def read_historic_data_time(server: str,
     `fetch_historic_data_with_timestamps()` function. It can optionally filter results
     based on a time range (start and end datetime).
 
+    This endpoint is also limited to 5 requests per minute to prevent abuse and reduce server load.
+
     Args:
         server (str): IP address or domain name of the NTP server.
         start (datetime, optional): Start timestamp for data filtering.
         end (datetime, optional): End timestamp for data filtering.
+        request (Request): Request object for making the limiter work
 
     Returns:
         dict: A dictionary containing a list of formatted measurements under "measurements".

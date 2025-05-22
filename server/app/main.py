@@ -1,6 +1,6 @@
-from http.client import HTTPException
-
-from fastapi import FastAPI, HTTPException, Request
+from typing import Union
+from fastapi import FastAPI, Request, Response
+from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from server.app.api.routing import router
@@ -10,7 +10,6 @@ from slowapi.errors import RateLimitExceeded
 
 app = FastAPI()
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.include_router(router)
 
 """
@@ -27,8 +26,36 @@ app.add_middleware(
 )
 
 
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded) -> Union[JSONResponse, Response]:
+    """
+    Handle requests that exceed the configured rate limit.
+
+    Args:
+       request (Request): The incoming HTTP request that triggered the exception.
+       exc (RateLimitExceeded): The exception raised due to rate limiting.
+
+    Returns:
+       Union[JSONResponse, Response]: A response with HTTP 429 Too Many Requests.
+    """
+    return _rate_limit_exceeded_handler(request, exc)
+
+
 @app.exception_handler(HTTPException)
-async def custom_http_exception_handler(request: Request, exc: HTTPException):
+async def custom_http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    """
+    Handle generic HTTPException errors and return a custom error structure.
+
+    Overrides FastAPI's default error response by returning an object with an "error" key
+    instead of the default "detail" key for better frontend compatibility or customization.
+
+    Args:
+        request (Request): The incoming HTTP request that caused the error.
+        exc (HTTPException): The raised HTTPException.
+
+    Returns:
+        JSONResponse: A response with the appropriate status code and custom error format.
+    """
     return JSONResponse(
         status_code=exc.status_code,
         content={"error": exc.detail},
