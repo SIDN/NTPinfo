@@ -170,8 +170,19 @@ function App() {
           </div>
         </div>
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData}/>)}
+      
+      {ntpData && !apiDataLoading && ntpData.server_name && ntpData.ip_list.length && (() => {
+
+                const downloadContent = `Server name: ${ntpData.server_name}\n\n${ntpData.ip_list.join('\n')}`
+                const blob = new Blob([downloadContent], { type: 'text/plain' })
+                const downloadUrl = URL.createObjectURL(blob)
+               return (<p className="ip-list">You can download more IP addresses corresponding to this domain name  
+               <span> <a href={downloadUrl} download="ip-list.txt">here</a></span>
+                </p>)
+            })()}
+    
       {ntpData && !apiDataLoading && (<div className="download-buttons">
-     
+      
         <DownloadButton name="Download JSON" onclick={() => downloadJSON({data : [ntpData]})} />
         <DownloadButton name="Download CSV" onclick={() => downloadCSV({data : [ntpData]})} />
         <div>
