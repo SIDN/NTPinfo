@@ -139,7 +139,7 @@ def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_mea
     mock_perform_measurement.return_value = (measurement, ["83.25.24.10"])
 
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    response = client.post("/measurements/", json = {"server": "pool.ntp.org", "jitter_flag": False}, headers=headers)
+    response = client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": False}, headers=headers)
     assert response.status_code == 200
     assert "measurement" in response.json()
     assert response.json()["measurement"]["ntp_server_name"] == "pool.ntp.org"
@@ -157,9 +157,10 @@ def test_read_data_measurement_missing_measurement_no(mock_is_ip, mock_insert, m
     mock_perform_measurement.return_value = (measurement, ["83.25.24.10"])
 
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    response = client.post("/measurements/", json = {"server": "pool.ntp.org", "jitter_flag": True}, headers=headers)
+    response = client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": True}, headers=headers)
     assert response.status_code == 422
     assert "measurements_no is required when jitter_flag is True." in response.text
+
 
 @patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
 @patch("server.app.services.api_services.insert_measurement")
@@ -172,26 +173,27 @@ def test_read_data_measurement_with_jitter(mock_jitter, mock_is_ip, mock_insert,
     mock_jitter.return_value = 0.75
 
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    response = client.post("/measurements/", json = {"server": "pool.ntp.org", "jitter_flag": True, "measurements_no": 3}, headers=headers)
+    response = client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": True, "measurements_no": 3},
+                           headers=headers)
     assert response.status_code == 200
     json_data = response.json()
     assert "measurement" in json_data
     assert response.json()["measurement"]["jitter"] == 0.75
 
 
-
 def test_read_data_measurement_missing_server():
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    response = client.post("/measurements/", json = {"server": "", "jitter_flag": False}, headers=headers)
+    response = client.post("/measurements/", json={"server": "", "jitter_flag": False}, headers=headers)
     assert response.status_code == 400
-    assert response.json() == {"detail": "Either 'ip' or 'dn' must be provided"}
+    assert response.json() == {"error": "Either 'ip' or 'dn' must be provided"}
 
 
 def test_read_data_measurement_wrong_server():
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    response = client.post("/measurements/", json = {"server": "random-server-name.org", "jitter_flag": False},headers=headers)
+    response = client.post("/measurements/", json={"server": "random-server-name.org", "jitter_flag": False},
+                           headers=headers)
     assert response.status_code == 200
-    assert response.json() == {"Error": "Could not perform measurement, dns or ip not reachable."}
+    assert response.json() == {"error": "Could not perform measurement, dns or ip not reachable."}
 
 
 @patch("server.app.services.api_services.get_measurements_timestamps_dn")
@@ -254,7 +256,7 @@ def test_read_historic_data_missing_server():
         "end": end.isoformat()
     })
     assert response.status_code == 400
-    assert response.json() == {'detail': "Either 'ip' or 'domain name' must be provided"}
+    assert response.json() == {'error': "Either 'ip' or 'domain name' must be provided"}
 
 
 def test_read_historic_data_wrong_start():
@@ -265,7 +267,7 @@ def test_read_historic_data_wrong_start():
         "end": end.isoformat()
     })
     assert response.status_code == 400
-    assert response.json() == {"detail": "'start' must be earlier than 'end'"}
+    assert response.json() == {"error": "'start' must be earlier than 'end'"}
 
 
 def test_read_historic_data_wrong_end():
@@ -276,4 +278,4 @@ def test_read_historic_data_wrong_end():
         "end": (end + timedelta(minutes=10)).isoformat()
     })
     assert response.status_code == 400
-    assert response.json() == {"detail": "'end' cannot be in the future"}
+    assert response.json() == {"error": "'end' cannot be in the future"}
