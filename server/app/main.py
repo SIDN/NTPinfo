@@ -1,4 +1,7 @@
-from fastapi import FastAPI
+from http.client import HTTPException
+
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from server.app.api.routing import router
 from rate_limiter import limiter
@@ -22,6 +25,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(HTTPException)
+async def custom_http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": exc.detail},
+    )
+
 
 if __name__ == "__main__":
     import uvicorn
