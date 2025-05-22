@@ -24,29 +24,15 @@ export default function VisualizationPopup({isOpen, onClose, dropdowns, data}: P
     const popupRef = useRef(null)
 
     const [isCustomChecked, setCustomChecked] = useState(false)
-    const [isOffsetChecked, setOffsetChecked] = useState(true)
-    const [isDelayChecked, setDelayChecked] = useState(false)
     const [textVal, setTextVal] = useState("")
-    const [selMeasurement, setSelMeasurement] = useState<Measurement>("RTT");
+    const [selMeasurement, setSelMeasurement] = useState<Measurement>("RTT")
+    const [selOption, setSelOption] = useState("Last Hour")
 
     const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSelMeasurement(event.target.value as Measurement);
       };
 
-    // useEffect(() => {
-    //     function handleClickOutside(event: MouseEvent) {
-    //         if (popupRef.current && !popupRef.current.contains(event.target as Node)){
-    //             onClose();
-    //         }
-    //     }
-
-    //     document.addEventListener("mousedown", handleClickOutside);
-
-    //     return () => {
-    //         document.addEventListener("mousedown", handleClickOutside);
-    //     };
-    // }, [isOpen, onClose]);
-
+      
     if (!isOpen) return null;
 
     return (
@@ -59,8 +45,8 @@ export default function VisualizationPopup({isOpen, onClose, dropdowns, data}: P
                     <Dropdown
                             label = {dropdowns[0].label}
                             options = {dropdowns[0].options}
-                            selectedValue={dropdowns[0].selectedValue}
-                            onSelect={dropdowns[0].onSelect}
+                            selectedValue={selOption}
+                            onSelect={setSelOption}
                             className={dropdowns[0].className}/>
                     
                     {/*Checkbox for having a custom time duration*/} 
@@ -98,7 +84,7 @@ export default function VisualizationPopup({isOpen, onClose, dropdowns, data}: P
                             type="radio"
                             name="measurement"
                             value="offset"
-                            checked={selMeasurement === 'offset'}
+                            checked={selMeasurement === "offset"}
                             onChange={handleMeasurementChange}
                         />
                         Offset
@@ -109,7 +95,7 @@ export default function VisualizationPopup({isOpen, onClose, dropdowns, data}: P
                             type="radio"
                             name="measurement"
                             value="RTT"
-                            checked={selMeasurement === 'RTT'}
+                            checked={selMeasurement === "RTT"}
                             onChange={handleMeasurementChange}
                         />
                         Delay
@@ -136,7 +122,7 @@ export default function VisualizationPopup({isOpen, onClose, dropdowns, data}: P
                     </label>*/}
                 </div>
                 <div className="chart-box">
-                    <LineChart data = {data} selectedMeasurement = {selMeasurement}/>
+                    <LineChart data = {data} selectedMeasurement = {selMeasurement} selectedOption={selOption}/>
                 </div>
             </div>
         </div>

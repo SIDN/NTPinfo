@@ -77,7 +77,7 @@ function App() {
   const dropdown = [
     {
       label: "Time period",
-      options: ["Last Hour", "Last Day", "Last Week"],
+      options: ["Last Hour", "Last Day", "Last Week", "Custom"],
       selectedValue: selOption1,
       onSelect: setOption1,
       className: "time-dropdown"
@@ -166,11 +166,12 @@ function App() {
               />
               Round-trip time
             </label>
-            <LineChart data = {chartData} selectedMeasurement={selMeasurement}/>
+            <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day"/>
           </div>
         </div>
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData}/>)}
       
+      {/*Only shown when a domain name is queried. Users can download IP addresses corresponding to that domain name*/}
       {ntpData && !apiDataLoading && ntpData.server_name && ntpData.ip_list.length && (() => {
 
                 const downloadContent = `Server name: ${ntpData.server_name}\n\n${ntpData.ip_list.join('\n')}`
@@ -180,7 +181,8 @@ function App() {
                <span> <a href={downloadUrl} download="ip-list.txt">here</a></span>
                 </p>)
             })()}
-    
+      
+      {/*Buttons to download results in JSON and CSV format as well as open a popup displaying historical data*/}
       {ntpData && !apiDataLoading && (<div className="download-buttons">
       
         <DownloadButton name="Download JSON" onclick={() => downloadJSON({data : [ntpData]})} />
