@@ -1,5 +1,4 @@
 from unittest.mock import patch, Mock, MagicMock
-
 import pytest
 from fastapi.testclient import TestClient
 from ipaddress import IPv4Address, IPv6Address, ip_address
@@ -21,6 +20,7 @@ def setup_and_teardown():
     global client
     client = TestClient(app)
     yield client
+    app.state.limiter.reset()
     client.close()
 
 
@@ -202,14 +202,14 @@ def test_read_data_measurement_wrong_server():
 @patch("server.app.services.api_services.human_date_to_ntp_precise_time")
 def test_read_historic_data_ip(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, mock_get_dn):
     end = datetime.now(timezone.utc)
-    mock_is_ip.return_value = IPv4Address("192.168.0.1")
+    mock_is_ip.return_value = IPv4Address("192.168.1.1")
     mock_human_date_to_ntp.return_value = PreciseTime(1000, 500)
     mock_data = get_mock_data()
 
     mock_get_ip.return_value = mock_data  # Mock for IP address fetch
     mock_get_dn.return_value = mock_data  # Mock for Domain Name fetch
     response = client.get("/measurements/history/", params={
-        "server": "pool.ntp.org",
+        "server": "192.168.1.1",
         "start": (end - timedelta(minutes=10)).isoformat(),
         "end": end.isoformat()
     })
@@ -217,7 +217,7 @@ def test_read_historic_data_ip(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, 
     assert response.status_code == 200
     data = response.json()["measurements"]
     assert len(data) == 2
-    assert data[0]["ntp_server_name"] == "pool.ntp.org"
+    assert data[0]["ntp_server_ip"] == "192.168.1.1"
     mock_get_ip.assert_called_once()
     mock_get_dn.assert_not_called()
 
@@ -279,3 +279,108 @@ def test_read_historic_data_wrong_end():
     })
     assert response.status_code == 400
     assert response.json() == {"error": "'end' cannot be in the future"}
+
+
+@patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
+@patch("server.app.services.api_services.insert_measurement")
+@patch("server.app.services.api_services.is_ip_address")
+def test_perform_measurement_with_rate_limiting(mock_is_ip, mock_insert, mock_perform_measurement):
+    mock_is_ip.return_value = None
+    measurement = mock_measurement()
+    mock_perform_measurement.return_value = (measurement, ["83.25.24.10"])
+
+    for _ in range(5):
+        headers = {"X-Forwarded-For": "83.25.24.10"}
+        response = client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": False}, headers=headers)
+        assert response.status_code == 200
+        assert "measurement" in response.json()
+        assert response.json()["measurement"]["ntp_server_name"] == "pool.ntp.org"
+        assert response.json()["measurement"]["jitter"] is None
+        mock_perform_measurement.assert_called_with("pool.ntp.org", "83.25.24.10")
+
+    assert mock_perform_measurement.call_count == 5
+    calls_before_6th = mock_perform_measurement.call_count
+    response = client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": False}, headers=headers)
+    assert response.status_code == 429
+    assert response.json() == {"error": "Rate limit exceeded: 5 per 1 minute"}
+
+    assert mock_perform_measurement.call_count == calls_before_6th
+
+
+@patch("server.app.services.api_services.get_measurements_timestamps_dn")
+@patch("server.app.services.api_services.get_measurements_timestamps_ip")
+@patch("server.app.services.api_services.is_ip_address")
+@patch("server.app.services.api_services.human_date_to_ntp_precise_time")
+def test_historic_data_ip_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, mock_get_dn):
+    end = datetime.now(timezone.utc)
+    mock_is_ip.return_value = IPv4Address("192.168.0.1")
+    mock_human_date_to_ntp.return_value = PreciseTime(1000, 500)
+    mock_data = get_mock_data()
+
+    mock_get_ip.return_value = mock_data  # Mock for IP address fetch
+    mock_get_dn.return_value = mock_data  # Mock for Domain Name fetch
+    for _ in range(5):
+        response = client.get("/measurements/history/", params={
+            "server": "192.168.1.1",
+            "start": (end - timedelta(minutes=10)).isoformat(),
+            "end": end.isoformat()
+        })
+
+        assert response.status_code == 200
+        data = response.json()["measurements"]
+        assert len(data) == 2
+        assert data[0]["ntp_server_ip"] == "192.168.1.1"
+
+    assert mock_get_ip.call_count == 5
+
+    calls_before_6th = mock_get_ip.call_count
+    response = client.get("/measurements/history/", params={
+        "server": "192.168.1.1",
+        "start": (end - timedelta(minutes=10)).isoformat(),
+        "end": end.isoformat()
+    })
+    assert response.status_code == 429
+    assert response.json() == {"error": "Rate limit exceeded: 5 per 1 minute"}
+
+    assert mock_get_ip.call_count == calls_before_6th
+    mock_get_dn.assert_not_called()
+
+
+@patch("server.app.services.api_services.get_measurements_timestamps_dn")
+@patch("server.app.services.api_services.get_measurements_timestamps_ip")
+@patch("server.app.services.api_services.is_ip_address")
+@patch("server.app.services.api_services.human_date_to_ntp_precise_time")
+def test_historic_data_dn_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, mock_get_dn):
+    end = datetime.now(timezone.utc)
+    mock_is_ip.return_value = None
+    mock_human_date_to_ntp.return_value = PreciseTime(1000, 500)
+    mock_data = get_mock_data()
+
+    mock_get_ip.return_value = mock_data  # Mock for IP address fetch
+    mock_get_dn.return_value = mock_data  # Mock for Domain Name fetch
+
+    for _ in range(5):
+        response = client.get("/measurements/history/", params={
+            "server": "pool.ntp.org",
+            "start": (end - timedelta(minutes=10)).isoformat(),
+            "end": end.isoformat()
+        })
+
+        assert response.status_code == 200
+        data = response.json()["measurements"]
+        assert len(data) == 2
+        assert data[0]["ntp_server_name"] == "pool.ntp.org"
+
+    assert mock_get_dn.call_count == 5
+
+    calls_before_6th = mock_get_dn.call_count
+    response = client.get("/measurements/history/", params={
+        "server": "pool.ntp.org",
+        "start": (end - timedelta(minutes=10)).isoformat(),
+        "end": end.isoformat()
+    })
+    assert response.status_code == 429
+    assert response.json() == {"error": "Rate limit exceeded: 5 per 1 minute"}
+
+    assert mock_get_dn.call_count == calls_before_6th
+    mock_get_ip.assert_not_called()
