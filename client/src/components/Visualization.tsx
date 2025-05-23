@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef} from "react";
 import Dropdown from "./Dropdown";
 import '../styles/Popup.css'
 import { NTPData } from "../utils/types.ts";
@@ -23,16 +23,14 @@ interface PopupDropdownProps{
 export default function VisualizationPopup({isOpen, onClose, dropdowns, data}: PopupDropdownProps ) {
     const popupRef = useRef(null)
 
-    const [isCustomChecked, setCustomChecked] = useState(false)
     const [textVal, setTextVal] = useState("")
     const [selMeasurement, setSelMeasurement] = useState<Measurement>("RTT")
-    const [selOption, setSelOption] = useState("Last Hour")
+    const [selOption, setSelOption] = useState("Last Day")
 
     const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSelMeasurement(event.target.value as Measurement);
       };
-
-      
+ 
     if (!isOpen) return null;
 
     return (
@@ -49,19 +47,11 @@ export default function VisualizationPopup({isOpen, onClose, dropdowns, data}: P
                             onSelect={setSelOption}
                             className={dropdowns[0].className}/>
                     
-                    {/*Checkbox for having a custom time duration*/} 
-                    <label className="checkbox-custom-label">
-                        <input
-                        type = "checkbox"
-                        checked = {isCustomChecked}
-                        onChange={() => setCustomChecked(!isCustomChecked)}/>
-                        Custom
-                    </label>
-
-                    {isCustomChecked && (
+                    {selOption === "Custom" && (
                         <div className="custom-time-amount">
-
-                            {/*Imput for the custom duration of time*/} 
+                            {/*TODO*/}
+                            {/* This will be replaced with a custom interval*/}
+                            {/*Input for the custom duration of time*/} 
                             <input
                             type = "text"
                             value = {textVal}
@@ -78,51 +68,34 @@ export default function VisualizationPopup({isOpen, onClose, dropdowns, data}: P
                             className={dropdowns[1].className}/>
                         </div>
                     )}
-                    {/*Radio for showing offset data*/} 
-                    <label className="radio-measurement-label">
-                        <input
-                            type="radio"
-                            name="measurement"
-                            value="offset"
-                            checked={selMeasurement === "offset"}
-                            onChange={handleMeasurementChange}
-                        />
-                        Offset
-                    </label>
-                    {/*Radio for showing delay data*/} 
-                    <label className="radio-measurement-label">
-                        <input
-                            type="radio"
-                            name="measurement"
-                            value="RTT"
-                            checked={selMeasurement === "RTT"}
-                            onChange={handleMeasurementChange}
-                        />
-                        Delay
-                    </label>
-
                     
-                    {/*<label className="checkbox-measurement-label">
-                        <input
-                        type = "radio"
-                        name = "measurement-type"
-                        checked = {isOffsetChecked}
-                        onChange={() => setOffsetChecked(!isOffsetChecked)}/>
-                        Offset
-                    </label>
-
-                    
-                    <label className="checkbox-measurement-label">
-                        <input
-                        type = "radio"
-                        name = "measurement-type"
-                        checked = {isDelayChecked}
-                        onChange={() => setDelayChecked(!isDelayChecked)}/>
-                        Delay
-                    </label>*/}
+                    <div className="radio-group">
+                        {/*Radio for showing offset data*/} 
+                        <label className="radio-measurement-label">
+                            <input
+                                type="radio"
+                                name="measurement-popup"
+                                value="offset"
+                                checked={selMeasurement === "offset"}
+                                onChange={handleMeasurementChange}
+                            />
+                            Offset
+                        </label>
+                        {/*Radio for showing delay data*/} 
+                        <label className="radio-measurement-label">
+                            <input
+                                type="radio"
+                                name="measurement-popup"
+                                value="RTT"
+                                checked={selMeasurement === "RTT"}
+                                onChange={handleMeasurementChange}
+                            />
+                            Round-trip time
+                        </label>
+                    </div>
                 </div>
                 <div className="chart-box">
-                    <LineChart data = {data} selectedMeasurement = {selMeasurement} selectedOption={selOption}/>
+                    <LineChart data = {data} selectedMeasurement = {selMeasurement} selectedOption = {selOption}/>
                 </div>
             </div>
         </div>

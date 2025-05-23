@@ -67,13 +67,14 @@ function App() {
   const [popupOpen, setPopupOpen] = useState(false)
   const [selOption1, setOption1] = useState("Last Hour")
   const [selOption2, setOption2] = useState("Hours")
-  const [selMeasurement, setSelMeasurement] = useState<Measurement>("RTT")
+  const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
 
   //Varaibles to log and use API hooks
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading} = useFetchIPData()
   const {fetchData: fetchHistoricalData, loading: apiHistoricalLoading, error: apiHistoricalError} = useFetchHistoricalIPData()
 
   //dropdown format
+  // second one will removed after custom time intervals are added
   const dropdown = [
     {
       label: "Time period",
