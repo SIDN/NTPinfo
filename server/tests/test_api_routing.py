@@ -43,7 +43,8 @@ def mock_measurement() -> NtpMeasurement:
             ntp_server_ip=IPv4Address("192.168.0.1"),
             ntp_server_name="pool.ntp.org",
             ntp_server_ref_parent_ip=None,
-            ref_name=None
+            ref_name=None,
+            other_server_ips=None
         ),
         timestamps=NtpTimestamps(
             client_sent_time=mock_precise(1),
@@ -136,10 +137,10 @@ def test_read_root():
 def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_measurement):
     mock_is_ip.return_value = None
     measurement = mock_measurement()
-    mock_perform_measurement.return_value = (measurement, ["83.25.24.10"])
+    mock_perform_measurement.return_value = measurement
 
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    response = client.post("/measurements/", json = {"server": "pool.ntp.org", "jitter_flag": False}, headers=headers)
+    response = client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": False}, headers=headers)
     assert response.status_code == 200
     assert "measurement" in response.json()
     assert response.json()["measurement"]["ntp_server_name"] == "pool.ntp.org"
@@ -157,9 +158,10 @@ def test_read_data_measurement_missing_measurement_no(mock_is_ip, mock_insert, m
     mock_perform_measurement.return_value = (measurement, ["83.25.24.10"])
 
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    response = client.post("/measurements/", json = {"server": "pool.ntp.org", "jitter_flag": True}, headers=headers)
+    response = client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": True}, headers=headers)
     assert response.status_code == 422
     assert "measurements_no is required when jitter_flag is True." in response.text
+
 
 @patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
 @patch("server.app.services.api_services.insert_measurement")
@@ -168,28 +170,29 @@ def test_read_data_measurement_missing_measurement_no(mock_is_ip, mock_insert, m
 def test_read_data_measurement_with_jitter(mock_jitter, mock_is_ip, mock_insert, mock_perform_measurement):
     mock_is_ip.return_value = None
     measurement = mock_measurement()
-    mock_perform_measurement.return_value = (measurement, ["83.25.24.10"])
+    mock_perform_measurement.return_value = measurement
     mock_jitter.return_value = 0.75
 
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    response = client.post("/measurements/", json = {"server": "pool.ntp.org", "jitter_flag": True, "measurements_no": 3}, headers=headers)
+    response = client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": True, "measurements_no": 3},
+                           headers=headers)
     assert response.status_code == 200
     json_data = response.json()
     assert "measurement" in json_data
     assert response.json()["measurement"]["jitter"] == 0.75
 
 
-
 def test_read_data_measurement_missing_server():
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    response = client.post("/measurements/", json = {"server": "", "jitter_flag": False}, headers=headers)
+    response = client.post("/measurements/", json={"server": "", "jitter_flag": False}, headers=headers)
     assert response.status_code == 400
     assert response.json() == {"detail": "Either 'ip' or 'dn' must be provided"}
 
 
 def test_read_data_measurement_wrong_server():
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    response = client.post("/measurements/", json = {"server": "random-server-name.org", "jitter_flag": False},headers=headers)
+    response = client.post("/measurements/", json={"server": "random-server-name.org", "jitter_flag": False},
+                           headers=headers)
     assert response.status_code == 200
     assert response.json() == {"Error": "Could not perform measurement, dns or ip not reachable."}
 

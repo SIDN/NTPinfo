@@ -1,6 +1,4 @@
-
 from fastapi import HTTPException, APIRouter, Request
-
 
 from datetime import datetime, timezone
 from typing import Any, Optional
@@ -9,6 +7,7 @@ from server.app.models.MeasurementRequest import MeasurementRequest
 from server.app.services.api_services import get_format, measure, fetch_historic_data_with_timestamps
 
 router = APIRouter()
+
 
 @router.get("/")
 def read_root() -> dict[str, str]:
@@ -19,6 +18,7 @@ def read_root() -> dict[str, str]:
         dict: A simple JSON message {"Hello": "World"}
     """
     return {"Hello": "World"}
+
 
 @router.post("/measurements/")
 async def read_data_measurement(payload: MeasurementRequest, request: Request) -> dict[str, Any]:
@@ -45,7 +45,7 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request) -
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
 
-    #get the client IP from the request
+    # get the client IP from the request
     client_ip: Optional[str]
     if request.client is None:
         client_ip = None
@@ -57,9 +57,9 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request) -
     times = payload.measurements_no if payload.measurements_no else 0
     response = measure(server, client_ip, payload.jitter_flag, times)
     if response is not None:
-        result, jitter, other_server_ips = response
+        result, jitter = response
         return {
-            "measurement": get_format(result, jitter, other_server_ips)
+            "measurement": get_format(result, jitter)
         }
     else:
         return {
