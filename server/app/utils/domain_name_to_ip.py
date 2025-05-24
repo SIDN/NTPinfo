@@ -37,6 +37,12 @@ def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str, mask: in
     that have (or may have) the ability to get an IP close to the client. It uses EDNS queries to get the IPs
     and in case the queries return a domain name, this method recursively tries to solve them. It uses "depth"
     and "max_depth" to prevent infinite loops in redirecting.
+
+    It is important to note that multiple servers may share the same IP address. So, some countries may use the
+    same IP for the same domain name. You can check this using https://www.whatsmydns.net/. This also provides
+    insights in the cases where we receive CNAME responses.
+
+
     If the name is not a domain name, it will return an empty list.
     If the EDNS query does not return a CNAME, depth and max_depth would not be used.
 

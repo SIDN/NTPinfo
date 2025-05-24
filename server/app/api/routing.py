@@ -22,7 +22,7 @@ def read_root() -> dict[str, str]:
 
 
 @router.post("/measurements/")
-@limiter.limit("5/minute")
+@limiter.limit("5/second")
 async def read_data_measurement(payload: MeasurementRequest, request: Request) -> dict[str, Any]:
     """
     Compute a live NTP measurement for a given server (IP or domain).
@@ -72,7 +72,7 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request) -
 
 
 @router.get("/measurements/history/")
-@limiter.limit("5/minute")
+@limiter.limit("5/second")
 async def read_historic_data_time(server: str,
                                   start: datetime, end: datetime, request: Request) -> dict[str, list[dict[str, Any]]]:
     """

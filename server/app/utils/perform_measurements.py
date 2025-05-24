@@ -69,7 +69,8 @@ def get_server_ip() -> IPv4Address | IPv6Address | None:
 def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", client_ip: str | None = None,
                                         ntp_version: int = 3) -> NtpMeasurement | None:
     """
-    This method performs a NTP measurement on a NTP server from its domain name.
+    This method performs a NTP measurement on a NTP server from its domain name. The "other IPs list" of the
+    measurement will be an empty list, or it will contain some elements. It would not be None.
 
     Args:
         server_name (str): the name of the ntp server
@@ -113,7 +114,9 @@ def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", clien
 
 def perform_ntp_measurement_ip(server_ip_str: str, ntp_version: int = 3) -> NtpMeasurement | None:
     """
-    This method performs a NTP measurement on a NTP server from its IP address.
+    This method performs a NTP measurement on a NTP server from its IP address. The "other IPs list" of the
+    measurement will be None.
+    empty list of other IPs of the domain name.
 
     Args:
         server_ip_str (str): the ip address of the ntp server in string format

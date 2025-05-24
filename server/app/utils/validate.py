@@ -36,7 +36,7 @@ def is_ip_address(ip_str: str) -> str | None:
         else:
             if isinstance(ip, ipaddress.IPv6Address):
                 return "ipv6"
-        # this part is unreachable (Well, at least another ip version would be created
+        # this part is unreachable (Well, at least until another ip version would be created)
         # return None
     except ValueError:
         return None
@@ -86,6 +86,7 @@ def parse_ip(ip_str: str) -> IPv4Address | IPv6Address | None:
 def get_country_from_ip(ip: str) -> str:
     """
     It makes a call to IPinfo to get the country code from this IP.
+    This method is for debugging purposes only. (It provides real details, but we use them only to verify the countries)
 
     Args:
         ip (str): The IP address in string format.
