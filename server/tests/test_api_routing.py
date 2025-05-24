@@ -288,7 +288,7 @@ def test_read_historic_data_wrong_end():
 def test_perform_measurement_with_rate_limiting(mock_is_ip, mock_insert, mock_perform_measurement):
     mock_is_ip.return_value = None
     measurement = mock_measurement()
-    mock_perform_measurement.return_value = (measurement, ["83.25.24.10"])
+    mock_perform_measurement.return_value = (measurement)
 
     for _ in range(5):
         headers = {"X-Forwarded-For": "83.25.24.10"}
