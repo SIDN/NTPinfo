@@ -170,3 +170,14 @@ body { /* instead of html */
 .graph-box canvas {
   max-height: 200px;
 }
+
+.ip-list {
+  text-align: left;
+  padding: 1rem 2rem;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--clr-font-white);
+}
+.ip-list a {
+  text-decoration: underline;
+}

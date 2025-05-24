@@ -1,7 +1,7 @@
 import { useState } from "react"
 import axios from "axios"
-import { NTPData } from "../types"
-import { transformJSONData } from "../transformJSONData"
+import { NTPData } from "../utils/types.ts"
+import { transformJSONData } from "../utils/transformJSONData.ts"
 
 export const useFetchHistoricalIPData = () => {
     const [data, setData] = useState<NTPData[] | null>(null)

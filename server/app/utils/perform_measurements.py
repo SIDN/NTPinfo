@@ -3,6 +3,7 @@ from ipaddress import ip_address, IPv4Address, IPv6Address
 from datetime import datetime, timezone
 from typing import Any
 
+from server.app.services.NtpCalculator import NtpCalculator
 from server.app.utils.domain_name_to_ip import domain_name_to_ip_default, domain_name_to_ip_close_to_client
 from server.app.models.NtpExtraDetails import NtpExtraDetails
 from server.app.models.NtpMainDetails import NtpMainDetails
@@ -11,6 +12,31 @@ from server.app.models.NtpServerInfo import NtpServerInfo
 from server.app.models.NtpTimestamps import NtpTimestamps
 from server.app.models.PreciseTime import PreciseTime
 from server.app.utils.validate import is_ip_address
+
+
+def calculate_jitter_from_measurements(initial_measurement: NtpMeasurement, times: int = 0) -> float:
+    """
+    For a single measurement, calculates a burst of measurements to calculate the jitter.
+    Args:
+        initial_measurement (NtpMeasurement): measurement that is actually saved in the DB, serving as the "mean" for the standard deviation.
+        times (int): number of measurements performed to calculate jitter.
+
+    Returns:
+        float: jitter in seconds.
+    """
+    offsets = [NtpCalculator.calculate_offset(initial_measurement.timestamps)]
+    measurements_done = 0
+    for _ in range(times):
+        measurement = perform_ntp_measurement_ip(
+            str(initial_measurement.server_info.ntp_server_ip),
+            initial_measurement.server_info.ntp_version
+        )
+        if measurement is None:
+            break
+        offsets.append(NtpCalculator.calculate_offset(measurement.timestamps))
+        measurements_done += 1
+
+    return float(NtpCalculator.calculate_jitter(offsets))
 
 
 def get_server_ip() -> IPv4Address | IPv6Address | None:
@@ -40,8 +66,8 @@ def get_server_ip() -> IPv4Address | IPv6Address | None:
         return None
 
 
-def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", client_ip: str|None=None,
-                                        ntp_version: int = 3) -> tuple[NtpMeasurement, list[str]] | None:
+def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", client_ip: str | None = None,
+                                        ntp_version: int = 3) -> NtpMeasurement | None:
     """
     This method performs a NTP measurement on a NTP server from its domain name.
 
@@ -72,13 +98,14 @@ def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", clien
         client = ntplib.NTPClient()
         response_from_ntplib = client.request(server_name, ntp_version, timeout=6)
         r = convert_ntp_response_to_measurement(response=response_from_ntplib,
-                                                   server_ip_str=ip_str,
-                                                   server_name=server_name,
-                                                   ntp_version=ntp_version)
+                                                server_ip_str=ip_str,
+                                                server_name=server_name,
+                                                other_server_ips=domain_ips,
+                                                ntp_version=ntp_version)
         if r is None:
             return None
         else:
-            return r, domain_ips
+            return r
     except Exception as e:
         print("Error in measure from name:", e)
         return None
@@ -104,6 +131,7 @@ def perform_ntp_measurement_ip(server_ip_str: str, ntp_version: int = 3) -> NtpM
         return convert_ntp_response_to_measurement(response=response,
                                                    server_ip_str=server_ip_str,
                                                    server_name=None,
+                                                   other_server_ips=None,
                                                    ntp_version=ntp_version)
     except Exception as e:
         print("Error in measure from ip:", e)
@@ -124,7 +152,8 @@ def convert_timestamp_to_precise_time(t: float) -> PreciseTime:
 
 
 def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str: str, server_name: str | None,
-                                        ntp_version: int = 3) -> NtpMeasurement | None:
+                                        other_server_ips: list[str] | None,
+                                        ntp_version: int = 3, ) -> NtpMeasurement | None:
     """
     This method converts a NTP response to a NTP measurement object.
 
@@ -133,6 +162,7 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
         server_ip_str (str): the ip address of the ntp server in string format
         server_name (str|None): the name of the ntp server
         ntp_version (int): the version of the ntp that you want to use
+        other_server_ips (list[str] | None): an optional list of IP addresses if the measurement is performed on a domain name.
 
     Returns:
         NtpMeasurement | None: it returns a NTP measurement object if converting was successful.
@@ -149,7 +179,8 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
             ntp_server_ip=server_ip,
             ntp_server_name=server_name,
             ntp_server_ref_parent_ip=ref_ip,
-            ref_name=ref_name
+            ref_name=ref_name,
+            other_server_ips=other_server_ips
         )
 
         timestamps: NtpTimestamps = NtpTimestamps(

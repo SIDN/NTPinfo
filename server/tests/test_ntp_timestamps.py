@@ -1,5 +1,7 @@
 from ipaddress import IPv6Address, IPv4Address, ip_address
 
+import numpy as np
+
 from server.app.models.NtpExtraDetails import NtpExtraDetails
 from server.app.models.NtpMainDetails import NtpMainDetails
 from server.app.models.NtpMeasurement import NtpMeasurement
@@ -48,7 +50,7 @@ def test_create_object():
     t2 = PreciseTime(10002, 2 ** 27)
     t3 = PreciseTime(10003, 10000)
     t4 = PreciseTime(10004, 10000)
-    server_details = NtpServerInfo(3, IPv4Address('192.0.2.1'), "local", IPv6Address('2001:db8::1'), "reference")
+    server_details = NtpServerInfo(3, IPv4Address('192.0.2.1'), "local", IPv6Address('2001:db8::1'), "reference", None)
     times = NtpTimestamps(t1, t2, t3, t4)
     maindetails = NtpMainDetails(0.009, 0, 1, 0, "stable")
     extra = NtpExtraDetails(PreciseTime(100000, 0), PreciseTime(100000, 0), 0)
@@ -58,3 +60,35 @@ def test_create_object():
 
     assert NtpValidation.is_valid(measurements.extra_details) == True
     assert NtpValidation.is_valid(extra_invalid) == False
+
+
+def test_no_jitter():
+    assert NtpCalculator.calculate_jitter([]) == 0.0
+    assert NtpCalculator.calculate_jitter([0.02]) == 0.0
+
+
+def test_jitter_two_offsets():
+    offsets = [0.02, 0.01]
+    assert NtpCalculator.calculate_jitter(offsets) == np.absolute(0.02 - 0.01)
+
+
+def test_jitter_equal_offsets():
+    offsets = [0.5, 0.5, 0.5, 0.5]
+    assert NtpCalculator.calculate_jitter(offsets) == 0.0
+
+
+def test_jitter_different_offsets():
+    offsets = [0.0023, 0.0019, 0.0025, 0.0021, 0.0024]
+    result = NtpCalculator.calculate_jitter(offsets)
+    expected = ((0.0019 - 0.0023) ** 2 + (0.0025 - 0.0023) ** 2 +
+                (0.0021 - 0.0023) ** 2 + (0.0024 - 0.0023) ** 2) / 4
+    expected = expected ** 0.5
+    assert result == expected
+
+
+def test_jitter_negative_offsets():
+    offsets = [-0.002, -0.001, -0.003]
+    result = NtpCalculator.calculate_jitter(offsets)
+    expected = ((-0.001 + 0.002) ** 2 + (-0.003 + 0.002) ** 2) / 2
+    expected = expected ** 0.5
+    assert result == expected

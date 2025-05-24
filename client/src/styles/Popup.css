@@ -88,6 +88,12 @@ a {
     width: 1.4em;
 }
 
+.radio-group {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    gap: 4em;
+}
 .radio-measurement-label input{
     transform: scale(1.4);
     transform-origin: center;
