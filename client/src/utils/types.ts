@@ -11,4 +11,4 @@ export type NTPData = {
   server_name: string
 }
 
-export type Measurement = 'RTT' | 'offset'
+export type Measurement = "RTT" | "offset"
