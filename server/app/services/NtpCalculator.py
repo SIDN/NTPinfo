@@ -39,6 +39,7 @@ class NtpCalculator:
     def calculate_delay(timestamps: NtpTimestamps) -> float:
         """
          Calculates round-trip delay between client and server using NTP timestamps.
+         It uses the formula (t4 - t1) - (t3 - t2)
 
         Args:
             timestamps (NtpTimestamps): A single NTP timestamps object, containing data about the 4 key timestamps

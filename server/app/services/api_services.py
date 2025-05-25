@@ -77,8 +77,8 @@ def get_format(measurement: NtpMeasurement, jitter: float | None = None) -> dict
     }
 
 
-def measure(server: str, client_ip: Optional[str] = None, jitter_flag: bool = False, measurement_no: int = 0) -> tuple[
-                                                                                                                     NtpMeasurement, float | None] | None:
+def measure(server: str, client_ip: Optional[str] = None, jitter_flag: bool = False,
+            measurement_no: int = 0) -> tuple[NtpMeasurement, float | None] | None:
     """
     Performs an NTP measurement for a given server (IP or domain name) and stores the result in the database.
 

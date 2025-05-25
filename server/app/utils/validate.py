@@ -2,6 +2,7 @@ import ipaddress
 from datetime import datetime, timezone
 from ipaddress import IPv4Address, IPv6Address
 import dns.name
+import requests
 
 def is_valid_domain_name(domain_name: str) -> bool:
     """
@@ -35,7 +36,7 @@ def is_ip_address(ip_str: str) -> str | None:
         else:
             if isinstance(ip, ipaddress.IPv6Address):
                 return "ipv6"
-        # this part is unreachable (Well, at least another ip version would be created
+        # this part is unreachable (Well, at least until another ip version would be created)
         # return None
     except ValueError:
         return None
@@ -81,3 +82,19 @@ def parse_ip(ip_str: str) -> IPv4Address | IPv6Address | None:
     except ValueError:
         print("Invalid IP address")
         return None
+
+def get_country_from_ip(ip: str) -> str:
+    """
+    It makes a call to IPinfo to get the country code from this IP.
+    This method is for debugging purposes only. (It provides real details, but we use them only to verify the countries)
+
+    Args:
+        ip (str): The IP address in string format.
+
+    Returns:
+        str: The country code or "Unknown" if IPinfo could not find the country code.
+    """
+    response = requests.get(f"https://ipinfo.io/{ip}/json")
+    data = response.json()
+    ans: str = data.get("country", "Unknown")
+    return ans

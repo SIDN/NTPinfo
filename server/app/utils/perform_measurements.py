@@ -69,7 +69,8 @@ def get_server_ip() -> IPv4Address | IPv6Address | None:
 def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", client_ip: str | None = None,
                                         ntp_version: int = 3) -> NtpMeasurement | None:
     """
-    This method performs a NTP measurement on a NTP server from its domain name.
+    This method performs a NTP measurement on a NTP server from its domain name. The "other IPs list" of the
+    measurement will be an empty list, or it will contain some elements. It would not be None.
 
     Args:
         server_name (str): the name of the ntp server
@@ -113,7 +114,9 @@ def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", clien
 
 def perform_ntp_measurement_ip(server_ip_str: str, ntp_version: int = 3) -> NtpMeasurement | None:
     """
-    This method performs a NTP measurement on a NTP server from its IP address.
+    This method performs a NTP measurement on a NTP server from its IP address. The "other IPs list" of the
+    measurement will be None.
+    empty list of other IPs of the domain name.
 
     Args:
         server_ip_str (str): the ip address of the ntp server in string format
@@ -344,6 +347,6 @@ def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
         print("Error:", e)
         return False
 
-# m=perform_ntp_measurement_domain_name("77.175.129.186",3)
-# m=perform_ntp_measurement_domain_name("pool.ntp.org","83.25.24.10")
+# m,t=perform_ntp_measurement_domain_name("time.google.com")
+# m,t=perform_ntp_measurement_domain_name("pool.ntp.org","83.25.24.10")
 # print_ntp_measurement(m)

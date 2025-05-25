@@ -303,7 +303,7 @@ def test_perform_measurement_with_rate_limiting(mock_is_ip, mock_insert, mock_pe
     calls_before_6th = mock_perform_measurement.call_count
     response = client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": False}, headers=headers)
     assert response.status_code == 429
-    assert response.json() == {"error": "Rate limit exceeded: 5 per 1 minute"}
+    assert response.json() == {"error": "Rate limit exceeded: 5 per 1 second"}
 
     assert mock_perform_measurement.call_count == calls_before_6th
 
@@ -341,7 +341,7 @@ def test_historic_data_ip_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock
         "end": end.isoformat()
     })
     assert response.status_code == 429
-    assert response.json() == {"error": "Rate limit exceeded: 5 per 1 minute"}
+    assert response.json() == {"error": "Rate limit exceeded: 5 per 1 second"}
 
     assert mock_get_ip.call_count == calls_before_6th
     mock_get_dn.assert_not_called()
@@ -381,7 +381,7 @@ def test_historic_data_dn_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock
         "end": end.isoformat()
     })
     assert response.status_code == 429
-    assert response.json() == {"error": "Rate limit exceeded: 5 per 1 minute"}
+    assert response.json() == {"error": "Rate limit exceeded: 5 per 1 second"}
 
     assert mock_get_dn.call_count == calls_before_6th
     mock_get_ip.assert_not_called()
