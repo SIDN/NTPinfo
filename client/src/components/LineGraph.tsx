@@ -13,7 +13,7 @@ import { Line } from 'react-chartjs-2'
 ChartJS.defaults.color = 'rgba(239,246,238,1)'
 import { NTPData } from '../utils/types.ts'
 import { Measurement } from '../utils/types.ts'
-  
+
 type ChartInputData = {
     data: NTPData[] | null
     selectedMeasurement: Measurement
@@ -23,15 +23,15 @@ type ChartInputData = {
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
 
 /**
- * 
+ *
  * @param labels The "timeline" of timestamps on the X axis
  * @param data the actual data points
  * @param formatter the specified way to format the X axis based on the selected option
  * @returns the data, aligned with the timeline, or null if no measurements were performed at a given time
  */
 function alignDataWithTimeline(labels: string[], data: NTPData[], formatter: (date: Date) => string) : (NTPData | null)[] {
-   
-  const map = new Map<string, NTPData>() 
+
+  const map = new Map<string, NTPData>()
   for (const d of data) {
     const label = formatter(new Date(d.time))
     if (!map.has(label)) {
@@ -49,10 +49,10 @@ export default function LineChart({data, selectedMeasurement, selectedOption}: C
     }
     if (data == null)
       return null
-    
+
     //sort data chronologically
     const sortedData = [...data].sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
-    
+
     const now = new Date()
 
     //
@@ -63,7 +63,7 @@ export default function LineChart({data, selectedMeasurement, selectedOption}: C
     let startingPoint = new Date(now)
     let endPoint = new Date(now)
 
-    let datapoints_no = 2 
+    let datapoints_no = 2
     switch (selectedOption) {
       case "Last Hour":
         formatter = (d) => d.toLocaleTimeString([], { hour: "numeric", minute: "numeric" })
@@ -92,7 +92,7 @@ export default function LineChart({data, selectedMeasurement, selectedOption}: C
         formatter = (d) => d.toLocaleTimeString()
     }
    //
-   //generate time labels on the X axis based on given formatting 
+   //generate time labels on the X axis based on given formatting
    //
     const generateLabels = (start: Date, end: Date, datapoints_no: number): string[] => {
       const step = (end.getTime() - start.getTime()) / (datapoints_no - 1)
@@ -103,18 +103,33 @@ export default function LineChart({data, selectedMeasurement, selectedOption}: C
       }
      return labels
     }
-    
+
     const labels = generateLabels(startingPoint, endPoint, datapoints_no)
-    
+
     // align data with timeline to make sure measurements start in correct spots
     const alignedData = alignDataWithTimeline(labels, sortedData, formatter)
+
+    const yValues = alignedData
+      .filter((d): d is NTPData => d !== null)
+      .map(d => d[selectedMeasurement]);
+
+    let minY = 0, maxY = 1; // fallback values
+    if (yValues.length > 0) {
+      const dataMin = Math.min(...yValues);
+      const dataMax = Math.max(...yValues);
+      const range = dataMax - dataMin || 1; // avoid zero range
+      minY = dataMin - range * 0.1;
+      maxY = dataMax + range * 0.1;
+      // Optionally, force minY to 0 for RTT
+      if (selectedMeasurement === "RTT" && minY > 0) minY = 0;
+    }
 
     const options: ChartOptions<'line'> = {
       spanGaps: true,
       responsive: true,
       interaction: {
-        mode: 'nearest' as const, 
-        intersect: false,             
+        mode: 'nearest' as const,
+        intersect: false,
       },
       plugins: {
         legend: {
@@ -138,15 +153,19 @@ export default function LineChart({data, selectedMeasurement, selectedOption}: C
         },
          y: {
           //TODO: Make this cleaner in the future if there are other options, for now works like this
-          min: selectedMeasurement === "offset" ? -1 : 0,
-          max: selectedMeasurement === "offset" ? 1 : 0.1,
-          ticks: {
-            stepSize: selectedMeasurement === "offset" ? 0.2 : 0.01
-          },
+          // min: selectedMeasurement === "offset" ? -1 : 0,
+          // max: selectedMeasurement === "offset" ? 1 : 0.1,
+          // ticks: {
+          //   stepSize: selectedMeasurement === "offset" ? 0.2 : 0.01
+          // },
+
+
+          min: minY,
+          max: maxY,
         },
       },
     }
-   
+
     const chartData = {
         datasets: [
             {
