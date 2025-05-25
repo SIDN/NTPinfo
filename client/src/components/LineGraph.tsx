@@ -94,26 +94,101 @@ export default function LineChart({data, selectedMeasurement, selectedOption}: C
    //
    //generate time labels on the X axis based on given formatting
    //
-    const generateLabels = (start: Date, end: Date, datapoints_no: number): string[] => {
-      const step = (end.getTime() - start.getTime()) / (datapoints_no - 1)
-      const labels = [];
-      for (let i = 0; i < datapoints_no; i++) {
-        const timestamp = new Date(start.getTime() + i * step);
-        labels.push(formatter(timestamp))
-      }
-     return labels
+    // const generateLabels = (start: Date, end: Date, datapoints_no: number): string[] => {
+    //   const step = (end.getTime() - start.getTime()) / (datapoints_no - 1)
+    //   const labels = [];
+    //   for (let i = 0; i < datapoints_no; i++) {
+    //     const timestamp = new Date(start.getTime() + i * step);
+    //     labels.push(formatter(timestamp))
+    //   }
+    //  return labels
+    // }
+
+    // const labels = generateLabels(startingPoint, endPoint, datapoints_no)
+
+    // const stepMs = (endPoint.getTime() - startingPoint.getTime()) / datapoints_no;
+    const stepMs = (endPoint.getTime() - startingPoint.getTime()) / (datapoints_no - 1);
+    const labels: string[] = [];
+    const labelTimes: number[] = [];   // real millisecond values that line up 1-to-1 with `labels`
+
+    for (let i = 0; i < datapoints_no; i++) {
+      const ts = startingPoint.getTime() + i * stepMs;  // centre of each interval
+      labelTimes.push(ts);
+      labels.push(formatter(new Date(ts)));
     }
 
-    const labels = generateLabels(startingPoint, endPoint, datapoints_no)
+    /**  DEBUG: inspect which points feed every X-axis bin  */
+    type BinDebugRow = {
+      label: string;
+      binStart: string;   // ISO
+      binEnd:   string;   // ISO
+      nPoints:  number;
+      rawValues: number[];
+      average:  number | null;
+    };
+
+    const debugRows: BinDebugRow[] = labelTimes.map(ts => {
+      const startMs = ts - stepMs / 2;
+      const endMs   = ts + stepMs / 2;
+
+      // measurements that fall in this window
+      const bucket = sortedData.filter(d => {
+        const t = new Date(d.time).getTime();
+        return t >= startMs && t < endMs;
+      });
+
+      const raw = bucket.map(d => d[selectedMeasurement]);   // numeric values
+      const avg = raw.length ? raw.reduce((s,x) => s + x, 0) / raw.length : null;
+
+      return {
+        label      : formatter(new Date(ts)),
+        binStart   : new Date(startMs).toISOString(),
+        binEnd     : new Date(endMs).toISOString(),
+        nPoints    : raw.length,
+        rawValues  : raw,
+        average    : avg,
+      };
+    });
+
+    console.table(debugRows);
+
+    /* ---- use the averages for the chart ---- */
+    const binnedAverages = debugRows.map(r => r.average);
+
+
+    /*
+    const halfStep = stepMs / 2;
+
+    const binnedAverages = labelTimes.map(ts => {
+      // const binStart = startingPoint.getTime() + idx * stepMs - halfStep;
+      // const binEnd   = binStart + stepMs;
+
+      const binStart = ts - stepMs / 2;
+      const binEnd   = ts + stepMs / 2;
+
+
+      const inBin = sortedData.filter(d => {
+        const t = new Date(d.time).getTime();
+        return t >= binStart && t < binEnd;
+      });
+
+      if (inBin.length === 0) return null;
+      return (
+        inBin.reduce((sum, d) => sum + d[selectedMeasurement], 0) / inBin.length
+      );
+    });
+    */
 
     // align data with timeline to make sure measurements start in correct spots
-    const alignedData = alignDataWithTimeline(labels, sortedData, formatter)
+    // const alignedData = alignDataWithTimeline(labels, sortedData, formatter)
 
-    const yValues = alignedData
-      .filter((d): d is NTPData => d !== null)
-      .map(d => d[selectedMeasurement]);
+    // const yValues = alignedData
+    //   .filter((d): d is NTPData => d !== null)
+    //   .map(d => d[selectedMeasurement]);
 
-    let minY = 0, maxY = 1; // fallback values
+    const yValues = binnedAverages.filter((d): d is number => d !== null);
+
+    /*let minY = 0, maxY = 1; // fallback values
     if (yValues.length > 0) {
       const dataMin = Math.min(...yValues);
       const dataMax = Math.max(...yValues);
@@ -122,7 +197,20 @@ export default function LineChart({data, selectedMeasurement, selectedOption}: C
       maxY = dataMax + range * 0.1;
       // Optionally, force minY to 0 for RTT
       if (selectedMeasurement === "RTT" && minY > 0) minY = 0;
+    }*/
+
+
+    let minY = 0, maxY = 1;
+    if (yValues.length) {
+      const minV = Math.min(...yValues);
+      const maxV = Math.max(...yValues);
+      const pad  = (maxV - minV || 1) * 0.1;
+      minY = minV - pad;
+      maxY = maxV + pad;
+      if (selectedMeasurement === 'RTT' && minY > 0) minY = 0;
     }
+
+
 
     const options: ChartOptions<'line'> = {
       spanGaps: true,
@@ -147,9 +235,9 @@ export default function LineChart({data, selectedMeasurement, selectedOption}: C
         x: {
           type: 'category',
           labels: labels,
-          ticks: {
-            maxTicksLimit: 20
-          }
+          // ticks: {
+          //   maxTicksLimit: 20
+          // }
         },
          y: {
           //TODO: Make this cleaner in the future if there are other options, for now works like this
@@ -166,11 +254,24 @@ export default function LineChart({data, selectedMeasurement, selectedOption}: C
       },
     }
 
+    // const chartData = {
+    //     datasets: [
+    //         {
+    //             label: measurementMap[selectedMeasurement],
+    //             data: alignedData.map(d => d != null ? d[selectedMeasurement] : 0),
+    //             borderColor: 'rgba(53, 162, 235, 0.8)',
+    //             backgroundColor: 'rgba(236, 240, 243, 0.3)',
+    //             color: 'rgb(255, 255, 255)',
+    //             tension: 0,
+    //             pointRadius: 0
+    //         }
+    //     ]
+    // }
     const chartData = {
         datasets: [
             {
                 label: measurementMap[selectedMeasurement],
-                data: alignedData.map(d => d != null ? d[selectedMeasurement] : 0),
+                data: binnedAverages, // Chart.js treats null as a gap
                 borderColor: 'rgba(53, 162, 235, 0.8)',
                 backgroundColor: 'rgba(236, 240, 243, 0.3)',
                 color: 'rgb(255, 255, 255)',
