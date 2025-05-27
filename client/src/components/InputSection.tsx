@@ -15,7 +15,7 @@ const InputSection: React.FC<InputProps> = ({ onClick }) => {
     };
 
     const handleClick = () => {
-        onClick(query, jitterFlag, measurementsNo);
+        onClick(query.trim(), jitterFlag, measurementsNo);
     };
 
     return (
