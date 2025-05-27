@@ -10,9 +10,13 @@ import LineChart from './components/LineGraph'
 import { useFetchIPData } from './hooks/useFetchIPData.ts'
 import { useFetchHistoricalIPData } from './hooks/useFetchHistoricalIPData.ts'
 import { dateFormatConversion } from './utils/dateFormatConversion.ts'
+import WorldMap from './components/WorldMap.tsx'
 
 import { NTPData } from './utils/types.ts'
 import { Measurement } from './utils/types.ts'
+import { LatLngTuple } from 'leaflet'
+
+import 'leaflet/dist/leaflet.css'
 
 type InputData = {
   data: NTPData[]
@@ -72,6 +76,19 @@ function App() {
   //Varaibles to log and use API hooks
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading} = useFetchIPData()
   const {fetchData: fetchHistoricalData, loading: apiHistoricalLoading, error: apiHistoricalError} = useFetchHistoricalIPData()
+
+
+
+const vantagePoint: LatLngTuple = [51.505, -0.09]; // Single coordinate
+const probes: LatLngTuple[] = [
+  [51.51, -0.1],
+  [51.52, -0.08],
+  [51.5, -0.07]
+]; // Multiple
+const ntpServer: LatLngTuple = [51.53, -0.09]; // Single coordinate
+
+
+
 
   //dropdown format
   // second one will removed after custom time intervals are added
@@ -170,6 +187,8 @@ function App() {
             <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day"/>
           </div>
         </div>
+
+        <WorldMap vantagePoint={vantagePoint} probes={probes} ntpServer={ntpServer}/>
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData}/>)}
       
       {/*Only shown when a domain name is queried. Users can download IP addresses corresponding to that domain name*/}
