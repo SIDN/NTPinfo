@@ -59,7 +59,7 @@ function downloadCSV(data : InputData) {
 
 function App() {
   //
-  // states we need to define 
+  // states we need to define
   //
   const [ntpData, setNtpData] = useState<NTPData | null>(null)
   const [chartData, setChartData] = useState<NTPData[] | null>(null)
@@ -91,16 +91,16 @@ function App() {
       className: "custom-time-dropdown"
     }
   ]
-  
+
   //
   //functions for handling state changes
   //
-  
+
   //main function called when measuring by pressing the button
-  const handleSearch = async (query: string, jitter_flag: boolean, measurements_no: number) => {
+  const handleClick = async (query: string, jitter_flag: boolean, measurements_no: number) => {
     if (query.length == 0)
       return
-    
+
     const payload = {
       server: query,
       jitter_flag: jitter_flag,
@@ -116,7 +116,7 @@ function App() {
     const endDate = dateFormatConversion(Date.now())
     const fullurlHistoricalData = `http://localhost:8000/measurements/history/?server=${query}&start=${startDate}&end=${endDate}`
     const apiHistoricalResp = await fetchHistoricalData(fullurlHistoricalData)
-    
+
     //update data stored and show the data again
     setMeasured(true)
     const data = apiMeasurementResp
@@ -129,22 +129,22 @@ function App() {
   const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelMeasurement(event.target.value as Measurement);
   }
-  
+
   //
   //The actual app component
   //
   return (
     <div className="app-container">
       <Hero />
-      <div className="search-wrapper">
-        <InputSection onSearch={handleSearch} />
+      <div className="input-wrapper">
+        <InputSection onClick={handleClick} />
       </div>
         <div className="result-text">
           {(!apiDataLoading && measured && (<p>Results</p>)) || (apiDataLoading && <p>Loading...</p>)}
         </div>
       {(ntpData && !apiDataLoading && (<div className="results-and-graph">
         <ResultSummary data={ntpData}/>
-       
+
         <div className="graphs">
           <div className='graph-box'>
             <label>
@@ -171,21 +171,21 @@ function App() {
           </div>
         </div>
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData}/>)}
-      
+
       {/*Only shown when a domain name is queried. Users can download IP addresses corresponding to that domain name*/}
       {ntpData && !apiDataLoading && ntpData.server_name && ntpData.ip_list.length && (() => {
 
                 const downloadContent = `Server name: ${ntpData.server_name}\n\n${ntpData.ip_list.join('\n')}`
                 const blob = new Blob([downloadContent], { type: 'text/plain' })
                 const downloadUrl = URL.createObjectURL(blob)
-               return (<p className="ip-list">You can download more IP addresses corresponding to this domain name  
+               return (<p className="ip-list">You can download more IP addresses corresponding to this domain name
                <span> <a href={downloadUrl} download="ip-list.txt">here</a></span>
                 </p>)
             })()}
-      
+
       {/*Buttons to download results in JSON and CSV format as well as open a popup displaying historical data*/}
       {ntpData && !apiDataLoading && (<div className="download-buttons">
-      
+
         <DownloadButton name="Download JSON" onclick={() => downloadJSON({data : [ntpData]})} />
         <DownloadButton name="Download CSV" onclick={() => downloadCSV({data : [ntpData]})} />
         <div>

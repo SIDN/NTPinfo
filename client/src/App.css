@@ -96,7 +96,7 @@ body { /* instead of html */
   text-align: left;
 }
 
-.search-wrapper {
+.input-wrapper {
   margin-top: 0;
   margin-left: 1rem;
   /* max-width: 600px; */
