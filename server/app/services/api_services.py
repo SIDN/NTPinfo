@@ -1,6 +1,7 @@
 from ipaddress import IPv4Address, IPv6Address
 from typing import Any, Optional, Coroutine
 from server.app.utils.validate import ensure_utc, is_ip_address, parse_ip
+from server.app.services.NtpCalculator import NtpCalculator
 from server.app.utils.perform_measurements import perform_ntp_measurement_ip, perform_ntp_measurement_domain_name
 from server.app.utils.perform_measurements import human_date_to_ntp_precise_time, ntp_precise_time_to_human_date, \
     calculate_jitter_from_measurements
@@ -67,7 +68,7 @@ def get_format(measurement: NtpMeasurement, jitter: float | None = None) -> dict
         "precision": measurement.main_details.precision,
         "reachability": measurement.main_details.reachability,
 
-        "root_delay": measurement.extra_details.root_delay,
+        "root_delay": NtpCalculator.calculate_float_time(measurement.extra_details.root_delay),
         "ntp_last_sync_time": measurement.extra_details.ntp_last_sync_time,
         # if it has value = 3 => invalid
         "leap": measurement.extra_details.leap,
