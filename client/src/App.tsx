@@ -78,8 +78,6 @@ function App() {
   const {fetchData: fetchHistoricalData, loading: apiHistoricalLoading, error: apiHistoricalError} = useFetchHistoricalIPData()
 
 
-
-const vantagePoint: LatLngTuple = [51.505, -0.09]; // Single coordinate
 const probes: LatLngTuple[] = [
   [51.51, -0.1],
   [51.52, -0.08],
@@ -188,7 +186,7 @@ const ntpServer: LatLngTuple = [51.53, -0.09]; // Single coordinate
           </div>
         </div>
 
-        <WorldMap vantagePoint={vantagePoint} probes={probes} ntpServer={ntpServer}/>
+        <WorldMap probes={probes} ntpServer={ntpServer}/>
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData}/>)}
       
       {/*Only shown when a domain name is queried. Users can download IP addresses corresponding to that domain name*/}

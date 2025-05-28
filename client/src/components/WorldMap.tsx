@@ -1,7 +1,8 @@
 import L from 'leaflet'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
-import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
+import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
+import { useEffect } from 'react'
 
 delete (L.Icon.Default.prototype as any)._getIconUrl
 
@@ -32,28 +33,38 @@ const redIcon = new L.Icon({
 })*/
 
 interface MapComponentProps {
-  vantagePoint: L.LatLngExpression
   probes: L.LatLngExpression[]
   ntpServer: L.LatLngExpression
 }
 
-export default function WorldMap ({vantagePoint, probes, ntpServer}: MapComponentProps) {
-    return (
-        <MapContainer center = {vantagePoint} zoom = {13} style={{height: '500px', width: '100%'}}>
-            <TileLayer 
-                url = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            />
+function FitMapBounds({ probes, ntpServer }: { probes: L.LatLngExpression[], ntpServer: L.LatLngExpression }) {
+  const map = useMap()
 
-            <Marker position = {vantagePoint}>
-                <Popup>Vantage Point</Popup>
-            </Marker>
+  useEffect(() => {
+    const allPoints = [...probes, ntpServer]
+    const bounds = L.latLngBounds(allPoints)
+    map.fitBounds(bounds, { padding: [20, 20] })
+  }, [map, probes, ntpServer])
+
+  return null
+}
+
+export default function WorldMap ({probes, ntpServer}: MapComponentProps) {
+    return (
+        <MapContainer  style={{height: '310px', width: '45%'}}>
+            <TileLayer 
+                url = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                attribution= '&copy; <a href="https://carto.com/">CARTO</a>'
+                subdomains={['a', 'b', 'c', 'd']}
+                maxZoom={19}
+            />
             
             {probes.map((pos, index) => (<Marker key = {index} position = {pos}/>))}
 
             <Marker position = {ntpServer}>
                 <Popup>NTP Server</Popup>
             </Marker>
+            <FitMapBounds probes={probes} ntpServer={ntpServer} />
         </MapContainer>
     )
 }
