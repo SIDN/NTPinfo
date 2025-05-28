@@ -1,4 +1,6 @@
 import ipaddress
+import os
+from dotenv import load_dotenv
 from datetime import datetime, timezone
 from ipaddress import IPv4Address, IPv6Address
 import dns.name
@@ -83,6 +85,8 @@ def parse_ip(ip_str: str) -> IPv4Address | IPv6Address | None:
         print("Invalid IP address")
         return None
 
+load_dotenv()
+
 def get_country_from_ip(ip: str) -> str:
     """
     It makes a call to IPinfo to get the country code from this IP.
@@ -94,7 +98,15 @@ def get_country_from_ip(ip: str) -> str:
     Returns:
         str: The country code or "Unknown" if IPinfo could not find the country code.
     """
-    response = requests.get(f"https://ipinfo.io/{ip}/json")
-    data = response.json()
-    ans: str = data.get("country", "Unknown")
-    return ans
+    try:
+        token: str = os.getenv('IPINFO_LITE_API_TOKEN')
+        response = requests.get(f"https://api.ipinfo.io/lite/{ip}?token={token}")
+        data = response.json()
+        #print(data)
+        ans: str = data.get("country", "Unknown")
+        return ans
+    except Exception as e:
+        print(e)
+        return "Problem"
+
+# print(get_country_from_ip("83.25.24.10"))
