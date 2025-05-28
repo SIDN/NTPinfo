@@ -1,4 +1,4 @@
-import L from 'leaflet'
+import L, { LatLngExpression } from 'leaflet'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
@@ -37,21 +37,34 @@ interface MapComponentProps {
   ntpServer: L.LatLngExpression
 }
 
-function FitMapBounds({ probes, ntpServer }: { probes: L.LatLngExpression[], ntpServer: L.LatLngExpression }) {
+const FitMapBounds = ({probes, ntpServer}: {probes: L.LatLngExpression[], ntpServer: L.LatLngExpression}) => {
   const map = useMap()
 
   useEffect(() => {
     const allPoints = [...probes, ntpServer]
     const bounds = L.latLngBounds(allPoints)
-    map.fitBounds(bounds, { padding: [20, 20] })
+    map.fitBounds(bounds, { padding: [15, 15] })
   }, [map, probes, ntpServer])
+
+  return null
+}
+
+//draw lines from the probes to the NTP server
+const DrawConnectingLines = ({probes, ntpServer}: {probes: L.LatLngExpression[], ntpServer: L.LatLngExpression}) => {
+  const map = useMap()
+
+  useEffect(() => {
+    probes.map(x => {
+      L.polyline([x,ntpServer], {color: 'blue', opacity: 0.8}).addTo(map)
+    })
+  },[map, probes, ntpServer])
 
   return null
 }
 
 export default function WorldMap ({probes, ntpServer}: MapComponentProps) {
     return (
-        <MapContainer  style={{height: '310px', width: '45%'}}>
+        <MapContainer  style={{height: '180%', width: '100%'}}>
             <TileLayer 
                 url = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                 attribution= '&copy; <a href="https://carto.com/">CARTO</a>'
@@ -59,12 +72,15 @@ export default function WorldMap ({probes, ntpServer}: MapComponentProps) {
                 maxZoom={19}
             />
             
-            {probes.map((pos, index) => (<Marker key = {index} position = {pos}/>))}
+            {probes.map((pos, index) => (<Marker key = {index} position = {pos}>
+              <Popup>Probe {index}</Popup>
+            </Marker>))}
 
             <Marker position = {ntpServer}>
                 <Popup>NTP Server</Popup>
             </Marker>
-            <FitMapBounds probes={probes} ntpServer={ntpServer} />
+            <FitMapBounds probes={probes} ntpServer={ntpServer}/>
+            <DrawConnectingLines probes={probes} ntpServer={ntpServer}/>
         </MapContainer>
     )
 }

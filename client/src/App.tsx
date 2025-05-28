@@ -186,7 +186,9 @@ const ntpServer: LatLngTuple = [51.53, -0.09]; // Single coordinate
           </div>
         </div>
 
-        <WorldMap probes={probes} ntpServer={ntpServer}/>
+        <div className='map-box'>
+          <WorldMap probes={probes} ntpServer={ntpServer}/>
+        </div>
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData}/>)}
       
       {/*Only shown when a domain name is queried. Users can download IP addresses corresponding to that domain name*/}

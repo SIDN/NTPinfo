@@ -163,8 +163,14 @@ body { /* instead of html */
   /* max-width: 600px;
   height: auto;
   padding: 1rem; */
+}
 
-
+.map-box {
+  display: flex;
+  gap: 1rem;
+  flex: 2 1 400px;
+  min-width: 45%;
+  max-height: 600px;
 }
 
 .graph-box canvas {
