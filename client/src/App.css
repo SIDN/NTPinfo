@@ -17,6 +17,7 @@ html, body, #root {
   padding: 0;
   width: 100%;
   height: 100%;
+  background-color: var(--bg-clr-primary);
 
 }
 
@@ -33,6 +34,8 @@ body { /* instead of html */
   --clr-red-1: #ff6b6b;
   --clr-red-2: #F2404C;
   --clr-btn-selected-purple: #27263F;
+  /**/
+  background-color: var(--bg-clr-primary);
 }
 
 .logo {
@@ -106,8 +109,8 @@ body { /* instead of html */
 .results-and-graph {
   display: flex;
   gap: 1rem;
-  padding: 1rem;
   flex-wrap: wrap;
+  padding: 1rem;
 }
 
 .result-text {
@@ -131,7 +134,7 @@ body { /* instead of html */
   display: flex;
   gap: 1rem;
   /* margin-top: 1rem; */
-  flex: 2 1 400px;
+  flex: 2 1 50%;
 }
 
 .graph-box {
