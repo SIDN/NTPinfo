@@ -6,6 +6,7 @@ import json
 import requests
 
 from app.utils.ip_utils import get_country_asn_from_ip, get_ip_family
+from app.utils.load_env_vals import get_ripe_account_email, get_ripe_api_token
 from app.utils.ripe_probes import get_probes
 from server.app.services.NtpCalculator import NtpCalculator
 from server.app.utils.domain_name_to_ip import domain_name_to_ip_default, domain_name_to_ip_close_to_client
@@ -145,17 +146,17 @@ def perform_ntp_measurement_ip(server_ip_str: str, ntp_version: int = 4) -> NtpM
         return None
 
 
-def convert_timestamp_to_precise_time(t: float) -> PreciseTime:
-    """
-    This method converts a timestamp to precise time.
-
-    Args:
-        t (float): the timestamp
-
-    Returns:
-        PreciseTime: the precise time
-    """
-    return PreciseTime(ntplib._to_int(t), ntplib._to_frac(t))
+# def convert_timestamp_to_precise_time(t: float) -> PreciseTime:
+#     """
+#     This method converts a timestamp to precise time.
+#
+#     Args:
+#         t (float): the timestamp
+#
+#     Returns:
+#         PreciseTime: the precise time
+#     """
+#     return PreciseTime(ntplib._to_int(t), ntplib._to_frac(t))
 
 
 def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str: str, server_name: str | None,
@@ -352,13 +353,22 @@ def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
         return False
 
 
-def perform_ripe_measurement_ip(ntp_server_ip):
+def perform_ripe_measurement_ip(ntp_server_ip: str) -> int:
+    """
+    This method performs a RIPE measurement and returns the code of the measurement.
+
+    Args:
+        ntp_server_ip (str): The NTP server IP.
+
+    Returns:
+        int: The code of the measurement.
+    """
 
     ip_family = get_ip_family(ntp_server_ip)
 
-    api_key = ""
+    api_key = get_ripe_api_token()
     packets_count = 2
-    ripe_account_email = ""
+    ripe_account_email = get_ripe_account_email()
 
     try:
         ip_country, ip_asn = get_country_asn_from_ip(ntp_server_ip)
@@ -366,7 +376,7 @@ def perform_ripe_measurement_ip(ntp_server_ip):
         # fall back to other probe options
         ip_country, ip_asn = None, None
         print("error")
-        return
+        #return
 
     headers = {
         "Authorization": f"Key {api_key}",
@@ -396,9 +406,16 @@ def perform_ripe_measurement_ip(ntp_server_ip):
     print("Status Code:", response.status_code)
     print("Response:", response.json())
 
+    data = response.json()
+    return data["measurements"][0]
+
 #m=perform_ntp_measurement_domain_name("time.google.com")
 # m=perform_ntp_measurement_domain_name("ro.pool.ntp.org","83.25.24.10")
 # print_ntp_measurement(m)
-
-
-perform_ripe_measurement_ip("51.68.141.5")
+# import time
+#
+# start = time.time()
+# print(perform_ripe_measurement_ip("89.46.74.148"))
+# end = time.time()
+#
+# print(end - start)
