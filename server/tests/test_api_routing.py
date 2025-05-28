@@ -193,8 +193,8 @@ def test_read_data_measurement_wrong_server():
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = client.post("/measurements/", json={"server": "random-server-name.org", "jitter_flag": False},
                            headers=headers)
-    assert response.status_code == 200
-    assert response.json() == {"error": "Could not perform measurement, dns or ip not reachable."}
+    assert response.status_code == 404
+    assert response.json() == {"error": "Your search does not seem to match any server"}
 
 
 @patch("server.app.services.api_services.get_measurements_timestamps_dn")
