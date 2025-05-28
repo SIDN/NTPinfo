@@ -2,6 +2,7 @@ import {
     Chart as ChartJS,
     CategoryScale,
     LinearScale,
+    TimeScale,
     PointElement,
     LineElement,
     ChartOptions,
@@ -13,6 +14,7 @@ import { Line } from 'react-chartjs-2'
 ChartJS.defaults.color = 'rgba(239,246,238,1)'
 import { NTPData } from '../utils/types.ts'
 import { Measurement } from '../utils/types.ts'
+import 'chartjs-adapter-date-fns';
 
 type ChartInputData = {
     data: NTPData[] | null
@@ -20,7 +22,7 @@ type ChartInputData = {
     selectedOption: string
 }
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend)
+ChartJS.register(CategoryScale, LinearScale, TimeScale, PointElement, LineElement, Title, Tooltip, Legend)
 
 /**
  *
@@ -107,53 +109,59 @@ export default function LineChart({data, selectedMeasurement, selectedOption}: C
     // const labels = generateLabels(startingPoint, endPoint, datapoints_no)
 
     // const stepMs = (endPoint.getTime() - startingPoint.getTime()) / datapoints_no;
-    const stepMs = (endPoint.getTime() - startingPoint.getTime()) / (datapoints_no - 1);
-    const labels: string[] = [];
-    const labelTimes: number[] = [];   // real millisecond values that line up 1-to-1 with `labels`
 
-    for (let i = 0; i < datapoints_no; i++) {
-      const ts = startingPoint.getTime() + i * stepMs;  // centre of each interval
-      labelTimes.push(ts);
-      labels.push(formatter(new Date(ts)));
-    }
 
-    /**  DEBUG: inspect which points feed every X-axis bin  */
-    type BinDebugRow = {
-      label: string;
-      binStart: string;   // ISO
-      binEnd:   string;   // ISO
-      nPoints:  number;
-      rawValues: number[];
-      average:  number | null;
-    };
+    // const stepMs = (endPoint.getTime() - startingPoint.getTime()) / (datapoints_no - 1);
+    // const labels: string[] = [];
+    // const labelTimes: number[] = [];
 
-    const debugRows: BinDebugRow[] = labelTimes.map(ts => {
-      const startMs = ts - stepMs / 2;
-      const endMs   = ts + stepMs / 2;
+    // for (let i = 0; i < datapoints_no; i++) {
+    //   const ts = startingPoint.getTime() + i * stepMs;  // centre of each interval
+    //   labelTimes.push(ts);
+    //   labels.push(formatter(new Date(ts)));
+    // }
 
-      // measurements that fall in this window
-      const bucket = sortedData.filter(d => {
-        const t = new Date(d.time).getTime();
-        return t >= startMs && t < endMs;
-      });
+    // type BinDebugRow = {
+    //   label: string;
+    //   binStart: string;   // ISO
+    //   binEnd:   string;   // ISO
+    //   nPoints:  number;
+    //   rawValues: number[];
+    //   average:  number | null;
+    // };
 
-      const raw = bucket.map(d => d[selectedMeasurement]);   // numeric values
-      const avg = raw.length ? raw.reduce((s,x) => s + x, 0) / raw.length : null;
+    // const debugRows: BinDebugRow[] = labelTimes.map(ts => {
+    //   const startMs = ts - stepMs / 2;
+    //   const endMs   = ts + stepMs / 2;
 
-      return {
-        label      : formatter(new Date(ts)),
-        binStart   : new Date(startMs).toISOString(),
-        binEnd     : new Date(endMs).toISOString(),
-        nPoints    : raw.length,
-        rawValues  : raw,
-        average    : avg,
-      };
-    });
+    //   const bucket = sortedData.filter(d => {
+    //     const t = new Date(d.time).getTime();
+    //     return t >= startMs && t < endMs;
+    //   });
 
-    console.table(debugRows);
+    //   const raw = bucket.map(d => d[selectedMeasurement]);
+    //   const avg = raw.length ? raw.reduce((s,x) => s + x, 0) / raw.length : null;
 
-    /* ---- use the averages for the chart ---- */
-    const binnedAverages = debugRows.map(r => r.average);
+    //   return {
+    //     label      : formatter(new Date(ts)),
+    //     binStart   : new Date(startMs).toISOString(),
+    //     binEnd     : new Date(endMs).toISOString(),
+    //     nPoints    : raw.length,
+    //     rawValues  : raw,
+    //     average    : avg,
+    //   };
+    // });
+
+    // console.table(debugRows);
+
+    // const binnedAverages = debugRows.map(r => r.average);
+
+
+    const points = sortedData.map(d => ({
+      x: new Date(d.time).toISOString(),
+      y: d[selectedMeasurement]
+    }))
+
 
 
     /*
@@ -186,20 +194,20 @@ export default function LineChart({data, selectedMeasurement, selectedOption}: C
     //   .filter((d): d is NTPData => d !== null)
     //   .map(d => d[selectedMeasurement]);
 
-    const yValues = binnedAverages.filter((d): d is number => d !== null);
+    //const yValues = binnedAverages.filter((d): d is number => d !== null);
 
-    /*let minY = 0, maxY = 1; // fallback values
-    if (yValues.length > 0) {
-      const dataMin = Math.min(...yValues);
-      const dataMax = Math.max(...yValues);
-      const range = dataMax - dataMin || 1; // avoid zero range
-      minY = dataMin - range * 0.1;
-      maxY = dataMax + range * 0.1;
-      // Optionally, force minY to 0 for RTT
-      if (selectedMeasurement === "RTT" && minY > 0) minY = 0;
-    }*/
+    // let minY = 0, maxY = 1; // fallback values
+    // if (yValues.length > 0) {
+    //   const dataMin = Math.min(...yValues);
+    //   const dataMax = Math.max(...yValues);
+    //   const range = dataMax - dataMin || 1; // avoid zero range
+    //   minY = dataMin - range * 0.1;
+    //   maxY = dataMax + range * 0.1;
+    //   // Optionally, force minY to 0 for RTT
+    //   if (selectedMeasurement === "RTT" && minY > 0) minY = 0;
+    // }
 
-
+    const yValues = points.map(p => p.y);
     let minY = 0, maxY = 1;
     if (yValues.length) {
       const minV = Math.min(...yValues);
@@ -210,9 +218,7 @@ export default function LineChart({data, selectedMeasurement, selectedOption}: C
       if (selectedMeasurement === 'RTT' && minY > 0) minY = 0;
     }
 
-
-
-    const options: ChartOptions<'line'> = {
+    /*const options: ChartOptions<'line'> = {
       spanGaps: true,
       responsive: true,
       interaction: {
@@ -252,6 +258,48 @@ export default function LineChart({data, selectedMeasurement, selectedOption}: C
           max: maxY,
         },
       },
+    }*/
+
+    const options: ChartOptions<'line'> = {
+      spanGaps: true,
+      responsive: true,
+      interaction: {
+        mode: 'nearest' as const,
+        intersect: false,
+      },
+      plugins: {
+        legend: {
+          position: 'top' as const,
+        },
+        title: {
+          display: false,
+          text: 'Measurement time',
+        },
+        tooltip: {
+          enabled: true,
+        }
+      },
+      scales: {
+        x: {
+          type: 'time',
+          min : startingPoint.toISOString(),
+          max : endPoint.toISOString(),
+          time: {
+            unit: selectedOption === "Last Hour" ? 'minute' :
+                  selectedOption === "Last Day" ? 'hour' :
+                  'day',
+            displayFormats: {
+              minute: 'HH:mm',
+              hour: 'HH:mm',
+              day: 'MMM dd',
+            },
+          }
+        },
+         y: {
+          min: minY,
+          max: maxY,
+        },
+      },
     }
 
     // const chartData = {
@@ -267,16 +315,29 @@ export default function LineChart({data, selectedMeasurement, selectedOption}: C
     //         }
     //     ]
     // }
+    // const chartData = {
+    //     datasets: [
+    //         {
+    //             label: measurementMap[selectedMeasurement],
+    //             data: binnedAverages, // Chart.js treats null as a gap
+    //             borderColor: 'rgba(53, 162, 235, 0.8)',
+    //             backgroundColor: 'rgba(236, 240, 243, 0.3)',
+    //             color: 'rgb(255, 255, 255)',
+    //             tension: 0,
+    //             pointRadius: 3
+    //         }
+    //     ]
+    // }
     const chartData = {
         datasets: [
             {
                 label: measurementMap[selectedMeasurement],
-                data: binnedAverages, // Chart.js treats null as a gap
+                data: points,
                 borderColor: 'rgba(53, 162, 235, 0.8)',
                 backgroundColor: 'rgba(236, 240, 243, 0.3)',
                 color: 'rgb(255, 255, 255)',
                 tension: 0,
-                pointRadius: 0
+                pointRadius: 3
             }
         ]
     }
