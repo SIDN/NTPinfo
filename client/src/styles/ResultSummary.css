@@ -7,6 +7,11 @@ h2#not-found {
   color: var(--clr-font-white);
 }
 
+.results-section {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
 .result-box {
   /* top: 1rem;
   left: 1rem;

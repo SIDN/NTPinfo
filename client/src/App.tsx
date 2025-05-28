@@ -74,7 +74,7 @@ function App() {
   const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
 
   //Varaibles to log and use API hooks
-  const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading} = useFetchIPData()
+  const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
   const {fetchData: fetchHistoricalData, loading: apiHistoricalLoading, error: apiHistoricalError} = useFetchHistoricalIPData()
 
 
@@ -158,7 +158,7 @@ const ntpServer: LatLngTuple = [51.53, -0.09]; // Single coordinate
           {(!apiDataLoading && measured && (<p>Results</p>)) || (apiDataLoading && <p>Loading...</p>)}
         </div>
       {(ntpData && !apiDataLoading && (<div className="results-and-graph">
-        <ResultSummary data={ntpData}/>
+        <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>
        
         <div className="graphs">
           <div className='graph-box'>
@@ -185,11 +185,10 @@ const ntpServer: LatLngTuple = [51.53, -0.09]; // Single coordinate
             <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day"/>
           </div>
         </div>
-
         <div className='map-box'>
           <WorldMap probes={probes} ntpServer={ntpServer}/>
         </div>
-      </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData}/>)}
+      </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>)}
       
       {/*Only shown when a domain name is queried. Users can download IP addresses corresponding to that domain name*/}
       {ntpData && !apiDataLoading && ntpData.server_name && ntpData.ip_list.length && (() => {
