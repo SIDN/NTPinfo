@@ -8,7 +8,6 @@
   /* margin: 0; */
   padding: 0rem;
   text-align: center;
-
 }
 
 
@@ -172,7 +171,7 @@ body { /* instead of html */
   display: flex;
   gap: 1rem;
   flex: 2 1 400px;
-  min-width: 45%;
+  min-width: 300px;
   max-height: 600px;
 }
 

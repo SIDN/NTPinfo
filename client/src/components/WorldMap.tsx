@@ -3,6 +3,7 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
 import { useEffect } from 'react'
+import { NTPData } from '../utils/types'
 
 delete (L.Icon.Default.prototype as any)._getIconUrl
 
@@ -33,7 +34,7 @@ const redIcon = new L.Icon({
 })*/
 
 interface MapComponentProps {
-  probes: L.LatLngExpression[]
+  probes: [NTPData,L.LatLngExpression][]
   ntpServer: L.LatLngExpression
 }
 
@@ -63,8 +64,9 @@ const DrawConnectingLines = ({probes, ntpServer}: {probes: L.LatLngExpression[],
 }
 
 export default function WorldMap ({probes, ntpServer}: MapComponentProps) {
+  const probe_location = probes.map(x => x[1])
     return (
-        <MapContainer  style={{height: '180%', width: '100%'}}>
+        <MapContainer  style={{height: '500px', width: '100%'}}>
             <TileLayer 
                 url = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                 attribution= '&copy; <a href="https://carto.com/">CARTO</a>'
@@ -72,15 +74,23 @@ export default function WorldMap ({probes, ntpServer}: MapComponentProps) {
                 maxZoom={19}
             />
             
-            {probes.map((pos, index) => (<Marker key = {index} position = {pos}>
-              <Popup>Probe {index}</Popup>
+            {probe_location.map((pos, index) => (<Marker key = {index} position = {pos}>
+              <Popup>
+                Probe ID: 11012<br/>
+                Offset: {probes[index][0].offset.toString()}<br/>
+                RTT: {probes[index][0].RTT.toString()}
+              </Popup>
             </Marker>))}
 
             <Marker position = {ntpServer}>
-                <Popup>NTP Server</Popup>
+                <Popup>
+                  NTP Server<br/>
+                  IP: {probes[0][0].ip}<br/>
+                  Name: {probes[0][0].server_name}
+                </Popup>
             </Marker>
-            <FitMapBounds probes={probes} ntpServer={ntpServer}/>
-            <DrawConnectingLines probes={probes} ntpServer={ntpServer}/>
+            <FitMapBounds probes={probe_location} ntpServer={ntpServer}/>
+            <DrawConnectingLines probes={probe_location} ntpServer={ntpServer}/>
         </MapContainer>
     )
 }
