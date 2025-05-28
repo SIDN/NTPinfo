@@ -4,6 +4,11 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
 import { useEffect } from 'react'
 import { NTPData } from '../utils/types'
+import greenProbeImg from '../assets/green-probe.png'
+import yellowProbeImg from '../assets/yellow-probe.png'
+import redProbeImg from '../assets/red-probe.png'
+import darkRedProbeImg from '../assets/dark-red-probe.png'
+import grayProbeImg from '../assets/gray-probe.png'
 
 delete (L.Icon.Default.prototype as any)._getIconUrl
 
@@ -11,27 +16,41 @@ L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
   shadowUrl: markerShadow
 })
-/*
-const blueIcon = new L.Icon({
-  iconUrl: '/icons/blue-marker.png',
-  iconSize: [21, 34],
-  iconAnchor: [10, 34],
-  popupAnchor: [0, -30]
-})
 
 const greenIcon = new L.Icon({
-  iconUrl: '/icons/green-marker.png',
-  iconSize: [21, 34],
-  iconAnchor: [10, 34],
-  popupAnchor: [0, -30]
+  iconUrl: greenProbeImg,
+  iconSize: [30, 30],
+  iconAnchor: [10, 10],
+  popupAnchor: [4.5, -7]
+})
+
+const yellowIcon = new L.Icon({
+  iconUrl: yellowProbeImg,
+  iconSize: [30, 30],
+  iconAnchor: [10, 10],
+  popupAnchor: [4.5, -7]
 })
 
 const redIcon = new L.Icon({
-  iconUrl: '/icons/red-marker.png',
-  iconSize: [21, 34],
-  iconAnchor: [10, 34],
-  popupAnchor: [0, -30]
-})*/
+  iconUrl: redProbeImg,
+  iconSize: [30, 30],
+  iconAnchor: [10, 10],
+  popupAnchor: [4.5, -7]
+})
+
+const darkRedIcon = new L.Icon({
+  iconUrl: darkRedProbeImg,
+  iconSize: [30, 30],
+  iconAnchor: [10, 10],
+  popupAnchor: [4.5, -7]
+})
+
+const grayIcon = new L.Icon({
+  iconUrl: grayProbeImg,
+  iconSize: [30, 30],
+  iconAnchor: [10, 10],
+  popupAnchor: [4.5, -7]
+})
 
 interface MapComponentProps {
   probes: [NTPData,L.LatLngExpression][]
@@ -63,8 +82,16 @@ const DrawConnectingLines = ({probes, ntpServer}: {probes: L.LatLngExpression[],
   return null
 }
 
+const getIconByRTT = (rtt: number): L.Icon => {
+  if (rtt < 15) return greenIcon;
+  if (rtt < 40) return yellowIcon;
+  if (rtt < 150) return redIcon;
+  return darkRedIcon;
+}
+
 export default function WorldMap ({probes, ntpServer}: MapComponentProps) {
   const probe_location = probes.map(x => x[1])
+  const icons = probes.map(x => getIconByRTT(x[0].RTT))
     return (
         <MapContainer  style={{height: '500px', width: '100%'}}>
             <TileLayer 
@@ -74,7 +101,7 @@ export default function WorldMap ({probes, ntpServer}: MapComponentProps) {
                 maxZoom={19}
             />
             
-            {probe_location.map((pos, index) => (<Marker key = {index} position = {pos}>
+            {probe_location.map((pos, index) => (<Marker key = {index} position = {pos} icon = {icons[index]}>
               <Popup>
                 Probe ID: 11012<br/>
                 Offset: {probes[index][0].offset.toString()}<br/>
