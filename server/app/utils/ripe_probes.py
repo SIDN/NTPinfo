@@ -1,3 +1,4 @@
+from logging import raiseExceptions
 from typing import Optional
 
 
@@ -37,7 +38,8 @@ def get_probes(ip_asn: Optional[str], ip_prefix: Optional[str], ip_country: Opti
     for probe_type, n in best_probe_types.items():
         # instead of a switch, I used a map with lambda methods
         if n > 0:
-            probes.append(probe_functions.get(probe_type)(n))
+            # fall back to random probes if the type is invalid
+            probes.append(probe_functions.get(probe_type, lambda c: get_random_probes(c))(n))
     return probes
 
 
@@ -82,7 +84,7 @@ def get_random_probes(n: int) -> dict:
         dict: the selected probes
     """
     return get_area_probes("WW", n)
-def get_area_probes(area: str, n: int) -> dict:
+def get_area_probes(area: Optional[str], n: int) -> dict:
     """
     This method selects n random probes from all over the world.
 
@@ -92,14 +94,19 @@ def get_area_probes(area: str, n: int) -> dict:
 
     Returns:
         dict: the selected probes
+
+    Raises:
+        ValueError: If area is not valid
     """
+    if area is None:
+        raise ValueError("area cannot be None")
     probes = {
         "type": "area",
         "value": area,
         "requested": n
     }
     return probes
-def get_asn_probes(ip_asn: str|int, n: int) -> dict:
+def get_asn_probes(ip_asn: Optional[str|int], n: int) -> dict:
     """
     This method selects n probes that belong to the same ASN network.
 
@@ -109,14 +116,19 @@ def get_asn_probes(ip_asn: str|int, n: int) -> dict:
 
     Returns:
         dict: the selected probes
+
+    Raises:
+        ValueError: if the ASN network is None
     """
+    if ip_asn is None:
+        raise ValueError("ip_asn cannot be None")
     probes = {
             "type": "asn",
             "value": ip_asn,
             "requested": n
         }
     return probes
-def get_prefix_probes(ip_prefix: str, n: int) -> dict:
+def get_prefix_probes(ip_prefix: Optional[str], n: int) -> dict:
     """
     This method selects n probes that belong to the same ASN network.
 
@@ -126,14 +138,19 @@ def get_prefix_probes(ip_prefix: str, n: int) -> dict:
 
     Returns:
         dict: the selected probes
+
+    Raises:
+        ValueError: if the IP prefix is None
     """
+    if ip_prefix is None:
+        raise ValueError("ip_prefix cannot be None")
     probes = {
             "type": "prefix",
             "value": ip_prefix,
             "requested": n
         }
     return probes
-def get_country_probes(ip_country_code: str, n: int) -> dict:
+def get_country_probes(ip_country_code: Optional[str], n: int) -> dict:
     """
     This method selects n probes that belong to the same country.
 
@@ -143,7 +160,12 @@ def get_country_probes(ip_country_code: str, n: int) -> dict:
 
     Returns:
         dict: the selected probes
+
+    Raises:
+        ValueError: if the country code is None
     """
+    if ip_country_code is None:
+        raise ValueError("ip_country_code cannot be None")
     probes = {
             "type": "country",
             "value": ip_country_code,

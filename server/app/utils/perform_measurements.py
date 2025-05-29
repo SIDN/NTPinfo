@@ -351,12 +351,7 @@ def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int=30) ->
     packets_count = 2
     ripe_account_email = get_ripe_account_email()
 
-    try:
-        ip_country, ip_asn = get_country_asn_from_ip(ntp_server_ip)
-    except Exception as e:
-        # fall back to other probe options
-        ip_country, ip_asn = None, None
-        print("ip_country and / or ip_asn could not be loaded")
+    ip_country, ip_asn = get_country_asn_from_ip(ntp_server_ip) or (None, None)
 
     headers = {
         "Authorization": f"Key {api_key}",
@@ -391,7 +386,8 @@ def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int=30) ->
 
     data = response.json()
     # the answer has a list of measurements, but we only did one measurement so we send one.
-    return data["measurements"][0]
+    ans: int = data["measurements"][0]
+    return ans
 
 #m=perform_ntp_measurement_domain_name("time.google.com")
 # m=perform_ntp_measurement_domain_name("ro.pool.ntp.org","83.25.24.10")

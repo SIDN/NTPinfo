@@ -107,5 +107,5 @@ def get_prefix_from_ip(ip_str: str) -> str:
     """
     response = requests.get(f"https://stat.ripe.net/data/prefix-overview/data.json?resource={ip_str}")
     data = response.json()
-    prefix = data["data"].get("resource")
+    prefix: str = data["data"].get("resource")
     return prefix
