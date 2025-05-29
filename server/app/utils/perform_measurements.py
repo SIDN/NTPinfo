@@ -146,17 +146,17 @@ def perform_ntp_measurement_ip(server_ip_str: str, ntp_version: int = 4) -> NtpM
         return None
 
 
-# def convert_timestamp_to_precise_time(t: float) -> PreciseTime:
-#     """
-#     This method converts a timestamp to precise time.
-#
-#     Args:
-#         t (float): the timestamp
-#
-#     Returns:
-#         PreciseTime: the precise time
-#     """
-#     return PreciseTime(ntplib._to_int(t), ntplib._to_frac(t))
+def convert_timestamp_to_precise_time(t: float) -> PreciseTime:
+    """
+    This method converts a timestamp to precise time.
+
+    Args:
+        t (float): the timestamp
+
+    Returns:
+        PreciseTime: the precise time
+    """
+    return PreciseTime(ntplib._to_int(t), ntplib._to_frac(t))
 
 
 def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str: str, server_name: str | None,
@@ -352,20 +352,26 @@ def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
         print("Error:", e)
         return False
 
-
-def perform_ripe_measurement_ip(ntp_server_ip: str) -> int:
+def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int=30) -> int:
     """
     This method performs a RIPE measurement and returns the code of the measurement.
 
     Args:
         ntp_server_ip (str): The NTP server IP.
+        probes_requested (int): The number of probes requested.
 
     Returns:
         int: The code of the measurement.
+
+    Raises:
+        Exception: If the NTP server IP is not valid, probe requested is negative or if the measurement could not be performed.
     """
 
-    ip_family = get_ip_family(ntp_server_ip)
+    if probes_requested <= 0:
+        raise Exception("Probe requested must be greater than 0.")
 
+    # measurement settings
+    ip_family = get_ip_family(ntp_server_ip) # this will throw an exception if the ntp_server_ip is not an IP address
     api_key = get_ripe_api_token()
     packets_count = 2
     ripe_account_email = get_ripe_account_email()
@@ -375,14 +381,13 @@ def perform_ripe_measurement_ip(ntp_server_ip: str) -> int:
     except Exception as e:
         # fall back to other probe options
         ip_country, ip_asn = None, None
-        print("error")
-        #return
+        print("ip_country and / or ip_asn could not be loaded")
 
     headers = {
         "Authorization": f"Key {api_key}",
         "Content-Type": "application/json"
     }
-    content = {"definitions": [
+    request_content = {"definitions": [
         {
             "type": "ntp",
             "af": ip_family,
@@ -396,17 +401,21 @@ def perform_ripe_measurement_ip(ntp_server_ip: str) -> int:
     ],
         "is_oneoff": True,
         "bill_to": ripe_account_email,
-        "probes": get_probes(ip_asn, ip_country)
+        "probes": get_probes(ip_asn, None, ip_country, None)
     }
+
+    # perform the measurement
     response = requests.post(
         "https://atlas.ripe.net/api/v2/measurements/",
         headers=headers,
-        data=json.dumps(content)
+        data=json.dumps(request_content)
     )
+
     print("Status Code:", response.status_code)
     print("Response:", response.json())
 
     data = response.json()
+    # the answer has a list of measurements, but we only did one measurement so we send one.
     return data["measurements"][0]
 
 #m=perform_ntp_measurement_domain_name("time.google.com")
