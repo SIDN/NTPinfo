@@ -3,7 +3,6 @@ from ipaddress import ip_address
 import pytest
 from unittest.mock import Mock, patch
 
-from app.models.PreciseTime import PreciseTime
 from server.app.models.RipeMeasurement import RipeMeasurement
 from server.app.models.ProbeData import ProbeData
 from server.app.utils.ripe_fetch_data import get_data_from_ripe_measurement, get_probe_data_from_ripe_by_id, \
