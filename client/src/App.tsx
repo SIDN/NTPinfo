@@ -10,9 +10,13 @@ import LineChart from './components/LineGraph'
 import { useFetchIPData } from './hooks/useFetchIPData.ts'
 import { useFetchHistoricalIPData } from './hooks/useFetchHistoricalIPData.ts'
 import { dateFormatConversion } from './utils/dateFormatConversion.ts'
+import WorldMap from './components/WorldMap.tsx'
 
 import { NTPData } from './utils/types.ts'
 import { Measurement } from './utils/types.ts'
+import { LatLngTuple } from 'leaflet'
+
+import 'leaflet/dist/leaflet.css'
 
 type InputData = {
   data: NTPData[]
@@ -70,8 +74,19 @@ function App() {
   const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
 
   //Varaibles to log and use API hooks
-  const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading} = useFetchIPData()
+  const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
   const {fetchData: fetchHistoricalData, loading: apiHistoricalLoading, error: apiHistoricalError} = useFetchHistoricalIPData()
+
+
+const probes: [NTPData, LatLngTuple][] = [ 
+  [{ offset: 12.5, RTT: 34.2, stratum: 2, jitter: 0.3, precision: -20, status: "synced", time: 1716895200, ip: "192.168.1.10", ip_list: ["192.168.1.11", "192.168.1.12"], server_name: "ntp1.local", ref_ip: "192.168.1.1", ref_name: "ref1.local", root_delay: 1.2 },[51.51, -0.1]],
+  [{ offset: -7.3, RTT: 28.4, stratum: 3, jitter: null, precision: -18, status: "unsynced", time: 1716895300, ip: "10.0.0.5", ip_list: ["10.0.0.6"], server_name: "ntp2.domain", ref_ip: "10.0.0.1", ref_name: "ref2.domain", root_delay: 0.8 },[51.52, -0.08]],
+  [{ offset: 0.0, RTT: 45.1, stratum: 1, jitter: 0.1, precision: -19, status: "synced", time: 1716895400, ip: "172.16.0.2", ip_list: ["172.16.0.3", "172.16.0.4"], server_name: "ntp3.network", ref_ip: "172.16.0.1", ref_name: "ref3.network", root_delay: 0.5 },[51.5, -0.07]]
+];
+const ntpServer: LatLngTuple = [51.53, -0.09];
+
+
+
 
   //dropdown format
   // second one will removed after custom time intervals are added
@@ -143,7 +158,7 @@ function App() {
           {(!apiDataLoading && measured && (<p>Results</p>)) || (apiDataLoading && <p>Loading...</p>)}
         </div>
       {(ntpData && !apiDataLoading && (<div className="results-and-graph">
-        <ResultSummary data={ntpData}/>
+        <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>
        
         <div className="graphs">
           <div className='graph-box'>
@@ -170,7 +185,10 @@ function App() {
             <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day"/>
           </div>
         </div>
-      </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData}/>)}
+        <div className='map-box'>
+          <WorldMap probes={probes} ntpServer={ntpServer}/>
+        </div>
+      </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>)}
       
       {/*Only shown when a domain name is queried. Users can download IP addresses corresponding to that domain name*/}
       {ntpData && !apiDataLoading && ntpData.server_name && ntpData.ip_list.length && (() => {
