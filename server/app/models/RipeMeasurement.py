@@ -15,6 +15,7 @@ class RipeMeasurement:
         main_details (NtpMainDetails): Key metrics
         extra_details (NtpExtraDetails): Additional fields
     """
+    measurement_id: int
     ntp_measurement: NtpMeasurement
     probe_data: ProbeData
     time_to_result: float

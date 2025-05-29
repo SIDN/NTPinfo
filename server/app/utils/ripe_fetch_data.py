@@ -133,14 +133,16 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> list[RipeM
 
         root_dispersion = measurement.get('root-dispersion', 0.0)
         ref_id = measurement.get('ref-id', '0')
+        measurement_id = measurement.get('msm_id', 0)
 
-        ripe_measurement = RipeMeasurement(ntp_measurement=ntp_measurement,
-                                           probe_data=parse_probe_data(
-                                               get_probe_data_from_ripe_by_id(
-                                                   measurement['prb_id'])),
-                                           time_to_result=time_to_result, poll=poll,
-                                           root_dispersion=root_dispersion,
-                                           ref_id=ref_id)
+        ripe_measurement = RipeMeasurement(
+            measurement_id=measurement_id,
+            ntp_measurement=ntp_measurement,
+            probe_data=parse_probe_data(get_probe_data_from_ripe_by_id(measurement['prb_id'])),
+            time_to_result=time_to_result, poll=poll,
+            root_dispersion=root_dispersion,
+            ref_id=ref_id
+        )
         ripe_measurements.append(ripe_measurement)
         print(ripe_measurement)
     print(len(ripe_measurements))

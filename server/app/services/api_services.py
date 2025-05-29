@@ -1,5 +1,8 @@
 from ipaddress import IPv4Address, IPv6Address
 from typing import Any, Optional, Coroutine
+
+from server.app.models.RipeMeasurement import RipeMeasurement
+from server.app.utils.ripe_fetch_data import parse_data_from_ripe_measurement, get_data_from_ripe_measurement
 from server.app.utils.validate import ensure_utc, is_ip_address, parse_ip
 from server.app.utils.perform_measurements import perform_ntp_measurement_ip, perform_ntp_measurement_domain_name
 from server.app.utils.perform_measurements import human_date_to_ntp_precise_time, ntp_precise_time_to_human_date, \
@@ -74,6 +77,38 @@ def get_format(measurement: NtpMeasurement, jitter: float | None = None) -> dict
         # if the server has multiple IPs addresses we should show them to the client
         "other_server_ips": measurement.server_info.other_server_ips,
         "jitter": jitter
+    }
+
+
+def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
+    return {
+        "ntp_version": measurement.ntp_measurement.server_info.ntp_version,
+        "ripe_measurement_id": measurement.measurement_id,
+        "ntp_server_ip": measurement.ntp_measurement.server_info.ntp_server_ip,
+        "ntp_server_name": measurement.ntp_measurement.server_info.ntp_server_name,
+        "probe_addr": measurement.probe_data.probe_addr,
+        "probe_id": measurement.probe_data.probe_id,
+        "probe_location": {
+            "country_code": measurement.probe_data.probe_location.country_code,
+            "coordinates": measurement.probe_data.probe_location.coordinates
+        },
+        "time_to_result": measurement.time_to_result,
+        "stratum": measurement.ntp_measurement.main_details.stratum,
+        "poll": measurement.poll,
+        "precision": measurement.ntp_measurement.main_details.precision,
+        "root-delay": measurement.ntp_measurement.extra_details.root_delay,
+        "root-dispersion": measurement.root_dispersion,
+        "ref-id": measurement.ref_id,
+        "result": [
+            {
+                "client_sent_time": measurement.ntp_measurement.timestamps.client_sent_time,
+                "server_recv_time": measurement.ntp_measurement.timestamps.server_recv_time,
+                "server_sent_time": measurement.ntp_measurement.timestamps.server_sent_time,
+                "client_recv_time": measurement.ntp_measurement.timestamps.client_recv_time,
+                "rtt": measurement.ntp_measurement.main_details.delay,
+                "offset": measurement.ntp_measurement.main_details.offset
+            }
+        ]
     }
 
 
@@ -182,3 +217,11 @@ def fetch_historic_data_with_timestamps(server: str, start: datetime, end: datet
         measurement = NtpMeasurement(vantage_point_ip, server_info, time_stamps, main_details, extra_details)
         measurements.append(measurement)
     return measurements
+
+
+def fetch_ripe_data(measurement_id: str) -> list[dict]:
+    measurements = parse_data_from_ripe_measurement(get_data_from_ripe_measurement(measurement_id))
+    measurements_formated = []
+    for m in measurements:
+        measurements_formated.append(get_ripe_format(m))
+    return measurements_formated
