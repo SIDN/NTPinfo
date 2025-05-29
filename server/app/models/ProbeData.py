@@ -24,9 +24,9 @@ class ProbeData:
 
     Attributes:
         probe_id (str): The unique identifier of the probe
-        probe_addr (Tuple[IPv4Address, IPv6Address] | None): The IPv4 and IPv6 addresses of the probe
+        probe_addr (Tuple[IPv4Address | None, IPv6Address | None]): The IPv4 and IPv6 addresses of the probe
         probe_location (ProbeLocation | None): Geographic location of the probe
     """
     probe_id: str
-    probe_addr: Tuple[IPv4Address, IPv6Address] | None
+    probe_addr: Tuple[IPv4Address | None, IPv6Address | None]
     probe_location: ProbeLocation | None

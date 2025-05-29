@@ -1,4 +1,4 @@
-from ipaddress import ip_address
+from ipaddress import ip_address, IPv4Address, IPv6Address
 
 import requests
 import os
@@ -105,13 +105,21 @@ def parse_probe_data(probe_response: dict) -> ProbeData:
         - Country code defaults to `"NO COUNTRY CODE"` if not found.
     """
     if probe_response.get('error'):
-        return ProbeData(probe_id="-1", probe_addr=None, probe_location=None)
+        return ProbeData(probe_id="-1", probe_addr=(None, None), probe_location=None)
 
     probe_id = probe_response.get('id', '-1')
-    if probe_response.get('address_v4') is not None or probe_response.get('address_v6') is not None:
-        probe_addr = probe_response['address_v4'], probe_response['address_v6']
-    else:
-        probe_addr = None
+    # print(probe_response.get('address_v4'))
+    # print(probe_response.get('address_v6'))
+    v4 = probe_response.get('address_v4')
+    v6 = probe_response.get('address_v6')
+
+    ipv4 = ip_address(v4) if v4 is not None else None
+    if ipv4 is not None and not isinstance(ipv4, IPv4Address):
+        ipv4 = None
+    ipv6 = ip_address(v6) if v6 is not None else None
+    if ipv6 is not None and not isinstance(ipv6, IPv6Address):
+        ipv6 = None
+    probe_addr: tuple[IPv4Address | None, IPv6Address | None] = (ipv4, ipv6)
 
     country_code = probe_response.get('country_code', "NO COUNTRY CODE")
 
@@ -238,7 +246,7 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> list[RipeM
         poll = measurement.get('poll', 0)
 
         root_dispersion = measurement.get('root-dispersion', 0.0)
-        ref_id = measurement.get('ref-id', '0')
+        ref_id = measurement.get('ref-id', 'NO REFERENCE')
         measurement_id = measurement.get('msm_id', 0)
 
         ripe_measurement = RipeMeasurement(

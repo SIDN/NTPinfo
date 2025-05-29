@@ -104,9 +104,12 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
     return {
         "ntp_version": measurement.ntp_measurement.server_info.ntp_version,
         "ripe_measurement_id": measurement.measurement_id,
-        "ntp_server_ip": measurement.ntp_measurement.server_info.ntp_server_ip,
+        "ntp_server_ip": ip_to_str(measurement.ntp_measurement.server_info.ntp_server_ip),
         "ntp_server_name": measurement.ntp_measurement.server_info.ntp_server_name,
-        "probe_addr": measurement.probe_data.probe_addr,
+        "probe_addr": {
+            "ipv4": ip_to_str(measurement.probe_data.probe_addr[0]),
+            "ipv6": ip_to_str(measurement.probe_data.probe_addr[1]),
+        },
         "probe_id": measurement.probe_data.probe_id,
         "probe_location": {
             "country_code": probe_location.country_code if probe_location else "UNKNOWN",
@@ -258,3 +261,5 @@ def fetch_ripe_data(measurement_id: str) -> list[dict]:
     for m in measurements:
         measurements_formated.append(get_ripe_format(m))
     return measurements_formated
+
+# print(fetch_ripe_data("106323686"))
