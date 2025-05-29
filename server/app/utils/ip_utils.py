@@ -1,10 +1,35 @@
+import socket
+from ipaddress import ip_address, IPv4Address, IPv6Address
 from typing import Optional
+import ntplib
 import requests
+from server.app.utils.load_env_vals import get_ipinfo_lite_api_token
+from server.app.utils.validate import is_ip_address
 
-from app.utils.load_env_vals import get_ipinfo_lite_api_token
-from app.utils.validate import is_ip_address
 
+def ref_id_to_ip_or_name(ref_id: int, stratum: int) \
+        -> tuple[None, str] | tuple[IPv4Address | IPv6Address, None] | tuple[None, None]:
+    """
+    Represents a method that converts the reference id to the reference ip or reference name.
+    If the stratum is 0 or 1 then we can convert the reference id to it's name (ex: Geostationary Orbit Environment Satellite).
+    If the stratum is between 1 and 256 then we can convert the reference id to it's ip.
+    If the stratum is greater than 255, then we have an invalid stratum.
 
+    Args:
+        ref_id (int): the reference id of the ntp server
+        stratum (int): the stratum level of the ntp server
+
+    Returns:
+        a tuple of the ip and name of the ntp server. At least one of them is None. If both are None then the stratum is invalid.
+    """
+    #print(ref_id)
+    if 0 <= stratum <= 1:  # we can get the name
+        return None, ntplib.ref_id_to_text(ref_id, stratum)
+    else:
+        if stratum < 256:  # we can get an IP address
+            return ip_address(socket.inet_ntoa(ref_id.to_bytes(4, 'big'))), None  # 'big' is from big endian
+        else:
+            return None, None  # invalid stratum!!
 
 def get_ip_family(ip_str: str) -> int:
     """

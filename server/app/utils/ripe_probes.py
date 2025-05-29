@@ -21,7 +21,7 @@ def get_probes(ip_asn: Optional[str], ip_prefix: Optional[str], ip_country: Opti
     # settings:
     probes: list[dict] = []
     probe_functions = {
-        "ASN": lambda c: get_asn_probes(ip_asn, c),
+        "asn": lambda c: get_asn_probes(ip_asn, c),
         "prefix": lambda c: get_prefix_probes(ip_prefix, c),
         "country": lambda c: get_country_probes(ip_country, c),
         "area": lambda c: get_area_probes(ip_area, c),
@@ -60,7 +60,7 @@ def get_best_probe_types(ip_asn: Optional[str], ip_prefix: Optional[str], ip_cou
     # for now, we have a default logic! This method is not the final version.
     best_probe_types: dict[str, int] = {"random": 2} # default
     if ip_asn is not None:
-        best_probe_types["ASN"] = 10
+        best_probe_types["asn"] = 10
     if ip_prefix is not None:
         best_probe_types["prefix"] = 0
     if ip_country is not None:

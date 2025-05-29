@@ -5,9 +5,9 @@ import json
 
 import requests
 
-from app.utils.ip_utils import get_country_asn_from_ip, get_ip_family
-from app.utils.load_env_vals import get_ripe_account_email, get_ripe_api_token
-from app.utils.ripe_probes import get_probes
+from server.app.utils.ip_utils import get_country_asn_from_ip, get_ip_family, ref_id_to_ip_or_name
+from server.app.utils.load_env_vals import get_ripe_account_email, get_ripe_api_token
+from server.app.utils.ripe_probes import get_probes
 from server.app.services.NtpCalculator import NtpCalculator
 from server.app.utils.domain_name_to_ip import domain_name_to_ip_default, domain_name_to_ip_close_to_client
 from server.app.models.NtpExtraDetails import NtpExtraDetails
@@ -234,31 +234,6 @@ def convert_float_to_precise_time(value: float) -> PreciseTime:
     seconds = int(value)
     fraction = ntplib._to_frac(value)  # by default, a second is split into 2^32 parts
     return PreciseTime(seconds, fraction)
-
-
-def ref_id_to_ip_or_name(ref_id: int, stratum: int) \
-        -> tuple[None, str] | tuple[IPv4Address | IPv6Address, None] | tuple[None, None]:
-    """
-    Represents a method that converts the reference id to the reference ip or reference name.
-    If the stratum is 0 or 1 then we can convert the reference id to it's name (ex: Geostationary Orbit Environment Satellite).
-    If the stratum is between 1 and 256 then we can convert the reference id to it's ip.
-    If the stratum is greater than 255, then we have an invalid stratum.
-
-    Args:
-        ref_id (int): the reference id of the ntp server
-        stratum (int): the stratum level of the ntp server
-
-    Returns:
-        a tuple of the ip and name of the ntp server. At least one of them is None. If both are None then the stratum is invalid.
-    """
-    print(ref_id)
-    if 0 <= stratum <= 1:  # we can get the name
-        return None, ntplib.ref_id_to_text(ref_id, stratum)
-    else:
-        if stratum < 256:  # we can get an IP address
-            return ip_address(socket.inet_ntoa(ref_id.to_bytes(4, 'big'))), None  # 'big' is from big endian
-        else:
-            return None, None  # invalid stratum!!
 
 
 def ntp_precise_time_to_human_date(t: PreciseTime) -> str:
