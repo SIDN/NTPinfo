@@ -109,7 +109,7 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
         "ntp_server_name": measurement.ntp_measurement.server_info.ntp_server_name,
         "probe_addr": {
             "ipv4": ip_to_str(measurement.probe_data.probe_addr[0]),
-            "ipv6": ip_to_str(measurement.probe_data.probe_addr[1]),
+            "ipv6": ip_to_str(measurement.probe_data.probe_addr[1])
         },
         "probe_id": measurement.probe_data.probe_id,
         "probe_location": {
