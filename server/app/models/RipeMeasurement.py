@@ -18,3 +18,6 @@ class RipeMeasurement:
     ntp_measurement: NtpMeasurement
     probe_data: ProbeData
     time_to_result: float
+    poll: int
+    root_dispersion: float
+    ref_id: str

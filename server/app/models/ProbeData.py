@@ -12,5 +12,5 @@ class ProbeLocation:
 @dataclass
 class ProbeData:
     probe_id: str
-    probe_addr: Tuple[IPv4Address, IPv6Address]
-    probe_location: ProbeLocation
+    probe_addr: Tuple[IPv4Address, IPv6Address] | None
+    probe_location: ProbeLocation | None
