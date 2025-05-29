@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
-from psycopg_pool import ConnectionPool
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 load_dotenv()
 """
@@ -36,19 +37,9 @@ This string follows the format:
     postgresql://<user>:<password>@<host>:<port>/<dbname>
 It is required by most PostgreSQL drivers, including `psycopg`, to initiate connections.
 """
-
-pool = ConnectionPool(conninfo=dsn, max_size = 20)
+engine = create_engine(dsn, pool_size=20, max_overflow=10)
 """
-Creates a PostgreSQL connection pool using `psycopg_pool.ConnectionPool`.
-
-Args:
-    conninfo (str): The DSN used to connect to the PostgreSQL server.
-    max_size (int): The maximum number of simultaneous database connections allowed.
-
-Details:
-    - `max_size=5` limits the number of concurrent active database connections to 5.
-    - If more than 5 requests require a connection at the same time, additional requests will wait (block)
-      until a connection becomes available or a timeout occurs.
-    - This pool improves performance and resource management by reusing connections instead of
-      constantly opening/closing new ones.
+Creates the engine for the SQLAlchemy connection.
+This is where the connection starts, the engine allows us to create a session.
 """
+SessionLocal = sessionmaker(bind=engine)
