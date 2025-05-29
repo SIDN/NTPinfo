@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from ipaddress import IPv4Address, IPv6Address
 
-from server.app.models.NtpExtraDetails import NtpExtraDetails
-from server.app.models.NtpServerInfo import NtpServerInfo
-from server.app.models.NtpMainDetails import NtpMainDetails
-from server.app.models.NtpTimestamps import NtpTimestamps
+from server.app.dtos.NtpExtraDetails import NtpExtraDetails
+from server.app.dtos.NtpServerInfo import NtpServerInfo
+from server.app.dtos.NtpMainDetails import NtpMainDetails
+from server.app.dtos.NtpTimestamps import NtpTimestamps
 
 
 @dataclass

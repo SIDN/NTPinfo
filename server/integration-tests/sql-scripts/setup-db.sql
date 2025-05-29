@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS measurements
     ref_name text COLLATE pg_catalog."default",
     time_id bigint,
     time_offset double precision,
-    delay double precision,
+    rtt double precision,
     stratum integer,
     "precision" double precision,
     reachability text COLLATE pg_catalog."default",

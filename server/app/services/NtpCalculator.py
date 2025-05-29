@@ -1,5 +1,5 @@
-from server.app.models.NtpTimestamps import NtpTimestamps
-from server.app.models.PreciseTime import PreciseTime
+from server.app.dtos.NtpTimestamps import NtpTimestamps
+from server.app.dtos.PreciseTime import PreciseTime
 import numpy as np
 
 
