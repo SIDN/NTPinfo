@@ -66,9 +66,7 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request) -
             "measurement": get_format(result, jitter)
         }
     else:
-        return {
-            "error": "Could not perform measurement, dns or ip not reachable."
-        }
+        raise HTTPException(status_code=404, detail="Your search does not seem to match any server")
 
 
 @router.get("/measurements/history/")
