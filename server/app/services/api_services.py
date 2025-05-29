@@ -1,6 +1,7 @@
 from ipaddress import IPv4Address, IPv6Address
 from typing import Any, Optional, Coroutine
 
+from server.app.models.ProbeData import ProbeLocation
 from server.app.models.RipeMeasurement import RipeMeasurement
 from server.app.utils.ripe_fetch_data import parse_data_from_ripe_measurement, get_data_from_ripe_measurement
 from server.app.utils.validate import ensure_utc, is_ip_address, parse_ip
@@ -81,6 +82,25 @@ def get_format(measurement: NtpMeasurement, jitter: float | None = None) -> dict
 
 
 def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
+    """
+        Converts a RipeMeasurement object into a standardized dictionary format.
+
+        This function extracts relevant information from the provided RipeMeasurement
+        instance—including NTP server info, probe data, timing details, and measurement
+        results—and formats it as a plain dictionary.
+
+        Args:
+            measurement (RipeMeasurement): The parsed measurement object containing NTP and probe data
+
+        Returns:
+            dict[str, Any]:
+                A dictionary containing structured measurement data. Keys include:
+                - NTP Server info (ntp version, ripe measurement id, IP, name, ref id)
+                - Probe data (probe address, probe id in RIPE Atlas, probe location, time to result)
+                - Measurement metrics (stratum, poll, precision, root delay, root dispersion, reachability)
+                - NTP measurement data (rtt, offset, timestamps)
+    """
+    probe_location: Optional[ProbeLocation] = measurement.probe_data.probe_location
     return {
         "ntp_version": measurement.ntp_measurement.server_info.ntp_version,
         "ripe_measurement_id": measurement.measurement_id,
@@ -89,8 +109,8 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
         "probe_addr": measurement.probe_data.probe_addr,
         "probe_id": measurement.probe_data.probe_id,
         "probe_location": {
-            "country_code": measurement.probe_data.probe_location.country_code,
-            "coordinates": measurement.probe_data.probe_location.coordinates
+            "country_code": probe_location.country_code if probe_location else "UNKNOWN",
+            "coordinates": probe_location.coordinates if probe_location else (0.0, 0.0)
         },
         "time_to_result": measurement.time_to_result,
         "stratum": measurement.ntp_measurement.main_details.stratum,
@@ -220,6 +240,19 @@ def fetch_historic_data_with_timestamps(server: str, start: datetime, end: datet
 
 
 def fetch_ripe_data(measurement_id: str) -> list[dict]:
+    """
+    Fetches and formats NTP measurement data from RIPE Atlas.
+
+    This function retrieves raw measurement data from the RIPE Atlas API using the given
+    measurement ID, parses it into internal data structures, and formats it into a
+    standardized dictionary format.
+
+    Args:
+        measurement_id (str): The unique ID of the RIPE Atlas measurement to fetch
+
+    Returns:
+        list[dict]: A list of dictionaries, each representing a formatted NTP measurement
+    """
     measurements = parse_data_from_ripe_measurement(get_data_from_ripe_measurement(measurement_id))
     measurements_formated = []
     for m in measurements:

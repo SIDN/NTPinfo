@@ -1,3 +1,5 @@
+from ipaddress import ip_address
+
 import requests
 import os
 from dotenv import load_dotenv
@@ -11,11 +13,32 @@ from server.app.models.NtpTimestamps import NtpTimestamps
 from server.app.models.ProbeData import ProbeLocation, ProbeData
 from server.app.models.RipeMeasurement import RipeMeasurement
 from server.app.utils.perform_measurements import convert_float_to_precise_time
+from typing import Any, cast
 
 load_dotenv()
 
 
-def get_data_from_ripe_measurement(measurement_id: str) -> list[dict]:
+def get_data_from_ripe_measurement(measurement_id: str) -> list[dict[str, Any]]:
+    """
+    Fetches raw measurement results from the RIPE Atlas API.
+
+    This function queries the RIPE Atlas v2 API using the provided measurement ID,
+    authenticates with an API key stored in the RIPE_KEY environment variable, and
+    returns the parsed JSON response as a list of dictionaries.
+
+    Args:
+        measurement_id (str): The RIPE Atlas measurement ID to fetch results for
+
+    Returns:
+        list[dict[str, Any]]: A list of measurement result entries as dictionaries
+
+    Raises:
+        requests.RequestException: If the HTTP request fails.
+        ValueError: If the response cannot be parsed as JSON.
+
+    Notes:
+        - Requires the `RIPE_KEY` environment variable to be set with a valid API key.
+    """
     url = f"https://atlas.ripe.net/api/v2/measurements/{measurement_id}/results/"
 
     headers = {
@@ -24,12 +47,32 @@ def get_data_from_ripe_measurement(measurement_id: str) -> list[dict]:
     }
     response = requests.get(url, headers=headers)
 
-    print("Status Code:", response.status_code)
-    print("Response JSON:", response.json())
-    return response.json()
+    # print("Status Code:", response.status_code)
+    # print("Response JSON:", response.json())
+    return cast(list[dict[str, Any]], response.json())
 
 
-def get_probe_data_from_ripe_by_id(probe_id: str) -> dict:
+def get_probe_data_from_ripe_by_id(probe_id: str) -> dict[str, Any]:
+    """
+    Retrieves detailed information about a specific RIPE Atlas probe by its ID.
+
+    This function sends a GET request to the RIPE Atlas API to fetch metadata
+    about the specified probe. The request is authenticated using the RIPE API key
+    stored in the RIPE_KEY environment variable.
+
+    Args:
+        probe_id (str): The ID of the RIPE Atlas probe to fetch information for
+
+    Returns:
+        dict[str, Any]: A dictionary containing metadata about the probe
+
+    Raises:
+        requests.RequestException: If the HTTP request fails
+        ValueError: If the response is not valid JSON or is unexpected
+
+    Notes:
+        - Requires the `RIPE_KEY` environment variable to be set with a valid API key.
+    """
     url = f"https://atlas.ripe.net/api/v2/probes/{probe_id}/"
 
     headers = {
@@ -40,10 +83,27 @@ def get_probe_data_from_ripe_by_id(probe_id: str) -> dict:
 
     # print("Status Code:", response.status_code)
     # print("Response JSON:", response.json())
-    return response.json()
+    return cast(dict[str, Any], response.json())
 
 
 def parse_probe_data(probe_response: dict) -> ProbeData:
+    """
+    Parses probe metadata received from the RIPE Atlas API into a ProbeData object.
+
+    This function extracts relevant information such as the probe ID, IP addresses,
+    country code, and coordinates from the API response.
+
+    Args:
+        probe_response (dict): The raw dictionary response from the RIPE Atlas probe lookup API
+
+    Returns:
+        ProbeData: The data about the probe
+
+    Notes:
+        - If an error is present in the response, a default `ProbeData` with dummy values is returned.
+        - Coordinates default to `[0.0, 0.0]` if not provided.
+        - Country code defaults to `"NO COUNTRY CODE"` if not found.
+    """
     if probe_response.get('error'):
         return ProbeData(probe_id="-1", probe_addr=None, probe_location=None)
 
@@ -55,19 +115,44 @@ def parse_probe_data(probe_response: dict) -> ProbeData:
 
     country_code = probe_response.get('country_code', "NO COUNTRY CODE")
 
-    coordinates = probe_response.get('geometry').get('coordinates', [0.0, 0.0])
+    geometry = probe_response.get('geometry')
+    coordinates = geometry.get('coordinates', [0.0, 0.0]) if geometry else [0.0, 0.0]
 
     probe_location = ProbeLocation(country_code=country_code,
                                    coordinates=coordinates)
     return ProbeData(probe_id=probe_id, probe_addr=probe_addr, probe_location=probe_location)
 
 
-def is_failed_measurement(entry) -> bool:
+def is_failed_measurement(entry: dict[str, Any]) -> bool:
+    """
+    Determines if a RIPE measurement entry has failed.
+
+    A measurement is considered failed if all result entries contain the key "x" with value "*",
+    which typically indicates a failed probe response.
+
+    Args:
+        entry (dict[str, Any]): A dictionary representing a single measurement entry from the RIPE API
+
+    Returns:
+        bool: True if all entries in the result indicate failure, False otherwise.
+    """
     result = entry.get("result", [])
     return all(r.get("x") == "*" for r in result)
 
 
-def successful_measurement(entry) -> int | None:
+def successful_measurement(entry: dict[str, Any]) -> int | None:
+    """
+    Identifies the index of a successful measurement within the result list.
+
+    A successful measurement is determined by the presence of the "origin-ts" field,
+    which indicates that the probe recorded a valid timestamp.
+
+    Args:
+        entry (dict[str, Any]): A dictionary representing a single measurement entry from the RIPE API
+
+    Returns:
+        int | None: The index of the first successful result entry, or None if none were successful.
+    """
     result = entry.get("result", [])
     for i, r in enumerate(result):
         if "origin-ts" in r:
@@ -76,20 +161,41 @@ def successful_measurement(entry) -> int | None:
 
 
 def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> list[RipeMeasurement]:
+    """
+    Parses raw RIPE Atlas measurement data into a list of RipeMeasurement objects.
+
+    This function:
+      - Determines whether each measurement entry failed or succeeded.
+      - Extracts NTP-related server and timing information.
+      - Converts timestamps and metrics into structured internal representations.
+      - Adds probe-specific metadata fetched from the RIPE API.
+
+    Args:
+        data_measurement (list[dict]): A list of dictionaries representing raw measurement entries from the RIPE Atlas API
+
+    Returns:
+        list[RipeMeasurement]: A list of parsed and structured RipeMeasurement objects.
+
+    Notes:
+        - Measurements that are marked as failed are still processed, but filled with default values.
+        - Probe metadata is fetched using the probe ID (`prb_id`) in each measurement.
+        - Timestamps are converted using `convert_float_to_precise_time`.
+    """
     ripe_measurements = []
     for measurement in data_measurement:
         # check for result if ok
         failed = is_failed_measurement(measurement)
         idx = successful_measurement(measurement) if not failed else None
 
-        vantage_point_ip = measurement.get('from')
+        from_ip = measurement.get('from')
+        vantage_point_ip = ip_address(from_ip) if from_ip is not None else None
         version = measurement.get('version', 0)
         dst_addr = measurement.get('dst_addr')
         dst_name = measurement.get('dst_name')
 
         server_info = NtpServerInfo(
             ntp_version=version,
-            ntp_server_ip=dst_addr,
+            ntp_server_ip=ip_address(dst_addr) if dst_addr is not None else None,
             ntp_server_name=dst_name,
             ntp_server_ref_parent_ip=None,
             ref_name=None,
@@ -144,8 +250,8 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> list[RipeM
             ref_id=ref_id
         )
         ripe_measurements.append(ripe_measurement)
-        print(ripe_measurement)
-    print(len(ripe_measurements))
+    #     print(ripe_measurement)
+    # print(len(ripe_measurements))
     return ripe_measurements
 
 # parse_data_from_ripe_measurement(get_data_from_ripe_measurement("105960562"))
