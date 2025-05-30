@@ -1,10 +1,10 @@
 import { useState } from "react"
 import axios from "axios"
-import { NTPData } from "../utils/types.ts"
-import { transformJSONDataToNTPData } from "../utils/transformJSONDataToNTPData.ts"
+import { RIPEData } from "../utils/types.ts"
+import { transformJSONDataToRIPEData } from "../utils/transformJSONDataToRIPEData.ts"
 
-export const useFetchIPData = () => {
-    const [data, setData] = useState<NTPData | null>(null)
+export const useFetchRIPEData = () => {
+    const [data, setData] = useState<RIPEData[] | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<Error | null>(null)
     const [httpStatus, setHttpStatus] = useState<number>(200)
@@ -24,7 +24,8 @@ export const useFetchIPData = () => {
                     }
                 }
             )
-            const transformedData = transformJSONDataToNTPData(resp.data.measurement)
+            const measurements = resp.data !== null ? resp.data : []
+            const transformedData = measurements.map((d: any) => transformJSONDataToRIPEData(d))
             setData(transformedData)
             setHttpStatus(resp.status)
             return transformedData

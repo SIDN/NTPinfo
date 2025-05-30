@@ -1,8 +1,8 @@
-import L, { LatLngExpression } from 'leaflet'
+import L from 'leaflet'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { RIPEData } from '../utils/types'
 import greenProbeImg from '../assets/green-probe.png'
 import yellowProbeImg from '../assets/yellow-probe.png'
@@ -53,7 +53,7 @@ const grayIcon = new L.Icon({
 })
 
 interface MapComponentProps {
-  probes: RIPEData[]
+  probes: RIPEData[] | null
   ntpServer: L.LatLngExpression
 }
 
@@ -96,9 +96,13 @@ const stringifyRTTAndOffset = (value: number): string => {
 }
 
 export default function WorldMap ({probes, ntpServer}: MapComponentProps) {
-  const probe_location = probes.map(x => x.probe_location)
-  const icons = probes.map(x => getIconByRTT(x.measurementData.RTT, x.got_results))
-    return (
+  const [probe_locations, setProbeLocations] = useState<L.LatLngTuple[] | null>(null)
+  const [icons, setIcons] = useState<L.Icon[] | null>(null)
+  if (probes !== null){
+    setProbeLocations(probes.map(x => x.probe_location))
+    setIcons(probes.map(x => getIconByRTT(x.measurementData.RTT, x.got_results)))
+  }
+    return ( 
         <MapContainer  style={{height: '500px', width: '100%'}}>
             <TileLayer 
                 url = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -107,23 +111,26 @@ export default function WorldMap ({probes, ntpServer}: MapComponentProps) {
                 maxZoom={19}
             />
             
-            {probe_location.map((pos, index) => (<Marker key = {index} position = {pos} icon = {icons[index]}>
-              <Popup>
-                Probe ID: <a href = {`https://atlas.ripe.net/probes/${probes[index].probe_id}/overview`} target='_blank' rel="noopener noreferrer">{probes[index].probe_id}</a><br/>
-                Offset: {stringifyRTTAndOffset(probes[index].measurementData.offset)}<br/>
-                RTT: {stringifyRTTAndOffset(probes[index].measurementData.RTT)}
-              </Popup>
-            </Marker>))}
-
-            <Marker position = {ntpServer}>
+            {probe_locations && icons && probes && (
+            <>
+            {probe_locations.map((pos, index) => (<Marker key = {index} position = {pos} icon = {icons[index]}>
                 <Popup>
-                  NTP Server<br/>
-                  IP: {probes[0].measurementData.ip}<br/>
-                  Name: {probes[0].measurementData.server_name}
+                  Probe ID: <a href = {`https://atlas.ripe.net/probes/${probes[index].probe_id}/overview`} target='_blank' rel="noopener noreferrer">{probes[index].probe_id}</a><br/>
+                  Offset: {stringifyRTTAndOffset(probes[index].measurementData.offset)}<br/>
+                  RTT: {stringifyRTTAndOffset(probes[index].measurementData.RTT)}
                 </Popup>
-            </Marker>
-            <FitMapBounds probes={probe_location} ntpServer={ntpServer}/>
-            <DrawConnectingLines probes={probe_location} ntpServer={ntpServer}/>
+              </Marker>))}
+
+              <Marker position = {ntpServer}>
+                  <Popup>
+                    NTP Server<br/>
+                    IP: {probes[0].measurementData.ip}<br/>
+                    Name: {probes[0].measurementData.server_name}
+                  </Popup>
+              </Marker>
+              <FitMapBounds probes={probe_locations} ntpServer={ntpServer}/>
+              <DrawConnectingLines probes={probe_locations} ntpServer={ntpServer}/>
+            </>)}
         </MapContainer>
     )
 }
