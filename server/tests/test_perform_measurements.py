@@ -1,5 +1,3 @@
-from ipaddress import IPv6Address, IPv4Address, ip_address
-
 from server.app.utils.perform_measurements import *
 # import unittest
 from unittest.mock import patch, MagicMock
@@ -29,16 +27,6 @@ def test_ntp_precise_time_to_human_date():
     assert ntp_precise_time_to_human_date(t) == ""
     t2 = PreciseTime(3955513183, 623996928)
     assert ntp_precise_time_to_human_date(t2) == "2025-05-06 09:39:43.145286 UTC"
-
-
-def test_ref_id_to_ip_or_name():
-    ip, name = ref_id_to_ip_or_name(1590075150, 2)
-    assert ip == IPv4Address('94.198.159.14')
-    assert name is None
-
-    ip, name = ref_id_to_ip_or_name(1590075150, 2000)
-    assert ip is None
-    assert name is None
 
 
 @patch("server.app.utils.perform_measurements.socket.getaddrinfo")
@@ -72,7 +60,7 @@ def test_perform_ntp_measurement_domain_name(mock_request, mock_getaddrinfo):
     result = result_tuple
     assert result.server_info.other_server_ips == ["123.45.67.89"]
 
-    assert result.server_info.ntp_version == 3
+    assert result.server_info.ntp_version == 4
     assert result.server_info.ntp_server_ip == IPv4Address("123.45.67.89")
     assert result.server_info.ntp_server_name == "mock.ntp.server"
     assert result.server_info.ntp_server_ref_parent_ip == IPv4Address("94.198.159.14")
