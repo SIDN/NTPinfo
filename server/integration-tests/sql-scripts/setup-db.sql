@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS times
     server_sent_prec bigint,
     client_recv bigint,
     client_recv_prec bigint,
-    CONSTRAINT times_pkey PRIMARY KEY (id, client_sent_prec),
+    CONSTRAINT times_pkey PRIMARY KEY (id),
     CONSTRAINT pk UNIQUE (id)
 );
 

@@ -1,10 +1,10 @@
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
-from ipaddress import IPv4Address, IPv6Address, ip_address
+from ipaddress import IPv4Address, ip_address
 
-from server.app.models.ProbeData import ProbeData, ProbeLocation
-from server.app.models.RipeMeasurement import RipeMeasurement
+from server.app.dtos.ProbeData import ProbeData, ProbeLocation
+from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.services.api_services import fetch_ripe_data
 from server.app.main import app
 from server.app.dtos.NtpExtraDetails import NtpExtraDetails
@@ -76,7 +76,7 @@ def get_mock_data():
             'ntp_last_sync_time': 200,
             'ntp_last_sync_time_prec': 300,
             'offset': 0.002,
-            'delay': 0.005,
+            'RTT': 0.005,
             'stratum': 2,
             'precision': 0.0001,
             'reachability': '1111',
@@ -102,7 +102,7 @@ def get_mock_data():
             'ntp_last_sync_time': 300,
             'ntp_last_sync_time_prec': 400,
             'offset': 0.004,
-            'delay': 0.008,
+            'RTT': 0.008,
             'stratum': 1,
             'precision': 0.0002,
             'reachability': '1010',

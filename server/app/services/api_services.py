@@ -1,15 +1,13 @@
-from ipaddress import IPv4Address, IPv6Address
-from typing import Any, Optional, Coroutine
+from typing import Any, Optional
 from sqlalchemy.orm import Session
 from server.app.utils.ip_utils import ip_to_str
 from server.app.utils.validate import ensure_utc, is_ip_address, parse_ip
 from server.app.services.NtpCalculator import NtpCalculator
 from server.app.utils.perform_measurements import perform_ntp_measurement_ip, perform_ntp_measurement_domain_name
-from server.app.utils.perform_measurements import human_date_to_ntp_precise_time, ntp_precise_time_to_human_date, \
-    calculate_jitter_from_measurements
+from server.app.utils.perform_measurements import human_date_to_ntp_precise_time, calculate_jitter_from_measurements
 from datetime import datetime
-from server.app.models.ProbeData import ProbeLocation
-from server.app.models.RipeMeasurement import RipeMeasurement
+from server.app.dtos.ProbeData import ProbeLocation
+from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.utils.ripe_fetch_data import parse_data_from_ripe_measurement, get_data_from_ripe_measurement
 from server.app.db.connection import insert_measurement
 from server.app.db.connection import get_measurements_timestamps_ip, get_measurements_timestamps_dn
@@ -50,7 +48,7 @@ def get_format(measurement: NtpMeasurement, jitter: float | None = None) -> dict
         "client_recv_time": measurement.timestamps.client_recv_time,
 
         "offset": measurement.main_details.offset,
-        "delay": measurement.main_details.delay,
+        "rtt": measurement.main_details.delay,
         "stratum": measurement.main_details.stratum,
         "precision": measurement.main_details.precision,
         "reachability": measurement.main_details.reachability,
@@ -214,7 +212,7 @@ def fetch_historic_data_with_timestamps(server: str, start: datetime, end: datet
         extra_details = NtpExtraDetails(PreciseTime(entry['root_delay'], entry['root_delay_prec']),
                                         PreciseTime(entry['ntp_last_sync_time'], entry['ntp_last_sync_time_prec']),
                                         0)
-        main_details = NtpMainDetails(entry['offset'], entry['delay'], entry['stratum'],
+        main_details = NtpMainDetails(entry['offset'], entry['RTT'], entry['stratum'],
                                       entry['precision'], entry['reachability'])
         time_stamps = NtpTimestamps(PreciseTime(entry['client_sent'], entry['client_sent_prec']),
                                     PreciseTime(entry['server_recv'], entry['server_recv_prec']),

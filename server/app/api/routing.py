@@ -5,8 +5,8 @@ from typing import Any, Optional, Generator
 
 from sqlalchemy.orm import Session
 
-from app.db_config import SessionLocal, engine
-from app.models.Base import Base
+from server.app.db_config import SessionLocal, engine
+from server.app.models.Base import Base
 from server.app.rate_limiter import limiter
 from server.app.dtos.MeasurementRequest import MeasurementRequest
 from server.app.services.api_services import get_format, measure, fetch_historic_data_with_timestamps

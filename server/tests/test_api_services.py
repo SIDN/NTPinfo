@@ -3,7 +3,7 @@ from ipaddress import ip_address, IPv4Address, IPv6Address
 from server.app.services.api_services import *
 from unittest.mock import patch, MagicMock
 from server.app.dtos.NtpMeasurement import NtpMeasurement
-from app.utils.ip_utils import ip_to_str
+from server.app.utils.ip_utils import ip_to_str
 from datetime import datetime
 
 
@@ -56,7 +56,7 @@ def test_get_format():
     assert formatted_measurement["ntp_server_ref_parent_ip"] is None
     assert formatted_measurement["ref_name"] is None
     assert formatted_measurement["offset"] == 0.123
-    assert formatted_measurement["delay"] == 0.456
+    assert formatted_measurement["rtt"] == 0.456
     assert formatted_measurement["stratum"] == 2
     assert formatted_measurement["precision"] == -20.0
     assert formatted_measurement["reachability"] == ""
@@ -218,7 +218,7 @@ def test_fetch_historic_data_ip(mock_parse_ip, mock_get_dn, mock_get_ip):
             "ref_name": "parent.ref",
 
             "offset": 0.1,
-            "delay": 0.2,
+            "RTT": 0.2,
             "stratum": 2,
             "precision": -20,
             "reachability": 255,
@@ -266,7 +266,7 @@ def test_fetch_historic_data_domain_name(mock_get_dn, mock_get_ip):
             "ref_name": "parent.ref",
 
             "offset": 0.1,
-            "delay": 0.2,
+            "RTT": 0.2,
             "stratum": 2,
             "precision": -20,
             "reachability": 255,

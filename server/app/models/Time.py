@@ -8,7 +8,7 @@ class Time(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     client_sent: Mapped[int] = mapped_column(BigInteger, nullable=True)
-    client_sent_prec: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    client_sent_prec: Mapped[int] = mapped_column(BigInteger, nullable=True)
     server_recv: Mapped[int] = mapped_column(BigInteger, nullable=True)
     server_recv_prec: Mapped[int] = mapped_column(BigInteger, nullable=True)
     server_sent: Mapped[int] = mapped_column(BigInteger, nullable=True)
