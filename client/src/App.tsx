@@ -12,7 +12,7 @@ import { useFetchHistoricalIPData } from './hooks/useFetchHistoricalIPData.ts'
 import { dateFormatConversion } from './utils/dateFormatConversion.ts'
 import WorldMap from './components/WorldMap.tsx'
 
-import { NTPData } from './utils/types.ts'
+import { NTPData, RIPEData } from './utils/types.ts'
 import { Measurement } from './utils/types.ts'
 import { LatLngTuple } from 'leaflet'
 
@@ -78,12 +78,14 @@ function App() {
   const {fetchData: fetchHistoricalData, loading: apiHistoricalLoading, error: apiHistoricalError} = useFetchHistoricalIPData()
 
 
-const probes: [NTPData, LatLngTuple][] = [ 
-  [{ offset: 12.5, RTT: 34.2, stratum: 2, jitter: 0.3, precision: -20, status: "synced", time: 1716895200, ip: "192.168.1.10", ip_list: ["192.168.1.11", "192.168.1.12"], server_name: "ntp1.local", ref_ip: "192.168.1.1", ref_name: "ref1.local", root_delay: 1.2 },[51.51, -0.1]],
-  [{ offset: -7.3, RTT: 28.4, stratum: 3, jitter: null, precision: -18, status: "unsynced", time: 1716895300, ip: "10.0.0.5", ip_list: ["10.0.0.6"], server_name: "ntp2.domain", ref_ip: "10.0.0.1", ref_name: "ref2.domain", root_delay: 0.8 },[51.52, -0.08]],
-  [{ offset: 0.0, RTT: 45.1, stratum: 1, jitter: 0.1, precision: -19, status: "synced", time: 1716895400, ip: "172.16.0.2", ip_list: ["172.16.0.3", "172.16.0.4"], server_name: "ntp3.network", ref_ip: "172.16.0.1", ref_name: "ref3.network", root_delay: 0.5 },[51.5, -0.07]]
-];
-const ntpServer: LatLngTuple = [51.53, -0.09];
+const ripeData: RIPEData[] = [
+  { measurementData: { offset: 12, RTT: 24, stratum: 2, jitter: 1.5, precision: -20, status: "OK", time: 1717050000, ip: "192.0.2.1", ip_list: ["192.0.2.1", "192.0.2.2"], server_name: "ntp1.example.com", ref_ip: "198.51.100.1", ref_name: "ref1.example.com", root_delay: 0.25 }, probe_id: 101, probe_country: "US", probe_location: [37.7749, -122.4194], got_results: true }, // San Francisco
+  { measurementData: { offset: 8, RTT: 15, stratum: 1, jitter: 0.9, precision: -18, status: "OK", time: 1717051000, ip: "192.0.2.3", ip_list: ["192.0.2.3"], server_name: "ntp2.example.com", ref_ip: "198.51.100.2", ref_name: "ref2.example.com", root_delay: 0.18 }, probe_id: 102, probe_country: "US", probe_location: [40.7128, -74.0060], got_results: true }, // New York
+  { measurementData: { offset: 5, RTT: 10, stratum: 3, jitter: null, precision: -19, status: "OK", time: 1717052000, ip: "192.0.2.4", ip_list: ["192.0.2.4", "192.0.2.5"], server_name: "ntp3.example.com", ref_ip: "198.51.100.3", ref_name: "ref3.example.com", root_delay: 0.22 }, probe_id: 103, probe_country: "US", probe_location: [41.8781, -87.6298], got_results: true }, // Chicago
+  { measurementData: { offset: -1, RTT: -1, stratum: 0, jitter: null, precision: 0, status: "ERROR", time: 1717053000, ip: "0.0.0.0", ip_list: [], server_name: "", ref_ip: "", ref_name: "", root_delay: 0 }, probe_id: 104, probe_country: "US", probe_location: [29.7604, -95.3698], got_results: false }, // Houston
+  { measurementData: { offset: 3, RTT: 7, stratum: 2, jitter: 0.7, precision: -21, status: "OK", time: 1717054000, ip: "192.0.2.6", ip_list: ["192.0.2.6"], server_name: "ntp4.example.com", ref_ip: "198.51.100.4", ref_name: "ref4.example.com", root_delay: 0.17 }, probe_id: 105, probe_country: "US", probe_location: [34.0522, -118.2437], got_results: true } // Los Angeles
+]
+const ntpServer: LatLngTuple = [41.509985, -103.181674];
 
 
 
@@ -186,7 +188,7 @@ const ntpServer: LatLngTuple = [51.53, -0.09];
           </div>
         </div>
         <div className='map-box'>
-          <WorldMap probes={probes} ntpServer={ntpServer}/>
+          <WorldMap probes={ripeData} ntpServer={ntpServer}/>
         </div>
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>)}
       

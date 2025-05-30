@@ -1,6 +1,6 @@
-import { NTPData } from "./types.ts";
+import { NTPData } from "./types.ts"
 
-export const transformJSONData = (fetchedData: any): NTPData | null => {
+export const transformJSONDataToNTPData = (fetchedData: any): NTPData | null => {
     if (!fetchedData) 
         return null
     
@@ -17,6 +17,6 @@ export const transformJSONData = (fetchedData: any): NTPData | null => {
         server_name: fetchedData.ntp_server_name,
         ref_ip: fetchedData.ntp_server_ref_parent_ip,
         ref_name: fetchedData.ref_name,
-        root_delay: fetchedData.root_delay
+        root_delay: fetchedData.root_delay.seconds
     }
 };

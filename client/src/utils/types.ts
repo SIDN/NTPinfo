@@ -1,3 +1,5 @@
+import { LatLngTuple } from "leaflet"
+
 export type NTPData = {
   offset: number
   RTT: number
@@ -15,3 +17,11 @@ export type NTPData = {
 }
 
 export type Measurement = "RTT" | "offset"
+
+export type RIPEData = {
+  measurementData : NTPData
+  probe_id: number
+  probe_country: string
+  probe_location: LatLngTuple
+  got_results: boolean
+}

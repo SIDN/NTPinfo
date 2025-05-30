@@ -3,7 +3,7 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
 import { useEffect } from 'react'
-import { NTPData } from '../utils/types'
+import { RIPEData } from '../utils/types'
 import greenProbeImg from '../assets/green-probe.png'
 import yellowProbeImg from '../assets/yellow-probe.png'
 import redProbeImg from '../assets/red-probe.png'
@@ -19,41 +19,41 @@ L.Icon.Default.mergeOptions({
 
 const greenIcon = new L.Icon({
   iconUrl: greenProbeImg,
-  iconSize: [30, 30],
+  iconSize: [20, 20],
   iconAnchor: [10, 10],
-  popupAnchor: [4.5, -7]
+  popupAnchor: [0, -8]
 })
 
 const yellowIcon = new L.Icon({
   iconUrl: yellowProbeImg,
-  iconSize: [30, 30],
+  iconSize: [20, 20],
   iconAnchor: [10, 10],
-  popupAnchor: [4.5, -7]
+  popupAnchor: [0, -8]
 })
 
 const redIcon = new L.Icon({
   iconUrl: redProbeImg,
-  iconSize: [30, 30],
+  iconSize: [20, 20],
   iconAnchor: [10, 10],
-  popupAnchor: [4.5, -7]
+  popupAnchor: [0, -8]
 })
 
 const darkRedIcon = new L.Icon({
   iconUrl: darkRedProbeImg,
-  iconSize: [30, 30],
+  iconSize: [20, 20],
   iconAnchor: [10, 10],
-  popupAnchor: [4.5, -7]
+  popupAnchor: [0, -8]
 })
 
 const grayIcon = new L.Icon({
   iconUrl: grayProbeImg,
-  iconSize: [30, 30],
+  iconSize: [20, 20],
   iconAnchor: [10, 10],
-  popupAnchor: [4.5, -7]
+  popupAnchor: [0, -8]
 })
 
 interface MapComponentProps {
-  probes: [NTPData,L.LatLngExpression][]
+  probes: RIPEData[]
   ntpServer: L.LatLngExpression
 }
 
@@ -82,16 +82,22 @@ const DrawConnectingLines = ({probes, ntpServer}: {probes: L.LatLngExpression[],
   return null
 }
 
-const getIconByRTT = (rtt: number): L.Icon => {
+const getIconByRTT = (rtt: number, measured: boolean): L.Icon => {
+  if (measured == false) return grayIcon;
   if (rtt < 15) return greenIcon;
   if (rtt < 40) return yellowIcon;
   if (rtt < 150) return redIcon;
   return darkRedIcon;
 }
 
+const stringifyRTTAndOffset = (value: number): string => {
+  if (value === -1) return "No Reply"
+  else return value.toString()
+}
+
 export default function WorldMap ({probes, ntpServer}: MapComponentProps) {
-  const probe_location = probes.map(x => x[1])
-  const icons = probes.map(x => getIconByRTT(x[0].RTT))
+  const probe_location = probes.map(x => x.probe_location)
+  const icons = probes.map(x => getIconByRTT(x.measurementData.RTT, x.got_results))
     return (
         <MapContainer  style={{height: '500px', width: '100%'}}>
             <TileLayer 
@@ -103,17 +109,17 @@ export default function WorldMap ({probes, ntpServer}: MapComponentProps) {
             
             {probe_location.map((pos, index) => (<Marker key = {index} position = {pos} icon = {icons[index]}>
               <Popup>
-                Probe ID: 11012<br/>
-                Offset: {probes[index][0].offset.toString()}<br/>
-                RTT: {probes[index][0].RTT.toString()}
+                Probe ID: <a href = {`https://atlas.ripe.net/probes/${probes[index].probe_id}/overview`} target='_blank' rel="noopener noreferrer">{probes[index].probe_id}</a><br/>
+                Offset: {stringifyRTTAndOffset(probes[index].measurementData.offset)}<br/>
+                RTT: {stringifyRTTAndOffset(probes[index].measurementData.RTT)}
               </Popup>
             </Marker>))}
 
             <Marker position = {ntpServer}>
                 <Popup>
                   NTP Server<br/>
-                  IP: {probes[0][0].ip}<br/>
-                  Name: {probes[0][0].server_name}
+                  IP: {probes[0].measurementData.ip}<br/>
+                  Name: {probes[0].measurementData.server_name}
                 </Popup>
             </Marker>
             <FitMapBounds probes={probe_location} ntpServer={ntpServer}/>
