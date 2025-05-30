@@ -127,7 +127,7 @@ def get_area_of_ip(ip_country: str, ip_continent: Optional[str]) -> str:
         return "North-East"
     return "South-East"
 
-import pprint
+
 def get_prefix_from_ip(ip_str: str) -> Optional[str]:
     """
     This method returns the prefix of an IP address.

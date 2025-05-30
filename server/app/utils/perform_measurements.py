@@ -400,7 +400,7 @@ def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int=30) ->
             "resolve_on_probe": True,
             "description": f"NTP measurement to {ntp_server_ip}",
             "packets": packets_count,
-            "timeout": 1000,
+            "timeout": 2000,
             "skip_dns_check": False,
             "target": ntp_server_ip
         }
@@ -428,10 +428,10 @@ def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int=30) ->
 #m=perform_ntp_measurement_domain_name("time.google.com")
 # m=perform_ntp_measurement_domain_name("ro.pool.ntp.org","83.25.24.10")
 # print_ntp_measurement(m)
-import time
-
-start = time.time()
-print(perform_ripe_measurement_ip("89.46.74.148"))
-end = time.time()
-
-print(end - start)
+# import time
+#
+# start = time.time()
+# print(perform_ripe_measurement_ip("89.46.74.148"))
+# end = time.time()
+#
+# print(end - start)
