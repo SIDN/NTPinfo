@@ -1,8 +1,13 @@
 import socket, ntplib
 from ipaddress import ip_address, IPv4Address, IPv6Address
 from datetime import datetime, timezone
-from typing import Any
+import json
 
+import requests
+
+from server.app.utils.ip_utils import get_country_asn_from_ip, get_ip_family, ref_id_to_ip_or_name
+from server.app.utils.load_env_vals import get_ripe_account_email, get_ripe_api_token
+from server.app.utils.ripe_probes import get_probes
 from server.app.services.NtpCalculator import NtpCalculator
 from server.app.utils.domain_name_to_ip import domain_name_to_ip_default, domain_name_to_ip_close_to_client
 from server.app.models.NtpExtraDetails import NtpExtraDetails
@@ -67,7 +72,7 @@ def get_server_ip() -> IPv4Address | IPv6Address | None:
 
 
 def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", client_ip: str | None = None,
-                                        ntp_version: int = 3) -> NtpMeasurement | None:
+                                        ntp_version: int = 4) -> NtpMeasurement | None:
     """
     This method performs a NTP measurement on a NTP server from its domain name. The "other IPs list" of the
     measurement will be an empty list, or it will contain some elements. It would not be None.
@@ -112,7 +117,7 @@ def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", clien
         return None
 
 
-def perform_ntp_measurement_ip(server_ip_str: str, ntp_version: int = 3) -> NtpMeasurement | None:
+def perform_ntp_measurement_ip(server_ip_str: str, ntp_version: int = 4) -> NtpMeasurement | None:
     """
     This method performs a NTP measurement on a NTP server from its IP address. The "other IPs list" of the
     measurement will be None.
@@ -156,7 +161,7 @@ def convert_timestamp_to_precise_time(t: float) -> PreciseTime:
 
 def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str: str, server_name: str | None,
                                         other_server_ips: list[str] | None,
-                                        ntp_version: int = 3, ) -> NtpMeasurement | None:
+                                        ntp_version: int = 4, ) -> NtpMeasurement | None:
     """
     This method converts a NTP response to a NTP measurement object.
 
@@ -229,31 +234,6 @@ def convert_float_to_precise_time(value: float) -> PreciseTime:
     seconds = int(value)
     fraction = ntplib._to_frac(value)  # by default, a second is split into 2^32 parts
     return PreciseTime(seconds, fraction)
-
-
-def ref_id_to_ip_or_name(ref_id: int, stratum: int) \
-        -> tuple[None, str] | tuple[IPv4Address | IPv6Address, None] | tuple[None, None]:
-    """
-    Represents a method that converts the reference id to the reference ip or reference name.
-    If the stratum is 0 or 1 then we can convert the reference id to it's name (ex: Geostationary Orbit Environment Satellite).
-    If the stratum is between 1 and 256 then we can convert the reference id to it's ip.
-    If the stratum is greater than 255, then we have an invalid stratum.
-
-    Args:
-        ref_id (int): the reference id of the ntp server
-        stratum (int): the stratum level of the ntp server
-
-    Returns:
-        a tuple of the ip and name of the ntp server. At least one of them is None. If both are None then the stratum is invalid.
-    """
-    print(ref_id)
-    if 0 <= stratum <= 1:  # we can get the name
-        return None, ntplib.ref_id_to_text(ref_id, stratum)
-    else:
-        if stratum < 256:  # we can get an IP address
-            return ip_address(socket.inet_ntoa(ref_id.to_bytes(4, 'big'))), None  # 'big' is from big endian
-        else:
-            return None, None  # invalid stratum!!
 
 
 def ntp_precise_time_to_human_date(t: PreciseTime) -> str:
@@ -347,6 +327,108 @@ def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
         print("Error:", e)
         return False
 
-# m,t=perform_ntp_measurement_domain_name("time.google.com")
-# m,t=perform_ntp_measurement_domain_name("pool.ntp.org","83.25.24.10")
+def perform_ripe_measurement_domain_name(server_name: str, client_ip: str|None=None,
+                                         probes_requested: int=30) -> tuple[int, list[str]]:
+    """
+    This method performs a RIPE measurement on a domain name. It transforms the domain name of the NTP server into
+    an IP address, and then it uses perform_ripe_measurement_ip method.
+
+    Args:
+        server_name (str): The domain name of the NTP server.
+        client_ip (str): The IP address of the NTP server.
+        probes_requested (int): The number of probes requested.
+
+    Returns:
+        tuple[int, list[str]]: It returns the ID of the measurement and the list of IPs of the domain name.
+                               You can find in the measurement what IP it used.
+
+    Raises:
+        Exception: If the conversion could not be performed or if the measurement failed.
+    """
+    domain_ips: list[str] | None
+
+    if client_ip is None:  # if we do not have the client_ip available, use this server as a "client ip"
+        domain_ips = domain_name_to_ip_default(server_name)
+    else:
+        domain_ips = domain_name_to_ip_close_to_client(server_name, client_ip)
+
+    # if the domain name is invalid or []
+    if domain_ips is None or len(domain_ips) == 0:
+        raise Exception(f"Could not find any IP address for {server_name}.")
+    # take one IP address from the list
+    ip_str = domain_ips[0]
+    return perform_ripe_measurement_ip(ip_str, probes_requested), domain_ips
+
+
+def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int=30) -> int:
+    """
+    This method performs a RIPE measurement and returns the code of the measurement.
+
+    Args:
+        ntp_server_ip (str): The NTP server IP.
+        probes_requested (int): The number of probes requested.
+
+    Returns:
+        int: The code of the measurement.
+
+    Raises:
+        Exception: If the NTP server IP is not valid, probe requested is negative or if the measurement could not be performed.
+    """
+
+    if probes_requested <= 0:
+        raise Exception("Probe requested must be greater than 0.")
+
+    # measurement settings
+    ip_family = get_ip_family(ntp_server_ip) # this will throw an exception if the ntp_server_ip is not an IP address
+    api_key = get_ripe_api_token()
+    packets_count = 2
+    ripe_account_email = get_ripe_account_email()
+
+    ip_country, ip_asn = get_country_asn_from_ip(ntp_server_ip) or (None, None)
+
+    headers = {
+        "Authorization": f"Key {api_key}",
+        "Content-Type": "application/json"
+    }
+    request_content = {"definitions": [
+        {
+            "type": "ntp",
+            "af": ip_family,
+            "resolve_on_probe": True,
+            "description": f"NTP measurement to {ntp_server_ip}",
+            "packets": packets_count,
+            "timeout": 4000,
+            "skip_dns_check": False,
+            "target": ntp_server_ip
+        }
+    ],
+        "is_oneoff": True,
+        "bill_to": ripe_account_email,
+        "probes": get_probes(ip_asn, None, ip_country, None)
+    }
+
+    # perform the measurement
+    response = requests.post(
+        "https://atlas.ripe.net/api/v2/measurements/",
+        headers=headers,
+        data=json.dumps(request_content)
+    )
+
+    print("Status Code:", response.status_code)
+    print("Response:", response.json())
+
+    data = response.json()
+    # the answer has a list of measurements, but we only did one measurement so we send one.
+    ans: int = data["measurements"][0]
+    return ans
+
+#m=perform_ntp_measurement_domain_name("time.google.com")
+# m=perform_ntp_measurement_domain_name("ro.pool.ntp.org","83.25.24.10")
 # print_ntp_measurement(m)
+# import time
+#
+# start = time.time()
+# print(perform_ripe_measurement_ip("89.46.74.148"))
+# end = time.time()
+#
+# print(end - start)
