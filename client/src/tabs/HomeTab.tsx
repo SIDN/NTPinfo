@@ -86,13 +86,13 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
     }
 
     // Get the response from the measurement data API
-    const fullurlMeasurementData = `http://localhost:8000/measurements/`
+    const fullurlMeasurementData = `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/`
     const apiMeasurementResp = await fetchMeasurementData(fullurlMeasurementData, payload)
 
     //Get data from past day from historical data API to chart in the graph
     const startDate = dateFormatConversion(Date.now()-86400000)
     const endDate = dateFormatConversion(Date.now())
-    const fullurlHistoricalData = `http://localhost:8000/measurements/history/?server=${query}&start=${startDate}&end=${endDate}`
+    const fullurlHistoricalData = `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/history/?server=${query}&start=${startDate}&end=${endDate}`
     const apiHistoricalResp = await fetchHistoricalData(fullurlHistoricalData)
 
     
@@ -103,7 +103,7 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
     setNtpData(data ?? null)
     setChartData(chartData ?? null)
 
-    const fullUrlRipeData = `http://locallocalhost:8000/measurements/ripe`
+    const fullUrlRipeData = `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/ripe`
     //const apiRIPEResp = await fetchRIPEData(fullUrlRipeData, ripePayload)
     //const ripeData = apiRIPEResp
     setRIPEData(ripeData ?? null)
