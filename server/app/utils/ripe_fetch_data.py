@@ -154,22 +154,33 @@ def is_failed_measurement(entry: dict[str, Any]) -> bool:
 
 def successful_measurement(entry: dict[str, Any]) -> int | None:
     """
-    Identifies the index of a successful measurement within the result list.
+    Identifies the index of the successful measurement with the lowest offset.
 
-    A successful measurement is determined by the presence of the "origin-ts" field,
-    which indicates that the probe recorded a valid timestamp.
+    A successful measurement is one that contains the "origin-ts" field,
+    indicating a valid timestamp. Among all such entries, the one with the
+    lowest absolute offset value is considered the most successful.
 
     Args:
         entry (dict[str, Any]): A dictionary representing a single measurement entry from the RIPE API
 
     Returns:
-        int | None: The index of the first successful result entry, or None if none were successful.
+        int | None: The index of the result entry with the lowest offset, or None if no valid entries exist
     """
     result = entry.get("result", [])
+    min_offset = float("inf")
+    min_index = None
+
     for i, r in enumerate(result):
-        if "origin-ts" in r:
-            return i
-    return None
+        if "origin-ts" in r and "offset" in r:
+            try:
+                offset = abs(float(r["offset"]))
+                if offset < min_offset:
+                    min_offset = offset
+                    min_index = i
+            except (ValueError, TypeError):
+                continue
+
+    return min_index
 
 
 def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> list[RipeMeasurement]:
