@@ -32,8 +32,8 @@ def get_probes(ip_asn: Optional[str], ip_prefix: Optional[str], ip_country: Opti
     # the types of probes that we will use. We will use the input parameters to determine which probe types to use.
     # But for now we use a default order. We would change this logic in future
 
-    best_probe_types: dict[str, int] = get_best_probe_types(ip_country, ip_prefix, ip_area,
-                                                            ip_country, probes_requested)
+    best_probe_types: dict[str, int] = get_best_probe_types(ip_asn=ip_asn, ip_prefix=ip_prefix, ip_country=ip_country,
+                                                            ip_area=ip_area, probes_requested=probes_requested)
 
     for probe_type, n in best_probe_types.items():
         # instead of a switch, I used a map with lambda methods
