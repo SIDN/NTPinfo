@@ -46,6 +46,10 @@ def get_data_from_ripe_measurement(measurement_id: str) -> list[dict[str, Any]]:
         "Content-Type": "application/json"
     }
     response = requests.get(url, headers=headers)
+    json_data = response.json()
+    if isinstance(json_data, dict) and 'error' in json_data:
+        raise ValueError(
+            f"RIPE API error: {json_data['error']['title']} - {json_data['error']['detail']}")
 
     # print("Status Code:", response.status_code)
     # print("Response JSON:", response.json())
@@ -197,7 +201,7 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> list[RipeM
 
         from_ip = measurement.get('from')
         vantage_point_ip = ip_address(from_ip) if from_ip is not None else None
-        version = measurement.get('version', 0)
+        version = measurement.get('version', -1)
         dst_addr = measurement.get('dst_addr')
         dst_name = measurement.get('dst_name')
 
@@ -213,19 +217,19 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> list[RipeM
         if not failed and idx is not None:
             result = measurement['result'][idx]
             timestamps = NtpTimestamps(
-                client_sent_time=convert_float_to_precise_time(result.get('origin-ts', 0.0)),
-                server_recv_time=convert_float_to_precise_time(result.get('receive-ts', 0.0)),
-                server_sent_time=convert_float_to_precise_time(result.get('transmit-ts', 0.0)),
-                client_recv_time=convert_float_to_precise_time(result.get('final-ts', 0.0))
+                client_sent_time=convert_float_to_precise_time(result.get('origin-ts', -1.0)),
+                server_recv_time=convert_float_to_precise_time(result.get('receive-ts', -1.0)),
+                server_sent_time=convert_float_to_precise_time(result.get('transmit-ts', -1.0)),
+                client_recv_time=convert_float_to_precise_time(result.get('final-ts', -1.0))
             )
-            offset = result.get('offset', 0)
-            delay = result.get('rtt', 0)
+            offset = result.get('offset', -1.0)
+            delay = result.get('rtt', -1.0)
         else:
-            timestamps = NtpTimestamps(*(PreciseTime(0, 0) for _ in range(4)))
-            offset = delay = 0
+            timestamps = NtpTimestamps(*(PreciseTime(-1, 0) for _ in range(4)))
+            offset = delay = -1
 
-        stratum = measurement.get('stratum', 0)
-        precision = measurement.get('precision', 0)
+        stratum = measurement.get('stratum', -1)
+        precision = measurement.get('precision', -1)
 
         main_details = NtpMainDetails(offset=offset,
                                       delay=delay,
@@ -233,21 +237,21 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> list[RipeM
                                       precision=precision,
                                       reachability="")
 
-        root_delay = measurement.get('root-delay', 0.0)
+        root_delay = measurement.get('root-delay', -1.0)
 
         extra_details = NtpExtraDetails(root_delay=convert_float_to_precise_time(root_delay),
-                                        ntp_last_sync_time=convert_float_to_precise_time(0.0),
+                                        ntp_last_sync_time=convert_float_to_precise_time(-1.0),
                                         leap=0)
         ntp_measurement = NtpMeasurement(vantage_point_ip=vantage_point_ip, server_info=server_info,
                                          timestamps=timestamps, main_details=main_details,
                                          extra_details=extra_details)
 
-        time_to_result = measurement.get('ttr', 0.0)
-        poll = measurement.get('poll', 0)
+        time_to_result = measurement.get('ttr', -1.0)
+        poll = measurement.get('poll', -1)
 
-        root_dispersion = measurement.get('root-dispersion', 0.0)
+        root_dispersion = measurement.get('root-dispersion', -1.0)
         ref_id = measurement.get('ref-id', 'NO REFERENCE')
-        measurement_id = measurement.get('msm_id', 0)
+        measurement_id = measurement.get('msm_id', -1)
 
         ripe_measurement = RipeMeasurement(
             measurement_id=measurement_id,
@@ -263,6 +267,6 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> list[RipeM
     return ripe_measurements
 
 # parse_data_from_ripe_measurement(get_data_from_ripe_measurement("105960562"))
-# parse_data_from_ripe_measurement(get_data_from_ripe_measurement("106323686"))
+# parse_data_from_ripe_measurement(get_data_from_ripe_measurement("m106323686"))
 # parse_data_from_ripe_measurement(get_data_from_ripe_measurement("106125660"))
 # print(parse_probe_data(get_probe_data_from_ripe_by_id("7304")))

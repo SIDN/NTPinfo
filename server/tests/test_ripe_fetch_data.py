@@ -226,6 +226,22 @@ def test_get_data_from_ripe_measurement(mock_get):
 
 
 @patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_get_data_from_ripe_measurement_raises_on_error_response(mock_get):
+    mock_get.return_value = Mock(status_code=400)
+    mock_get.return_value.json.return_value = {
+        "error": {
+            "title": "Bad Request",
+            "detail": "Invalid measurement ID."
+        }
+    }
+
+    with pytest.raises(ValueError) as exc_info:
+        get_data_from_ripe_measurement("invalid_id")
+
+    assert "RIPE API error: Bad Request - Invalid measurement ID." in str(exc_info.value)
+
+
+@patch("server.app.utils.ripe_fetch_data.requests.get")
 def test_get_probe_data_from_ripe_by_id(mock_get):
     mock_get.return_value = Mock(status_code=200)
     mock_get.return_value.json.return_value = MOCK_PROBE_RESPONSE
@@ -339,21 +355,21 @@ def test_parse_data_from_ripe_measurement_with_no_response(mock_get_probe):
     assert isinstance(results, list)
     assert isinstance(results[0], RipeMeasurement)
     assert results[0].ntp_measurement.vantage_point_ip == ip_address("83.231.3.54")
-    assert results[0].time_to_result == 0
+    assert results[0].time_to_result == -1
     assert results[0].measurement_id == 123
-    assert results[0].root_dispersion == 0
+    assert results[0].root_dispersion == -1
     assert results[0].ref_id == "NO REFERENCE"
-    assert results[0].poll == 0
+    assert results[0].poll == -1
     assert results[0].probe_data.probe_id == 9999
 
-    assert results[0].ntp_measurement.timestamps.client_sent_time.seconds == 0
+    assert results[0].ntp_measurement.timestamps.client_sent_time.seconds == -1
     assert results[0].ntp_measurement.timestamps.client_sent_time.fraction == 0
 
-    assert results[0].ntp_measurement.timestamps.server_recv_time.seconds == 0
+    assert results[0].ntp_measurement.timestamps.server_recv_time.seconds == -1
     assert results[0].ntp_measurement.timestamps.server_recv_time.fraction == 0
 
-    assert results[0].ntp_measurement.timestamps.server_sent_time.seconds == 0
+    assert results[0].ntp_measurement.timestamps.server_sent_time.seconds == -1
     assert results[0].ntp_measurement.timestamps.server_sent_time.fraction == 0
 
-    assert results[0].ntp_measurement.timestamps.client_recv_time.seconds == 0
+    assert results[0].ntp_measurement.timestamps.client_recv_time.seconds == -1
     assert results[0].ntp_measurement.timestamps.client_recv_time.fraction == 0
