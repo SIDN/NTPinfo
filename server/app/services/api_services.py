@@ -1,12 +1,14 @@
-from ipaddress import IPv4Address, IPv6Address
+from ipaddress import IPv4Address, IPv6Address, ip_address
 from typing import Any, Optional, Coroutine
 
+from server.app.utils.perform_measurements import perform_ripe_measurement_domain_name
 from server.app.models.ProbeData import ProbeLocation
 from server.app.models.RipeMeasurement import RipeMeasurement
 from server.app.utils.ripe_fetch_data import parse_data_from_ripe_measurement, get_data_from_ripe_measurement
 from server.app.utils.validate import ensure_utc, is_ip_address, parse_ip
 from server.app.services.NtpCalculator import NtpCalculator
-from server.app.utils.perform_measurements import perform_ntp_measurement_ip, perform_ntp_measurement_domain_name
+from server.app.utils.perform_measurements import perform_ntp_measurement_ip, perform_ntp_measurement_domain_name, \
+    perform_ripe_measurement_ip
 from server.app.utils.perform_measurements import human_date_to_ntp_precise_time, ntp_precise_time_to_human_date, \
     calculate_jitter_from_measurements
 from datetime import datetime
@@ -120,9 +122,9 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
         "stratum": measurement.ntp_measurement.main_details.stratum,
         "poll": measurement.poll,
         "precision": measurement.ntp_measurement.main_details.precision,
-        "root-delay": measurement.ntp_measurement.extra_details.root_delay,
-        "root-dispersion": measurement.root_dispersion,
-        "ref-id": measurement.ref_id,
+        "root_delay": measurement.ntp_measurement.extra_details.root_delay,
+        "root_dispersion": measurement.root_dispersion,
+        "ref_id": measurement.ref_id,
         "result": [
             {
                 "client_sent_time": measurement.ntp_measurement.timestamps.client_sent_time,
@@ -263,4 +265,15 @@ def fetch_ripe_data(measurement_id: str) -> list[dict]:
         measurements_formated.append(get_ripe_format(m))
     return measurements_formated
 
-# print(fetch_ripe_data("106323686"))
+
+# print(fetch_ripe_data("106549701"))
+
+
+def perform_ripe_measurement(server: str, client_ip: Optional[str] = None) -> str:
+    try:
+        ip_address(server)
+        measurement_id = perform_ripe_measurement_ip(server)
+    except ValueError:
+        measurement_id = perform_ripe_measurement_domain_name(server, client_ip)
+
+    return str(measurement_id)

@@ -3,6 +3,8 @@ from fastapi import HTTPException, APIRouter, Request
 from datetime import datetime, timezone
 from typing import Any, Optional
 
+from server.app.services.api_services import fetch_ripe_data
+from server.app.services.api_services import perform_ripe_measurement
 from server.app.rate_limiter import limiter
 from server.app.models.MeasurementRequest import MeasurementRequest
 from server.app.services.api_services import get_format, measure, fetch_historic_data_with_timestamps
@@ -113,8 +115,39 @@ async def read_historic_data_time(server: str,
     return {
         "measurements": formatted_results
     }
-#
-#
-# @router.post("/measurements/ripe/")
-# @limiter.limit("5/second")
-# async def read_data_from_ripe(payload: MeasurementRequest, request: Request) -> dict[str, Any]:
+
+
+@router.post("/measurements/ripe/")
+@limiter.limit("5/second")
+async def read_data_from_ripe(payload: MeasurementRequest, request: Request) -> dict[str, Any]:
+    server = payload.server
+    if len(server) == 0:
+        raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
+
+    client_ip: Optional[str]
+    if request.client is None:
+        client_ip = None
+    else:
+        try:
+            client_ip = request.headers.get("X-Forwarded-For", request.client.host)
+        except Exception as e:
+            client_ip = None
+    times = payload.measurements_no if payload.measurements_no else 0
+
+    try:
+        ripe_response = perform_ripe_measurement(server, client_ip=client_ip)
+        ripe_measurement_result = fetch_ripe_data(ripe_response)
+        ntp_client_response = measure(server, client_ip, payload.jitter_flag, times)
+        if ntp_client_response is not None:
+            result, jitter = ntp_client_response
+            return {
+                "measurement": {
+                    "ntp_client": get_format(result, jitter),
+                    "ripe": ripe_measurement_result
+                }
+            }
+        else:
+            raise HTTPException(status_code=404, detail="Your search does not seem to match any server")
+    except Exception as e:
+        print(e)
+        return {"error": f"Failed to perform measurement: {str(e)}"}
