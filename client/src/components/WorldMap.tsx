@@ -55,15 +55,28 @@ const grayIcon = new L.Icon({
 interface MapComponentProps {
   probes: RIPEData[] | null
   ntpServer: L.LatLngExpression
+  err: Error | null
 }
 
 const FitMapBounds = ({probes, ntpServer}: {probes: L.LatLngExpression[], ntpServer: L.LatLngExpression}) => {
   const map = useMap()
 
   useEffect(() => {
-    const allPoints = [...probes, ntpServer]
-    const bounds = L.latLngBounds(allPoints)
-    map.fitBounds(bounds, { padding: [15, 15] })
+    const fitBounds = () => {
+      const allPoints = [...probes, ntpServer]
+      const bounds = L.latLngBounds(allPoints)
+      map.fitBounds(bounds, { padding: [15, 15] })
+    }
+
+    fitBounds()
+
+    const handleWindowResize = () => {
+      requestAnimationFrame(() => {
+        fitBounds()
+      })
+    }
+    window.addEventListener('resize', handleWindowResize)
+    return () => {window.removeEventListener('resize', handleWindowResize)}
   }, [map, probes, ntpServer])
 
   return null
@@ -95,13 +108,23 @@ const stringifyRTTAndOffset = (value: number): string => {
   else return value.toString()
 }
 
-export default function WorldMap ({probes, ntpServer}: MapComponentProps) {
-  const [probe_locations, setProbeLocations] = useState<L.LatLngTuple[] | null>(null)
-  const [icons, setIcons] = useState<L.Icon[] | null>(null)
-  if (probes !== null){
-    setProbeLocations(probes.map(x => x.probe_location))
-    setIcons(probes.map(x => getIconByRTT(x.measurementData.RTT, x.got_results)))
-  }
+export default function WorldMap ({probes, ntpServer, err}: MapComponentProps) {
+  
+  console.log(err)
+  console.log(probes)
+  const [statusMessage, setStatusMessage] = useState<string>("")
+  useEffect(() => {
+    if (probes == null) {
+        if (err)
+            setStatusMessage("Unknown error occurred")
+        }
+    }, [probes, err])
+
+  if(probes == null)
+    return <h2 id="not-found">{err ? `Error unknown: ${statusMessage}` : `Unknown error occurred`}</h2>
+
+  const probe_locations = probes?.map(x => x.probe_location) ?? []
+  const icons = probes?.map(x => getIconByRTT(x.measurementData.RTT, x.got_results)) ?? []
     return ( 
         <MapContainer  style={{height: '500px', width: '100%'}}>
             <TileLayer 
@@ -113,7 +136,7 @@ export default function WorldMap ({probes, ntpServer}: MapComponentProps) {
             
             {probe_locations && icons && probes && (
             <>
-            {probe_locations.map((pos, index) => (<Marker key = {index} position = {pos} icon = {icons[index]}>
+              {probe_locations.map((pos, index) => (<Marker key = {index} position = {pos} icon = {icons[index]}>
                 <Popup>
                   Probe ID: <a href = {`https://atlas.ripe.net/probes/${probes[index].probe_id}/overview`} target='_blank' rel="noopener noreferrer">{probes[index].probe_id}</a><br/>
                   Offset: {stringifyRTTAndOffset(probes[index].measurementData.offset)}<br/>

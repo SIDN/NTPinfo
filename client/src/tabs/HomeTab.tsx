@@ -35,7 +35,7 @@ function HomeTab() {
   //Varaibles to log and use API hooks
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
   const {fetchData: fetchHistoricalData, loading: apiHistoricalLoading, error: apiHistoricalError} = useFetchHistoricalIPData()
-  const {fetchData: fetchRIPEData, loading: apiRIPELoading, error: apiRIPEError} = useFetchRIPEData()
+  //const {fetchData: fetchRIPEData, loading: apiRIPELoading, error: apiRIPEError} = useFetchRIPEData()
 
 
 const ripeDatas: RIPEData[] = [
@@ -95,16 +95,17 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
     const fullurlHistoricalData = `http://localhost:8000/measurements/history/?server=${query}&start=${startDate}&end=${endDate}`
     const apiHistoricalResp = await fetchHistoricalData(fullurlHistoricalData)
 
-    const fullUrlRipeData = `http://locallocalhost:8000/measurements/ripe`
-    const apiRIPEResp = await fetchRIPEData(fullUrlRipeData, ripePayload)
     
     //update data stored and show the data again
     setMeasured(true)
     const data = apiMeasurementResp
     const chartData = apiHistoricalResp
-    const ripeData = apiRIPEResp
     setNtpData(data ?? null)
     setChartData(chartData ?? null)
+
+    const fullUrlRipeData = `http://locallocalhost:8000/measurements/ripe`
+    //const apiRIPEResp = await fetchRIPEData(fullUrlRipeData, ripePayload)
+    //const ripeData = apiRIPEResp
     setRIPEData(ripeData ?? null)
   }
 
@@ -152,9 +153,12 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
             <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day"/>
           </div>
         </div>
+        {/* TO ADD WHEN API IS DONE: REPLACE TRUE WITH apiRIPELoading AND err WITH apiRIPEError */}
+        {true && (
         <div className='map-box'>
-          <WorldMap probes={ripeDatas} ntpServer={ntpServer}/>
+          <WorldMap probes={ripeDatas} ntpServer={ntpServer} err = {null} />
         </div>
+        )}
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>)}
       
       {/*Only shown when a domain name is queried. Users can download IP addresses corresponding to that domain name*/}
