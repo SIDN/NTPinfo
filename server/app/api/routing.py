@@ -113,3 +113,8 @@ async def read_historic_data_time(server: str,
     return {
         "measurements": formatted_results
     }
+#
+#
+# @router.post("/measurements/ripe/")
+# @limiter.limit("5/second")
+# async def read_data_from_ripe(payload: MeasurementRequest, request: Request) -> dict[str, Any]:
