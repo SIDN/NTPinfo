@@ -3,7 +3,7 @@ from ipaddress import ip_address, IPv4Address, IPv6Address
 from server.app.services.api_services import *
 from unittest.mock import patch, MagicMock
 from server.app.dtos.NtpMeasurement import NtpMeasurement
-from server.app.utils.ip_to_str import ip_to_str
+from app.utils.ip_utils import ip_to_str
 from datetime import datetime
 
 

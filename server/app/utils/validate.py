@@ -82,19 +82,3 @@ def parse_ip(ip_str: str) -> IPv4Address | IPv6Address | None:
     except ValueError:
         print("Invalid IP address")
         return None
-
-def get_country_from_ip(ip: str) -> str:
-    """
-    It makes a call to IPinfo to get the country code from this IP.
-    This method is for debugging purposes only. (It provides real details, but we use them only to verify the countries)
-
-    Args:
-        ip (str): The IP address in string format.
-
-    Returns:
-        str: The country code or "Unknown" if IPinfo could not find the country code.
-    """
-    response = requests.get(f"https://ipinfo.io/{ip}/json")
-    data = response.json()
-    ans: str = data.get("country", "Unknown")
-    return ans

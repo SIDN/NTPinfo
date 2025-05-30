@@ -2,6 +2,10 @@ from unittest.mock import patch, Mock, MagicMock
 import pytest
 from fastapi.testclient import TestClient
 from ipaddress import IPv4Address, IPv6Address, ip_address
+
+from server.app.models.ProbeData import ProbeData, ProbeLocation
+from server.app.models.RipeMeasurement import RipeMeasurement
+from server.app.services.api_services import fetch_ripe_data
 from server.app.main import app
 from server.app.dtos.NtpExtraDetails import NtpExtraDetails
 from server.app.dtos.NtpMainDetails import NtpMainDetails
@@ -377,3 +381,72 @@ def test_historic_data_dn_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock
 
     assert mock_get_dn.call_count == calls_before_6th
     mock_get_ip.assert_not_called()
+
+
+def fake_measurement():
+    probe_data = ProbeData(
+        probe_id="12345",
+        probe_addr=(IPv4Address("83.231.3.54"), None),
+        probe_location=ProbeLocation(
+            country_code="US",
+            coordinates=[37.7749, -122.4194]
+        )
+    )
+
+    ntp_measurement = NtpMeasurement(
+        vantage_point_ip=None,
+        server_info=NtpServerInfo(
+            ntp_version=4,
+            ntp_server_ip=None,
+            ntp_server_name="pool.ntp.org",
+            ntp_server_ref_parent_ip=None,
+            ref_name="GPS",
+            other_server_ips=["1.2.3.4"]
+        ),
+        timestamps=NtpTimestamps(
+            client_sent_time=PreciseTime(1000, 500),
+            server_recv_time=PreciseTime(1001, 400),
+            server_sent_time=PreciseTime(1002, 300),
+            client_recv_time=PreciseTime(1003, 200)
+        ),
+        main_details=NtpMainDetails(
+            offset=0.5,
+            delay=10.0,
+            stratum=2,
+            precision=-20,
+            reachability=""
+        ),
+        extra_details=NtpExtraDetails(
+            root_delay=PreciseTime(2, 100),
+            ntp_last_sync_time=PreciseTime(2000, 800),
+            leap=0
+        )
+    )
+
+    return RipeMeasurement(
+        measurement_id=123456,
+        probe_data=probe_data,
+        ntp_measurement=ntp_measurement,
+        poll=6,
+        root_dispersion=0.1,
+        ref_id="GPS",
+        time_to_result=1.234
+    )
+
+
+@patch("server.app.services.api_services.get_data_from_ripe_measurement")
+@patch("server.app.services.api_services.parse_data_from_ripe_measurement")
+def test_fetch_ripe_data(mock_parse, mock_fetch):
+    # Setup mocks
+    mock_fetch.return_value = [{"some": "json"}]
+    mock_parse.return_value = [fake_measurement()]
+
+    result = fetch_ripe_data("dummy_id")
+
+    assert isinstance(result, list)
+    assert len(result) == 1
+    assert result[0]["ntp_version"] == 4
+    assert result[0]["probe_location"]["country_code"] == "US"
+    assert result[0]["ntp_server_name"] == "pool.ntp.org"
+    assert result[0]["probe_addr"]["ipv4"] == "83.231.3.54"
+    assert result[0]["probe_addr"]["ipv6"] is None

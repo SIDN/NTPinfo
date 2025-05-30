@@ -3,7 +3,7 @@ from ipaddress import IPv4Address, IPv6Address
 from sqlalchemy import Row
 from sqlalchemy.orm import Session
 
-from server.app.utils.ip_to_str import ip_to_str
+from app.utils.ip_utils import ip_to_str
 from server.app.models.Measurement import Measurement
 from server.app.models.Time import Time
 from server.app.dtos.PreciseTime import PreciseTime

@@ -1,22 +1,25 @@
-from typing import Any, Optional
-
+from ipaddress import IPv4Address, IPv6Address
+from typing import Any, Optional, Coroutine
 from sqlalchemy.orm import Session
-
-from server.app.utils.ip_to_str import ip_to_str
+from server.app.utils.ip_utils import ip_to_str
 from server.app.utils.validate import ensure_utc, is_ip_address, parse_ip
 from server.app.services.NtpCalculator import NtpCalculator
 from server.app.utils.perform_measurements import perform_ntp_measurement_ip, perform_ntp_measurement_domain_name
-from server.app.utils.perform_measurements import human_date_to_ntp_precise_time, calculate_jitter_from_measurements
+from server.app.utils.perform_measurements import human_date_to_ntp_precise_time, ntp_precise_time_to_human_date, \
+    calculate_jitter_from_measurements
 from datetime import datetime
+from server.app.models.ProbeData import ProbeLocation
+from server.app.models.RipeMeasurement import RipeMeasurement
+from server.app.utils.ripe_fetch_data import parse_data_from_ripe_measurement, get_data_from_ripe_measurement
 from server.app.db.connection import insert_measurement
 from server.app.db.connection import get_measurements_timestamps_ip, get_measurements_timestamps_dn
+
 from server.app.dtos.NtpMainDetails import NtpMainDetails
 from server.app.dtos.NtpMeasurement import NtpMeasurement
 from server.app.dtos.NtpServerInfo import NtpServerInfo
 from server.app.dtos.NtpTimestamps import NtpTimestamps
 from server.app.dtos.PreciseTime import PreciseTime
 from server.app.dtos.NtpExtraDetails import NtpExtraDetails
-
 
 def get_format(measurement: NtpMeasurement, jitter: float | None = None) -> dict[str, Any]:
     """
@@ -61,6 +64,58 @@ def get_format(measurement: NtpMeasurement, jitter: float | None = None) -> dict
         "jitter": jitter
     }
 
+def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
+    """
+        Converts a RipeMeasurement object into a standardized dictionary format.
+
+        This function extracts relevant information from the provided RipeMeasurement
+        instance—including NTP server info, probe data, timing details, and measurement
+        results—and formats it as a plain dictionary.
+
+        Args:
+            measurement (RipeMeasurement): The parsed measurement object containing NTP and probe data
+
+        Returns:
+            dict[str, Any]:
+                A dictionary containing structured measurement data. Keys include:
+                - NTP Server info (ntp version, ripe measurement id, IP, name, ref id)
+                - Probe data (probe address, probe id in RIPE Atlas, probe location, time to result)
+                - Measurement metrics (stratum, poll, precision, root delay, root dispersion, reachability)
+                - NTP measurement data (rtt, offset, timestamps)
+    """
+    probe_location: Optional[ProbeLocation] = measurement.probe_data.probe_location
+    return {
+        "ntp_version": measurement.ntp_measurement.server_info.ntp_version,
+        "ripe_measurement_id": measurement.measurement_id,
+        "ntp_server_ip": ip_to_str(measurement.ntp_measurement.server_info.ntp_server_ip),
+        "ntp_server_name": measurement.ntp_measurement.server_info.ntp_server_name,
+        "probe_addr": {
+            "ipv4": ip_to_str(measurement.probe_data.probe_addr[0]),
+            "ipv6": ip_to_str(measurement.probe_data.probe_addr[1])
+        },
+        "probe_id": measurement.probe_data.probe_id,
+        "probe_location": {
+            "country_code": probe_location.country_code if probe_location else "UNKNOWN",
+            "coordinates": probe_location.coordinates if probe_location else (0.0, 0.0)
+        },
+        "time_to_result": measurement.time_to_result,
+        "stratum": measurement.ntp_measurement.main_details.stratum,
+        "poll": measurement.poll,
+        "precision": measurement.ntp_measurement.main_details.precision,
+        "root-delay": measurement.ntp_measurement.extra_details.root_delay,
+        "root-dispersion": measurement.root_dispersion,
+        "ref-id": measurement.ref_id,
+        "result": [
+            {
+                "client_sent_time": measurement.ntp_measurement.timestamps.client_sent_time,
+                "server_recv_time": measurement.ntp_measurement.timestamps.server_recv_time,
+                "server_sent_time": measurement.ntp_measurement.timestamps.server_sent_time,
+                "client_recv_time": measurement.ntp_measurement.timestamps.client_recv_time,
+                "rtt": measurement.ntp_measurement.main_details.delay,
+                "offset": measurement.ntp_measurement.main_details.offset
+            }
+        ]
+    }
 
 def measure(server: str, session: Session, client_ip: Optional[str] = None, jitter_flag: bool = False,
             measurement_no: int = 0) -> tuple[NtpMeasurement, float | None] | None:
@@ -169,3 +224,23 @@ def fetch_historic_data_with_timestamps(server: str, start: datetime, end: datet
         measurement = NtpMeasurement(vantage_point_ip, server_info, time_stamps, main_details, extra_details)
         measurements.append(measurement)
     return measurements
+
+def fetch_ripe_data(measurement_id: str) -> list[dict]:
+    """
+    Fetches and formats NTP measurement data from RIPE Atlas.
+
+    This function retrieves raw measurement data from the RIPE Atlas API using the given
+    measurement ID, parses it into internal data structures, and formats it into a
+    standardized dictionary format.
+
+    Args:
+        measurement_id (str): The unique ID of the RIPE Atlas measurement to fetch
+
+    Returns:
+        list[dict]: A list of dictionaries, each representing a formatted NTP measurement
+    """
+    measurements = parse_data_from_ripe_measurement(get_data_from_ripe_measurement(measurement_id))
+    measurements_formated = []
+    for m in measurements:
+        measurements_formated.append(get_ripe_format(m))
+    return measurements_formated
