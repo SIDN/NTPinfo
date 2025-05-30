@@ -327,6 +327,39 @@ def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
         print("Error:", e)
         return False
 
+def perform_ripe_measurement_domain_name(server_name: str, client_ip: str|None=None,
+                                         probes_requested: int=30) -> tuple[int, list[str]]:
+    """
+    This method performs a RIPE measurement on a domain name. It transforms the domain name of the NTP server into
+    an IP address, and then it uses perform_ripe_measurement_ip method.
+
+    Args:
+        server_name (str): The domain name of the NTP server.
+        client_ip (str): The IP address of the NTP server.
+        probes_requested (int): The number of probes requested.
+
+    Returns:
+        tuple[int, list[str]]: It returns the ID of the measurement and the list of IPs of the domain name.
+                               You can find in the measurement what IP it used.
+
+    Raises:
+        Exception: If the conversion could not be performed or if the measurement failed.
+    """
+    domain_ips: list[str] | None
+
+    if client_ip is None:  # if we do not have the client_ip available, use this server as a "client ip"
+        domain_ips = domain_name_to_ip_default(server_name)
+    else:
+        domain_ips = domain_name_to_ip_close_to_client(server_name, client_ip)
+
+    # if the domain name is invalid or []
+    if domain_ips is None or len(domain_ips) == 0:
+        raise Exception(f"Could not find any IP address for {server_name}.")
+    # take one IP address from the list
+    ip_str = domain_ips[0]
+    return perform_ripe_measurement_ip(ip_str, probes_requested), domain_ips
+
+
 def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int=30) -> int:
     """
     This method performs a RIPE measurement and returns the code of the measurement.
