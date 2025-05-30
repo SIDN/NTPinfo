@@ -1,4 +1,3 @@
-from logging import raiseExceptions
 from typing import Optional
 
 
@@ -60,15 +59,81 @@ def get_best_probe_types(ip_asn: Optional[str], ip_prefix: Optional[str], ip_cou
         dict[str, int]: The set of probe types and the respective number of probes.
     """
     # for now, we have a default logic! This method is not the final version.
-    best_probe_types: dict[str, int] = {"random": 2} # default
-    if ip_asn is not None:
-        best_probe_types["asn"] = 10
+    # the best distribution:
+    # 33% 30% 27% 10% 0%
+    limit_reached = {
+        "asn": False,
+        "prefix": False,
+        "country": False,
+        "area": False,
+        "random": False
+    }
+    probes_wanted = {
+        "asn": int(probes_requested * 33 / 100),
+        "prefix": int(probes_requested * 30 / 100),
+        "country": int(probes_requested * 27 / 100),
+        "area": int(probes_requested * 10 / 100),
+        "random": 0
+    }
+    distribution_functions ={
+        "asn": lambda i: ([0,30,50,20,0])[i],
+        "prefix": lambda i: ([40,0,40,20,0])[i],
+        "country": lambda i: ([50,30,0,20,0])[i],
+        "area": lambda i: ([20,0,20,0,60])[i],
+    }
+    # see what inputs we received and with what we start:
+    if ip_asn is None:
+        limit_reached["asn"] = True
+        probes_wanted = distribute_probes_to_others(probes_wanted, limit_reached, distribution_functions["asn"])
     if ip_prefix is not None:
-        best_probe_types["prefix"] = 0
+        limit_reached["prefix"] = True
+        probes_wanted = distribute_probes_to_others(probes_wanted, limit_reached, distribution_functions["prefix"])
     if ip_country is not None:
-        best_probe_types["country"] = 10
+        limit_reached["country"] = True
+        probes_wanted = distribute_probes_to_others(probes_wanted, limit_reached, distribution_functions["country"])
     if ip_area is not None:
-        best_probe_types["area"] = 0
+        limit_reached["area"] = True
+        probes_wanted = distribute_probes_to_others(probes_wanted, limit_reached, distribution_functions["area"])
+
+    #see what is available on RIPE Atlas
+    available_probes_asn = ping_asn_probes(probes_wanted["asn"])
+    available_probes_prefix = ping_prefix_probes(probes_wanted["prefix"])
+    available_probes_country = ping_country_probes(probes_wanted["country"])
+
+    # prefix (the most expected to fail)
+    pbs_to_distribute = probes_wanted["prefix"] - available_probes_prefix
+    if pbs_to_distribute > 0:
+        # modify probes_wanted
+        limit_reached["prefix"] = True
+        probes_wanted = distribute_probes_to_others(probes_wanted, limit_reached, lambda: [40,0,40,20,0])
+    # asn
+    pbs_to_distribute = probes_wanted["asn"] - available_probes_asn
+    if pbs_to_distribute > 0:
+        # modify probes_wanted
+        limit_reached["asn"] = True
+        probes_wanted = distribute_probes_to_others(probes_wanted, limit_reached, lambda c: [0,30,50,20,0])
+    # country
+    pbs_to_distribute = probes_wanted["country"] - available_probes_country
+    if pbs_to_distribute > 0:
+        # modify probes_wanted
+        limit_reached["country"] = True
+        probes_wanted = distribute_probes_to_others(probes_wanted, limit_reached, lambda c: [50,30,0,20,0])
+
+    #area would probably not fail as it probably contains more than 100 probes
+    #we save the time to ping it here.
+
+    best_probe_types: dict[str, int] = {"random": int(probes_wanted["random"])} # default
+    for probe_type, n in probes_wanted.items():
+        if n > 0:
+            best_probe_types[probe_type] = int(n)
+    # if ip_asn is not None:
+    #     best_probe_types["asn"] = int(probes_wanted["asn"])
+    # if ip_prefix is not None:
+    #     best_probe_types["prefix"] = int(probes_wanted["prefix"])
+    # if ip_country is not None:
+    #     best_probe_types["country"] = int(probes_wanted["country"])
+    # if ip_area is not None:
+    #     best_probe_types["area"] = int(probes_wanted["area"])
 
     return best_probe_types
 
@@ -173,6 +238,18 @@ def get_country_probes(ip_country_code: Optional[str], n: int) -> dict:
         }
     return probes
 
+def ping_asn_probes(probes_wanted: int) ->int:
+    return 7
+def ping_prefix_probes(probes_wanted: int) ->int:
+    return 5
+def ping_country_probes(probes_wanted: int) ->int:
+    return 9
+
+def distribute_probes_to_others(probes_wanted, limited_reach, f) -> dict:
+    #asn_pbs+=func(asn_pbs)
+    if not limited_reach["asn"]:
+        probes_wanted["asn"] += f(0)
+    return probes_wanted
 #use cases:
 # import pprint
 # pprint.pprint(get_probes("AS15169","192.2.3.0/8","IT", "West",20))

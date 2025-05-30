@@ -5,7 +5,8 @@ import json
 
 import requests
 
-from server.app.utils.ip_utils import get_country_asn_from_ip, get_ip_family, ref_id_to_ip_or_name
+from server.app.utils.ip_utils import get_ip_family, ref_id_to_ip_or_name, \
+    get_ip_network_details, get_prefix_from_ip
 from server.app.utils.load_env_vals import get_ripe_account_email, get_ripe_api_token
 from server.app.utils.ripe_probes import get_probes
 from server.app.services.NtpCalculator import NtpCalculator
@@ -381,10 +382,12 @@ def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int=30) ->
     # measurement settings
     ip_family = get_ip_family(ntp_server_ip) # this will throw an exception if the ntp_server_ip is not an IP address
     api_key = get_ripe_api_token()
-    packets_count = 2
+    packets_count = 3
     ripe_account_email = get_ripe_account_email()
 
-    ip_country, ip_asn = get_country_asn_from_ip(ntp_server_ip) or (None, None)
+    # get the details. (this will take around 150-200ms)
+    ip_asn, ip_country, ip_area = get_ip_network_details(ntp_server_ip)
+    ip_prefix = get_prefix_from_ip(ntp_server_ip)
 
     headers = {
         "Authorization": f"Key {api_key}",
@@ -397,14 +400,14 @@ def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int=30) ->
             "resolve_on_probe": True,
             "description": f"NTP measurement to {ntp_server_ip}",
             "packets": packets_count,
-            "timeout": 4000,
+            "timeout": 1000,
             "skip_dns_check": False,
             "target": ntp_server_ip
         }
     ],
         "is_oneoff": True,
         "bill_to": ripe_account_email,
-        "probes": get_probes(ip_asn, None, ip_country, None)
+        "probes": get_probes(ip_asn, ip_prefix, ip_country, ip_area)
     }
 
     # perform the measurement
@@ -425,10 +428,10 @@ def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int=30) ->
 #m=perform_ntp_measurement_domain_name("time.google.com")
 # m=perform_ntp_measurement_domain_name("ro.pool.ntp.org","83.25.24.10")
 # print_ntp_measurement(m)
-# import time
-#
-# start = time.time()
-# print(perform_ripe_measurement_ip("89.46.74.148"))
-# end = time.time()
-#
-# print(end - start)
+import time
+
+start = time.time()
+print(perform_ripe_measurement_ip("89.46.74.148"))
+end = time.time()
+
+print(end - start)

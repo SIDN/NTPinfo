@@ -74,28 +74,61 @@ def get_country_from_ip(ip: str) -> Optional[str]:
         print(e)
         return None
 
-def get_country_asn_from_ip(ip_str: str) -> Optional[tuple[str, str]]:
+def get_ip_network_details(ip_str: str) -> tuple[Optional[str], Optional[str], Optional[str]]:
     """
-    This method returns the country code and the ASN of an IP address.
+    This method gets the ASN, the country code and the continent code of an IP address.
 
     Args:
         ip_str: The ip address
 
     Returns:
-        Optional[tuple[str, str]]: the country code and the ASN of an IP address or None if the request fails.
+        tuple[Optional[str], Optional[str], Optional[str]]: the ASN, the country code and the continent
+        of an IP address if they can be taken.
     """
     try:
         token: str = get_ipinfo_lite_api_token()
         response = requests.get(f"https://api.ipinfo.io/lite/{ip_str}?token={token}")
         data = response.json()
-        country: str = data.get("country_code")
-        asn: str = data.get("asn")
-        return country, asn
+        asn: str = data.get("asn", None)
+        country: str = data.get("country_code", None)
+        continent: str = data.get("continent_code", None)
+        return asn, country, continent
     except Exception as e:
         print(e)
-        return None
+        return None, None, None
 
-def get_prefix_from_ip(ip_str: str) -> str:
+def get_area_of_ip(ip_country: str, ip_continent: Optional[str]) -> str:
+    """
+    This method tries to get the area of an IP address based on its country and continent.
+
+    Args:
+        ip_country (str): The country code of the IP address.
+        ip_continent (str): The continent code of the IP address.
+
+    Returns:
+        str: The area of an IP address
+    """
+    # default is WW (world wide)
+    if ip_continent is None:
+        return "WW"
+    area_map = {
+        "EU": "North-Central",
+        "AF": "South-Central",
+        "NA": "West",
+        "SA": "West",
+        "OC": "South-East"
+    }
+    # According to RIPE Atlas map, for Asia most of the countries are in South-East, but some are in North-East.
+    north_east_countries = ["RU", "KZ", "MN"]
+    if ip_continent in area_map:
+        return area_map[ip_continent]
+    # For Asia
+    if ip_country in north_east_countries:
+        return "North-East"
+    return "South-East"
+
+import pprint
+def get_prefix_from_ip(ip_str: str) -> Optional[str]:
     """
     This method returns the prefix of an IP address.
 
@@ -105,7 +138,27 @@ def get_prefix_from_ip(ip_str: str) -> str:
     Returns:
         str: the prefix of an IP address.
     """
-    response = requests.get(f"https://stat.ripe.net/data/prefix-overview/data.json?resource={ip_str}")
-    data = response.json()
-    prefix: str = data["data"].get("resource")
-    return prefix
+    try:
+        response = requests.get(f"https://stat.ripe.net/data/prefix-overview/data.json?resource={ip_str}")
+        response.raise_for_status()
+        data = response.json()["data"]
+        prefix: str = data.get("resource", None)
+        return prefix
+    except Exception as e:
+        print(e)
+        return None
+
+import time
+
+# start = time.time()
+# print(get_ip_network_details("80.211.238.247"))
+# print(get_prefix_from_ip("80.211.238.247"))
+# end = time.time()
+#
+# print(end - start)
+# def ceva():
+#     response = requests.get(f"https://stat.ripe.net/measurements/106548996/")
+#     data = response.json()
+#     pprint.pprint(data)
+#
+# ceva
