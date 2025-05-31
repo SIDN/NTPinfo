@@ -151,3 +151,50 @@ async def read_data_from_ripe(payload: MeasurementRequest, request: Request) -> 
     except Exception as e:
         print(e)
         return {"error": f"Failed to perform measurement: {str(e)}"}
+
+
+@router.post("/measurements/ripe/trigger/")
+@limiter.limit("5/second")
+async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request) -> dict[str, Any]:
+    server = payload.server
+    if len(server) == 0:
+        raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
+
+    client_ip: Optional[str]
+    if request.client is None:
+        client_ip = None
+    else:
+        client_ip = request.headers.get("X-Forwarded-For", request.client.host)
+
+    try:
+        measurement_id = perform_ripe_measurement(server, client_ip=client_ip)
+        return {
+            "measurement_id": measurement_id,
+            "status": "started",
+            "message": "You can fetch the result at /measurements/ripe/{measurement_id}"
+        }
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=f"Failed to initiate measurement: {str(e)}")
+
+
+@router.get("/measurements/ripe/{measurement_id}")
+@limiter.limit("5/second")
+async def get_ripe_measurement_result(measurement_id: str, request: Request) -> dict[str, Any]:
+    try:
+        ripe_measurement_result = fetch_ripe_data(measurement_id=measurement_id)
+        if not ripe_measurement_result:
+            return {
+                "status": "pending",
+                "message": "Measurement not ready yet. Please try again later."
+            }
+
+        return {
+            "status": "complete",
+            "results": ripe_measurement_result
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to fetch result: {str(e)}"
+        }
