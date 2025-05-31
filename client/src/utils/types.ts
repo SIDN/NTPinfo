@@ -1,5 +1,8 @@
 import { LatLngTuple } from "leaflet"
 
+/**
+ * Data type used for manipulating and using NTP information
+ */
 export type NTPData = {
   offset: number
   RTT: number
@@ -16,8 +19,14 @@ export type NTPData = {
   root_delay: number
 }
 
+/**
+ * Data type used for determing measurement type in the visualization graphs
+ */
 export type Measurement = "RTT" | "offset"
 
+/**
+ * Data type used for manipulating and using RIPE information
+ */
 export type RIPEData = {
   measurementData : NTPData
   probe_id: number

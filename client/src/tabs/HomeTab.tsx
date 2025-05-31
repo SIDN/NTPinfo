@@ -70,46 +70,70 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
   //functions for handling state changes
   //
   
-  //main function called when measuring by pressing the button
+  /**
+   * Function called on the press of the search button.
+   * Performs a normal measurement call, a historical measurement call for the graph, and a RIPE measurement call for the map.
+   * @param query The input given by the user
+   * @param jitter_flag flag indicating whether jitter should be measured for normal measurement calls
+   * @param measurements_no How many measurements should be done for the jitter calculation
+   */
   const handleSearch = async (query: string, jitter_flag: boolean, measurements_no: number) => {
     if (query.length == 0)
       return
     
+    /**
+     * The payload for the measurement call, containing the server, 
+     * if the jitter should be calculated and the number of measurements to be done.
+     */
     const payload = {
       server: query,
       jitter_flag: jitter_flag,
       measurements_no: jitter_flag ? measurements_no : 0
     }
 
+    /**
+     * Payload for the RIPE measurement call, containing only the server to be measured.
+     */
     const ripePayload = {
       server: query
     }
 
-    // Get the response from the measurement data API
+    /**
+     * Get the response from the measurement data endpoint
+     */ 
     const fullurlMeasurementData = `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/`
     const apiMeasurementResp = await fetchMeasurementData(fullurlMeasurementData, payload)
 
-    //Get data from past day from historical data API to chart in the graph
+    /**
+     * Get data from past day from historical data endpoint to chart in the graph.
+     */
     const startDate = dateFormatConversion(Date.now()-86400000)
     const endDate = dateFormatConversion(Date.now())
     const fullurlHistoricalData = `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/history/?server=${query}&start=${startDate}&end=${endDate}`
     const apiHistoricalResp = await fetchHistoricalData(fullurlHistoricalData)
 
     
-    //update data stored and show the data again
+    /**
+     * Update the stored data and show it again
+     */
     setMeasured(true)
     const data = apiMeasurementResp
     const chartData = apiHistoricalResp
     setNtpData(data ?? null)
     setChartData(chartData ?? null)
 
+    /**
+     * Get the data from the RIPE measurement endpoint and update it.
+     */
     const fullUrlRipeData = `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/ripe`
     //const apiRIPEResp = await fetchRIPEData(fullUrlRipeData, ripePayload)
     //const ripeData = apiRIPEResp
     setRIPEData(ripeData ?? null)
   }
 
-  //function to determine what value to use on the y axis of the graph
+  /**
+   * Function to determine what value of Measreuemnt to use on the y axis of the visualization graph
+   */
   const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelMeasurement(event.target.value as Measurement);
   }
@@ -125,9 +149,11 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
         <div className="result-text">
           {(!apiDataLoading && measured && (<p>Results</p>)) || (apiDataLoading && <p>Loading...</p>)}
         </div>
+        {/* The main page shown after the main measurement is done */}
       {(ntpData && !apiDataLoading && (<div className="results-and-graph">
         <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>
        
+        {/* Div for the visualization graph, and the radios for setting the what measurement to show */}
         <div className="graphs">
           <div className='graph-box'>
             <label>

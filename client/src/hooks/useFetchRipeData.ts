@@ -9,10 +9,10 @@ export const useFetchRIPEData = () => {
     const [error, setError] = useState<Error | null>(null)
     const [httpStatus, setHttpStatus] = useState<number>(200)
     /**
-     * send a post request to the back-end
+     * send a poll request to the backend to get RIPE data measurements
      * @param endpoint the endpoint to make the post call to
-     * @param payload the server that will be measured, as well as the choice of the user whether to calculate the jitter
-     * @returns the data received from the measurement as NTPData, or null
+     * @param payload the server that will be measured
+     * @returns the data received from the measurement as RIPEData, or null
      */
     const fetchData = async (endpoint: string, payload: {server: string}) => {
         setLoading(true);
