@@ -1,13 +1,15 @@
-from ripe.atlas.cousteau import ProbeRequest
-
+import math
+import pytest
 from server.app.utils.ripe_probes import get_random_probes, get_area_probes, get_asn_probes, get_prefix_probes, \
     get_country_probes, get_best_probe_types, get_probes, get_available_probes_asn, get_available_probes_prefix, \
-    get_available_probes_country
+    get_available_probes_country, take_from_available_probes
 from unittest.mock import patch, MagicMock
 
 
 @patch("server.app.utils.ripe_probes.get_best_probe_types")
-def test_get_probes_all_good(mock_get_best_probe_types):
+@patch("server.app.utils.ripe_probes.get_ip_network_details")
+@patch("server.app.utils.ripe_probes.get_prefix_from_ip")
+def test_get_probes_all_good(mock_get_prefix_from_ip, mock_get_network_details, mock_get_best_probe_types):
     types: dict[str, int] = {
         "country": 1,
         "area": 10,
@@ -15,19 +17,24 @@ def test_get_probes_all_good(mock_get_best_probe_types):
         "prefix": 14,
         "random": 5
     }
+    mock_get_prefix_from_ip.return_value = "80.211.224.0/20"
+    mock_get_network_details.return_value = ("AS15169","IT","West")
     mock_get_best_probe_types.return_value = types
 
-    probes_result= get_probes(ip_asn="AS15169", ip_prefix="162.159.200.0/24", ip_country="IT", ip_area="West")
+    probes_result = get_probes("80.211.238.247")
 
     answer= [{'requested': 1, 'type': 'country', 'value': 'IT'},
              {'requested': 10, 'type': 'area', 'value': 'West'},
              {'requested': 2, 'type': 'asn', 'value': 'AS15169'},
-             {'requested': 14, 'type': 'prefix', 'value': '162.159.200.0/24'},
+             {'requested': 14, 'type': 'prefix', 'value': '80.211.224.0/20'},
              {'requested': 5, 'type': 'area', 'value': 'WW'}
     ]
     assert probes_result == answer
+
 @patch("server.app.utils.ripe_probes.get_best_probe_types")
-def test_get_probes_some_none(mock_get_best_probe_types):
+@patch("server.app.utils.ripe_probes.get_ip_network_details")
+@patch("server.app.utils.ripe_probes.get_prefix_from_ip")
+def test_get_probes_some_none(mock_get_prefix_from_ip, mock_get_network_details, mock_get_best_probe_types):
     types: dict[str, int] = {
         "country": 1,
         "area": 0,
@@ -35,9 +42,11 @@ def test_get_probes_some_none(mock_get_best_probe_types):
         "prefix": 0,
         "random": 5
     }
+    mock_get_prefix_from_ip.return_value=None
+    mock_get_network_details.return_value = ("AS15169","IT",None)
     mock_get_best_probe_types.return_value = types
 
-    probes_result= get_probes(ip_asn="AS15169", ip_prefix="None", ip_country="IT", ip_area="None")
+    probes_result= get_probes("80.211.238.247")#(ip_asn="AS15169", ip_prefix="None", ip_country="IT", ip_area="None")
 
     answer= [{'requested': 1, 'type': 'country', 'value': 'IT'},
              {'requested': 2, 'type': 'asn', 'value': 'AS15169'},
@@ -45,15 +54,52 @@ def test_get_probes_some_none(mock_get_best_probe_types):
     ]
     assert probes_result == answer
 
+@patch("server.app.utils.ripe_probes.get_best_probe_types")
+@patch("server.app.utils.ripe_probes.get_ip_network_details")
+@patch("server.app.utils.ripe_probes.get_prefix_probes")
+def test_get_probes_unexpected(mock_get_prefix_from_ip, mock_get_network_details, mock_get_best_probe_types):
+    types: dict[str, int] = {
+        "country": 0,
+        "area": 0,
+        "asn": 2,
+        "tiger": 10,
+        "prefix": 0,
+        "random": 1
+    }
+    mock_get_prefix_from_ip.return_value = None
+    mock_get_network_details.return_value = ("AS15169", None, None)
+    mock_get_best_probe_types.return_value = types
 
-def test_get_best_probe_types_all_none():
-    result= get_best_probe_types(None,None,None,None,34)
+    probes_result = get_probes("80.211.238.247")
 
-    assert result["random"]==2
-    assert "asn" not in result
-    assert "prefix" not in result
-    assert "country" not in result
-    assert "area" not in result
+    answer= [{'requested': 2, 'type': 'asn', 'value': 'AS15169'},
+             {'requested': 10, 'type': 'area', 'value': 'WW'},
+             {'requested': 1, 'type': 'area', 'value': 'WW'} # it is fine to add it separately, as the request would be the same
+    ]
+    assert probes_result == answer
+
+def test_get_best_probe_types_first_3_none():
+    #all None
+    result = get_best_probe_types(None,None,None,None,4,34)
+    assert result["asn"] == 0
+    assert result["prefix"] == 0
+    assert result["country"] == 0
+    assert result["area"] == 0
+    assert result["random"] == 34
+
+    #area is available
+    result = get_best_probe_types(None,None,None,"West",4,34)
+    assert result["asn"] == 0
+    assert result["prefix"] == 0
+    assert result["country"] == 0
+    assert result["area"] == 34
+    assert result["random"] == 0
+
+    #negative nr of probes requested
+    with pytest.raises(Exception):
+        get_best_probe_types("AS15169", "80.211.224.0/20", "NL", "North-Central", 4, -5)
+    with pytest.raises(Exception):
+        get_best_probe_types("AS15169", "2a06:93c0::/29", "NL", "North-Central", 6, -1)
 def test_get_random_probes():
     answer = {
         "type": "area",
@@ -284,3 +330,34 @@ def test_get_available_probes_country_stop_iteration(mock_probe_request):
     assert kwargs["country_code"] == "NL"
     assert kwargs["tags"] == "system-ipv6-works"
     assert kwargs["status"] == 1
+
+def test_take_from_available_probes():
+
+    assert ([1,2,3,4,5],[1,2,3,4,6]) == take_from_available_probes(0,[1,2,3,4,5],[1,2,3,4,6])
+    assert ([1.0,2.4,3.3,4.0,5.0],[1.1,2.2,3.3,4.4,5.5]) == take_from_available_probes(-1.0,[1.0,2.4,3.3,4.0,5.0],[1.1,2.2,3.3,4.4,5.5])
+    # needed=3 -> take 2 from "prefix" type and 1 from "area"
+    pb_available = [0,2,0,3,10]
+    ans = [1,0,0,0,0]
+    assert ([0,0,0,2,10],[1,2,0,1,0]) == take_from_available_probes(3,pb_available,ans)
+
+    # needed=5 -> take 5 from "asn" type
+    pb_available = [7, 2, 0, 3, 10]
+    ans = [1, 0, 0, 0, 6]
+    assert ([2, 2, 0, 3, 10], [6, 0, 0, 0, 6]) == take_from_available_probes(5, pb_available, ans)
+
+    # needed=9 -> take 9 from "prefix", "country" and "area"
+    pb_available = [0, 3.2, 4.01, 5, 10]
+    ans = [1.1, 0, 0, 1, 6]
+    expected_pb_available, expected_ans = ([0, 0, 0, 3.21, 10], [1.1, 3.2, 4.01, 2.79, 6])
+    result_pb_available, result_ans = take_from_available_probes(9, pb_available, ans)
+    for x, y in zip(expected_pb_available, result_pb_available):
+        assert math.isclose(x, y, abs_tol=1e-6)
+    for x, y in zip(expected_ans, ans):
+        assert math.isclose(x, y, abs_tol=1e-6)
+
+
+    # needed=900 -> take from everything, but it will throw an exception as we do not have a solution
+    pb_available = [0, 3.3, 4.4, 5, 10]
+    ans = [1.1, 0, 0, 1, 6]
+    with pytest.raises(Exception):
+        take_from_available_probes(900, pb_available, ans)

@@ -1,10 +1,6 @@
-import json
-import pprint
-from typing import TypeVar, Union, List, Tuple
+from typing import TypeVar
 from typing import Optional
-import requests
 from server.app.utils.ip_utils import get_ip_network_details, get_prefix_from_ip, get_ip_family
-from server.app.utils.load_env_vals import get_ripe_api_token, get_ripe_account_email
 from ripe.atlas.cousteau import ProbeRequest
 
 
