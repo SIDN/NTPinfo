@@ -1,23 +1,27 @@
+import json
 from typing import Optional
+import requests
+from server.app.utils.ip_utils import get_ip_network_details, get_prefix_from_ip, get_ip_family
+from server.app.utils.load_env_vals import get_ripe_api_token, get_ripe_account_email
+from ripe.atlas.cousteau import ProbeRequest
 
 
-def get_probes(ip_asn: Optional[str], ip_prefix: Optional[str], ip_country: Optional[str],
-               ip_area: Optional[str], probes_requested: int=30) -> list[dict]:
+def get_probes(ntp_server_ip: str, probes_requested: int=30) -> list[dict]:
     """
     This method handles all cases regarding what probes we should send.
     This method assumes all inputs are either valid or None. (If there is a type in the input, the measurement
     may be affected)
 
     Args:
-        ip_asn (int): The ASN of the IP address.
-        ip_prefix (str): The prefix of the IP address.
-        ip_country (str): The country of the IP address.
-        ip_area (str): The area of the IP address.
+        ntp_server_ip (str): The IP address of the NTP server.
         probes_requested (int): The total number of probes that we will request.
 
     Returns:
         list[dict]: The list of probes that we will use for the measurement.
     """
+    # get the details. (this will take around 150-200ms)
+    ip_asn, ip_country, ip_area = get_ip_network_details(ntp_server_ip)
+    ip_prefix = get_prefix_from_ip(ntp_server_ip)
     # settings:
     probes: list[dict] = []
     probe_functions = {
@@ -238,8 +242,140 @@ def get_country_probes(ip_country_code: Optional[str], n: int) -> dict:
         }
     return probes
 
-def ping_asn_probes(probes_wanted: int) ->int:
-    return 7
+def ping_probes(ntp_server_ip: str, probes: dict[str|int]) ->int:
+    api_key = get_ripe_api_token()
+    headers = {
+        "Authorization": f"Key {api_key}",
+        "Content-Type": "application/json"
+    }
+    request_content = {"definitions": [
+        {
+            "type": "ping",
+            "af": get_ip_family(ntp_server_ip),
+            "resolve_on_probe": True,
+            "description": f"Ping measurement to {ntp_server_ip}",
+            "packets": 3,
+            "size": 48,
+            "skip_dns_check": False,
+            "include_probe_id": False,
+            "target": ntp_server_ip,
+            "timeout": 1500,
+        }
+    ],
+        "is_oneoff": True,
+        "bill_to": get_ripe_account_email(),
+        "probes": probes
+    }
+    response = requests.post(
+        "https://atlas.ripe.net/api/v2/measurements/",
+        headers=headers,
+        data=json.dumps(request_content)
+    )
+    data = response.json()
+    # the answer has a list of measurements, but we only did one measurement so we send one.
+    ans: str = data["measurements"][0]
+    return 2
+def get_available_probes_asn(ip_asn: str, ip_type: str) -> int:
+    """
+    This method selects n probes that has the same prefix and supports ipv4 or ipv6, it depends on the type.
+    Args:
+        ip_asn (str): the ASN of the searched network
+        ip_type (str): the IP type (ipv4 or ipv6). It should be lowercase.
+    Returns:
+        int: the number of available probes
+    """
+    # in wsl, this command would be for example:
+    # ripe-atlas probe-search --prefix NL --status 1 --tag system-ipv4-works
+    filters = {
+        "asn": ip_asn,
+        "status": 1,  # Connected probes
+        "tags": f"system-{ip_type.lower()}-works",
+    }
+    probes = ProbeRequest(
+        return_objects=False,
+        page_size=1, # we are only interested in the number. If you want the probes, use 100 here
+        **filters,
+    )
+    try:
+        #this fetches after the first request
+        next(probes) # we need to trigger the probes because "probes" does not get populated immediately.
+    except StopIteration:
+        return 0 # error
+    ans: int = probes.total_count
+    return ans
+def get_available_probes_prefix(ip_prefix: str, ip_type: str) -> int:
+    """
+    This method selects n probes that has the same prefix and supports ipv4 or ipv6, it depends on the type.
+    Args:
+        ip_prefix (str): the ip_prefix of the searched network
+        ip_type (str): the IP type (ipv4 or ipv6). It should be lowercase.
+    Returns:
+        int: the number of available probes
+    """
+    # in wsl, this command would be for example:
+    # ripe-atlas probe-search --prefix NL --status 1 --tag system-ipv4-works
+    prefix_type="prefix_v4" if ip_type == "ipv4" else "prefix_v6"
+    filters = {
+        prefix_type: ip_prefix,
+        "status": 1,  # Connected probes
+        "tags": f"system-{ip_type.lower()}-works",
+    }
+    probes = ProbeRequest(
+        return_objects=False,
+        page_size=1, # we are only interested in the number. If you want the probes, use 100 here
+        **filters,
+    )
+    try:
+        #this fetches after the first request
+        next(probes) # we need to trigger the probes because "probes" does not get populated immediately.
+    except Exception:# | StopIteration:
+        return 0 # error
+    ans: int = probes.total_count
+    return ans
+def get_available_probes_country(country_code: str, ip_type: str) -> int:
+    """
+    This method selects n probes that belong to the same country and supports ipv4 or ipv6, it depends on the type.
+    Args:
+        country_code (str): the country code
+        ip_type (str): the IP type (ipv4 or ipv6). It should be lowercase.
+    Returns:
+        int: the number of available probes
+    """
+    # in wsl, this command would be for example:
+    # ripe-atlas probe-search --country NL --status 1 --tag system-ipv4-works
+    filters = {
+        "country_code": country_code,
+        "status": 1,  # Connected probes
+        "tags": f"system-{ip_type.lower()}-works",
+    }
+    probes = ProbeRequest(
+        return_objects=False,
+        #fields="id",
+        page_size=1, # we are only interested in the number. If you want the probes, use 100 here
+        **filters,
+    )
+    try:
+        #this fetches after the first request
+        next(probes) # we need to trigger the probes because "probes" does not get populated immediately.
+    except StopIteration:
+        return 0 # error
+    # print(probe_list)
+    ans: int = probes.total_count
+    return ans
+
+
+import time
+
+start = time.time()
+print(get_available_probes_asn("9009","ipv4"))
+print(get_available_probes_prefix("80.211.224.0/16","ipv4"))
+print(get_available_probes_country("NL","ipv4"))
+end = time.time()
+print(end - start)
+
+
+def ping_asn_probes(ntp_server_ip: str, probes_wanted: int) ->int:
+    return 2
 def ping_prefix_probes(probes_wanted: int) ->int:
     return 5
 def ping_country_probes(probes_wanted: int) ->int:

@@ -150,10 +150,10 @@ def get_prefix_from_ip(ip_str: str) -> Optional[str]:
 
 import time
 
-# start = time.time()
-# print(get_ip_network_details("80.211.238.247"))
-# print(get_prefix_from_ip("80.211.238.247"))
-# end = time.time()
+start = time.time()
+print(get_ip_network_details("80.211.238.247"))
+print(get_prefix_from_ip("80.211.238.247"))
+end = time.time()
 #
 # print(end - start)
 # def ceva():

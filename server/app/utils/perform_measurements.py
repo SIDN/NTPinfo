@@ -386,8 +386,6 @@ def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int=30) ->
     ripe_account_email = get_ripe_account_email()
 
     # get the details. (this will take around 150-200ms)
-    ip_asn, ip_country, ip_area = get_ip_network_details(ntp_server_ip)
-    ip_prefix = get_prefix_from_ip(ntp_server_ip)
 
     headers = {
         "Authorization": f"Key {api_key}",
@@ -407,7 +405,7 @@ def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int=30) ->
     ],
         "is_oneoff": True,
         "bill_to": ripe_account_email,
-        "probes": get_probes(ip_asn, ip_prefix, ip_country, ip_area)
+        "probes": get_probes(ntp_server_ip)
     }
 
     # perform the measurement
