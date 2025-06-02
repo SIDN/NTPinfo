@@ -48,6 +48,16 @@ function thinByProximity<T extends { time: string | number | Date }>(
   return out;
 }
 
+function unitForSpan(spanMs: number): { unit: 'second'|'minute'|'hour'|'day'|'month'|'year', fmt: string } {
+  const s = 1000, m = 60*s, h = 60*m, d = 24*h, y = 365*d;
+
+  if (spanMs <= 2*h)          return { unit: 'minute', fmt: 'HH:mm' };       // up to ~2 h → show minutes
+  if (spanMs <= 2*d)          return { unit: 'hour',   fmt: 'HH:mm' };       // up to ~2 days → hours
+  if (spanMs <= 90*d)         return { unit: 'day',    fmt: 'dd MMM' };      // up to 3 months → days
+  if (spanMs <= 2*y)          return { unit: 'month',  fmt: 'MMM yyyy' };    // up to 2 years → months
+  return                        { unit: 'year',   fmt: 'yyyy' };             // above 2 years → years
+}
+
 export default function LineChart({data, selectedMeasurement, selectedOption, customRange}: ChartInputData) {
   const measurementMap = {
       RTT: 'Round-trip time (s)',
@@ -70,6 +80,9 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
   let endPoint = new Date(now)
 
   let datapoints_no = 2
+  let customTimeUnit: 'second'|'minute'|'hour'|'day'|'month'|'year' | null = null;
+  let customFmt = '';
+
   switch (selectedOption) {
     case "Last Hour":
       formatter = (d) => d.toLocaleTimeString([], { hour: "numeric", minute: "numeric" })
@@ -87,15 +100,15 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
       startingPoint.setDate(now.getDate() - 7)
       break
     case "Custom":
-      //TODO
-      //Here we will have the logic for setting the endpoint and starting point in case of a custom measurement
-      //
-      formatter = (d) =>
-        d.toLocaleString([], { year: "2-digit", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
-      datapoints_no = 2
-      if (customRange?.from) startingPoint = new Date(customRange.from)
-      if (customRange?.to)   endPoint     = new Date(customRange.to)
-      break
+      if (customRange?.from) startingPoint = new Date(customRange.from);
+      if (customRange?.to)   endPoint     = new Date(customRange.to);
+
+      const { unit, fmt } = unitForSpan(endPoint.getTime() - startingPoint.getTime());
+
+      formatter      = (d: Date) => d.toLocaleString();
+      customTimeUnit = unit;
+      customFmt      = fmt;
+      break;
     default:
       datapoints_no = 2
       formatter = (d) => d.toLocaleTimeString()
@@ -152,13 +165,21 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
         min : startingPoint.toISOString(),
         max : endPoint.toISOString(),
         time: {
-          unit: selectedOption === "Last Hour" ? 'minute' :
-                selectedOption === "Last Day" ? 'hour' :
-                'day',
+          unit:  selectedOption === "Custom" && customTimeUnit
+                   ? customTimeUnit
+                   : selectedOption === "Last Hour" ? 'minute'
+                   : selectedOption === "Last Day"  ? 'hour'
+                   : 'day',
           displayFormats: {
             minute: 'HH:mm',
-            hour: 'HH:mm',
-            day: 'MMM dd',
+            hour  : 'HH:mm',
+            day   : 'dd MMM',
+            month : 'MMM yyyy',
+            year  : 'yyyy',
+            // override on custom
+            ...(selectedOption === "Custom" && customTimeUnit
+              ? { [customTimeUnit]: customFmt }
+              : {}),
           },
         }
       },
