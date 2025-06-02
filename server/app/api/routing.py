@@ -178,7 +178,7 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
     Retrieve the results of a previously triggered RIPE Atlas measurement.
 
     This endpoint checks the RIPE Atlas API for a given measurement ID. It determines
-    if the measurement is complete (i.e. all probes have been scheduled) and returns
+    if the measurement is complete (all probes have been scheduled) and returns
     the data accordingly. If the results are not yet ready, it informs the client
     that the measurement is still pending.
 
