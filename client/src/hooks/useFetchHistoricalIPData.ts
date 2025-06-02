@@ -1,7 +1,7 @@
 import { useState } from "react"
 import axios from "axios"
 import { NTPData } from "../utils/types.ts"
-import { transformJSONData } from "../utils/transformJSONData.ts"
+import { transformJSONDataToNTPData } from "../utils/transformJSONDataToNTPData.ts"
 
 export const useFetchHistoricalIPData = () => {
     const [data, setData] = useState<NTPData[] | null>(null)
@@ -24,7 +24,7 @@ export const useFetchHistoricalIPData = () => {
         try {
             const resp = await axios.get(endpoint);
             const measurements = resp.data?.measurements || []
-            const transformedData = measurements.map((d: any) => transformJSONData(d))
+            const transformedData = measurements.map((d: any) => transformJSONDataToNTPData(d))
             setData(transformedData)
             return transformedData
         } catch (err: any) {

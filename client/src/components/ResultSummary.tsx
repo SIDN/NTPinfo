@@ -26,11 +26,11 @@ function ResultSummary({data, err, httpStatus} : {data : NTPData | null, err : E
         <>
             <div className="results-section">
                 <div className="result-box" id="main-details">
-                    <div className="metric"><span>Offset</span><span>{data.offset ? `${(data.offset*1000).toFixed(3)} ms` : 'N/A'}</span></div>
-                    <div className="metric"><span>Round-trip time</span><span>{data.RTT ? `${(data.RTT*1000).toFixed(3)} ms` : 'N/A'}</span></div>
-                    <div className="metric"><span>Jitter</span><span>{data.jitter ? `${(data.jitter*1000).toFixed(3)} ms` : 'N/A'}</span></div>
-                    <div className="metric"><span>Precision</span><span>2<sup>{data.precision}</sup></span></div>
-                    <div className="metric"><span>Stratum</span><span>{data.stratum}</span></div>
+                    <div className="metric"><span title='The difference between the time reported by the like an NTP server and your local clock'>Offset</span><span>{data.offset ? `${(data.offset*1000).toFixed(3)} ms` : 'N/A'}</span></div>
+                    <div className="metric"><span title='The total time taken for a request to travel from the client to the server and back.'>Round-trip time</span><span>{data.RTT ? `${(data.RTT*1000).toFixed(3)} ms` : 'N/A'}</span></div>
+                    <div className="metric"><span title='The variability in delay times between successive NTP messages, calculated as std. dev. of offsets'>Jitter</span><span>{data.jitter ? `${(data.jitter*1000).toFixed(3)} ms` : 'N/A'}</span></div>
+                    <div className="metric"><span title='The smallest time unit that the NTP server can measure or represent'>Precision</span><span>2<sup>{data.precision}</sup></span></div>
+                    <div className="metric"><span title='A hierarchical level number indicating the distance from the reference clock'>Stratum</span><span>{data.stratum}</span></div>
                     
                     <div className="status-line">
                         <span className="status-label">STATUS:&nbsp;</span>

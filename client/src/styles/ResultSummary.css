@@ -55,6 +55,12 @@ h2#not-found {
   margin-top: auto;
 }
 
+.tooltip-label {
+  cursor: help;
+  display: inline-block;
+  padding-right: 6px;
+}
+
 .result-text { /* now used in App.css */
   font-size: 1.7rem;
   color: var(--clr-font-white);
