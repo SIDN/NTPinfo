@@ -3,10 +3,10 @@ import pytest
 from fastapi.testclient import TestClient
 from ipaddress import IPv4Address, ip_address
 
-from sqlalchemy import create_engine, NullPool, StaticPool
+from sqlalchemy import create_engine, StaticPool
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.models.Base import Base
+from server.app.models.Base import Base
 from server.app.dtos.ProbeData import ProbeData, ProbeLocation
 from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.services.api_services import fetch_ripe_data

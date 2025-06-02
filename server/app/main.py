@@ -5,8 +5,8 @@ from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.db_config import _engine, init_engine
-from app.models.Base import Base
+from server.app.db_config import init_engine
+from server.app.models.Base import Base
 from server.app.api.routing import router
 from server.app.rate_limiter import limiter
 from slowapi import _rate_limit_exceeded_handler
