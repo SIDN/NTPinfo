@@ -3,12 +3,14 @@ import pytest
 from fastapi.testclient import TestClient
 from ipaddress import IPv4Address, ip_address
 
-from sqlalchemy.orm import Session
+from sqlalchemy import create_engine, NullPool, StaticPool
+from sqlalchemy.orm import Session, sessionmaker
 
+from app.models.Base import Base
 from server.app.dtos.ProbeData import ProbeData, ProbeLocation
 from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.services.api_services import fetch_ripe_data
-from server.app.main import app
+from server.app.main import create_app
 from server.app.dtos.NtpExtraDetails import NtpExtraDetails
 from server.app.dtos.NtpMainDetails import NtpMainDetails
 from server.app.dtos.NtpMeasurement import NtpMeasurement
@@ -17,16 +19,37 @@ from server.app.dtos.NtpTimestamps import NtpTimestamps
 from server.app.dtos.PreciseTime import PreciseTime
 from datetime import datetime, timezone, timedelta
 from server.app.api.routing import get_db
-client = None
 
+
+TEST_DB_URL = "sqlite:///:memory:"
+engine = create_engine(TEST_DB_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def override_get_db():
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 @pytest.fixture(scope="function", autouse=True)
-def setup_and_teardown():
-    global client
-    client = TestClient(app)
-    yield client
-    app.state.limiter.reset()
-    client.close()
+def test_client():
+
+    with patch("server.app.db_config.init_engine") as mocked_init_engine:
+
+        mocked_init_engine.return_value = None
+
+        test_app = create_app(dev=False)
+        test_app.dependency_overrides[get_db] = override_get_db
+
+        Base.metadata.create_all(bind=engine)
+
+        client = TestClient(test_app)
+        yield client
+
+        client.close()
+        Base.metadata.drop_all(bind=engine)
+        test_app.state.limiter.reset()
 
 
 def mock_precise(seconds=1234567890, fraction=0) -> PreciseTime:
@@ -123,8 +146,8 @@ def get_mock_data():
     ]
 
 
-def test_read_root():
-    response = client.get("/")
+def test_read_root(test_client):
+    response = test_client.get("/")
     assert response.status_code == 200
     assert response.json() == {"Hello": "World"}
 
@@ -132,15 +155,14 @@ def test_read_root():
 @patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
 @patch("server.app.services.api_services.insert_measurement")
 @patch("server.app.services.api_services.is_ip_address")
-def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_measurement):
+def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_measurement, test_client):
     mock_is_ip.return_value = None
     measurement = mock_measurement()
-    fake_session = MagicMock(spec=Session)
-    app.dependency_overrides[get_db] = lambda: fake_session
+
     mock_perform_measurement.return_value = measurement
 
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    response = client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": False}, headers=headers)
+    response = test_client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": False}, headers=headers)
     assert response.status_code == 200
     assert "measurement" in response.json()
     assert response.json()["measurement"]["ntp_server_name"] == "pool.ntp.org"
@@ -152,14 +174,13 @@ def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_mea
 @patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
 @patch("server.app.services.api_services.insert_measurement")
 @patch("server.app.services.api_services.is_ip_address")
-def test_read_data_measurement_missing_measurement_no(mock_is_ip, mock_insert, mock_perform_measurement):
+def test_read_data_measurement_missing_measurement_no(mock_is_ip, mock_insert, mock_perform_measurement, test_client):
     mock_is_ip.return_value = None
     measurement = mock_measurement()
     mock_perform_measurement.return_value = (measurement, ["83.25.24.10"])
-    fake_session = MagicMock(spec=Session)
-    app.dependency_overrides[get_db] = lambda: fake_session
+
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    response = client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": True}, headers=headers)
+    response = test_client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": True}, headers=headers)
     assert response.status_code == 422
     assert "measurements_no is required when jitter_flag is True." in response.text
 
@@ -169,37 +190,34 @@ def test_read_data_measurement_missing_measurement_no(mock_is_ip, mock_insert, m
 @patch("server.app.services.api_services.insert_measurement")
 @patch("server.app.services.api_services.is_ip_address")
 @patch("server.app.services.api_services.calculate_jitter_from_measurements")
-def test_read_data_measurement_with_jitter(mock_jitter, mock_is_ip, mock_insert, mock_perform_measurement):
+def test_read_data_measurement_with_jitter(mock_jitter, mock_is_ip, mock_insert, mock_perform_measurement, test_client):
     mock_is_ip.return_value = None
     measurement = mock_measurement()
     mock_perform_measurement.return_value = measurement
     mock_jitter.return_value = 0.75
-    fake_session = MagicMock(spec=Session)
-    app.dependency_overrides[get_db] = lambda: fake_session
+
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    response = client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": True, "measurements_no": 3},
+    response = test_client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": True, "measurements_no": 3},
                            headers=headers)
     assert response.status_code == 200
     json_data = response.json()
     assert "measurement" in json_data
     assert response.json()["measurement"]["jitter"] == 0.75
-    mock_insert.assert_called_once_with(measurement, fake_session)
+    mock_insert.assert_called_once()
 
 
-def test_read_data_measurement_missing_server():
+def test_read_data_measurement_missing_server(test_client):
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    fake_session = MagicMock(spec=Session)
-    app.dependency_overrides[get_db] = lambda: fake_session
-    response = client.post("/measurements/", json={"server": "", "jitter_flag": False}, headers=headers)
+
+    response = test_client.post("/measurements/", json={"server": "", "jitter_flag": False}, headers=headers)
     assert response.status_code == 400
     assert response.json() == {"error": "Either 'ip' or 'dn' must be provided"}
 
 
-def test_read_data_measurement_wrong_server():
+def test_read_data_measurement_wrong_server(test_client):
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    fake_session = MagicMock(spec=Session)
-    app.dependency_overrides[get_db] = lambda: fake_session
-    response = client.post("/measurements/", json={"server": "random-server-name.org", "jitter_flag": False},
+
+    response = test_client.post("/measurements/", json={"server": "random-server-name.org", "jitter_flag": False},
                            headers=headers)
     assert response.status_code == 404
     assert response.json() == {"error": "Your search does not seem to match any server"}
@@ -209,16 +227,15 @@ def test_read_data_measurement_wrong_server():
 @patch("server.app.services.api_services.get_measurements_timestamps_ip")
 @patch("server.app.services.api_services.is_ip_address")
 @patch("server.app.services.api_services.human_date_to_ntp_precise_time")
-def test_read_historic_data_ip(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, mock_get_dn):
+def test_read_historic_data_ip(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, mock_get_dn, test_client):
     end = datetime.now(timezone.utc)
     mock_is_ip.return_value = IPv4Address("192.168.1.1")
     mock_human_date_to_ntp.return_value = PreciseTime(1000, 500)
     mock_data = get_mock_data()
-    fake_session = MagicMock(spec=Session)
-    app.dependency_overrides[get_db] = lambda: fake_session
+
     mock_get_ip.return_value = mock_data  # Mock for IP address fetch
     mock_get_dn.return_value = mock_data  # Mock for Domain Name fetch
-    response = client.get("/measurements/history/", params={
+    response = test_client.get("/measurements/history/", params={
         "server": "192.168.1.1",
         "start": (end - timedelta(minutes=10)).isoformat(),
         "end": end.isoformat()
@@ -236,16 +253,15 @@ def test_read_historic_data_ip(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, 
 @patch("server.app.services.api_services.get_measurements_timestamps_ip")
 @patch("server.app.services.api_services.is_ip_address")
 @patch("server.app.services.api_services.human_date_to_ntp_precise_time")
-def test_read_historic_data_dn(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, mock_get_dn):
+def test_read_historic_data_dn(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, mock_get_dn, test_client):
     end = datetime.now(timezone.utc)
     mock_is_ip.return_value = None
     mock_human_date_to_ntp.return_value = PreciseTime(1000, 500)
     mock_data = get_mock_data()
-    fake_session = MagicMock(spec=Session)
-    app.dependency_overrides[get_db] = lambda: fake_session
+
     mock_get_ip.return_value = mock_data  # Mock for IP address fetch
     mock_get_dn.return_value = mock_data  # Mock for Domain Name fetch
-    response = client.get("/measurements/history/", params={
+    response = test_client.get("/measurements/history/", params={
         "server": "pool.ntp.org",
         "start": (end - timedelta(minutes=10)).isoformat(),
         "end": end.isoformat()
@@ -259,11 +275,10 @@ def test_read_historic_data_dn(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, 
     mock_get_dn.assert_called_once()
 
 
-def test_read_historic_data_missing_server():
+def test_read_historic_data_missing_server(test_client):
     end = datetime.now(timezone.utc)
-    fake_session = MagicMock(spec=Session)
-    app.dependency_overrides[get_db] = lambda: fake_session
-    response = client.get("/measurements/history/", params={
+
+    response = test_client.get("/measurements/history/", params={
         "server": None,
         "start": (end - timedelta(minutes=10)).isoformat(),
         "end": end.isoformat()
@@ -272,11 +287,10 @@ def test_read_historic_data_missing_server():
     assert response.json() == {'error': "Either 'ip' or 'domain name' must be provided"}
 
 
-def test_read_historic_data_wrong_start():
+def test_read_historic_data_wrong_start(test_client):
     end = datetime.now(timezone.utc)
-    fake_session = MagicMock(spec=Session)
-    app.dependency_overrides[get_db] = lambda: fake_session
-    response = client.get("/measurements/history/", params={
+
+    response = test_client.get("/measurements/history/", params={
         "server": "pool.ntp.org",
         "start": (end + timedelta(minutes=10)).isoformat(),
         "end": end.isoformat()
@@ -285,11 +299,10 @@ def test_read_historic_data_wrong_start():
     assert response.json() == {"error": "'start' must be earlier than 'end'"}
 
 
-def test_read_historic_data_wrong_end():
+def test_read_historic_data_wrong_end(test_client):
     end = datetime.now(timezone.utc)
-    fake_session = MagicMock(spec=Session)
-    app.dependency_overrides[get_db] = lambda: fake_session
-    response = client.get("/measurements/history/", params={
+
+    response = test_client.get("/measurements/history/", params={
         "server": "pool.ntp.org",
         "start": (end - timedelta(minutes=10)).isoformat(),
         "end": (end + timedelta(minutes=10)).isoformat()
@@ -301,16 +314,15 @@ def test_read_historic_data_wrong_end():
 @patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
 @patch("server.app.services.api_services.insert_measurement")
 @patch("server.app.services.api_services.is_ip_address")
-def test_perform_measurement_with_rate_limiting(mock_is_ip, mock_insert, mock_perform_measurement):
+def test_perform_measurement_with_rate_limiting(mock_is_ip, mock_insert, mock_perform_measurement, test_client):
     mock_is_ip.return_value = None
     measurement = mock_measurement()
-    fake_session = MagicMock(spec=Session)
-    app.dependency_overrides[get_db] = lambda: fake_session
+
     mock_perform_measurement.return_value = measurement
 
     for _ in range(5):
         headers = {"X-Forwarded-For": "83.25.24.10"}
-        response = client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": False}, headers=headers)
+        response = test_client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": False}, headers=headers)
         assert response.status_code == 200
         assert "measurement" in response.json()
         assert response.json()["measurement"]["ntp_server_name"] == "pool.ntp.org"
@@ -319,7 +331,7 @@ def test_perform_measurement_with_rate_limiting(mock_is_ip, mock_insert, mock_pe
 
     assert mock_perform_measurement.call_count == 5
     calls_before_6th = mock_perform_measurement.call_count
-    response = client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": False}, headers=headers)
+    response = test_client.post("/measurements/", json={"server": "pool.ntp.org", "jitter_flag": False}, headers=headers)
     assert response.status_code == 429
     assert response.json() == {"error": "Rate limit exceeded: 5 per 1 second"}
 
@@ -330,10 +342,9 @@ def test_perform_measurement_with_rate_limiting(mock_is_ip, mock_insert, mock_pe
 @patch("server.app.services.api_services.get_measurements_timestamps_ip")
 @patch("server.app.services.api_services.is_ip_address")
 @patch("server.app.services.api_services.human_date_to_ntp_precise_time")
-def test_historic_data_ip_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, mock_get_dn):
+def test_historic_data_ip_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, mock_get_dn, test_client):
     end = datetime.now(timezone.utc)
-    fake_session = MagicMock(spec=Session)
-    app.dependency_overrides[get_db] = lambda: fake_session
+
     mock_is_ip.return_value = IPv4Address("192.168.0.1")
     mock_human_date_to_ntp.return_value = PreciseTime(1000, 500)
     mock_data = get_mock_data()
@@ -341,7 +352,7 @@ def test_historic_data_ip_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock
     mock_get_ip.return_value = mock_data  # Mock for IP address fetch
     mock_get_dn.return_value = mock_data  # Mock for Domain Name fetch
     for _ in range(5):
-        response = client.get("/measurements/history/", params={
+        response = test_client.get("/measurements/history/", params={
             "server": "192.168.1.1",
             "start": (end - timedelta(minutes=10)).isoformat(),
             "end": end.isoformat()
@@ -355,7 +366,7 @@ def test_historic_data_ip_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock
     assert mock_get_ip.call_count == 5
 
     calls_before_6th = mock_get_ip.call_count
-    response = client.get("/measurements/history/", params={
+    response = test_client.get("/measurements/history/", params={
         "server": "192.168.1.1",
         "start": (end - timedelta(minutes=10)).isoformat(),
         "end": end.isoformat()
@@ -371,18 +382,17 @@ def test_historic_data_ip_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock
 @patch("server.app.services.api_services.get_measurements_timestamps_ip")
 @patch("server.app.services.api_services.is_ip_address")
 @patch("server.app.services.api_services.human_date_to_ntp_precise_time")
-def test_historic_data_dn_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, mock_get_dn):
+def test_historic_data_dn_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, mock_get_dn, test_client):
     end = datetime.now(timezone.utc)
     mock_is_ip.return_value = None
     mock_human_date_to_ntp.return_value = PreciseTime(1000, 500)
     mock_data = get_mock_data()
-    fake_session = MagicMock(spec=Session)
-    app.dependency_overrides[get_db] = lambda: fake_session
+
     mock_get_ip.return_value = mock_data  # Mock for IP address fetch
     mock_get_dn.return_value = mock_data  # Mock for Domain Name fetch
 
     for _ in range(5):
-        response = client.get("/measurements/history/", params={
+        response = test_client.get("/measurements/history/", params={
             "server": "pool.ntp.org",
             "start": (end - timedelta(minutes=10)).isoformat(),
             "end": end.isoformat()
@@ -396,7 +406,7 @@ def test_historic_data_dn_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock
     assert mock_get_dn.call_count == 5
 
     calls_before_6th = mock_get_dn.call_count
-    response = client.get("/measurements/history/", params={
+    response = test_client.get("/measurements/history/", params={
         "server": "pool.ntp.org",
         "start": (end - timedelta(minutes=10)).isoformat(),
         "end": end.isoformat()

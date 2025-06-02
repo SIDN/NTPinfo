@@ -5,26 +5,16 @@ from typing import Any, Optional, Generator
 
 from sqlalchemy.orm import Session
 
-from server.app.db_config import SessionLocal, engine
+from server.app.db_config import get_db
 from server.app.models.Base import Base
 from server.app.rate_limiter import limiter
 from server.app.dtos.MeasurementRequest import MeasurementRequest
 from server.app.services.api_services import get_format, measure, fetch_historic_data_with_timestamps
 
-Base.metadata.create_all(bind=engine)
+
 router = APIRouter()
 
-def get_db() -> Generator[Any, Any, None]:
-    """
-    Generates a new database session.
-    Returns:
-      Generator[Any, Any, None]: The database session.
-    """
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+
 @router.get("/")
 def read_root() -> dict[str, str]:
     """

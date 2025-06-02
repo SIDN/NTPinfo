@@ -1,7 +1,9 @@
+from typing import Generator, Any
+
 from dotenv import load_dotenv
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, Engine
+from sqlalchemy.orm import sessionmaker, Session
 
 load_dotenv()
 """
@@ -10,7 +12,6 @@ Loads environment variables from a `.env` file into the process's environment.
 This allows secure configuration of database credentials (e.g., DB_USER, DB_PASSWORD)
 without hardcoding them into the source code.
 """
-
 DB_CONFIG = {
     "dbname": os.getenv('DB_NAME'),
     'user': os.getenv('DB_USER'),
@@ -18,6 +19,7 @@ DB_CONFIG = {
     'host': os.getenv('DB_HOST'),
     'port': os.getenv('DB_PORT')
 }
+
 """
 Dictionary holding PostgreSQL connection details.
 
@@ -37,9 +39,35 @@ This string follows the format:
     postgresql://<user>:<password>@<host>:<port>/<dbname>
 It is required by most PostgreSQL drivers, including `psycopg`, to initiate connections.
 """
-engine = create_engine(dsn, pool_size=20, max_overflow=10)
-"""
-Creates the engine for the SQLAlchemy connection.
-This is where the connection starts, the engine allows us to create a session.
-"""
-SessionLocal = sessionmaker(bind=engine)
+
+_engine: Engine | None = None
+_SessionLocal: sessionmaker | None = None
+
+def init_engine() -> Engine:
+    """
+    Creates the engine necessary for the SQLAlchemy connection, as well as the session maker.
+    Returns:
+        Engine: The engine for the SQLAlchemy connection (necessary for creating the tables later).
+    """
+    global _engine, _SessionLocal
+    if _engine is None:
+        _engine = create_engine(dsn)
+        _SessionLocal = sessionmaker(bind=_engine)
+    return _engine
+
+
+def get_db() -> Generator[Session, None, None]:
+    """
+    Returns the current database session.
+    Yields:
+        Session: The current database session.
+    """
+    if _SessionLocal is None:
+        init_engine()
+
+    assert _SessionLocal is not None
+    db = _SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
