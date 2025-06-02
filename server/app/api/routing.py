@@ -6,7 +6,6 @@ from typing import Any, Optional, Generator
 from sqlalchemy.orm import Session
 
 from server.app.db_config import get_db
-from server.app.models.Base import Base
 from server.app.rate_limiter import limiter
 from server.app.dtos.MeasurementRequest import MeasurementRequest
 from server.app.services.api_services import get_format, measure, fetch_historic_data_with_timestamps
