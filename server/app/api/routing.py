@@ -164,7 +164,8 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
         return {
             "measurement_id": measurement_id,
             "status": "started",
-            "message": "You can fetch the result at /measurements/ripe/{measurement_id}"
+            "message": "You can fetch the result at /measurements/ripe/{measurement_id}",
+            "ip_list": ip_list
         }
     except Exception as e:
         print(e)
