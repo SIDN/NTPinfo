@@ -3,8 +3,8 @@ from ipaddress import ip_address
 import pytest
 from unittest.mock import Mock, patch
 
-from server.app.models.RipeMeasurement import RipeMeasurement
-from server.app.models.ProbeData import ProbeData
+from server.app.dtos.RipeMeasurement import RipeMeasurement
+from server.app.dtos.ProbeData import ProbeData
 from server.app.utils.ripe_fetch_data import get_data_from_ripe_measurement, get_probe_data_from_ripe_by_id, \
     parse_probe_data, is_failed_measurement, successful_measurement, parse_data_from_ripe_measurement, \
     check_all_measurements_scheduled

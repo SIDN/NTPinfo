@@ -1,7 +1,7 @@
 from server.app.utils.perform_measurements import *
 # import unittest
 from unittest.mock import patch, MagicMock
-from server.app.models.PreciseTime import PreciseTime
+from server.app.dtos.PreciseTime import PreciseTime
 
 
 def make_mock_measurement(seconds_offset: int) -> NtpMeasurement:

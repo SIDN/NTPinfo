@@ -1,12 +1,17 @@
 from ipaddress import IPv4Address, IPv6Address
 
-from server.app.models.PreciseTime import PreciseTime
-from server.app.models.NtpMeasurement import NtpMeasurement
-from psycopg_pool import ConnectionPool
+from sqlalchemy import Row
+from sqlalchemy.orm import Session
+
+from server.app.utils.ip_utils import ip_to_str
+from server.app.models.Measurement import Measurement
+from server.app.models.Time import Time
+from server.app.dtos.PreciseTime import PreciseTime
+from server.app.dtos.NtpMeasurement import NtpMeasurement
 from typing import Any
 
 
-def insert_measurement(measurement: NtpMeasurement, pool: Any) -> None:
+def insert_measurement(measurement: NtpMeasurement, session: Session) -> None:
     """
     Inserts a new NTP measurement into the database.
 
@@ -16,7 +21,7 @@ def insert_measurement(measurement: NtpMeasurement, pool: Any) -> None:
 
     Args:
         measurement (NtpMeasurement): The measurement data to store.
-        pool: A psycopg `ConnectionPool` used for managing PostgreSQL connections efficiently.
+        session (Session): The currently active database session.
 
     Notes:
         - Timestamps are stored with both second and fractional parts.
@@ -24,84 +29,42 @@ def insert_measurement(measurement: NtpMeasurement, pool: Any) -> None:
         - Any failure within the transaction block results in automatic rollback.
     """
 
-    with pool.connection() as conn:
-        with conn.transaction():
-            with conn.cursor() as cur:
-                cur.execute("""
-                            INSERT INTO times (client_sent, client_sent_prec,
-                                               server_recv, server_recv_prec,
-                                               server_sent, server_sent_prec,
-                                               client_recv, client_recv_prec)
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
-                            """, (
-                                measurement.timestamps.client_sent_time.seconds,
-                                measurement.timestamps.client_sent_time.fraction,
-                                measurement.timestamps.server_recv_time.seconds,
-                                measurement.timestamps.server_recv_time.fraction,
-                                measurement.timestamps.server_sent_time.seconds,
-                                measurement.timestamps.server_sent_time.fraction,
-                                measurement.timestamps.client_recv_time.seconds,
-                                measurement.timestamps.client_recv_time.fraction
-                            ))
-
-                # used because we have it as a foreign key in the measurements table
-                row = cur.fetchone()
-                if row is None:
-                    raise ValueError("Expected a result from INSERT RETURNING id, but got None")
-                time_id = row[0]
-
-                cur.execute("""
-                            INSERT INTO measurements(vantage_point_ip, ntp_server_ip, ntp_server_name,
-                                                     ntp_version, ntp_server_ref_parent,
-                                                     ref_name, time_id,
-                                                     time_offset, delay,
-                                                     stratum, precision,
-                                                     reachability,
-                                                     root_delay,
-                                                     ntp_last_sync_time,
-                                                     root_delay_prec,
-                                                     ntp_last_sync_time_prec)
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                            """, (
-                                measurement.vantage_point_ip,
-                                measurement.server_info.ntp_server_ip, measurement.server_info.ntp_server_name,
-                                measurement.server_info.ntp_version, measurement.server_info.ntp_server_ref_parent_ip,
-                                measurement.server_info.ref_name, time_id,
-                                measurement.main_details.offset, measurement.main_details.delay,
-                                measurement.main_details.stratum, measurement.main_details.precision,
-                                measurement.main_details.reachability,
-                                measurement.extra_details.root_delay.seconds,
-                                measurement.extra_details.ntp_last_sync_time.seconds,
-                                measurement.extra_details.root_delay.fraction,
-                                measurement.extra_details.ntp_last_sync_time.fraction
-                            ))
+    time = Time(
+        client_sent=measurement.timestamps.client_sent_time.seconds,
+        client_sent_prec=measurement.timestamps.client_sent_time.fraction,
+        server_recv=measurement.timestamps.server_recv_time.seconds,
+        server_recv_prec=measurement.timestamps.server_recv_time.fraction,
+        server_sent=measurement.timestamps.server_sent_time.seconds,
+        server_sent_prec=measurement.timestamps.server_sent_time.fraction,
+        client_recv=measurement.timestamps.client_recv_time.seconds,
+        client_recv_prec=measurement.timestamps.client_recv_time.fraction
+    )
+    session.add(time)
+    session.flush()
+    measurement_entry = Measurement(
+        vantage_point_ip=ip_to_str(measurement.vantage_point_ip),
+        ntp_server_ip=ip_to_str(measurement.server_info.ntp_server_ip),
+        ntp_server_name=measurement.server_info.ntp_server_name,
+        ntp_version=measurement.server_info.ntp_version,
+        ntp_server_ref_parent=ip_to_str(measurement.server_info.ntp_server_ref_parent_ip),
+        ref_name=measurement.server_info.ref_name,
+        time_id=time.id,
+        time_offset=measurement.main_details.offset,
+        rtt=measurement.main_details.delay,
+        stratum=measurement.main_details.stratum,
+        precision=measurement.main_details.precision,
+        reachability=measurement.main_details.reachability,
+        root_delay=measurement.extra_details.root_delay.seconds,
+        ntp_last_sync_time=measurement.extra_details.ntp_last_sync_time.seconds,
+        root_delay_prec=measurement.extra_details.root_delay.fraction,
+        ntp_last_sync_time_prec=measurement.extra_details.ntp_last_sync_time.fraction,
+        timestamps=time
+    )
+    session.add(measurement_entry)
+    session.commit()
 
 
-def get_all_measurements(pool: ConnectionPool) -> list[tuple]:
-    """
-    Retrieves all measurements from the database.
-
-    This function performs a join between the `measurements` and `times` tables,
-    returning every record in the database without any filtering.
-
-    Args:
-        pool: A psycopg `ConnectionPool` used to acquire database connections.
-
-    Returns:
-        list: A list of tuples, each representing a full measurement record joined with its timestamps.
-    """
-    with pool.connection() as conn:
-        with conn.transaction():
-            with conn.cursor() as cur:
-                cur.execute("""
-                            SELECT *
-                            FROM measurements m
-                                     JOIN times t ON m.time_id = t.id
-                            """)
-                return cur.fetchall()
-
-
-def get_measurements_timestamps_ip(pool: ConnectionPool, ip: IPv4Address | IPv6Address | None, start: PreciseTime,
+def get_measurements_timestamps_ip(session: Session, ip: IPv4Address | IPv6Address | None, start: PreciseTime,
                                    end: PreciseTime) -> list[
     dict[str, Any]]:
     """
@@ -113,7 +76,7 @@ def get_measurements_timestamps_ip(pool: ConnectionPool, ip: IPv4Address | IPv6A
         - The timestamp range (`client_sent` field) between `start` and `end`
 
     Args:
-        pool: A psycopg `ConnectionPool` used to manage PostgreSQL connections.
+        session (Session): The currently active database session.
         ip (IPv4Address | IPv6Address): The IP address of the NTP server.
         start (PreciseTime): The start of the time range to filter on.
         end (PreciseTime): The end of the time range to filter on.
@@ -123,76 +86,19 @@ def get_measurements_timestamps_ip(pool: ConnectionPool, ip: IPv4Address | IPv6A
             - Measurement metadata (IP, version, stratum, etc.)
             - Timing data (client/server send/receive with fractions)
     """
-    with pool.connection() as conn:
-        with conn.transaction():
-            with conn.cursor() as cur:
-                cur.execute("""
-                            SELECT m.id,
-                                   m.vantage_point_ip,
-                                   m.ntp_server_ip,
-                                   m.ntp_server_name,
-                                   m.ntp_version,
-                                   m.ntp_server_ref_parent,
-                                   m.ref_name,
-                                   m.time_offset,
-                                   m.delay,
-                                   m.stratum,
-                                   m.precision,
-                                   m.reachability,
-                                   m.root_delay,
-                                   m.root_delay_prec,
-                                   m.ntp_last_sync_time,
-                                   m.ntp_last_sync_time_prec,
-                                   t.client_sent,
-                                   t.client_sent_prec,
-                                   t.server_recv,
-                                   t.server_recv_prec,
-                                   t.server_sent,
-                                   t.server_sent_prec,
-                                   t.client_recv,
-                                   t.client_recv_prec
-                            FROM measurements m
-                                     JOIN times t ON m.time_id = t.id
-                            WHERE m.ntp_server_ip = %(ip)s
-                              AND (t.client_sent >= %(start_t)s AND t.client_sent <= %(end_t)s)
-                            """, {
-                                "ip": ip,
-                                "start_t": start.seconds,
-                                "start_t_precision": start.fraction,
-                                "end_t": end.seconds,
-                                "end_t_precision": end.fraction
-                            })
-                columns = [
-                    "id",
-                    "vantage_point_ip",
-                    "ntp_server_ip",
-                    "ntp_server_name",
-                    "ntp_version",
-                    "ntp_server_ref_parent_ip",
-                    "ref_name",
-                    "offset",
-                    "delay",
-                    "stratum",
-                    "precision",
-                    "reachability",
-                    "root_delay",
-                    "root_delay_prec",
-                    "ntp_last_sync_time",
-                    "ntp_last_sync_time_prec",
-                    "client_sent",
-                    "client_sent_prec",
-                    "server_recv",
-                    "server_recv_prec",
-                    "server_sent",
-                    "server_sent_prec",
-                    "client_recv",
-                    "client_recv_prec"
-                ]
-
-                return [dict(zip(columns, row)) for row in cur]
+    query = (
+        session.query(Measurement, Time)
+        .join(Time, Measurement.time_id == Time.id)
+        .filter(
+            Measurement.ntp_server_ip == str(ip),
+            Time.client_sent >= start.seconds,
+            Time.client_sent <= end.seconds
+        )
+    )
+    return convert_to_proper_format(query.all())
 
 
-def get_measurements_timestamps_dn(pool: ConnectionPool, dn: str, start: PreciseTime, end: PreciseTime) -> list[
+def get_measurements_timestamps_dn(session: Session, dn: str, start: PreciseTime, end: PreciseTime) -> list[
     dict[str, Any]]:
     """
     Fetches measurements for a specific domain name within a precise time range.
@@ -201,7 +107,7 @@ def get_measurements_timestamps_dn(pool: ConnectionPool, dn: str, start: Precise
     instead of `ntp_server_ip`.
 
     Args:
-        pool: A psycopg `ConnectionPool` used to manage PostgreSQL connections.
+        session (Session): The currently active database session.
         dn (str): The domain name of the NTP server.
         start (PreciseTime): The start of the time range to filter on.
         end (PreciseTime): The end of the time range to filter on.
@@ -211,70 +117,57 @@ def get_measurements_timestamps_dn(pool: ConnectionPool, dn: str, start: Precise
             - Measurement metadata (domain name, version, etc.)
             - Timing data (client/server send/receive with precision)
     """
-    with pool.connection() as conn:
-        with conn.transaction():
-            with conn.cursor() as cur:
-                cur.execute("""
-                            SELECT m.id,
-                                   m.vantage_point_ip,
-                                   m.ntp_server_ip,
-                                   m.ntp_server_name,
-                                   m.ntp_version,
-                                   m.ntp_server_ref_parent,
-                                   m.ref_name,
-                                   m.time_offset,
-                                   m.delay,
-                                   m.stratum,
-                                   m.precision,
-                                   m.reachability,
-                                   m.root_delay,
-                                   m.root_delay_prec,
-                                   m.ntp_last_sync_time,
-                                   m.ntp_last_sync_time_prec,
-                                   t.client_sent,
-                                   t.client_sent_prec,
-                                   t.server_recv,
-                                   t.server_recv_prec,
-                                   t.server_sent,
-                                   t.server_sent_prec,
-                                   t.client_recv,
-                                   t.client_recv_prec
-                            FROM measurements m
-                                     JOIN times t ON m.time_id = t.id
-                            WHERE m.ntp_server_name = %(dn)s
-                              AND (t.client_sent >= %(start_t)s AND t.client_sent <= %(end_t)s)
-                            """, {
-                                "dn": dn,
-                                "start_t": start.seconds,
-                                # "start_t_precision": start.fraction,
-                                "end_t": end.seconds,
-                                # "end_t_precision": end.fraction
-                            })
-                columns = [
-                    "id",
-                    "vantage_point_ip",
-                    "ntp_server_ip",
-                    "ntp_server_name",
-                    "ntp_version",
-                    "ntp_server_ref_parent_ip",
-                    "ref_name",
-                    "offset",
-                    "delay",
-                    "stratum",
-                    "precision",
-                    "reachability",
-                    "root_delay",
-                    "root_delay_prec",
-                    "ntp_last_sync_time",
-                    "ntp_last_sync_time_prec",
-                    "client_sent",
-                    "client_sent_prec",
-                    "server_recv",
-                    "server_recv_prec",
-                    "server_sent",
-                    "server_sent_prec",
-                    "client_recv",
-                    "client_recv_prec"
-                ]
+    query = (
+        session.query(Measurement, Time)
+        .join(Time, Measurement.time_id == Time.id)
+        .filter(
+            Measurement.ntp_server_name == dn,
+            Time.client_sent >= start.seconds,
+            Time.client_sent <= end.seconds
+        )
+    )
+    return convert_to_proper_format(query.all())
 
-                return [dict(zip(columns, row)) for row in cur]
+def convert_to_proper_format(rows: list[Row[tuple[Measurement, Time]]]) -> list[dict[str, Any]]:
+    """
+    Gets the necessary measurement data from the tuple and converts it to a dictionary.
+
+    Args:
+        rows (list[Row[tuple[Measurement, Time]]]): The tuple of measurement and time records.\
+
+    Returns:
+        list[dict[str, Any]]: The necessary measurements.
+    """
+    result = []
+    for row in rows:
+
+        m: Measurement = row.Measurement
+        t: Time = row.Time
+
+        result.append({
+            "id": m.id,
+            "vantage_point_ip": m.vantage_point_ip,
+            "ntp_server_ip": m.ntp_server_ip,
+            "ntp_server_name": m.ntp_server_name,
+            "ntp_version": m.ntp_version,
+            "ntp_server_ref_parent_ip": m.ntp_server_ref_parent,
+            "ref_name": m.ref_name,
+            "offset": m.time_offset,
+            "RTT": m.rtt,
+            "stratum": m.stratum,
+            "precision": m.precision,
+            "reachability": m.reachability,
+            "root_delay": m.root_delay,
+            "root_delay_prec": m.root_delay_prec,
+            "ntp_last_sync_time": m.ntp_last_sync_time,
+            "ntp_last_sync_time_prec": m.ntp_last_sync_time_prec,
+            "client_sent": t.client_sent,
+            "client_sent_prec": t.client_sent_prec,
+            "server_recv": t.server_recv,
+            "server_recv_prec": t.server_recv_prec,
+            "server_sent": t.server_sent,
+            "server_sent_prec": t.server_sent_prec,
+            "client_recv": t.client_recv,
+            "client_recv_prec": t.client_recv_prec
+        })
+    return result

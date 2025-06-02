@@ -1,14 +1,20 @@
-from fastapi import HTTPException, APIRouter, Request
+from fastapi import HTTPException, APIRouter, Request, Depends
 
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, Optional, Generator
+
+
+from sqlalchemy.orm import Session
+
+from server.app.db_config import get_db
 
 from server.app.services.api_services import check_ripe_measurement_complete
 from server.app.services.api_services import fetch_ripe_data
 from server.app.services.api_services import perform_ripe_measurement
 from server.app.rate_limiter import limiter
-from server.app.models.MeasurementRequest import MeasurementRequest
+from server.app.dtos.MeasurementRequest import MeasurementRequest
 from server.app.services.api_services import get_format, measure, fetch_historic_data_with_timestamps
+
 
 router = APIRouter()
 
@@ -26,7 +32,8 @@ def read_root() -> dict[str, str]:
 
 @router.post("/measurements/")
 @limiter.limit("5/second")
-async def read_data_measurement(payload: MeasurementRequest, request: Request) -> dict[str, Any]:
+async def read_data_measurement(payload: MeasurementRequest, request: Request,
+                                session: Session = Depends(get_db)) -> dict[str, Any]:
     """
     Compute a live NTP measurement for a given server (IP or domain).
 
@@ -40,6 +47,7 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request) -
         payload (MeasurementRequest): A Pydantic model containing:
             - server (str): IP address (IPv4/IPv6) or domain name of the NTP server.
         request (Request): The Request object that gives you the IP of the client.
+        session (Session): The currently active database session.
 
     Returns:
         dict: On success, returns {"measurement": <formatted_measurement_dict>}.
@@ -62,7 +70,7 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request) -
         except Exception as e:
             client_ip = None
     times = payload.measurements_no if payload.measurements_no else 0
-    response = measure(server, client_ip, payload.jitter_flag, times)
+    response = measure(server, session, client_ip, payload.jitter_flag, times)
     if response is not None:
         result, jitter = response
         return {
@@ -75,7 +83,8 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request) -
 @router.get("/measurements/history/")
 @limiter.limit("5/second")
 async def read_historic_data_time(server: str,
-                                  start: datetime, end: datetime, request: Request) -> dict[str, list[dict[str, Any]]]:
+                                  start: datetime, end: datetime, request: Request,
+                                  session: Session = Depends(get_db)) -> dict[str, list[dict[str, Any]]]:
     """
     Retrieve historic NTP measurements for a given server and optional time range.
 
@@ -90,12 +99,14 @@ async def read_historic_data_time(server: str,
         start (datetime, optional): Start timestamp for data filtering.
         end (datetime, optional): End timestamp for data filtering.
         request (Request): Request object for making the limiter work
+        session (Session): The currently active database session.
 
     Returns:
         dict: A dictionary containing a list of formatted measurements under "measurements".
 
     Raises:
         HTTPException: 400 error if `server` parameter is empty.
+        HTTPException: 404 error if `server` parameter is not found.
     """
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'domain name' must be provided")
@@ -111,7 +122,7 @@ async def read_historic_data_time(server: str,
     #
     # start_test = utc_time_from_9am
     # end_test = current_utc_time
-    result = fetch_historic_data_with_timestamps(server, start, end)
+    result = fetch_historic_data_with_timestamps(server, start, end, session)
     formatted_results = [get_format(entry) for entry in result]
     return {
         "measurements": formatted_results
