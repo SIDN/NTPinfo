@@ -1,15 +1,16 @@
 import { useState } from "react"
 import axios from "axios"
+import { RIPEResp } from "../utils/types"
 
 export const triggerRipeMeasurement = () => {
-    const [measurementId, setMeasurementId] = useState<string | null>(null)
+    const [data, setData] = useState<RIPEResp | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<Error | null>(null)
     /**
-     * send a post request to the back-end
-     * @param endpoint the endpoint to make the post call to
-     * @param payload the server that will be measured, as well as the choice of the user whether to calculate the jitter
-     * @returns the data received from the measurement as NTPData, or null
+     * trigger the RIPE measurement for the backend
+     * @param payload the same payload as the measurement API
+     * @returns the data returned by the call as RIPEResp, which contains the measurement id and the list of IPs that could be chosen
+     * the loading status of the trigger call, the error that was caught in case of a bug, and a function to call the trigger function directly
      */
     const triggerMeasurement = async (payload: {server: string, jitter_flag : boolean, measurements_no : number | null}) => {
         setLoading(true)
@@ -21,10 +22,11 @@ export const triggerRipeMeasurement = () => {
                     }
                 }
             )
-            if (resp.data?.measurement_id) {
-                setMeasurementId(resp.data.measurement_id)
-            }
-            return resp.data.measurement_id
+            const measurementId = resp.data?.measurement_id || null
+            const ipList = resp.data?.ip_list || null
+            const parsedData = {measurementId, ipList}
+            setData(parsedData)
+            return {parsedData}
         } catch (err: any) {
             setError(err)
             return null
@@ -33,5 +35,5 @@ export const triggerRipeMeasurement = () => {
         }
     };
     
-    return {measurementId, loading, error, triggerMeasurement}
+    return {data, loading, error, triggerMeasurement}
 }

@@ -33,4 +33,13 @@ export type RIPEData = {
   probe_country: string
   probe_location: LatLngTuple
   got_results: boolean
+  probe_types: number[]
+}
+
+/**
+ * Data type for the RIPE measurement trigger response
+ */
+export type RIPEResp = {
+  measurementId: number
+  ipList: string[]
 }

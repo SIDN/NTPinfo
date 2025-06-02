@@ -3,8 +3,17 @@ import axios from "axios"
 import { RIPEData } from "../utils/types"
 import { transformJSONDataToRIPEData } from "../utils/transformJSONDataToRIPEData"
 
-export const useFetchRIPEData = (measurementId: string | null, intervalMs = 3000) => {
-    const [result, setResult] = useState<RIPEData| null>(null)
+/**
+ * The endpoint to poll RIPE measurements from the backend
+ * When a new measurement is started, it resets the state of teh measurement to not show old data
+ * It then performs a GET request every interval and updates the data that was fetched
+ * When the status becomes "complete" or "error", the call ends
+ * @param measurementId the ID of the RIPE measurement to be polled
+ * @param intervalMs the interval at which data will be polled from the endpoint
+ * @returns the current set of results, the status of the polling, and if an error has occured
+ */
+export const useFetchRIPEData = (measurementId: string | null, intervalMs = 1000) => {
+    const [result, setResult] = useState<RIPEData[] | null>(null)
     const [status, setStatus] = useState<"idle" | "polling" | "complete" | "error">("idle")
     const [error, setError] = useState<Error | null>(null)
 
@@ -12,7 +21,12 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 3000
     const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
     useEffect(() => {
-        if (!measurementId) return
+        if (!measurementId) {
+            setResult(null)
+            setStatus("idle")
+            setError(null)
+            return
+        }
 
         setStatus("polling")
         setError(null)
@@ -20,10 +34,18 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 3000
         const fetchResult = async () => {
             try {
                 const res = await axios.get(`${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/ripe/${measurementId}`)
-                const transformedData = transformJSONDataToRIPEData(res.data.results)
-                setResult(transformedData)
+                if (res.data?.results) {
+                    const transformedData = res.data.results.map((d: any) => transformJSONDataToRIPEData(d))
+                    setResult(transformedData)
+                }
                 if (res.data.status === "complete") {
                     setStatus("complete")
+                    if (intervalRef.current) clearInterval(intervalRef.current)
+                } else if (res.data.status === "pending") {
+                    setStatus("polling")
+                } else if (res.data.status === "error") {
+                    setError(new Error(res.data.message || "Unknown error"))
+                    setStatus("error")
                     if (intervalRef.current) clearInterval(intervalRef.current)
                 }
             } catch (err: any) {
@@ -34,8 +56,8 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 3000
         }
 
         intervalRef.current = setInterval(fetchResult, intervalMs)
-
-        // Clean up on unmount
+        fetchResult()
+        
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current)
         }
@@ -43,46 +65,3 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 3000
 
     return {result, status, error}
 }
-
-// import { useState } from "react"
-// import axios from "axios"
-// import { RIPEData } from "../utils/types.ts"
-// import { transformJSONDataToRIPEData } from "../utils/transformJSONDataToRIPEData.ts"
-
-// export const useFetchRIPEData = () => {
-//     const [data, setData] = useState<RIPEData[] | null>(null)
-//     const [loading, setLoading] = useState(false)
-//     const [error, setError] = useState<Error | null>(null)
-//     const [httpStatus, setHttpStatus] = useState<number>(200)
-//     /**
-//      * send a poll request to the backend to get RIPE data measurements
-//      * @param endpoint the endpoint to make the post call to
-//      * @param payload the server that will be measured
-//      * @returns the data received from the measurement as RIPEData, or null
-//      */
-//     const fetchData = async (endpoint: string, payload: {server: string}) => {
-//         setLoading(true);
-//         setError(null);
-//         try {
-//             const resp = await axios.post(endpoint,payload, {
-//                     headers: {
-//                         "Content-Type": "application/json"
-//                     }
-//                 }
-//             )
-//             const measurements = resp.data !== null ? resp.data : []
-//             const transformedData = measurements.map((d: any) => transformJSONDataToRIPEData(d))
-//             setData(transformedData)
-//             setHttpStatus(resp.status)
-//             return transformedData
-//         } catch (err: any) {
-//             setError(err)
-//             setHttpStatus(err.response?.status)
-//             return null
-//         } finally {
-//             setLoading(false)
-//         }
-//     };
-    
-//     return {data, loading, error, httpStatus, fetchData}
-// }

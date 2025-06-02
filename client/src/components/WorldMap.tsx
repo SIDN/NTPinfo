@@ -64,7 +64,7 @@ const grayIcon = new L.Icon({
 interface MapComponentProps {
   probes: RIPEData[] | null
   ntpServer: L.LatLngExpression
-  err: Error | null
+  status: string | null
 }
 
 /**
@@ -81,7 +81,7 @@ const FitMapBounds = ({probes, ntpServer}: {probes: L.LatLngExpression[], ntpSer
     const fitBounds = () => {
       const allPoints = [...probes, ntpServer]
       const bounds = L.latLngBounds(allPoints)
-      map.fitBounds(bounds, { padding: [15, 15] })
+      map.fitBounds(bounds, { padding: [20, 20] })
     }
 
     fitBounds()
@@ -145,11 +145,14 @@ const stringifyRTTAndOffset = (value: number): string => {
  * The function for creating the WorldMap Component
  * Shows error text in case that an error occurs in fetching RIPE Data
  * Used a base tile map offered by Carto, specifically the Dark Matter basemap
+ * Shows the status of the map(loading, finished, error)
+ * Shows the number of probes chosen and the number of probes in each category
  * Each probe is shown on the map with an icon of a different color depending on the RTT measured by it
  * Each probe has a popup which shows the following:
  *  The RIPE probe ID, with a link to its page on the RIPE Atlas website
  *  The RTT measured
  *  The offset measured
+ *  The location of the probe
  * The NTP server has a popup showing the following:
  *  The name of the NTP server
  *  The IP of the specifc NTP server which was used
@@ -157,25 +160,27 @@ const stringifyRTTAndOffset = (value: number): string => {
  * The map's zoom get automatically readjusted depending on the size of the map on the page
  * @param probes Data of all the measured probes, as an array of RIPEData values
  * @param ntpServer The geolocation of the NTP server
- * @param err a value containing an Error if an error occured when fetching the RIPE measurements
+ * @param status the current status of the polling of the RIPE measurements 
  * @returns a WorldMap component showing all probes, the NTP server and relevant values for all of them
  */
-export default function WorldMap ({probes, ntpServer, err}: MapComponentProps) {
+export default function WorldMap ({probes, ntpServer, status}: MapComponentProps) {
   const [statusMessage, setStatusMessage] = useState<string>("")
   useEffect(() => {
-    if (probes == null) {
-        if (err)
-            setStatusMessage("Unknown error occurred")
-        }
-    }, [probes, err])
-
-  if(probes == null)
-    return <h2 id="not-found">{err ? `Error unknown: ${statusMessage}` : `Unknown error occurred`}</h2>
+    if (status === "idle" || status === "polling"){
+      setStatusMessage("Map Loading...")
+    } else if(status === "complete") {
+      setStatusMessage("Map Fully Loaded")
+    } else if (status === "error") {
+      setStatusMessage("Error loading RIPE data")
+    }
+    }, [probes, status])
 
   const probe_locations = probes?.map(x => x.probe_location) ?? []
   const icons = probes?.map(x => getIconByRTT(x.measurementData.RTT, x.got_results)) ?? []
-    return ( 
-        <MapContainer  style={{height: '500px', width: '100%'}}>
+    return (
+      <div style={{height: '500px', width: '100%'}}>
+        <h2>{statusMessage}</h2>
+        <MapContainer style={{height: '100%', width: '100%'}}>
             <TileLayer 
                 url = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                 attribution= '&copy; <a href="https://carto.com/">CARTO</a>'
@@ -189,7 +194,8 @@ export default function WorldMap ({probes, ntpServer, err}: MapComponentProps) {
                 <Popup>
                   Probe ID: <a href = {`https://atlas.ripe.net/probes/${probes[index].probe_id}/overview`} target='_blank' rel="noopener noreferrer">{probes[index].probe_id}</a><br/>
                   Offset: {stringifyRTTAndOffset(probes[index].measurementData.offset)}<br/>
-                  RTT: {stringifyRTTAndOffset(probes[index].measurementData.RTT)}
+                  RTT: {stringifyRTTAndOffset(probes[index].measurementData.RTT)}<br/>
+                  Location: {pos[0]}, {pos[1]}
                 </Popup>
               </Marker>))}
 
@@ -204,5 +210,13 @@ export default function WorldMap ({probes, ntpServer, err}: MapComponentProps) {
               <DrawConnectingLines probes={probe_locations} ntpServer={ntpServer}/>
             </>)}
         </MapContainer>
+        {(probes !== null) && (<div style={{display: "flex", gap: "10px"}}>
+          <div>ASN probes: {probes[0].probe_types[0]}</div>
+          <div>Prefix probes: {probes[0].probe_types[1]}</div>
+          <div>Country probes:  {probes[0].probe_types[2]}</div>
+          <div>Area probes: {probes[0].probe_types[3]}</div>
+          <div>Random probes: {probes[0].probe_types[4]}</div>
+        </div>)}
+      </div>
     )
 }
