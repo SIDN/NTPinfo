@@ -1,0 +1,5 @@
+@import '../index.css';
+
+h1 {
+    color: var(--clr-font-white);
+}
