@@ -154,11 +154,12 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
             - measurement_id (str): The ID of the triggered RIPE measurement
             - status (str): Status message ("started")
             - message (str): Instructions on how to retrieve the result
+            - ip_list (list[str]): List of ips for ntp server
 
     Raises:
         HTTPException:
-            - 400: If the `server` field is empty.
-            - 500: If the RIPE measurement could not be initiated.
+            - 400: If the `server` field is empty
+            - 500: If the RIPE measurement could not be initiated
     """
     server = payload.server
     if len(server) == 0:
@@ -205,8 +206,8 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
             - If complete: {"status": "complete", "results": <ripe_data>}
             - If pending: {"status": "pending", "message": "..."}
             - If partial results received: {"status": "partial_results", "results": <ripe_data>}
-            - If error: {"status": "error", "message": <error message>}
-
+    Raises:
+        HTTPException: - 500: If fetching the measurement did not work.
     Notes:
         - A result is only marked "complete" when all requested probes have been scheduled
     """
@@ -229,7 +230,5 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
                 "results": ripe_measurement_result
             }
     except Exception as e:
-        return {
-            "status": "error",
-            "message": f"Failed to fetch result: {str(e)}"
-        }
+        print(e)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch result: {str(e)}")
