@@ -143,6 +143,7 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
             - measurement_id (str): The ID of the triggered RIPE measurement
             - status (str): Status message ("started")
             - message (str): Instructions on how to retrieve the result
+            - ip_list (list[str]): List of ips for ntp server
 
     Raises:
         HTTPException:

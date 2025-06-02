@@ -1,5 +1,6 @@
 from ipaddress import ip_address
 
+from server.app.models.ProbeData import ProbeData
 from server.app.services.api_services import *
 from unittest.mock import patch, MagicMock
 from server.app.models.NtpMeasurement import NtpMeasurement
@@ -293,4 +294,84 @@ def test_fetch_historic_data_domain_name(mock_get_dn, mock_get_ip):
     mock_get_ip.assert_not_called()
     mock_get_dn.assert_called_once()
 
-# def test
+
+def mock_ripe_parse_result():
+    return RipeMeasurement(
+        measurement_id=123456,
+        ntp_measurement=NtpMeasurement(
+            vantage_point_ip=IPv4Address('83.231.3.54'),
+            server_info=NtpServerInfo(
+                ntp_version=4,
+                ntp_server_ip=IPv4Address('18.252.12.124'),
+                ntp_server_name='time.some_server.com',
+                ntp_server_ref_parent_ip=None,
+                ref_name=None,
+                other_server_ips=["8.8.8.8", "1.1.1.1"]
+            ),
+            timestamps=NtpTimestamps(
+                client_sent_time=mock_precise(3957337543, 1845620736),
+                server_recv_time=mock_precise(3957337543, 1623990272),
+                server_sent_time=mock_precise(3957337543, 1623990272),
+                client_recv_time=mock_precise(3957337543, 1963061248)
+            ),
+            main_details=NtpMainDetails(
+                offset=0.065274,
+                delay=0.027344,
+                stratum=1,
+                precision=9.53674e-07,
+                reachability=""
+            ),
+            extra_details=NtpExtraDetails(
+                root_delay=mock_precise(0, 0),
+                ntp_last_sync_time=mock_precise(-1, 0),
+                leap=0
+            )
+        ),
+        probe_data=ProbeData(
+            probe_id="9999",
+            probe_addr=(IPv4Address('83.231.3.54'), None),
+            probe_location=ProbeLocation(
+                country_code='CZ',
+                coordinates=(16.5995, 49.1605)
+            )
+        ),
+        time_to_result=5014.4233,
+        poll=1,
+        root_dispersion=7.62939e-05,
+        ref_id='GPSs'
+    )
+
+
+@patch("server.app.services.api_services.parse_data_from_ripe_measurement")
+@patch("server.app.services.api_services.get_data_from_ripe_measurement")
+def test_fetch_ripe_data(mock_get_data_from_ripe, mock_parse_data_from_ripe):
+    mock_get_data_from_ripe.return_value = []
+    mock_parse_data_from_ripe.return_value = [mock_ripe_parse_result()]
+
+    result = fetch_ripe_data("123456")
+
+    assert isinstance(result, list)
+    assert len(result) == 1
+
+    data = result[0]
+
+    assert data["ntp_version"] == 4
+    assert data["ripe_measurement_id"] == 123456
+    assert data["ntp_server_ip"] == "18.252.12.124"
+    assert data["ntp_server_name"] == "time.some_server.com"
+    assert data["probe_addr"]["ipv4"] == "83.231.3.54"
+    assert data["probe_addr"]["ipv6"] is None
+    assert data["probe_id"] == "9999"
+    assert data["probe_location"]["country_code"] == "CZ"
+    assert data["probe_location"]["coordinates"] == (16.5995, 49.1605)
+    assert data["time_to_result"] == 5014.4233
+    assert data["stratum"] == 1
+    assert data["poll"] == 1
+    assert data["precision"] == 9.53674e-07
+    assert data["root_dispersion"] == 7.62939e-05
+    assert data["ref_id"] == "GPSs"
+
+    result_data = data["result"][0]
+    assert result_data["client_sent_time"].seconds == 3957337543
+    assert result_data["rtt"] == 0.027344
+    assert result_data["offset"] == 0.065274
