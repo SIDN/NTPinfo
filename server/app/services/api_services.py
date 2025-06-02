@@ -253,7 +253,7 @@ def fetch_historic_data_with_timestamps(server: str, start: datetime, end: datet
     return measurements
 
 
-def fetch_ripe_data(measurement_id: str) -> list[dict]:
+def fetch_ripe_data(measurement_id: str) -> list[dict] | None:
     """
     Fetches and formats NTP measurement data from RIPE Atlas.
 

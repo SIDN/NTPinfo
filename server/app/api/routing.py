@@ -219,7 +219,5 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
                 "results": ripe_measurement_result
             }
     except Exception as e:
-        return {
-            "status": "error",
-            "message": f"Failed to fetch result: {str(e)}"
-        }
+        print(e)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch result: {str(e)}")
