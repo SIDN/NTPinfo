@@ -10,14 +10,14 @@ from server.app.utils.ip_utils import get_ip_family, ref_id_to_ip_or_name, \
 from server.app.utils.load_env_vals import get_ripe_account_email, get_ripe_api_token
 from server.app.utils.ripe_probes import get_probes
 from server.app.services.NtpCalculator import NtpCalculator
-from server.app.utils.domain_name_to_ip import domain_name_to_ip_default, domain_name_to_ip_close_to_client, \
-    domain_name_to_ip_list
-from server.app.models.NtpExtraDetails import NtpExtraDetails
-from server.app.models.NtpMainDetails import NtpMainDetails
-from server.app.models.NtpMeasurement import NtpMeasurement
-from server.app.models.NtpServerInfo import NtpServerInfo
-from server.app.models.NtpTimestamps import NtpTimestamps
-from server.app.models.PreciseTime import PreciseTime
+from server.app.utils.domain_name_to_ip import (domain_name_to_ip_default, domain_name_to_ip_close_to_client, \
+    domain_name_to_ip_list)
+from server.app.dtos.NtpExtraDetails import NtpExtraDetails
+from server.app.dtos.NtpMainDetails import NtpMainDetails
+from server.app.dtos.NtpMeasurement import NtpMeasurement
+from server.app.dtos.NtpServerInfo import NtpServerInfo
+from server.app.dtos.NtpTimestamps import NtpTimestamps
+from server.app.dtos.PreciseTime import PreciseTime
 from server.app.utils.validate import is_ip_address
 
 

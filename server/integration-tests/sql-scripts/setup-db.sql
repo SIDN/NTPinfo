@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS times
     server_sent_prec bigint,
     client_recv bigint,
     client_recv_prec bigint,
-    CONSTRAINT times_pkey PRIMARY KEY (id, client_sent_prec),
+    CONSTRAINT times_pkey PRIMARY KEY (id),
     CONSTRAINT pk UNIQUE (id)
 );
 
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS measurements
     ref_name text COLLATE pg_catalog."default",
     time_id bigint,
     time_offset double precision,
-    delay double precision,
+    rtt double precision,
     stratum integer,
     "precision" double precision,
     reachability text COLLATE pg_catalog."default",

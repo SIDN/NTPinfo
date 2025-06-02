@@ -132,7 +132,42 @@ def get_prefix_from_ip(ip_str: str) -> Optional[str]:
         print(e)
         return None
 
-import time
+def ip_to_str(ip: Optional[IPv4Address | IPv6Address]) -> Optional[str]:
+    """
+    Converts an IP address (either IPv4 or IPv6) to its string representation.
+    This function takes an `IPv4Address` or `IPv6Address` object and converts it to
+    a string. If the input IP is `None`, it returns `None`.
+
+    Args:
+        ip (Optional[IPv4Address | IPv6Address]): The IP address to be converted.
+            It can be either an `IPv4Address` or `IPv6Address` object, or `None`.
+
+    Returns:
+        Optional[str]: The string representation of the IP address, or `None` if the input is `None`.
+    """
+    return str(ip) if ip is not None else None
+
+def ip_to_location(ip_str: str) -> tuple[float, float]:
+    """
+    This method returns the latitude and longitude of an IP address by making an API call.
+    This method also works with a domain name, but it is recommended to use an IP address.
+    (These API calls are unlimited)
+
+    Args:
+        ip_str: The IP address.
+
+    Returns:
+        tuple[float, float]: latitude and longitude of the provided IP address.
+
+    Raises:
+        Exception: If the IP provided is invalid
+    """
+    response = requests.get(f"https://ipwhois.app/json/{ip_str}")
+    data = response.json()
+    latitude: float = data.get("latitude", )
+    longitude: float = data.get("longitude", None)
+    return latitude, longitude
+# import time
 
 # start = time.time()
 # print(get_ip_network_details("80.211.238.247"))
