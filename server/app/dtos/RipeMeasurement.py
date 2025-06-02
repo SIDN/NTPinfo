@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from server.app.models.NtpMeasurement import NtpMeasurement
-from server.app.models.ProbeData import ProbeData
+from server.app.dtos.NtpMeasurement import NtpMeasurement
+from server.app.dtos.ProbeData import ProbeData
 
 
 @dataclass

@@ -1,6 +1,9 @@
+from typing import Generator, Any
+
 from dotenv import load_dotenv
 import os
-from psycopg_pool import ConnectionPool
+from sqlalchemy import create_engine, Engine
+from sqlalchemy.orm import sessionmaker, Session
 
 load_dotenv()
 """
@@ -9,7 +12,6 @@ Loads environment variables from a `.env` file into the process's environment.
 This allows secure configuration of database credentials (e.g., DB_USER, DB_PASSWORD)
 without hardcoding them into the source code.
 """
-
 DB_CONFIG = {
     "dbname": os.getenv('DB_NAME'),
     'user': os.getenv('DB_USER'),
@@ -17,6 +19,7 @@ DB_CONFIG = {
     'host': os.getenv('DB_HOST'),
     'port': os.getenv('DB_PORT')
 }
+
 """
 Dictionary holding PostgreSQL connection details.
 
@@ -37,18 +40,34 @@ This string follows the format:
 It is required by most PostgreSQL drivers, including `psycopg`, to initiate connections.
 """
 
-pool = ConnectionPool(conninfo=dsn, max_size = 20)
-"""
-Creates a PostgreSQL connection pool using `psycopg_pool.ConnectionPool`.
+_engine: Engine | None = None
+_SessionLocal: sessionmaker | None = None
 
-Args:
-    conninfo (str): The DSN used to connect to the PostgreSQL server.
-    max_size (int): The maximum number of simultaneous database connections allowed.
+def init_engine() -> Engine:
+    """
+    Creates the engine necessary for the SQLAlchemy connection, as well as the session maker.
+    Returns:
+        Engine: The engine for the SQLAlchemy connection (necessary for creating the tables later).
+    """
+    global _engine, _SessionLocal
+    if _engine is None:
+        _engine = create_engine(dsn)
+        _SessionLocal = sessionmaker(bind=_engine)
+    return _engine
 
-Details:
-    - `max_size=5` limits the number of concurrent active database connections to 5.
-    - If more than 5 requests require a connection at the same time, additional requests will wait (block)
-      until a connection becomes available or a timeout occurs.
-    - This pool improves performance and resource management by reusing connections instead of
-      constantly opening/closing new ones.
-"""
+
+def get_db() -> Generator[Session, None, None]:
+    """
+    Returns the current database session.
+    Yields:
+        Session: The current database session.
+    """
+    if _SessionLocal is None:
+        init_engine()
+
+    assert _SessionLocal is not None
+    db = _SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
