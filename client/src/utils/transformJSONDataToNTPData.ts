@@ -13,7 +13,7 @@ export const transformJSONDataToNTPData = (fetchedData: any): NTPData | null => 
     
     return {
         offset: fetchedData.offset,
-        RTT: fetchedData.delay,
+        RTT: fetchedData.rtt,
         stratum: fetchedData.stratum,
         jitter: fetchedData.jitter,
         precision: fetchedData.precision,
