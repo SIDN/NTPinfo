@@ -1,12 +1,15 @@
-from ipaddress import IPv4Address, IPv6Address
+from ipaddress import IPv4Address, IPv6Address, ip_address
 from typing import Any, Optional, Coroutine
 
+from server.app.utils.ripe_fetch_data import check_all_measurements_scheduled
+from server.app.utils.perform_measurements import perform_ripe_measurement_domain_name
 from server.app.models.ProbeData import ProbeLocation
 from server.app.models.RipeMeasurement import RipeMeasurement
 from server.app.utils.ripe_fetch_data import parse_data_from_ripe_measurement, get_data_from_ripe_measurement
 from server.app.utils.validate import ensure_utc, is_ip_address, parse_ip
 from server.app.services.NtpCalculator import NtpCalculator
-from server.app.utils.perform_measurements import perform_ntp_measurement_ip, perform_ntp_measurement_domain_name
+from server.app.utils.perform_measurements import perform_ntp_measurement_ip, perform_ntp_measurement_domain_name, \
+    perform_ripe_measurement_ip
 from server.app.utils.perform_measurements import human_date_to_ntp_precise_time, ntp_precise_time_to_human_date, \
     calculate_jitter_from_measurements
 from datetime import datetime
@@ -120,9 +123,16 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
         "stratum": measurement.ntp_measurement.main_details.stratum,
         "poll": measurement.poll,
         "precision": measurement.ntp_measurement.main_details.precision,
-        "root-delay": measurement.ntp_measurement.extra_details.root_delay,
-        "root-dispersion": measurement.root_dispersion,
-        "ref-id": measurement.ref_id,
+        "root_delay": measurement.ntp_measurement.extra_details.root_delay,
+        "root_dispersion": measurement.root_dispersion,
+        "ref_id": measurement.ref_id,
+        "probe_count_per_type": {
+            'asn': 9,
+            'prefix': 1,
+            'country': 26,
+            'area': 4,
+            'random': 0
+        },
         "result": [
             {
                 "client_sent_time": measurement.ntp_measurement.timestamps.client_sent_time,
@@ -263,4 +273,53 @@ def fetch_ripe_data(measurement_id: str) -> list[dict]:
         measurements_formated.append(get_ripe_format(m))
     return measurements_formated
 
-# print(fetch_ripe_data("106323686"))
+
+# print(fetch_ripe_data("106549701"))
+
+
+def perform_ripe_measurement(server: str, client_ip: Optional[str] = None) -> tuple[str, list]:
+    """
+    Initiate a RIPE Atlas measurement for a given server (IP or domain name).
+
+    This function determines whether the provided server is an IP address or a domain name,
+    and triggers the appropriate RIPE measurement. If the server is an IP address,
+    a simple measurement is initiated. If it is a domain name, a list of ips near to the client is also returned.
+
+    Args:
+        server (str): The IP address or domain name of the target NTP server
+        client_ip (Optional[str]): The IP address of the client requesting the measurement (only for domain names)
+
+    Returns:
+        tuple[str, list]: A tuple containing:
+            - The RIPE measurement ID (as a string)
+            - A list of IP addresses (empty if an IP address was provided)
+
+    Raises:
+        ValueError: If the server string is invalid or resolution fails in domain name mode
+    """
+    try:
+        ip_address(server)
+        measurement_id = perform_ripe_measurement_ip(server)
+        return str(measurement_id), []
+    except ValueError:
+        measurement_id, ip_list = perform_ripe_measurement_domain_name(server, client_ip)
+        return str(measurement_id), ip_list
+
+
+def check_ripe_measurement_complete(measurement_id: str) -> bool:
+    """
+    Check if a RIPE Atlas measurement has been fully scheduled.
+
+    This function delegates to `check_all_measurements_scheduled()` to verify that
+    all requested probes have been scheduled for the given RIPE measurement ID.
+
+    Args:
+        measurement_id (str): The ID of the RIPE measurement to check
+
+    Returns:
+        bool: True if all requested probes are scheduled, False otherwise
+
+    Raises:
+        ValueError: If the RIPE API returns an error or unexpected data
+    """
+    return check_all_measurements_scheduled(measurement_id=measurement_id)
