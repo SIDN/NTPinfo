@@ -1,10 +1,9 @@
-<<<<<<< server/app/services/api_services.py
 from typing import Any, Optional
 from sqlalchemy.orm import Session
 from server.app.utils.ip_utils import ip_to_str
 from server.app.utils.validate import ensure_utc, is_ip_address, parse_ip
 from server.app.services.NtpCalculator import NtpCalculator
-=======
+
 from ipaddress import IPv4Address, IPv6Address, ip_address
 from typing import Any, Optional, Coroutine
 
