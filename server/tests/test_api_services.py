@@ -295,3 +295,5 @@ def test_fetch_historic_data_domain_name(mock_get_dn, mock_get_ip):
     assert isinstance(results[0], NtpMeasurement)
     mock_get_ip.assert_not_called()
     mock_get_dn.assert_called_once()
+
+# def test

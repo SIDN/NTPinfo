@@ -3,9 +3,14 @@ from fastapi import HTTPException, APIRouter, Request, Depends
 from datetime import datetime, timezone
 from typing import Any, Optional, Generator
 
+
 from sqlalchemy.orm import Session
 
 from server.app.db_config import get_db
+
+from server.app.services.api_services import check_ripe_measurement_complete
+from server.app.services.api_services import fetch_ripe_data
+from server.app.services.api_services import perform_ripe_measurement
 from server.app.rate_limiter import limiter
 from server.app.dtos.MeasurementRequest import MeasurementRequest
 from server.app.services.api_services import get_format, measure, fetch_historic_data_with_timestamps
@@ -122,8 +127,109 @@ async def read_historic_data_time(server: str,
     return {
         "measurements": formatted_results
     }
-#
-#
-# @router.post("/measurements/ripe/")
-# @limiter.limit("5/second")
-# async def read_data_from_ripe(payload: MeasurementRequest, request: Request) -> dict[str, Any]:
+
+
+@router.post("/measurements/ripe/trigger/")
+@limiter.limit("5/second")
+async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request) -> dict[str, Any]:
+    """
+    Trigger a RIPE Atlas NTP measurement for a specified server.
+
+    This endpoint initiates a RIPE Atlas measurement for the given NTP server
+    (IP address or domain name) provided in the payload. Once the measurement
+    is triggered, it returns a measurement ID which can later be used to fetch
+    the result using the `/measurements/ripe/{measurement_id}` endpoint.
+
+    This endpoint is also limited to 5 requests per minute to prevent abuse and reduce server load.
+
+    Args:
+        payload (MeasurementRequest): A Pydantic model that includes:
+            - server (str): The IP address or domain name of the target server
+            - jitter_flag (bool, optional): Whether to calculate jitter
+            - measurements_no (int, optional): Number of measurements
+        request (Request): The FastAPI request object, used to extract the client IP address
+
+    Returns:
+        dict[str, Any]: A dictionary containing:
+            - measurement_id (str): The ID of the triggered RIPE measurement
+            - status (str): Status message ("started")
+            - message (str): Instructions on how to retrieve the result
+
+    Raises:
+        HTTPException:
+            - 400: If the `server` field is empty.
+            - 500: If the RIPE measurement could not be initiated.
+    """
+    server = payload.server
+    if len(server) == 0:
+        raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
+
+    client_ip: Optional[str]
+    if request.client is None:
+        client_ip = None
+    else:
+        client_ip = request.headers.get("X-Forwarded-For", request.client.host)
+
+    try:
+        measurement_id, ip_list = perform_ripe_measurement(server, client_ip=client_ip)
+        return {
+            "measurement_id": measurement_id,
+            "status": "started",
+            "message": "You can fetch the result at /measurements/ripe/{measurement_id}",
+            "ip_list": ip_list
+        }
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=f"Failed to initiate measurement: {str(e)}")
+
+
+@router.get("/measurements/ripe/{measurement_id}")
+@limiter.limit("5/second")
+async def get_ripe_measurement_result(measurement_id: str, request: Request) -> dict[str, Any]:
+    """
+    Retrieve the results of a previously triggered RIPE Atlas measurement.
+
+    This endpoint checks the RIPE Atlas API for a given measurement ID. It determines
+    if the measurement is complete (all probes have been scheduled) and returns
+    the data accordingly. If the results are not yet ready, it informs the client
+    that the measurement is still pending.
+
+    This endpoint is also limited to 5 requests per minute to prevent abuse and reduce server load.
+
+    Args:
+        measurement_id (str): The ID of the RIPE measurement to fetch
+        request (Request): The FastAPI Request object (used for rate limiting)
+
+    Returns:
+        dict[str, Any]: A dictionary with the status and measurement results:
+            - If complete: {"status": "complete", "results": <ripe_data>}
+            - If pending: {"status": "pending", "message": "..."}
+            - If partial results received: {"status": "partial_results", "results": <ripe_data>}
+            - If error: {"status": "error", "message": <error message>}
+
+    Notes:
+        - A result is only marked "complete" when all requested probes have been scheduled
+    """
+    try:
+        ripe_measurement_result = fetch_ripe_data(measurement_id=measurement_id)
+        if not ripe_measurement_result:
+            return {
+                "status": "pending",
+                "message": "Measurement not ready yet. Please try again later."
+            }
+        all_scheduled = check_ripe_measurement_complete(measurement_id=measurement_id)
+        if all_scheduled is True:
+            return {
+                "status": "complete",
+                "results": ripe_measurement_result
+            }
+        else:
+            return {
+                "status": "partial_results",
+                "results": ripe_measurement_result
+            }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Failed to fetch result: {str(e)}"
+        }

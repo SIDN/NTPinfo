@@ -18,6 +18,44 @@ from typing import Any, cast
 load_dotenv()
 
 
+def check_all_measurements_scheduled(measurement_id: str) -> bool:
+    """
+    Check if all RIPE Atlas probes for a given measurement have been scheduled.
+
+    This function compares the number of probes requested with the number of probes successfully
+    scheduled. If all requested probes are scheduled, it returns True. Otherwise,
+    it returns False
+
+    Args:
+        measurement_id (str): The ID of the RIPE Atlas measurement to check
+
+    Returns:
+        bool: True if all requested probes have been scheduled, False otherwise
+
+    Raises:
+        ValueError: If the RIPE API returns an error or if the probe count data
+                    is missing or invalid
+    """
+    url = f"https://atlas.ripe.net/api/v2/measurements/{measurement_id}/"
+
+    headers = {
+        "Authorization": f"Key {os.getenv('RIPE_KEY')}",
+        "Content-Type": "application/json"
+    }
+    response = requests.get(url, headers=headers)
+    json_data = response.json()
+    if isinstance(json_data, dict) and 'error' in json_data:
+        raise ValueError(
+            f"RIPE API error: {json_data['error']['title']} - {json_data['error']['detail']}")
+    probes_requested: int = json_data.get("probes_requested", -1)
+    probes_scheduled: int = json_data.get("probes_scheduled", -1)
+    # status = json_data["status"].get("name", "No status")
+    if probes_requested == -1:
+        raise ValueError(
+            f"RIPE API error: The number of scheduled probes is negative")
+    return probes_requested == probes_scheduled  # and status == "Stopped"
+
+
 def get_data_from_ripe_measurement(measurement_id: str) -> list[dict[str, Any]]:
     """
     Fetches raw measurement results from the RIPE Atlas API.
@@ -277,7 +315,8 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> list[RipeM
     # print(len(ripe_measurements))
     return ripe_measurements
 
-# parse_data_from_ripe_measurement(get_data_from_ripe_measurement("105960562"))
+# print(len(parse_data_from_ripe_measurement(get_data_from_ripe_measurement("105960562"))))
 # parse_data_from_ripe_measurement(get_data_from_ripe_measurement("m106323686"))
 # parse_data_from_ripe_measurement(get_data_from_ripe_measurement("106125660"))
 # print(parse_probe_data(get_probe_data_from_ripe_by_id("7304")))
+# print(check_all_measurements_scheduled("107134561"))
