@@ -22,9 +22,15 @@ def ref_id_to_ip_or_name(ref_id: int, stratum: int) \
     Returns:
         a tuple of the ip and name of the ntp server. At least one of them is None. If both are None then the stratum is invalid.
     """
-    #print(ref_id)
     if 0 <= stratum <= 1:  # we can get the name
-        return None, ntplib.ref_id_to_text(ref_id, stratum)
+        # from ntplib, but without "Unidentified reference source" part
+        fields = (ref_id >> 24 & 0xff, ref_id >> 16 & 0xff,
+                  ref_id >> 8 & 0xff, ref_id & 0xff)
+        text = "%c%c%c%c" % fields
+        if text in ntplib.NTP.REF_ID_TABLE:
+            return None, ntplib.NTP.REF_ID_TABLE[text]
+        else:
+            return None, text #ntplib.ref_id_to_text(ref_id, stratum)
     else:
         if stratum < 256:  # we can get an IP address
             return ip_address(socket.inet_ntoa(ref_id.to_bytes(4, 'big'))), None  # 'big' is from big endian
@@ -52,50 +58,61 @@ def get_ip_family(ip_str: str) -> int:
         return 4
     return 6
 
-def get_country_from_ip(ip: str) -> Optional[str]:
+def get_ip_network_details(ip_str: str) -> tuple[Optional[str], Optional[str], Optional[str]]:
     """
-    It makes a call to IPinfo to get the country code from this IP.
-    This method is for debugging purposes only. (It provides real details, but we use them only to verify the countries)
-
-    Args:
-        ip (str): The IP address in string format.
-
-    Returns:
-        Optional[str]: The country code or None if IPinfo could not find the country code.
-    """
-    try:
-        token: str = get_ipinfo_lite_api_token()
-        response = requests.get(f"https://api.ipinfo.io/lite/{ip}?token={token}")
-        data = response.json()
-        #print(data)
-        ans: str = data.get("country")
-        return ans
-    except Exception as e:
-        print(e)
-        return None
-
-def get_country_asn_from_ip(ip_str: str) -> Optional[tuple[str, str]]:
-    """
-    This method returns the country code and the ASN of an IP address.
+    This method gets the ASN, the country code and the continent code of an IP address.
 
     Args:
         ip_str: The ip address
 
     Returns:
-        Optional[tuple[str, str]]: the country code and the ASN of an IP address or None if the request fails.
+        tuple[Optional[str], Optional[str], Optional[str]]: the ASN, the country code and the continent
+        of an IP address if they can be taken.
     """
     try:
         token: str = get_ipinfo_lite_api_token()
         response = requests.get(f"https://api.ipinfo.io/lite/{ip_str}?token={token}")
         data = response.json()
-        country: str = data.get("country_code")
-        asn: str = data.get("asn")
-        return country, asn
+        asn: str = data.get("asn", None)
+        country: str = data.get("country_code", None)
+        continent: str = data.get("continent_code", None)
+        return asn, country, get_area_of_ip(country, continent)
     except Exception as e:
         print(e)
-        return None
+        return None, None, None
 
-def get_prefix_from_ip(ip_str: str) -> str:
+def get_area_of_ip(ip_country: str, ip_continent: Optional[str]) -> str:
+    """
+    This method tries to get the area of an IP address based on its country and continent.
+
+    Args:
+        ip_country (str): The country code of the IP address.
+        ip_continent (str): The continent code of the IP address.
+
+    Returns:
+        str: The area of an IP address
+    """
+    # default is WW (world wide)
+    if ip_continent is None:
+        return "WW"
+    area_map = {
+        "EU": "North-Central",
+        "AF": "South-Central",
+        "NA": "West",
+        "SA": "West",
+        "OC": "South-East"
+    }
+    # According to RIPE Atlas map, for Asia most of the countries are in South-East, but some are in North-East.
+    north_east_countries = ["RU", "KZ", "MN"]
+    if ip_continent in area_map:
+        return area_map[ip_continent]
+    # For Asia
+    if ip_country in north_east_countries:
+        return "North-East"
+    return "South-East"
+
+
+def get_prefix_from_ip(ip_str: str) -> Optional[str]:
     """
     This method returns the prefix of an IP address.
 
@@ -105,16 +122,19 @@ def get_prefix_from_ip(ip_str: str) -> str:
     Returns:
         str: the prefix of an IP address.
     """
-    response = requests.get(f"https://stat.ripe.net/data/prefix-overview/data.json?resource={ip_str}")
-    data = response.json()
-    prefix: str = data["data"].get("resource")
-    return prefix
-
+    try:
+        response = requests.get(f"https://stat.ripe.net/data/prefix-overview/data.json?resource={ip_str}")
+        response.raise_for_status()
+        data = response.json()["data"]
+        prefix: str = data.get("resource", None)
+        return prefix
+    except Exception as e:
+        print(e)
+        return None
 
 def ip_to_str(ip: Optional[IPv4Address | IPv6Address]) -> Optional[str]:
     """
     Converts an IP address (either IPv4 or IPv6) to its string representation.
-
     This function takes an `IPv4Address` or `IPv6Address` object and converts it to
     a string. If the input IP is `None`, it returns `None`.
 
@@ -126,3 +146,30 @@ def ip_to_str(ip: Optional[IPv4Address | IPv6Address]) -> Optional[str]:
         Optional[str]: The string representation of the IP address, or `None` if the input is `None`.
     """
     return str(ip) if ip is not None else None
+
+def ip_to_location(ip_str: str) -> tuple[float, float]:
+    """
+    This method returns the latitude and longitude of an IP address by making an API call.
+    This method also works with a domain name, but it is recommended to use an IP address.
+    (These API calls are unlimited)
+
+    Args:
+        ip_str: The IP address.
+
+    Returns:
+        tuple[float, float]: latitude and longitude of the provided IP address.
+
+    Raises:
+        Exception: If the IP provided is invalid
+    """
+    response = requests.get(f"https://ipwhois.app/json/{ip_str}")
+    data = response.json()
+    latitude: float = data.get("latitude", )
+    longitude: float = data.get("longitude", None)
+    return latitude, longitude
+# import time
+
+# start = time.time()
+# print(get_ip_network_details("80.211.238.247"))
+# print(get_prefix_from_ip("80.211.238.247"))
+# end = time.time()

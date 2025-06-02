@@ -1,10 +1,37 @@
 import socket
+from typing import Optional
 import dns.message
 import dns.query
 import dns.edns
 import dns.rdatatype
 from server.app.utils.validate import is_valid_domain_name
 
+
+def domain_name_to_ip_list(ntp_server_domain_name: str, client_ip: Optional[str]) -> list[str]:
+    """
+    This method handles the case when client IP is None and uses our server as the default IP.
+    It will return the list of IP addresses that are close to the client.
+
+    Args:
+        ntp_server_domain_name: NTP server domain name.
+        client_ip: Client IP address.
+
+    Returns:
+        list[str]: List of IP addresses that are close to the client or to the server if client IP is None
+
+    Raises:
+        Exception: If the domain name is invalid, or it was impossible to find some IP addresses.
+    """
+    domain_ips: list[str] | None
+    if client_ip is None:  # if we do not have the client_ip available, use this server as a "client ip"
+        domain_ips = domain_name_to_ip_default(ntp_server_domain_name)
+    else:
+        domain_ips = domain_name_to_ip_close_to_client(ntp_server_domain_name, client_ip)
+
+    # if the domain name is invalid or []
+    if domain_ips is None or len(domain_ips) == 0:
+        raise Exception(f"Could not find any IP address for {ntp_server_domain_name}.")
+    return domain_ips
 
 def domain_name_to_ip_default(domain_name: str) -> list[str] | None:
     """
