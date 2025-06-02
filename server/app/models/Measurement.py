@@ -1,7 +1,7 @@
 from ipaddress import IPv4Address, IPv6Address
 
 from sqlalchemy import ForeignKey, Integer, SmallInteger, Double, Text, BigInteger, PrimaryKeyConstraint, TypeDecorator, \
-    String
+    String, Dialect
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.sql.type_api import TypeEngine
@@ -13,13 +13,13 @@ class IPAddress(TypeDecorator):
 
     impl = INET
 
-    def load_dialect_impl(self, dialect) -> TypeEngine[str]:
+    def load_dialect_impl(self, dialect: Dialect) -> TypeEngine:
         """
             Wraps the INET type into an IPAddress type, which becomes a String for SQLite (test db), which doesn't support INET.
             Args:
-                dialect (dialect): dialect to use (PostgreSQL for prod / dev, SQLite for tests).
+                dialect (Dialect): dialect to use (PostgreSQL for prod / dev, SQLite for tests).
             Returns:
-                TypeEngine[str]: INET or String, based on dialect type.
+                TypeEngine: INET or String, based on dialect type.
             """
         if dialect.name == "sqlite":
             return dialect.type_descriptor(String())
