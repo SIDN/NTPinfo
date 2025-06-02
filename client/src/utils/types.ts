@@ -1,3 +1,8 @@
+import { LatLngTuple } from "leaflet"
+
+/**
+ * Data type used for manipulating and using NTP information
+ */
 export type NTPData = {
   offset: number
   RTT: number
@@ -8,7 +13,33 @@ export type NTPData = {
   time: number
   ip: string
   ip_list: string[]
-  server_name: string
+  server_name: string,
+  ref_ip: string,
+  ref_name: string,
+  root_delay: number
 }
 
+/**
+ * Data type used for determing measurement type in the visualization graphs
+ */
 export type Measurement = "RTT" | "offset"
+
+/**
+ * Data type used for manipulating and using RIPE information
+ */
+export type RIPEData = {
+  measurementData : NTPData
+  probe_id: number
+  probe_country: string
+  probe_location: LatLngTuple
+  got_results: boolean
+  probe_types: number[]
+}
+
+/**
+ * Data type for the RIPE measurement trigger response
+ */
+export type RIPEResp = {
+  measurementId: number
+  ipList: string[]
+}

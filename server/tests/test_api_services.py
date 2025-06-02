@@ -1,9 +1,12 @@
-from ipaddress import ip_address
+from server.app.dtos.ProbeData import ProbeData
+from ipaddress import ip_address, IPv4Address, IPv6Address
 
 from server.app.services.api_services import *
 from unittest.mock import patch, MagicMock
-from server.app.models.NtpMeasurement import NtpMeasurement
+from server.app.dtos.NtpMeasurement import NtpMeasurement
+from server.app.utils.ip_utils import ip_to_str
 from datetime import datetime
+import pytest
 
 
 def mock_precise(seconds=1234567890, fraction=0) -> PreciseTime:
@@ -55,7 +58,7 @@ def test_get_format():
     assert formatted_measurement["ntp_server_ref_parent_ip"] is None
     assert formatted_measurement["ref_name"] is None
     assert formatted_measurement["offset"] == 0.123
-    assert formatted_measurement["delay"] == 0.456
+    assert formatted_measurement["rtt"] == 0.456
     assert formatted_measurement["stratum"] == 2
     assert formatted_measurement["precision"] == -20.0
     assert formatted_measurement["reachability"] == ""
@@ -70,8 +73,8 @@ def test_get_format():
 def test_measure_with_ip(mock_measure_ip, mock_measure_domain, mock_insert):
     fake_measurement = MagicMock(spec=NtpMeasurement)
     mock_measure_ip.return_value = fake_measurement
-
-    result = measure("192.168.1.1")
+    fake_session = MagicMock(spec=Session)
+    result = measure("192.168.1.1", fake_session)
 
     assert result == (fake_measurement, None)
     mock_measure_ip.assert_called_once_with("192.168.1.1")
@@ -84,10 +87,10 @@ def test_measure_with_ip(mock_measure_ip, mock_measure_domain, mock_insert):
 @patch("server.app.services.api_services.perform_ntp_measurement_ip")
 def test_measure_with_domain(mock_measure_ip, mock_measure_domain, mock_insert):
     fake_measurement = MagicMock(spec=NtpMeasurement)
-    mock_measure_domain.return_value = (fake_measurement)
+    mock_measure_domain.return_value = fake_measurement
     mock_measure_ip.return_value = None
-
-    result = measure("pool.ntp.org")
+    fake_session = MagicMock(spec=Session)
+    result = measure("pool.ntp.org", fake_session)
 
     assert result == (fake_measurement, None)
     mock_measure_domain.assert_called_once_with("pool.ntp.org", None)
@@ -102,8 +105,8 @@ def test_measure_with_invalid_ip(mock_measure_ip, mock_measure_domain, mock_inse
     fake_measurement = MagicMock(spec=NtpMeasurement)
     mock_measure_ip.return_value = None
     mock_measure_domain.return_value = (fake_measurement)
-
-    result = measure("not.an.ip")
+    fake_session = MagicMock(spec=Session)
+    result = measure("not.an.ip", fake_session)
 
     assert result == (fake_measurement, None)
     mock_measure_ip.assert_not_called()
@@ -117,8 +120,8 @@ def test_measure_with_invalid_ip(mock_measure_ip, mock_measure_domain, mock_inse
 def test_measure_with_unresolvable_input(mock_measure_ip, mock_measure_domain, mock_insert):
     mock_measure_ip.return_value = None
     mock_measure_domain.return_value = None
-
-    result = measure("not.an.ip")
+    fake_session = MagicMock(spec=Session)
+    result = measure("not.an.ip", fake_session)
 
     assert result is None
     mock_measure_ip.assert_not_called()
@@ -144,7 +147,8 @@ def test_measure_with_jitter(mock_jitter, mock_measure_ip, mock_measure_domain, 
     fake_measurement.server_info = fake_server_info
     mock_measure_ip.return_value = fake_measurement
     mock_jitter.return_value = 0.75
-    result = measure("192.168.1.1", jitter_flag=True, measurement_no=3)
+    fake_session = MagicMock(spec=Session)
+    result = measure("192.168.1.1", jitter_flag=True, measurement_no=3, session=fake_session)
 
     assert result == (fake_measurement, 0.75)
     mock_measure_ip.assert_called_once_with("192.168.1.1")
@@ -162,7 +166,8 @@ def test_measure_no_jitter(mock_jitter, mock_measure_ip, mock_measure_domain, mo
 
     mock_measure_ip.return_value = fake_measurement
     mock_jitter.return_value = 0.75
-    result = measure("192.168.1.1", None, False, 3)
+    fake_session = MagicMock(spec=Session)
+    result = measure("192.168.1.1", fake_session,None, False, 3)
 
     assert result == (fake_measurement, None)
     mock_measure_ip.assert_called_once_with("192.168.1.1")
@@ -177,8 +182,8 @@ def test_measure_no_jitter(mock_jitter, mock_measure_ip, mock_measure_domain, mo
 def test_measure_with_exception(mock_measure_ip, mock_measure_domain, mock_insert):
     mock_measure_ip.return_value = None
     mock_measure_domain.side_effect = Exception("DNS failure")
-
-    result = measure("invalid.server")
+    fake_session = MagicMock(spec=Session)
+    result = measure("invalid.server", fake_session)
 
     assert result is None
     mock_measure_ip.assert_not_called()
@@ -191,11 +196,11 @@ def test_measure_with_exception(mock_measure_ip, mock_measure_domain, mock_inser
 def test_fetch_historic_data_empty_result(mock_parse_ip, mock_get_ip):
     mock_parse_ip.return_value = "10.0.0.5"
     mock_get_ip.return_value = []
-
+    fake_session = MagicMock(spec=Session)
     start = datetime(2024, 1, 1)
     end = datetime(2024, 1, 2)
 
-    results = fetch_historic_data_with_timestamps("10.0.0.5", start, end)
+    results = fetch_historic_data_with_timestamps("10.0.0.5", start, end, fake_session)
     assert results == []
 
 
@@ -215,7 +220,7 @@ def test_fetch_historic_data_ip(mock_parse_ip, mock_get_dn, mock_get_ip):
             "ref_name": "parent.ref",
 
             "offset": 0.1,
-            "delay": 0.2,
+            "RTT": 0.2,
             "stratum": 2,
             "precision": -20,
             "reachability": 255,
@@ -233,11 +238,11 @@ def test_fetch_historic_data_ip(mock_parse_ip, mock_get_dn, mock_get_ip):
         }
     ]
     mock_get_dn.return_value = []
-
+    fake_session = MagicMock(spec=Session)
     start = datetime(2024, 1, 1)
     end = datetime(2024, 1, 2)
 
-    results = fetch_historic_data_with_timestamps("192.168.1.1", start, end)
+    results = fetch_historic_data_with_timestamps("192.168.1.1", start, end, fake_session)
 
     assert isinstance(results, list)
     assert len(results) == 1
@@ -263,7 +268,7 @@ def test_fetch_historic_data_domain_name(mock_get_dn, mock_get_ip):
             "ref_name": "parent.ref",
 
             "offset": 0.1,
-            "delay": 0.2,
+            "RTT": 0.2,
             "stratum": 2,
             "precision": -20,
             "reachability": 255,
@@ -280,11 +285,11 @@ def test_fetch_historic_data_domain_name(mock_get_dn, mock_get_ip):
 
         }
     ]
-
+    fake_session = MagicMock(spec=Session)
     start = datetime(2024, 1, 1)
     end = datetime(2024, 1, 2)
 
-    results = fetch_historic_data_with_timestamps("time.google.com", start, end)
+    results = fetch_historic_data_with_timestamps("time.google.com", start, end, fake_session)
 
     assert isinstance(results, list)
     assert len(results) == 1
@@ -292,3 +297,193 @@ def test_fetch_historic_data_domain_name(mock_get_dn, mock_get_ip):
     assert isinstance(results[0], NtpMeasurement)
     mock_get_ip.assert_not_called()
     mock_get_dn.assert_called_once()
+
+
+def mock_ripe_parse_result():
+    return RipeMeasurement(
+        measurement_id=123456,
+        ntp_measurement=NtpMeasurement(
+            vantage_point_ip=IPv4Address('83.231.3.54'),
+            server_info=NtpServerInfo(
+                ntp_version=4,
+                ntp_server_ip=IPv4Address('18.252.12.124'),
+                ntp_server_name='time.some_server.com',
+                ntp_server_ref_parent_ip=None,
+                ref_name=None,
+                other_server_ips=["8.8.8.8", "1.1.1.1"]
+            ),
+            timestamps=NtpTimestamps(
+                client_sent_time=mock_precise(3957337543, 1845620736),
+                server_recv_time=mock_precise(3957337543, 1623990272),
+                server_sent_time=mock_precise(3957337543, 1623990272),
+                client_recv_time=mock_precise(3957337543, 1963061248)
+            ),
+            main_details=NtpMainDetails(
+                offset=0.065274,
+                delay=0.027344,
+                stratum=1,
+                precision=9.53674e-07,
+                reachability=""
+            ),
+            extra_details=NtpExtraDetails(
+                root_delay=mock_precise(0, 0),
+                ntp_last_sync_time=mock_precise(-1, 0),
+                leap=0
+            )
+        ),
+        probe_data=ProbeData(
+            probe_id="9999",
+            probe_addr=(IPv4Address('83.231.3.54'), None),
+            probe_location=ProbeLocation(
+                country_code='CZ',
+                coordinates=(16.5995, 49.1605)
+            )
+        ),
+        time_to_result=5014.4233,
+        poll=1,
+        root_dispersion=7.62939e-05,
+        ref_id='GPSs'
+    )
+
+
+@patch("server.app.services.api_services.parse_data_from_ripe_measurement")
+@patch("server.app.services.api_services.get_data_from_ripe_measurement")
+def test_fetch_ripe_data(mock_get_data_from_ripe, mock_parse_data_from_ripe):
+    mock_get_data_from_ripe.return_value = []
+    mock_parse_data_from_ripe.return_value = [mock_ripe_parse_result()]
+
+    result = fetch_ripe_data("123456")
+
+    assert isinstance(result, list)
+    assert len(result) == 1
+
+    data = result[0]
+
+    assert data["ntp_version"] == 4
+    assert data["ripe_measurement_id"] == 123456
+    assert data["ntp_server_ip"] == "18.252.12.124"
+    assert data["ntp_server_name"] == "time.some_server.com"
+    assert data["probe_addr"]["ipv4"] == "83.231.3.54"
+    assert data["probe_addr"]["ipv6"] is None
+    assert data["probe_id"] == "9999"
+    assert data["probe_location"]["country_code"] == "CZ"
+    assert data["probe_location"]["coordinates"] == (16.5995, 49.1605)
+    assert data["time_to_result"] == 5014.4233
+    assert data["stratum"] == 1
+    assert data["poll"] == 1
+    assert data["precision"] == 9.53674e-07
+    assert data["root_dispersion"] == 7.62939e-05
+    assert data["ref_id"] == "GPSs"
+
+    result_data = data["result"][0]
+    assert result_data["client_sent_time"].seconds == 3957337543
+    assert result_data["rtt"] == 0.027344
+    assert result_data["offset"] == 0.065274
+
+
+def test_get_ripe_format():
+    data = get_ripe_format(mock_ripe_parse_result())
+    assert isinstance(data, dict)
+
+    assert data["ntp_version"] == 4
+    assert data["ripe_measurement_id"] == 123456
+    assert data["ntp_server_ip"] == "18.252.12.124"
+    assert data["ntp_server_name"] == "time.some_server.com"
+    assert data["probe_addr"]["ipv4"] == "83.231.3.54"
+    assert data["probe_addr"]["ipv6"] is None
+    assert data["probe_id"] == "9999"
+    assert data["probe_location"]["country_code"] == "CZ"
+    assert data["probe_location"]["coordinates"] == (16.5995, 49.1605)
+    assert data["time_to_result"] == 5014.4233
+    assert data["stratum"] == 1
+    assert data["poll"] == 1
+    assert data["precision"] == 9.53674e-07
+    assert data["root_dispersion"] == 7.62939e-05
+    assert data["ref_id"] == "GPSs"
+
+    result_data = data["result"][0]
+    assert result_data["client_sent_time"].seconds == 3957337543
+    assert result_data["rtt"] == 0.027344
+    assert result_data["offset"] == 0.065274
+
+
+@patch("server.app.services.api_services.perform_ripe_measurement_domain_name")
+@patch("server.app.services.api_services.perform_ripe_measurement_ip")
+def test_perform_ripe_measurement_with_dn_with_client_ip(mock_m_ip, mock_m_dn):
+    mock_m_ip.return_value = 0
+    mock_m_dn.return_value = (123456, ["83.231.3.54", "82.211.23.56"])
+
+    m_id, ip_list = perform_ripe_measurement("time.some_server.com", "82.211.23.56")
+
+    mock_m_ip.assert_not_called()
+    mock_m_dn.assert_called_once()
+
+    assert m_id == "123456"
+    assert ip_list == ["83.231.3.54", "82.211.23.56"]
+
+
+@patch("server.app.services.api_services.perform_ripe_measurement_domain_name")
+@patch("server.app.services.api_services.perform_ripe_measurement_ip")
+def test_perform_ripe_measurement_with_dn_without_client_ip(mock_m_ip, mock_m_dn):
+    mock_m_ip.return_value = 0
+    mock_m_dn.return_value = (123456, ["83.231.3.54", "82.211.23.56"])
+
+    m_id, ip_list = perform_ripe_measurement("time.some_server.com")
+
+    mock_m_ip.assert_not_called()
+    mock_m_dn.assert_called_once()
+
+    assert m_id == "123456"
+    assert ip_list == ["83.231.3.54", "82.211.23.56"]
+
+
+@patch("server.app.services.api_services.perform_ripe_measurement_domain_name")
+@patch("server.app.services.api_services.perform_ripe_measurement_ip")
+def test_perform_ripe_measurement_with_ip(mock_m_ip, mock_m_dn):
+    mock_m_ip.return_value = 123456
+    mock_m_dn.return_value = 0
+
+    m_id, ip_list = perform_ripe_measurement("18.252.12.124")
+
+    mock_m_ip.assert_called_once()
+    mock_m_dn.assert_not_called()
+
+    assert m_id == "123456"
+    assert len(ip_list) == 0
+    assert ip_list == []
+
+
+@patch("server.app.services.api_services.check_all_measurements_scheduled")
+def test_check_ripe_measurement_complete_true(mock_check_scheduled):
+    mock_check_scheduled.return_value = True
+
+    result = check_ripe_measurement_complete("123456")
+    mock_check_scheduled.assert_called_once()
+    assert result is True
+
+
+@patch("server.app.services.api_services.check_all_measurements_scheduled")
+def test_check_ripe_measurement_complete_false(mock_check_scheduled):
+    mock_check_scheduled.return_value = False
+
+    result = check_ripe_measurement_complete("123456")
+    mock_check_scheduled.assert_called_once()
+    assert result is False
+
+
+@patch("server.app.services.api_services.check_all_measurements_scheduled")
+def test_check_ripe_measurement_complete_raises_value_error(mock_check_scheduled):
+    mock_check_scheduled.side_effect = ValueError("RIPE API error: Something went wrong")
+
+    with pytest.raises(ValueError, match="RIPE API error: Something went wrong"):
+        check_ripe_measurement_complete("123456")
+    mock_check_scheduled.assert_called_once_with(measurement_id="123456")
+
+
+@patch("server.app.services.api_services.check_all_measurements_scheduled")
+def test_check_ripe_measurement_complete_raises_generic_exception(mock_check_scheduled):
+    mock_check_scheduled.side_effect = ValueError("RIPE API error: The number of scheduled probes is negative")
+
+    with pytest.raises(ValueError, match="RIPE API error: The number of scheduled probes is negative"):
+        check_ripe_measurement_complete("123456")
+    mock_check_scheduled.assert_called_once_with(measurement_id="123456")

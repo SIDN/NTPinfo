@@ -1,53 +1,4 @@
-#root {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-
-  /* max-width: 1280px; */
-  margin: 0 auto;
-  /* margin: 0; */
-  padding: 0rem;
-  text-align: center;
-}
-
-html, body, #root {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--bg-clr-primary);
-
-}
-
-body { /* instead of html */
-  padding-top: 10rem;
-
-  /* global variables */
-  --bg-clr-primary: #292f36;
-  --bg-clr-secondary: #323E4C;
-  --clr-font-white: #eff6ee;
-  --clr-font-dark: #1B2025;
-  --clr-green: #10A219;
-  --bg-clr-hero: #CDCFDA;
-  --clr-red-1: #ff6b6b;
-  --clr-red-2: #F2404C;
-  --clr-btn-selected-purple: #27263F;
-  /**/
-  background-color: var(--bg-clr-primary);
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
+@import '../index.css';
 
 .open-popup-btn{
   display:flex;
@@ -97,7 +48,7 @@ body { /* instead of html */
   text-align: left;
 }
 
-.input-wrapper {
+.search-wrapper {
   margin-top: 0;
   margin-left: 1rem;
   /* max-width: 600px; */

@@ -1,13 +1,13 @@
 import { useState } from "react"
 import axios from "axios"
 import { NTPData } from "../utils/types.ts"
-import { transformJSONData } from "../utils/transformJSONData.ts"
+import { transformJSONDataToNTPData } from "../utils/transformJSONDataToNTPData.ts"
 
 export const useFetchIPData = () => {
     const [data, setData] = useState<NTPData | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<Error | null>(null)
-
+    const [httpStatus, setHttpStatus] = useState<number>(200)
     /**
      * send a post request to the back-end
      * @param endpoint the endpoint to make the post call to
@@ -24,16 +24,18 @@ export const useFetchIPData = () => {
                     }
                 }
             )
-            const transformedData = transformJSONData(resp.data.measurement)
+            const transformedData = transformJSONDataToNTPData(resp.data.measurement)
             setData(transformedData)
+            setHttpStatus(resp.status)
             return transformedData
         } catch (err: any) {
             setError(err)
+            setHttpStatus(err.response?.status)
             return null
         } finally {
             setLoading(false)
         }
     };
     
-    return {data, loading, error, fetchData}
+    return {data, loading, error, httpStatus, fetchData}
 }
