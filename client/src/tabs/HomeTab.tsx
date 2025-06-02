@@ -22,7 +22,7 @@ import { triggerRipeMeasurement } from '../hooks/triggerRipeMeasurement.ts'
 
 function HomeTab() {
   //
-  // states we need to define 
+  // states we need to define
   //
   const [ntpData, setNtpData] = useState<NTPData | null>(null)
   const [chartData, setChartData] = useState<NTPData[] | null>(null)
@@ -59,11 +59,11 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
       className: "custom-time-dropdown"
     }
   ]
-  
+
   //
   //functions for handling state changes
   //
-  
+
   /**
    * Function called on the press of the search button.
    * Performs a normal measurement call, a historical measurement call for the graph, and a RIPE measurement call for the map.
@@ -71,10 +71,10 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
    * @param jitter_flag flag indicating whether jitter should be measured for normal measurement calls
    * @param measurements_no How many measurements should be done for the jitter calculation
    */
-  const handleSearch = async (query: string, jitter_flag: boolean, measurements_no: number) => {
+  const handleInput = async (query: string, jitter_flag: boolean, measurements_no: number) => {
     if (query.length == 0)
       return
-    
+
     //Reset the hook
     setMeasurementId(null)
     setMeasured(false)
@@ -82,7 +82,7 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
     setChartData(null)
 
     /**
-     * The payload for the measurement call, containing the server, 
+     * The payload for the measurement call, containing the server,
      * if the jitter should be calculated and the number of measurements to be done.
      */
     const payload = {
@@ -93,7 +93,7 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
 
     /**
      * Get the response from the measurement data endpoint
-     */ 
+     */
     const fullurlMeasurementData = `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/`
     const apiMeasurementResp = await fetchMeasurementData(fullurlMeasurementData, payload)
 
@@ -104,7 +104,7 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
     const endDate = dateFormatConversion(Date.now())
     const fullurlHistoricalData = `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/history/?server=${query}&start=${startDate}&end=${endDate}`
     const apiHistoricalResp = await fetchHistoricalData(fullurlHistoricalData)
-    
+
     /**
      * Update the stored data and show it again
      */
@@ -139,8 +139,8 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
 
   return (
     <div className="app-container">
-      <div className="search-wrapper">
-        <InputSection onSearch={handleSearch} />
+      <div className="input-wrapper">
+        <InputSection onClick={handleInput} />
       </div>
         <div className="result-text">
           {(!apiDataLoading && measured && (<p>Results</p>)) || (apiDataLoading && <p>Loading...</p>)}
@@ -148,7 +148,7 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
         {/* The main page shown after the main measurement is done */}
       {(ntpData && !apiDataLoading && (<div className="results-and-graph">
         <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>
-       
+
         {/* Div for the visualization graph, and the radios for setting the what measurement to show */}
         <div className="graphs">
           <div className='graph-box'>
@@ -184,21 +184,21 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
           <p style={{ color: 'red' }}>{apiRipeError?.toString()}</p>
         )}
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>)}
-      
+
       {/*Only shown when a domain name is queried. Users can download IP addresses corresponding to that domain name*/}
       {ntpData && !apiDataLoading && ntpData.server_name && ntpData.ip_list.length && (() => {
 
                 const downloadContent = `Server name: ${ntpData.server_name}\n\n${ntpData.ip_list.join('\n')}`
                 const blob = new Blob([downloadContent], { type: 'text/plain' })
                 const downloadUrl = URL.createObjectURL(blob)
-               return (<p className="ip-list">You can download more IP addresses corresponding to this domain name  
+               return (<p className="ip-list">You can download more IP addresses corresponding to this domain name
                <span> <a href={downloadUrl} download="ip-list.txt">here</a></span>
                 </p>)
             })()}
-      
+
       {/*Buttons to download results in JSON and CSV format as well as open a popup displaying historical data*/}
       {ntpData && !apiDataLoading && (<div className="download-buttons">
-      
+
         <DownloadButton name="Download JSON" onclick={() => downloadJSON({data : [ntpData]})} />
         <DownloadButton name="Download CSV" onclick={() => downloadCSV({data : [ntpData]})} />
         <div>
