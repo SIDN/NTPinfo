@@ -1,8 +1,9 @@
-from ipaddress import ip_address
+from ipaddress import ip_address, IPv4Address, IPv6Address
 
 from server.app.services.api_services import *
 from unittest.mock import patch, MagicMock
-from server.app.models.NtpMeasurement import NtpMeasurement
+from server.app.dtos.NtpMeasurement import NtpMeasurement
+from server.app.utils.ip_utils import ip_to_str
 from datetime import datetime
 
 
@@ -55,7 +56,7 @@ def test_get_format():
     assert formatted_measurement["ntp_server_ref_parent_ip"] is None
     assert formatted_measurement["ref_name"] is None
     assert formatted_measurement["offset"] == 0.123
-    assert formatted_measurement["delay"] == 0.456
+    assert formatted_measurement["rtt"] == 0.456
     assert formatted_measurement["stratum"] == 2
     assert formatted_measurement["precision"] == -20.0
     assert formatted_measurement["reachability"] == ""
@@ -70,8 +71,8 @@ def test_get_format():
 def test_measure_with_ip(mock_measure_ip, mock_measure_domain, mock_insert):
     fake_measurement = MagicMock(spec=NtpMeasurement)
     mock_measure_ip.return_value = fake_measurement
-
-    result = measure("192.168.1.1")
+    fake_session = MagicMock(spec=Session)
+    result = measure("192.168.1.1", fake_session)
 
     assert result == (fake_measurement, None)
     mock_measure_ip.assert_called_once_with("192.168.1.1")
@@ -84,10 +85,10 @@ def test_measure_with_ip(mock_measure_ip, mock_measure_domain, mock_insert):
 @patch("server.app.services.api_services.perform_ntp_measurement_ip")
 def test_measure_with_domain(mock_measure_ip, mock_measure_domain, mock_insert):
     fake_measurement = MagicMock(spec=NtpMeasurement)
-    mock_measure_domain.return_value = (fake_measurement)
+    mock_measure_domain.return_value = fake_measurement
     mock_measure_ip.return_value = None
-
-    result = measure("pool.ntp.org")
+    fake_session = MagicMock(spec=Session)
+    result = measure("pool.ntp.org", fake_session)
 
     assert result == (fake_measurement, None)
     mock_measure_domain.assert_called_once_with("pool.ntp.org", None)
@@ -102,8 +103,8 @@ def test_measure_with_invalid_ip(mock_measure_ip, mock_measure_domain, mock_inse
     fake_measurement = MagicMock(spec=NtpMeasurement)
     mock_measure_ip.return_value = None
     mock_measure_domain.return_value = (fake_measurement)
-
-    result = measure("not.an.ip")
+    fake_session = MagicMock(spec=Session)
+    result = measure("not.an.ip", fake_session)
 
     assert result == (fake_measurement, None)
     mock_measure_ip.assert_not_called()
@@ -117,8 +118,8 @@ def test_measure_with_invalid_ip(mock_measure_ip, mock_measure_domain, mock_inse
 def test_measure_with_unresolvable_input(mock_measure_ip, mock_measure_domain, mock_insert):
     mock_measure_ip.return_value = None
     mock_measure_domain.return_value = None
-
-    result = measure("not.an.ip")
+    fake_session = MagicMock(spec=Session)
+    result = measure("not.an.ip", fake_session)
 
     assert result is None
     mock_measure_ip.assert_not_called()
@@ -144,7 +145,8 @@ def test_measure_with_jitter(mock_jitter, mock_measure_ip, mock_measure_domain, 
     fake_measurement.server_info = fake_server_info
     mock_measure_ip.return_value = fake_measurement
     mock_jitter.return_value = 0.75
-    result = measure("192.168.1.1", jitter_flag=True, measurement_no=3)
+    fake_session = MagicMock(spec=Session)
+    result = measure("192.168.1.1", jitter_flag=True, measurement_no=3, session=fake_session)
 
     assert result == (fake_measurement, 0.75)
     mock_measure_ip.assert_called_once_with("192.168.1.1")
@@ -162,7 +164,8 @@ def test_measure_no_jitter(mock_jitter, mock_measure_ip, mock_measure_domain, mo
 
     mock_measure_ip.return_value = fake_measurement
     mock_jitter.return_value = 0.75
-    result = measure("192.168.1.1", None, False, 3)
+    fake_session = MagicMock(spec=Session)
+    result = measure("192.168.1.1", fake_session,None, False, 3)
 
     assert result == (fake_measurement, None)
     mock_measure_ip.assert_called_once_with("192.168.1.1")
@@ -177,8 +180,8 @@ def test_measure_no_jitter(mock_jitter, mock_measure_ip, mock_measure_domain, mo
 def test_measure_with_exception(mock_measure_ip, mock_measure_domain, mock_insert):
     mock_measure_ip.return_value = None
     mock_measure_domain.side_effect = Exception("DNS failure")
-
-    result = measure("invalid.server")
+    fake_session = MagicMock(spec=Session)
+    result = measure("invalid.server", fake_session)
 
     assert result is None
     mock_measure_ip.assert_not_called()
@@ -191,11 +194,11 @@ def test_measure_with_exception(mock_measure_ip, mock_measure_domain, mock_inser
 def test_fetch_historic_data_empty_result(mock_parse_ip, mock_get_ip):
     mock_parse_ip.return_value = "10.0.0.5"
     mock_get_ip.return_value = []
-
+    fake_session = MagicMock(spec=Session)
     start = datetime(2024, 1, 1)
     end = datetime(2024, 1, 2)
 
-    results = fetch_historic_data_with_timestamps("10.0.0.5", start, end)
+    results = fetch_historic_data_with_timestamps("10.0.0.5", start, end, fake_session)
     assert results == []
 
 
@@ -215,7 +218,7 @@ def test_fetch_historic_data_ip(mock_parse_ip, mock_get_dn, mock_get_ip):
             "ref_name": "parent.ref",
 
             "offset": 0.1,
-            "delay": 0.2,
+            "RTT": 0.2,
             "stratum": 2,
             "precision": -20,
             "reachability": 255,
@@ -233,11 +236,11 @@ def test_fetch_historic_data_ip(mock_parse_ip, mock_get_dn, mock_get_ip):
         }
     ]
     mock_get_dn.return_value = []
-
+    fake_session = MagicMock(spec=Session)
     start = datetime(2024, 1, 1)
     end = datetime(2024, 1, 2)
 
-    results = fetch_historic_data_with_timestamps("192.168.1.1", start, end)
+    results = fetch_historic_data_with_timestamps("192.168.1.1", start, end, fake_session)
 
     assert isinstance(results, list)
     assert len(results) == 1
@@ -263,7 +266,7 @@ def test_fetch_historic_data_domain_name(mock_get_dn, mock_get_ip):
             "ref_name": "parent.ref",
 
             "offset": 0.1,
-            "delay": 0.2,
+            "RTT": 0.2,
             "stratum": 2,
             "precision": -20,
             "reachability": 255,
@@ -280,11 +283,11 @@ def test_fetch_historic_data_domain_name(mock_get_dn, mock_get_ip):
 
         }
     ]
-
+    fake_session = MagicMock(spec=Session)
     start = datetime(2024, 1, 1)
     end = datetime(2024, 1, 2)
 
-    results = fetch_historic_data_with_timestamps("time.google.com", start, end)
+    results = fetch_historic_data_with_timestamps("time.google.com", start, end, fake_session)
 
     assert isinstance(results, list)
     assert len(results) == 1
@@ -292,3 +295,5 @@ def test_fetch_historic_data_domain_name(mock_get_dn, mock_get_ip):
     assert isinstance(results[0], NtpMeasurement)
     mock_get_ip.assert_not_called()
     mock_get_dn.assert_called_once()
+
+# def test

@@ -3,7 +3,7 @@ import dns.message
 import dns.query
 import dns.edns
 import dns.rdatatype
-from server.app.utils.validate import is_valid_domain_name, get_country_from_ip
+from server.app.utils.validate import is_valid_domain_name
 
 
 def domain_name_to_ip_default(domain_name: str) -> list[str] | None:

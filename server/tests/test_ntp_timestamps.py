@@ -2,12 +2,12 @@ from ipaddress import IPv6Address, IPv4Address, ip_address
 
 import numpy as np
 
-from server.app.models.NtpExtraDetails import NtpExtraDetails
-from server.app.models.NtpMainDetails import NtpMainDetails
-from server.app.models.NtpMeasurement import NtpMeasurement
-from server.app.models.NtpServerInfo import NtpServerInfo
-from server.app.models.NtpTimestamps import NtpTimestamps
-from server.app.models.PreciseTime import PreciseTime
+from server.app.dtos.NtpExtraDetails import NtpExtraDetails
+from server.app.dtos.NtpMainDetails import NtpMainDetails
+from server.app.dtos.NtpMeasurement import NtpMeasurement
+from server.app.dtos.NtpServerInfo import NtpServerInfo
+from server.app.dtos.NtpTimestamps import NtpTimestamps
+from server.app.dtos.PreciseTime import PreciseTime
 from server.app.services.NtpCalculator import NtpCalculator
 from server.app.services.NtpValidation import NtpValidation
 
