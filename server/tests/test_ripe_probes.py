@@ -88,11 +88,11 @@ def test_get_best_probe_types_first_3_none():
     assert result["random"] == 34
 
     #area is available
-    result = get_best_probe_types(None,None,None,"West",4,34)
+    result = get_best_probe_types(None,None,None,"West",6,37)
     assert result["asn"] == 0
     assert result["prefix"] == 0
     assert result["country"] == 0
-    assert result["area"] == 34
+    assert result["area"] == 37
     assert result["random"] == 0
 
     #negative nr of probes requested
@@ -100,27 +100,34 @@ def test_get_best_probe_types_first_3_none():
         get_best_probe_types("AS15169", "80.211.224.0/20", "NL", "North-Central", 4, -5)
     with pytest.raises(Exception):
         get_best_probe_types("AS15169", "2a06:93c0::/29", "NL", "North-Central", 6, -1)
-def test_get_random_probes():
-    answer = {
-        "type": "area",
-        "value": "WW",
-        "requested": 7
-    }
-    assert get_random_probes(7) == answer
 
-def test_get_area_probes():
-    answer = {
-        "type": "area",
-        "value": "West",
-        "requested": 7
-    }
-    assert get_area_probes("West",7) == answer
-    answer = {
-        "type": "area",
-        "value": "North-East",
-        "requested": 70
-    }
-    assert get_area_probes("North-East",70) == answer
+@patch("server.app.utils.ripe_probes.get_available_probes_country")
+@patch("server.app.utils.ripe_probes.get_available_probes_prefix")
+@patch("server.app.utils.ripe_probes.get_available_probes_asn")
+def test_get_best_probe_types_normal(mock_get_available_probes_asn, mock_get_available_probes_prefix,
+                                     mock_get_available_probes_country):
+    mock_get_available_probes_asn.return_value = 8
+    mock_get_available_probes_prefix.return_value = 3
+    mock_get_available_probes_country.return_value = 120
+    expected = {"asn":8,"prefix":3,"country":16,"area":3,"random":0}
+    result = get_best_probe_types("AS15169","80.211.224.0/20","NL","North-Central",4,30)
+    assert result == expected
+
+    #enough from ASN
+    mock_get_available_probes_asn.return_value = 90
+    mock_get_available_probes_prefix.return_value = 3
+    mock_get_available_probes_country.return_value = 120
+    expected = {"asn":23,"prefix":3,"country":10,"area":4,"random":0} # 23=13+(12-3) +1 from floating errors
+    result = get_best_probe_types("AS15169","80.211.224.0/20","NL","North-Central",4,40)
+    assert result == expected
+
+    #not enough from anything ->area or random
+    mock_get_available_probes_asn.return_value = 1
+    mock_get_available_probes_prefix.return_value = 1
+    mock_get_available_probes_country.return_value = 1
+    expected = {"asn":1,"prefix":1,"country":1,"area":37,"random":0}
+    result = get_best_probe_types("AS15169","80.211.224.0/20","NL","North-Central",4,40)
+    assert result == expected
 
 def test_get_asn_probes():
     answer = {
@@ -136,6 +143,10 @@ def test_get_asn_probes():
     }
     assert get_asn_probes("AS13335",20) == answer
 
+    with pytest.raises(ValueError):
+        get_asn_probes(None, 23)
+
+
 def test_get_prefix_probes():
     answer = {
         "type": "prefix",
@@ -150,6 +161,9 @@ def test_get_prefix_probes():
     }
     assert get_prefix_probes("192.2.3.0/8",20) == answer
 
+    with pytest.raises(ValueError):
+        get_prefix_probes(None, 23)
+
 def test_get_country_probes():
     answer = {
         "type": "country",
@@ -163,6 +177,34 @@ def test_get_country_probes():
         "requested": 20
     }
     assert get_country_probes("RO",20) == answer
+
+    with pytest.raises(ValueError):
+        get_country_probes(None, 23)
+
+def test_get_area_probes():
+    answer = {
+        "type": "area",
+        "value": "West",
+        "requested": 7
+    }
+    assert get_area_probes("West",7) == answer
+    answer = {
+        "type": "area",
+        "value": "North-East",
+        "requested": 70
+    }
+    assert get_area_probes("North-East",70) == answer
+
+    with pytest.raises(ValueError):
+        get_area_probes(None, 23)
+
+def test_get_random_probes():
+    answer = {
+        "type": "area",
+        "value": "WW",
+        "requested": 7
+    }
+    assert get_random_probes(7) == answer
 
 @patch("server.app.utils.ripe_probes.ProbeRequest")
 def test_get_available_probes_asn(mock_probe_request):

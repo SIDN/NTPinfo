@@ -110,11 +110,6 @@ def get_best_probe_types(ip_asn: Optional[str], ip_prefix: Optional[str], ip_cou
 
     # let's see if we have enough probes of each type
     for i in range(0, len(probes_wanted)):
-        # print("step: ",i)
-        # print(probes_wanted)
-        # print(probes_available)
-        # print(ans)
-        # print("===========")
         if probes_wanted[i] > probes_available[i]: # we want more than we have
             # we need probes from other types, but first take what we found in the desired type
             ans[i] += probes_available[i]
@@ -131,10 +126,6 @@ def get_best_probe_types(ip_asn: Optional[str], ip_prefix: Optional[str], ip_cou
             ans[i] += probes_wanted[i]
             probes_wanted[i] = 0
 
-        # print(probes_wanted)
-        # print(probes_available)
-        # print(ans)
-    # print("/////////////////////")
     # we have only one step left. To convert from float to int and to add extra probes if we lost precision from floating points
     probes_to_add: int = probes_requested
     ans_integers: list[int] = [int(i) for i in ans]
@@ -144,8 +135,6 @@ def get_best_probe_types(ip_asn: Optional[str], ip_prefix: Optional[str], ip_cou
     # print("probes_to_add: ", probes_to_add)
     probes_available_integers, ans_integers = take_from_available_probes(probes_to_add, probes_available_integers,
                                                                          ans_integers)
-    print("the answer is:",ans)
-    print("the answer is:",ans_integers)
     # convert the array into a dictionary
     best_probe_types: dict[str, int] = {}
     for i in range(0, len(ans_integers)):
@@ -153,39 +142,6 @@ def get_best_probe_types(ip_asn: Optional[str], ip_prefix: Optional[str], ip_cou
     return best_probe_types
 
 
-def get_random_probes(n: int) -> dict:
-    """
-    This method selects n random probes from all over the world.
-
-    Args:
-        n (int): number of probes to select
-
-    Returns:
-        dict: the selected probes
-    """
-    return get_area_probes("WW", n)
-def get_area_probes(area: Optional[str], n: int) -> dict:
-    """
-    This method selects n random probes from all over the world.
-
-    Args:
-        area (str): The area of the probes
-        n (int): number of probes to select
-
-    Returns:
-        dict: the selected probes
-
-    Raises:
-        ValueError: If area is not valid
-    """
-    if area is None:
-        raise ValueError("area cannot be None")
-    probes = {
-        "type": "area",
-        "value": area,
-        "requested": n
-    }
-    return probes
 def get_asn_probes(ip_asn: Optional[str|int], n: int) -> dict:
     """
     This method selects n probes that belong to the same ASN network.
@@ -252,7 +208,39 @@ def get_country_probes(ip_country_code: Optional[str], n: int) -> dict:
             "requested": n
         }
     return probes
+def get_area_probes(area: Optional[str], n: int) -> dict:
+    """
+    This method selects n random probes from all over the world.
 
+    Args:
+        area (str): The area of the probes
+        n (int): number of probes to select
+
+    Returns:
+        dict: the selected probes
+
+    Raises:
+        ValueError: If area is not valid
+    """
+    if area is None:
+        raise ValueError("area cannot be None")
+    probes = {
+        "type": "area",
+        "value": area,
+        "requested": n
+    }
+    return probes
+def get_random_probes(n: int) -> dict:
+    """
+    This method selects n random probes from all over the world.
+
+    Args:
+        n (int): number of probes to select
+
+    Returns:
+        dict: the selected probes
+    """
+    return get_area_probes("WW", n)
 def get_available_probes_asn(ip_asn: str, ip_type: str) -> int:
     """
     This method selects n probes that has the same prefix and supports ipv4 or ipv6, it depends on the type.
@@ -405,19 +393,10 @@ def take_from_available_probes(needed: T, probes_available: list[T],
     return probes_available, ans
 
 # import time
-#
 # start = time.time()
-# # print(get_available_probes_asn("AS9009","ipv4"))
-# # print(get_available_probes_prefix("80.211.224.0/16","ipv4"))
-# # print(get_available_probes_country("NL","ipv4"))
+# print(get_available_probes_asn("AS9009","ipv4"))
+# print(get_available_probes_prefix("80.211.224.0/16","ipv4"))
+# print(get_available_probes_country("NL","ipv4"))
 # print(get_best_probe_types("AS9009", "80.211.224.0/20", "NL", "da", 4, 40))
 # end = time.time()
 # print(end - start)
-
-#use cases:
-# import pprint
-# pprint.pprint(get_probes("AS15169","192.2.3.0/8","IT", "West",20))
-#ex of output:
-# [{'requested': 2, 'type': 'area', 'value': 'WW'},
-#  {'requested': 10, 'type': 'asn', 'value': 'AS15169'},
-#  {'requested': 10, 'type': 'country', 'value': 'IT'}]

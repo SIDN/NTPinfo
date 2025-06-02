@@ -22,9 +22,15 @@ def ref_id_to_ip_or_name(ref_id: int, stratum: int) \
     Returns:
         a tuple of the ip and name of the ntp server. At least one of them is None. If both are None then the stratum is invalid.
     """
-    #print(ref_id)
     if 0 <= stratum <= 1:  # we can get the name
-        return None, ntplib.ref_id_to_text(ref_id, stratum)
+        # from ntplib, but without "Unidentified reference source" part
+        fields = (ref_id >> 24 & 0xff, ref_id >> 16 & 0xff,
+                  ref_id >> 8 & 0xff, ref_id & 0xff)
+        text = "%c%c%c%c" % fields
+        if text in ntplib.NTP.REF_ID_TABLE:
+            return None, ntplib.NTP.REF_ID_TABLE[text]
+        else:
+            return None, text #ntplib.ref_id_to_text(ref_id, stratum)
     else:
         if stratum < 256:  # we can get an IP address
             return ip_address(socket.inet_ntoa(ref_id.to_bytes(4, 'big'))), None  # 'big' is from big endian
@@ -52,28 +58,6 @@ def get_ip_family(ip_str: str) -> int:
         return 4
     return 6
 
-def get_country_from_ip(ip: str) -> Optional[str]:
-    """
-    It makes a call to IPinfo to get the country code from this IP.
-    This method is for debugging purposes only. (It provides real details, but we use them only to verify the countries)
-
-    Args:
-        ip (str): The IP address in string format.
-
-    Returns:
-        Optional[str]: The country code or None if IPinfo could not find the country code.
-    """
-    try:
-        token: str = get_ipinfo_lite_api_token()
-        response = requests.get(f"https://api.ipinfo.io/lite/{ip}?token={token}")
-        data = response.json()
-        #print(data)
-        ans: str = data.get("country")
-        return ans
-    except Exception as e:
-        print(e)
-        return None
-
 def get_ip_network_details(ip_str: str) -> tuple[Optional[str], Optional[str], Optional[str]]:
     """
     This method gets the ASN, the country code and the continent code of an IP address.
@@ -92,7 +76,7 @@ def get_ip_network_details(ip_str: str) -> tuple[Optional[str], Optional[str], O
         asn: str = data.get("asn", None)
         country: str = data.get("country_code", None)
         continent: str = data.get("continent_code", None)
-        return asn, country, continent
+        return asn, country, get_area_of_ip(country, continent)
     except Exception as e:
         print(e)
         return None, None, None
@@ -150,15 +134,7 @@ def get_prefix_from_ip(ip_str: str) -> Optional[str]:
 
 import time
 
-start = time.time()
-print(get_ip_network_details("80.211.238.247"))
-print(get_prefix_from_ip("80.211.238.247"))
-end = time.time()
-#
-# print(end - start)
-# def ceva():
-#     response = requests.get(f"https://stat.ripe.net/measurements/106548996/")
-#     data = response.json()
-#     pprint.pprint(data)
-#
-# ceva
+# start = time.time()
+# print(get_ip_network_details("80.211.238.247"))
+# print(get_prefix_from_ip("80.211.238.247"))
+# end = time.time()
