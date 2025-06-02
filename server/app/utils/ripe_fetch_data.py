@@ -4,14 +4,14 @@ import requests
 import os
 from dotenv import load_dotenv
 
-from server.app.models.PreciseTime import PreciseTime
-from server.app.models.NtpExtraDetails import NtpExtraDetails
-from server.app.models.NtpMainDetails import NtpMainDetails
-from server.app.models.NtpMeasurement import NtpMeasurement
-from server.app.models.NtpServerInfo import NtpServerInfo
-from server.app.models.NtpTimestamps import NtpTimestamps
-from server.app.models.ProbeData import ProbeLocation, ProbeData
-from server.app.models.RipeMeasurement import RipeMeasurement
+from server.app.dtos.PreciseTime import PreciseTime
+from server.app.dtos.NtpExtraDetails import NtpExtraDetails
+from server.app.dtos.NtpMainDetails import NtpMainDetails
+from server.app.dtos.NtpMeasurement import NtpMeasurement
+from server.app.dtos.NtpServerInfo import NtpServerInfo
+from server.app.dtos.NtpTimestamps import NtpTimestamps
+from server.app.dtos.ProbeData import ProbeLocation, ProbeData
+from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.utils.perform_measurements import convert_float_to_precise_time
 from typing import Any, cast
 
