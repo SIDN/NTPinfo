@@ -126,6 +126,13 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
         "root_delay": measurement.ntp_measurement.extra_details.root_delay,
         "root_dispersion": measurement.root_dispersion,
         "ref_id": measurement.ref_id,
+        "probe_count_per_type": {
+            'asn': 9,
+            'prefix': 1,
+            'country': 26,
+            'area': 4,
+            'random': 0
+        },
         "result": [
             {
                 "client_sent_time": measurement.ntp_measurement.timestamps.client_sent_time,
