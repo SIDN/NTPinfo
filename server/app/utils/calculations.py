@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 
 def calculate_jitter_from_measurements(session: Session, initial_measurement: NtpMeasurement,
-                                       no_measurements: int = 7) -> (float, int):
+                                       no_measurements: int = 7) -> tuple[float, int]:
     """
     Calculates the NTP jitter based on a set of previous measurements and one initial reference measurement.
 
@@ -28,6 +28,10 @@ def calculate_jitter_from_measurements(session: Session, initial_measurement: Nt
     last_measurements = get_measurements_for_jitter_ip(session=session,
                                                        ip=initial_measurement.server_info.ntp_server_ip,
                                                        number=no_measurements)
+    nr_m = 0
     for m in last_measurements:
-        offsets.append(NtpCalculator.calculate_offset(m.timestamps))
-    return float(NtpCalculator.calculate_jitter(offsets)), len(last_measurements) + 1
+        if m is not None:
+            offsets.append(NtpCalculator.calculate_offset(m.timestamps))
+            nr_m = nr_m + 1
+
+    return float(NtpCalculator.calculate_jitter(offsets)), nr_m + 1

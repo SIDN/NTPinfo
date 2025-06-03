@@ -162,8 +162,12 @@ def measure(server: str, session: Session, client_ip: Optional[str] = None, jitt
         if is_ip_address(server) is not None:
             m = perform_ntp_measurement_ip(server)
             if m is not None:
-                jitter, nr_jitter_measurements = calculate_jitter_from_measurements(session, m,
-                                                                                    measurement_no) if jitter_flag else None
+                jitter = None
+                nr_jitter_measurements = None
+                if jitter_flag:
+                    result = calculate_jitter_from_measurements(session, m, measurement_no)
+                    if result is not None:
+                        jitter, nr_jitter_measurements = result
                 insert_measurement(m, session)
                 return m, jitter, nr_jitter_measurements
             # the measurement failed
@@ -174,8 +178,12 @@ def measure(server: str, session: Session, client_ip: Optional[str] = None, jitt
             if ans is not None:
                 m = ans
 
-                jitter, nr_jitter_measurements = calculate_jitter_from_measurements(session, m,
-                                                                                    measurement_no) if jitter_flag else None
+                jitter = None
+                nr_jitter_measurements = None
+                if jitter_flag:
+                    result = calculate_jitter_from_measurements(session, m, measurement_no)
+                    if result is not None:
+                        jitter, nr_jitter_measurements = result
                 insert_measurement(m, session)
                 return m, jitter, nr_jitter_measurements
             print("The ntp server " + server + " is not responding.")

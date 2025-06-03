@@ -1,3 +1,8 @@
+from server.app.dtos.NtpExtraDetails import NtpExtraDetails
+from server.app.dtos.NtpMainDetails import NtpMainDetails
+from server.app.dtos.NtpServerInfo import NtpServerInfo
+from server.app.dtos.NtpTimestamps import NtpTimestamps
+from server.app.dtos.PreciseTime import PreciseTime
 from server.app.dtos.ProbeData import ProbeData
 from ipaddress import ip_address, IPv4Address, IPv6Address
 
@@ -19,36 +24,39 @@ def test_ip_to_str():
     assert ip_to_str(None) is None
 
 
-def test_get_format():
-    measurement = NtpMeasurement(
-        vantage_point_ip=ip_address('127.0.0.1'),
-        server_info=NtpServerInfo(
-            ntp_version=4,
-            ntp_server_ip=IPv4Address("192.168.0.1"),
-            ntp_server_name="pool.ntp.org",
-            ntp_server_ref_parent_ip=None,
-            ref_name=None,
-            other_server_ips=["192.168.10.1"]
-        ),
-        timestamps=NtpTimestamps(
-            client_sent_time=mock_precise(1),
-            server_recv_time=mock_precise(2),
-            server_sent_time=mock_precise(3),
-            client_recv_time=mock_precise(4),
-        ),
-        main_details=NtpMainDetails(
-            offset=0.123,
-            delay=0.456,
-            stratum=2,
-            precision=-20.0,
-            reachability=""
-        ),
-        extra_details=NtpExtraDetails(
-            root_delay=mock_precise(5),
-            ntp_last_sync_time=mock_precise(6),
-            leap=0
-        )
+MOCK_NTP_MEASUREMENT = NtpMeasurement(
+    vantage_point_ip=ip_address('127.0.0.1'),
+    server_info=NtpServerInfo(
+        ntp_version=4,
+        ntp_server_ip=IPv4Address("192.168.0.1"),
+        ntp_server_name="pool.ntp.org",
+        ntp_server_ref_parent_ip=None,
+        ref_name=None,
+        other_server_ips=["192.168.10.1"]
+    ),
+    timestamps=NtpTimestamps(
+        client_sent_time=mock_precise(1),
+        server_recv_time=mock_precise(2),
+        server_sent_time=mock_precise(3),
+        client_recv_time=mock_precise(4),
+    ),
+    main_details=NtpMainDetails(
+        offset=0.123,
+        delay=0.456,
+        stratum=2,
+        precision=-20.0,
+        reachability=""
+    ),
+    extra_details=NtpExtraDetails(
+        root_delay=mock_precise(5),
+        ntp_last_sync_time=mock_precise(6),
+        leap=0
     )
+)
+
+
+def test_get_format():
+    measurement = MOCK_NTP_MEASUREMENT
 
     formatted_measurement = get_format(measurement, 0.75)
 
@@ -76,7 +84,7 @@ def test_measure_with_ip(mock_measure_ip, mock_measure_domain, mock_insert):
     fake_session = MagicMock(spec=Session)
     result = measure("192.168.1.1", fake_session)
 
-    assert result == (fake_measurement, None)
+    assert result == (fake_measurement, None, None)
     mock_measure_ip.assert_called_once_with("192.168.1.1")
     mock_insert.assert_called_once_with(fake_measurement, mock_insert.call_args[0][1])  # pool
     mock_measure_domain.assert_not_called()
@@ -92,7 +100,7 @@ def test_measure_with_domain(mock_measure_ip, mock_measure_domain, mock_insert):
     fake_session = MagicMock(spec=Session)
     result = measure("pool.ntp.org", fake_session)
 
-    assert result == (fake_measurement, None)
+    assert result == (fake_measurement, None, None)
     mock_measure_domain.assert_called_once_with("pool.ntp.org", None)
     mock_insert.assert_called_once_with(fake_measurement, mock_insert.call_args[0][1])  # pool
     mock_measure_ip.assert_not_called()
@@ -108,7 +116,7 @@ def test_measure_with_invalid_ip(mock_measure_ip, mock_measure_domain, mock_inse
     fake_session = MagicMock(spec=Session)
     result = measure("not.an.ip", fake_session)
 
-    assert result == (fake_measurement, None)
+    assert result == (fake_measurement, None, None)
     mock_measure_ip.assert_not_called()
     mock_measure_domain.assert_called_once_with("not.an.ip", None)
     mock_insert.assert_called_once_with(fake_measurement, mock_insert.call_args[0][1])
@@ -146,14 +154,14 @@ def test_measure_with_jitter(mock_jitter, mock_measure_ip, mock_measure_domain, 
     fake_server_info.ntp_version = 4
     fake_measurement.server_info = fake_server_info
     mock_measure_ip.return_value = fake_measurement
-    mock_jitter.return_value = 0.75
+    mock_jitter.return_value = 0.75, 4
     fake_session = MagicMock(spec=Session)
     result = measure("192.168.1.1", jitter_flag=True, measurement_no=3, session=fake_session)
 
-    assert result == (fake_measurement, 0.75)
+    assert result == (fake_measurement, 0.75, 4)
     mock_measure_ip.assert_called_once_with("192.168.1.1")
     mock_insert.assert_called_once_with(fake_measurement, mock_insert.call_args[0][1])  # pool
-    mock_jitter.assert_called_once_with(fake_measurement, 3)
+    mock_jitter.assert_called_once_with(fake_session, fake_measurement, 3)
     mock_measure_domain.assert_not_called()
 
 
@@ -165,11 +173,11 @@ def test_measure_no_jitter(mock_jitter, mock_measure_ip, mock_measure_domain, mo
     fake_measurement = MagicMock(spec=NtpMeasurement)
 
     mock_measure_ip.return_value = fake_measurement
-    mock_jitter.return_value = 0.75
+    mock_jitter.return_value = 0.75, 4
     fake_session = MagicMock(spec=Session)
-    result = measure("192.168.1.1", fake_session,None, False, 3)
+    result = measure("192.168.1.1", fake_session, None, False, 3)
 
-    assert result == (fake_measurement, None)
+    assert result == (fake_measurement, None, None)
     mock_measure_ip.assert_called_once_with("192.168.1.1")
     mock_insert.assert_called_once_with(fake_measurement, mock_insert.call_args[0][1])  # pool
     mock_jitter.assert_not_called()
@@ -210,32 +218,7 @@ def test_fetch_historic_data_empty_result(mock_parse_ip, mock_get_ip):
 def test_fetch_historic_data_ip(mock_parse_ip, mock_get_dn, mock_get_ip):
     mock_parse_ip.return_value = "192.168.1.1"
     mock_get_ip.return_value = [
-        {
-            "id": 1,
-            'vantage_point_ip': '127.0.0.1',
-            "ntp_server_ip": "192.168.1.1",
-            "ntp_server_name": "test",
-            "ntp_version": 3,
-            "ntp_server_ref_parent_ip": "10.0.0.1",
-            "ref_name": "parent.ref",
-
-            "offset": 0.1,
-            "RTT": 0.2,
-            "stratum": 2,
-            "precision": -20,
-            "reachability": 255,
-
-            "root_delay": 10,
-            "root_delay_prec": 100,
-            "ntp_last_sync_time": 20,
-            "ntp_last_sync_time_prec": 200,
-
-            "client_sent": 1, "client_sent_prec": 10,
-            "server_recv": 2, "server_recv_prec": 20,
-            "server_sent": 3, "server_sent_prec": 30,
-            "client_recv": 4, "client_recv_prec": 40,
-
-        }
+        MOCK_NTP_MEASUREMENT
     ]
     mock_get_dn.return_value = []
     fake_session = MagicMock(spec=Session)
@@ -258,32 +241,7 @@ def test_fetch_historic_data_ip(mock_parse_ip, mock_get_dn, mock_get_ip):
 def test_fetch_historic_data_domain_name(mock_get_dn, mock_get_ip):
     mock_get_ip.return_value = []
     mock_get_dn.return_value = [
-        {
-            "id": 1,
-            'vantage_point_ip': '127.0.0.1',
-            "ntp_server_ip": "192.168.1.1",
-            "ntp_server_name": "time.google.com",
-            "ntp_version": 3,
-            "ntp_server_ref_parent_ip": "10.0.0.1",
-            "ref_name": "parent.ref",
-
-            "offset": 0.1,
-            "RTT": 0.2,
-            "stratum": 2,
-            "precision": -20,
-            "reachability": 255,
-
-            "root_delay": 10,
-            "root_delay_prec": 100,
-            "ntp_last_sync_time": 20,
-            "ntp_last_sync_time_prec": 200,
-
-            "client_sent": 1, "client_sent_prec": 10,
-            "server_recv": 2, "server_recv_prec": 20,
-            "server_sent": 3, "server_sent_prec": 30,
-            "client_recv": 4, "client_recv_prec": 40,
-
-        }
+        MOCK_NTP_MEASUREMENT
     ]
     fake_session = MagicMock(spec=Session)
     start = datetime(2024, 1, 1)
