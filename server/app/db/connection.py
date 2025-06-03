@@ -3,12 +3,70 @@ from ipaddress import IPv4Address, IPv6Address
 from sqlalchemy import Row
 from sqlalchemy.orm import Session
 
+from server.app.dtos.NtpExtraDetails import NtpExtraDetails
+from server.app.dtos.NtpMainDetails import NtpMainDetails
+from server.app.dtos.NtpServerInfo import NtpServerInfo
+from server.app.dtos.NtpTimestamps import NtpTimestamps
 from server.app.utils.ip_utils import ip_to_str
 from server.app.models.Measurement import Measurement
 from server.app.models.Time import Time
 from server.app.dtos.PreciseTime import PreciseTime
 from server.app.dtos.NtpMeasurement import NtpMeasurement
 from typing import Any
+
+
+def row_to_dict(m: Measurement, t: Time) -> dict[str, Any]:
+    return {
+        "id": m.id,
+        "vantage_point_ip": m.vantage_point_ip,
+        "ntp_server_ip": m.ntp_server_ip,
+        "ntp_server_name": m.ntp_server_name,
+        "ntp_version": m.ntp_version,
+        "ntp_server_ref_parent_ip": m.ntp_server_ref_parent,
+        "ref_name": m.ref_name,
+        "offset": m.time_offset,
+        "RTT": m.rtt,
+        "stratum": m.stratum,
+        "precision": m.precision,
+        "reachability": m.reachability,
+        "root_delay": m.root_delay,
+        "root_delay_prec": m.root_delay_prec,
+        "ntp_last_sync_time": m.ntp_last_sync_time,
+        "ntp_last_sync_time_prec": m.ntp_last_sync_time_prec,
+        "client_sent": t.client_sent,
+        "client_sent_prec": t.client_sent_prec,
+        "server_recv": t.server_recv,
+        "server_recv_prec": t.server_recv_prec,
+        "server_sent": t.server_sent,
+        "server_sent_prec": t.server_sent_prec,
+        "client_recv": t.client_recv,
+        "client_recv_prec": t.client_recv_prec
+    }
+
+
+def rows_to_dicts(rows: list[Row[tuple[Measurement, Time]]]) -> list[dict[str, Any]]:
+    return [row_to_dict(row.Measurement, row.Time) for row in rows]
+
+
+def dict_to_measurement(entry: dict[str, Any]) -> NtpMeasurement:
+    vantage_point_ip = entry['vantage_point_ip']
+    server_info = NtpServerInfo(entry['ntp_version'], entry['ntp_server_ip'], entry['ntp_server_name'],
+                                entry['ntp_server_ref_parent_ip'], entry['ref_name'], None)
+    extra_details = NtpExtraDetails(PreciseTime(entry['root_delay'], entry['root_delay_prec']),
+                                    PreciseTime(entry['ntp_last_sync_time'], entry['ntp_last_sync_time_prec']),
+                                    0)
+    main_details = NtpMainDetails(entry['offset'], entry['RTT'], entry['stratum'],
+                                  entry['precision'], entry['reachability'])
+    time_stamps = NtpTimestamps(PreciseTime(entry['client_sent'], entry['client_sent_prec']),
+                                PreciseTime(entry['server_recv'], entry['server_recv_prec']),
+                                PreciseTime(entry['server_sent'], entry['server_sent_prec']),
+                                PreciseTime(entry['client_recv'], entry['client_recv_prec']),
+                                )
+    return NtpMeasurement(vantage_point_ip, server_info, time_stamps, main_details, extra_details)
+
+
+def rows_to_measurements(rows: list[Row[tuple[Measurement, Time]]]) -> list[NtpMeasurement]:
+    return [dict_to_measurement(d) for d in rows_to_dicts(rows)]
 
 
 def insert_measurement(measurement: NtpMeasurement, session: Session) -> None:
@@ -65,8 +123,7 @@ def insert_measurement(measurement: NtpMeasurement, session: Session) -> None:
 
 
 def get_measurements_timestamps_ip(session: Session, ip: IPv4Address | IPv6Address | None, start: PreciseTime,
-                                   end: PreciseTime) -> list[
-    dict[str, Any]]:
+                                   end: PreciseTime) -> list[NtpMeasurement]:
     """
     Fetches measurements for a specific IP address within a precise time range.
 
@@ -95,11 +152,11 @@ def get_measurements_timestamps_ip(session: Session, ip: IPv4Address | IPv6Addre
             Time.client_sent <= end.seconds
         )
     )
-    return convert_to_proper_format(query.all())
+    return rows_to_measurements(query.all())
 
 
 def get_measurements_timestamps_dn(session: Session, dn: str, start: PreciseTime, end: PreciseTime) -> list[
-    dict[str, Any]]:
+    NtpMeasurement]:
     """
     Fetches measurements for a specific domain name within a precise time range.
 
@@ -126,57 +183,13 @@ def get_measurements_timestamps_dn(session: Session, dn: str, start: PreciseTime
             Time.client_sent <= end.seconds
         )
     )
-    return convert_to_proper_format(query.all())
+    return rows_to_measurements(query.all())
 
 
-def convert_to_proper_format(rows: list[Row[tuple[Measurement, Time]]]) -> list[dict[str, Any]]:
+def get_measurements_for_jitter_ip(session: Session, ip: IPv4Address | IPv6Address | None, number: int = 7) -> list[
+    NtpMeasurement]:
     """
-    Gets the necessary measurement data from the tuple and converts it to a dictionary.
-
-    Args:
-        rows (list[Row[tuple[Measurement, Time]]]): The tuple of measurement and time records.\
-
-    Returns:
-        list[dict[str, Any]]: The necessary measurements.
-    """
-    result = []
-    for row in rows:
-        m: Measurement = row.Measurement
-        t: Time = row.Time
-
-        result.append({
-            "id": m.id,
-            "vantage_point_ip": m.vantage_point_ip,
-            "ntp_server_ip": m.ntp_server_ip,
-            "ntp_server_name": m.ntp_server_name,
-            "ntp_version": m.ntp_version,
-            "ntp_server_ref_parent_ip": m.ntp_server_ref_parent,
-            "ref_name": m.ref_name,
-            "offset": m.time_offset,
-            "RTT": m.rtt,
-            "stratum": m.stratum,
-            "precision": m.precision,
-            "reachability": m.reachability,
-            "root_delay": m.root_delay,
-            "root_delay_prec": m.root_delay_prec,
-            "ntp_last_sync_time": m.ntp_last_sync_time,
-            "ntp_last_sync_time_prec": m.ntp_last_sync_time_prec,
-            "client_sent": t.client_sent,
-            "client_sent_prec": t.client_sent_prec,
-            "server_recv": t.server_recv,
-            "server_recv_prec": t.server_recv_prec,
-            "server_sent": t.server_sent,
-            "server_sent_prec": t.server_sent_prec,
-            "client_recv": t.client_recv,
-            "client_recv_prec": t.client_recv_prec
-        })
-    return result
-
-
-def get_measurements_for_jitter_ip(session: Session, ip: IPv4Address | IPv6Address | None, number: int = 8) -> list[
-    dict[str, Any]]:
-    """
-    Fetches the last specified number (default 8) of measurements for specific IP address for calculating the jitter.
+    Fetches the last specified number (default 7) of measurements for specific IP address for calculating the jitter.
 
     This function queries the `measurements` table, joined with the `times` table,
     and filters the results by: The NTP server IP (`ntp_server_ip`) and limits the result to the number specified.
@@ -195,8 +208,8 @@ def get_measurements_for_jitter_ip(session: Session, ip: IPv4Address | IPv6Addre
         session.query(Measurement, Time)
         .join(Time, Measurement.time_id == Time.id)
         .filter(
-            Measurement.ntp_server_ip == str(ip),
+            Measurement.ntp_server_ip == str(ip)
         )
         .limit(number)
     )
-    return convert_to_proper_format(query.all())
+    return rows_to_measurements(query.all())

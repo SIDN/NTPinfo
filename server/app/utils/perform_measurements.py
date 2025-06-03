@@ -4,14 +4,11 @@ from datetime import datetime, timezone
 import json
 
 import requests
-
-from server.app.utils.ip_utils import get_ip_family, ref_id_to_ip_or_name, \
-    get_ip_network_details, get_prefix_from_ip
+from server.app.utils.ip_utils import get_ip_family, ref_id_to_ip_or_name
 from server.app.utils.load_env_vals import get_ripe_account_email, get_ripe_api_token
 from server.app.utils.ripe_probes import get_probes
-from server.app.services.NtpCalculator import NtpCalculator
 from server.app.utils.domain_name_to_ip import (domain_name_to_ip_default, domain_name_to_ip_close_to_client, \
-    domain_name_to_ip_list)
+                                                domain_name_to_ip_list)
 from server.app.dtos.NtpExtraDetails import NtpExtraDetails
 from server.app.dtos.NtpMainDetails import NtpMainDetails
 from server.app.dtos.NtpMeasurement import NtpMeasurement
@@ -19,31 +16,6 @@ from server.app.dtos.NtpServerInfo import NtpServerInfo
 from server.app.dtos.NtpTimestamps import NtpTimestamps
 from server.app.dtos.PreciseTime import PreciseTime
 from server.app.utils.validate import is_ip_address
-
-
-def calculate_jitter_from_measurements(initial_measurement: NtpMeasurement, times: int = 0) -> float:
-    """
-    For a single measurement, calculates a burst of measurements to calculate the jitter.
-    Args:
-        initial_measurement (NtpMeasurement): measurement that is actually saved in the DB, serving as the "mean" for the standard deviation.
-        times (int): number of measurements performed to calculate jitter.
-
-    Returns:
-        float: jitter in seconds.
-    """
-    offsets = [NtpCalculator.calculate_offset(initial_measurement.timestamps)]
-    measurements_done = 0
-    for _ in range(times):
-        measurement = perform_ntp_measurement_ip(
-            str(initial_measurement.server_info.ntp_server_ip),
-            initial_measurement.server_info.ntp_version
-        )
-        if measurement is None:
-            break
-        offsets.append(NtpCalculator.calculate_offset(measurement.timestamps))
-        measurements_done += 1
-
-    return float(NtpCalculator.calculate_jitter(offsets))
 
 
 def get_server_ip() -> IPv4Address | IPv6Address | None:
@@ -320,8 +292,9 @@ def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
         print("Error:", e)
         return False
 
-def perform_ripe_measurement_domain_name(server_name: str, client_ip: str|None=None,
-                                         probes_requested: int=30) -> tuple[int, list[str]]:
+
+def perform_ripe_measurement_domain_name(server_name: str, client_ip: str | None = None,
+                                         probes_requested: int = 30) -> tuple[int, list[str]]:
     """
     This method performs a RIPE measurement on a domain name. It transforms the domain name of the NTP server into
     an IP address, and then it uses perform_ripe_measurement_ip method.
@@ -344,7 +317,7 @@ def perform_ripe_measurement_domain_name(server_name: str, client_ip: str|None=N
     return perform_ripe_measurement_ip(ip_str, probes_requested), domain_ips
 
 
-def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int=30) -> int:
+def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int = 30) -> int:
     """
     This method performs a RIPE measurement and returns the code of the measurement.
 
@@ -363,7 +336,7 @@ def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int=30) ->
         raise Exception("Probe requested must be greater than 0.")
 
     # measurement settings
-    ip_family = get_ip_family(ntp_server_ip) # this will throw an exception if the ntp_server_ip is not an IP address
+    ip_family = get_ip_family(ntp_server_ip)  # this will throw an exception if the ntp_server_ip is not an IP address
     api_key = get_ripe_api_token()
     packets_count = 3
     ripe_account_email = get_ripe_account_email()
