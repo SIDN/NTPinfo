@@ -27,50 +27,55 @@ export default function VisualizationPopup({isOpen, onClose, dropdowns, data}: P
     const [selMeasurement, setSelMeasurement] = useState<Measurement>("RTT")
     const [selOption, setSelOption] = useState("Last Day")
 
+    // “from” & “to” values for custom range
+    const [customFrom, setCustomFrom] = useState<string>("")
+    const [customTo,   setCustomTo]   = useState<string>("")
+
     const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSelMeasurement(event.target.value as Measurement);
       };
- 
+
     if (!isOpen) return null;
 
     return (
         <div ref = {popupRef} className="visualization-popup">
             <div className="popup-content">
-                {/*button for closing the popup*/} 
+                {/*button for closing the popup*/}
                 <button className="close-btn" onClick={onClose}>X</button>
                 <div className="form-row">
-                    {/*Dropdown for the base time duration options*/} 
+                    {/*Dropdown for the base time duration options*/}
                     <Dropdown
                             label = {dropdowns[0].label}
                             options = {dropdowns[0].options}
                             selectedValue={selOption}
                             onSelect={setSelOption}
                             className={dropdowns[0].className}/>
-                    
+
                     {selOption === "Custom" && (
                         <div className="custom-time-amount">
-                            {/*TODO*/}
-                            {/* This will be replaced with a custom interval*/}
-                            {/*Input for the custom duration of time*/} 
-                            <input
-                            type = "text"
-                            value = {textVal}
-                            onChange={(e) => setTextVal(e.target.value)}
-                            placeholder="Input duration"
-                            className="custom-duration-input"/>
-
-                            {/*Dropdown for the unit of time for custom time durations*/} 
-                            <Dropdown
-                            label = {dropdowns[1].label}
-                            options = {dropdowns[1].options}
-                            selectedValue={dropdowns[1].selectedValue}
-                            onSelect={dropdowns[1].onSelect}
-                            className={dropdowns[1].className}/>
+                            <label className="dt-label">
+                                From:&nbsp;
+                                <input
+                                    type="datetime-local"
+                                    value={customFrom}
+                                    onChange={(e) => setCustomFrom(e.target.value)}
+                                    className="dt-input"
+                                />
+                            </label>
+                            <label className="dt-label">
+                                To:&nbsp;
+                                <input
+                                    type="datetime-local"
+                                    value={customTo}
+                                    onChange={(e) => setCustomTo(e.target.value)}
+                                    className="dt-input"
+                                />
+                            </label>
                         </div>
                     )}
-                    
+
                     <div className="radio-group">
-                        {/*Radio for showing offset data*/} 
+                        {/*Radio for showing offset data*/}
                         <label className="radio-measurement-label">
                             <input
                                 type="radio"
@@ -81,7 +86,7 @@ export default function VisualizationPopup({isOpen, onClose, dropdowns, data}: P
                             />
                             Offset
                         </label>
-                        {/*Radio for showing delay data*/} 
+                        {/*Radio for showing delay data*/}
                         <label className="radio-measurement-label">
                             <input
                                 type="radio"
@@ -95,7 +100,12 @@ export default function VisualizationPopup({isOpen, onClose, dropdowns, data}: P
                     </div>
                 </div>
                 <div className="chart-box">
-                    <LineChart data = {data} selectedMeasurement = {selMeasurement} selectedOption = {selOption}/>
+                    <LineChart
+                        data={data}
+                        selectedMeasurement={selMeasurement}
+                        selectedOption={selOption}
+                        customRange={{ from: customFrom, to: customTo }}
+                    />
                 </div>
             </div>
         </div>
