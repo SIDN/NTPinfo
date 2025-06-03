@@ -79,24 +79,20 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
   let startingPoint = new Date(now)
   let endPoint = new Date(now)
 
-  let datapoints_no = 2
   let customTimeUnit: 'second'|'minute'|'hour'|'day'|'month'|'year' | null = null;
   let customFmt = '';
 
   switch (selectedOption) {
     case "Last Hour":
       formatter = (d) => d.toLocaleTimeString([], { hour: "numeric", minute: "numeric" })
-      datapoints_no = 6
       startingPoint.setHours(now.getHours() - 1)
       break
     case "Last Day":
       formatter = (d) => d.toLocaleTimeString([], { hour: "numeric" })
-      datapoints_no = 12
       startingPoint.setDate(now.getDate() - 1)
       break
     case "Last Week":
       formatter = (d) => d.toLocaleDateString([], { day: "2-digit", month: "short"})
-      datapoints_no = 7
       startingPoint.setDate(now.getDate() - 7)
       break
     case "Custom":
@@ -110,11 +106,10 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
       customFmt      = fmt;
       break;
     default:
-      datapoints_no = 2
       formatter = (d) => d.toLocaleTimeString()
   }
 
-  const SAMPLE_DENSITY = 100;  // tweak this one knob only
+  const SAMPLE_DENSITY = 100;  // data points reduction factor
 
   const axisMs     = endPoint.getTime() - startingPoint.getTime();
   const thresholdMs =
