@@ -2,7 +2,7 @@ import L from 'leaflet'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { RIPEData } from '../utils/types'
 import greenProbeImg from '../assets/green-probe.png'
 import yellowProbeImg from '../assets/yellow-probe.png'
@@ -76,12 +76,30 @@ interface MapComponentProps {
  */
 const FitMapBounds = ({probes, ntpServer}: {probes: L.LatLngExpression[], ntpServer: L.LatLngExpression}) => {
   const map = useMap()
+  const userInteracted = useRef(false)
 
   useEffect(() => {
+
+    const onZoomOrMove = () => {
+      userInteracted.current = true
+    }
+
+    map.on('zoomstart', onZoomOrMove)
+    map.on('dragstart', onZoomOrMove)
+
+    return () => {
+      map.off('zoomstart', onZoomOrMove)
+      map.off('dragstart', onZoomOrMove)
+    }
+  }, [map])
+
+  useEffect(() => {
+    if (userInteracted.current || probes.length === 0) return
+
     const fitBounds = () => {
       const allPoints = [...probes, ntpServer]
       const bounds = L.latLngBounds(allPoints)
-      map.fitBounds(bounds, { padding: [20, 20] })
+      map.fitBounds(bounds, { padding: [15, 15] })
     }
 
     fitBounds()
