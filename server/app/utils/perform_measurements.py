@@ -8,7 +8,8 @@ import requests
 
 from server.app.utils.ip_utils import get_ip_family, ref_id_to_ip_or_name
 from server.app.utils.load_env_vals import get_ripe_account_email, get_ripe_api_token, get_ntp_version, \
-    get_edns_default_servers, get_timeout_measurement_s
+    get_edns_default_servers, get_timeout_measurement_s, get_ripe_number_of_probes_per_measurement, \
+    get_ripe_timeout_per_probe, get_packets_per_probe
 from server.app.utils.ripe_probes import get_probes
 from server.app.services.NtpCalculator import NtpCalculator
 from server.app.utils.domain_name_to_ip import domain_name_to_ip_list
@@ -307,15 +308,16 @@ def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
         print("Error:", e)
         return False
 
-def perform_ripe_measurement_domain_name(server_name: str, client_ip: str|None=None,
-                                         probes_requested: int=30) -> tuple[int, list[str]]:
+def perform_ripe_measurement_domain_name(server_name: str, client_ip: Optional[str]=None,
+                                         probes_requested: int =
+                                         get_ripe_number_of_probes_per_measurement()) -> tuple[int, list[str]]:
     """
     This method performs a RIPE measurement on a domain name. It transforms the domain name of the NTP server into
     an IP address, and then it uses perform_ripe_measurement_ip method.
 
     Args:
         server_name (str): The domain name of the NTP server.
-        client_ip (str): The IP address of the NTP server.
+        client_ip (Optional[str]): The IP address of the NTP server.
         probes_requested (int): The number of probes requested.
 
     Returns:
@@ -331,7 +333,8 @@ def perform_ripe_measurement_domain_name(server_name: str, client_ip: str|None=N
     return perform_ripe_measurement_ip(ip_str, probes_requested), domain_ips
 
 
-def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int=30) -> int:
+def perform_ripe_measurement_ip(ntp_server_ip: str,
+                                probes_requested: int=get_ripe_number_of_probes_per_measurement()) -> int:
     """
     This method performs a RIPE measurement and returns the code of the measurement.
 
@@ -340,7 +343,7 @@ def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int=30) ->
         probes_requested (int): The number of probes requested.
 
     Returns:
-        int: The code of the measurement.
+        int: The ID of the measurement.
 
     Raises:
         Exception: If the NTP server IP is not valid, probe requested is negative or if the measurement could not be performed.
@@ -352,7 +355,7 @@ def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int=30) ->
     # measurement settings
     ip_family = get_ip_family(ntp_server_ip) # this will throw an exception if the ntp_server_ip is not an IP address
     api_key = get_ripe_api_token()
-    packets_count = 3
+    packets_count = get_packets_per_probe()
     ripe_account_email = get_ripe_account_email()
 
     headers = {
@@ -366,14 +369,14 @@ def perform_ripe_measurement_ip(ntp_server_ip: str, probes_requested: int=30) ->
             "resolve_on_probe": True,
             "description": f"NTP measurement to {ntp_server_ip}",
             "packets": packets_count,
-            "timeout": 2000,
+            "timeout": get_ripe_timeout_per_probe(),
             "skip_dns_check": False,
             "target": ntp_server_ip
         }
     ],
         "is_oneoff": True,
         "bill_to": ripe_account_email,
-        "probes": get_probes(ntp_server_ip)
+        "probes": get_probes(ntp_server_ip, probes_requested)
     }
 
     # perform the measurement

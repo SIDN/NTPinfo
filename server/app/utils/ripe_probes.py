@@ -1,5 +1,7 @@
 from typing import TypeVar
 from typing import Optional
+from app.utils.load_env_vals import get_ripe_number_of_probes_per_measurement, get_max_probes_per_measurement, \
+    get_ripe_probes_wanted_percentages
 from server.app.utils.ip_utils import get_ip_network_details, get_prefix_from_ip, get_ip_family
 from ripe.atlas.cousteau import ProbeRequest
 
@@ -7,7 +9,8 @@ from ripe.atlas.cousteau import ProbeRequest
 T = TypeVar('T', int, float) # float or int
 
 
-def get_probes(ntp_server_ip: str, probes_requested: int=30) -> list[dict]:
+def get_probes(ntp_server_ip: str,
+               probes_requested: int=get_ripe_number_of_probes_per_measurement()) -> list[dict]:
     """
     This method handles all cases regarding what probes we should send.
     This method assumes all inputs are either valid or None. (If there is a type in the input, the measurement
@@ -52,7 +55,8 @@ def get_probes(ntp_server_ip: str, probes_requested: int=30) -> list[dict]:
 
 
 def get_best_probe_types(ip_asn: Optional[str], ip_prefix: Optional[str], ip_country: Optional[str],
-               ip_area: Optional[str], ip_family: int, probes_requested: int=30) -> dict[str, int]:
+                         ip_area: Optional[str], ip_family: int,
+                         probes_requested: int=get_ripe_number_of_probes_per_measurement()) -> dict[str, int]:
     """
     This method is responsible for getting the best probes for the measurement. It should return probes that
     are near the NTP server.
@@ -75,8 +79,9 @@ def get_best_probe_types(ip_asn: Optional[str], ip_prefix: Optional[str], ip_cou
         raise Exception("Probe requested cannot be negative")
     ip_type = "ipv" + str(ip_family)
     # the best distribution of probes that we desire:
-    probes_wanted_percentages = [0.33, 0.3, 0.27, 0.10, 0.0]
-    max_pbs = 100
+    probes_wanted_percentages = get_ripe_probes_wanted_percentages()
+    # [0.33, 0.3, 0.27, 0.10, 0.0]
+    max_pbs = get_max_probes_per_measurement()
     # type 0 is ASN, type 1 is prefix, type 2 is country code, type 3 is area and type 4 is random
     mapping_indexes_to_type = {
         0: "asn",

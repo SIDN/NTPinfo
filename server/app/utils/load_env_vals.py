@@ -1,17 +1,24 @@
 import os
+from typing import Any, cast
 import yaml
 from dotenv import load_dotenv
 
 
-def load_config(path="../../server_config.yaml"):
+def load_config() -> dict[str, Any]:
     """
     It loads the config from a YAML file.
 
     Raises:
         FileNotFoundError: If the config file does not exist.
     """
-    with open(path, "r") as f:
-        return yaml.safe_load(f)
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    config_path = os.path.join(current_dir, "..", "..", "server_config.yaml")
+    config_path = os.path.abspath(config_path)
+
+    if not os.path.exists(config_path):
+        raise FileNotFoundError(f"Configuration file not found: {config_path}")
+    with open(config_path, "r") as f:
+        return cast(dict[str, Any], yaml.safe_load(f))
 
 load_dotenv()
 config = load_config()
@@ -124,6 +131,43 @@ def get_nr_of_measurements_for_jitter() -> int:
         raise ValueError("ntp 'number_of_measurements_for_calculating_jitter' must be an 'int'")
     return ntp["number_of_measurements_for_calculating_jitter"]
 
+def get_mask_ipv4() -> int:
+    """
+    This method returns the mask we use for ipv4 IPs.
+
+    Raises:
+        ValueError: If this variable has not been correctly set.
+    """
+    if "edns" not in config:
+        raise ValueError("edns section is missing")
+    edns = config["edns"]
+    if "mask_ipv4" not in edns:
+        raise ValueError("edns 'mask_ipv4' is missing")
+    if not isinstance(edns["mask_ipv4"], int):
+        raise ValueError("edns 'mask_ipv4' must be an 'int'")
+    if edns["mask_ipv4"] < 0 or edns["mask_ipv6"] > 64:
+        raise ValueError("edns 'mask_ipv4' must be between 0 and 64 inclusive")
+    return edns["mask_ipv4"]
+
+
+def get_mask_ipv6() -> int:
+    """
+    This method returns the mask we use for ipv6 IPs.
+
+    Raises:
+        ValueError: If this variable has not been correctly set.
+    """
+    if "edns" not in config:
+        raise ValueError("edns section is missing")
+    edns = config["edns"]
+    if "mask_ipv6" not in edns:
+        raise ValueError("edns 'mask_ipv6' is missing")
+    if not isinstance(edns["mask_ipv6"], int):
+        raise ValueError("edns 'mask_ipv6' must be an 'int'")
+    if edns["mask_ipv6"] < 0 or edns["mask_ipv6"] > 32:
+        raise ValueError("edns 'mask_ipv6' must be between 0 and 32 inclusive")
+    return edns["mask_ipv6"]
+
 def get_edns_default_servers() -> list[str]:
     """
     This method returns the default list of EDNS servers. (in the order of their priorities)
@@ -140,9 +184,42 @@ def get_edns_default_servers() -> list[str]:
         raise ValueError("edns 'default_order_of_edns_servers' must be a 'list'")
     return edns["default_order_of_edns_servers"]
 
-def get_ripe_timeout_per_probe() -> int:
+def get_edns_timeout_s() -> float|int:
+    """
+    This method returns the timeout for the EDNS query request.
+
+    Raises:
+        ValueError: If this variable has not been correctly set.
+    """
+    if "edns" not in config:
+        raise ValueError("edns section is missing")
+    edns = config["edns"]
+    if "edns_timeout_s" not in edns:
+        raise ValueError("edns 'edns_timeout_s' is missing")
+    if not isinstance(edns["edns_timeout_s"], float | int):
+        raise ValueError("edns 'edns_timeout_s' must be an 'int' or a 'float' in ms")
+    return edns["edns_timeout_s"]
+
+def get_ripe_timeout_per_probe() -> float|int:
     """
     This method returns the timeout that a probe has to receive an answer from a measurement.
+
+    Raises:
+        ValueError: If this variable has not been correctly set.
+    """
+    if "ripe_atlas" not in config:
+        raise ValueError("ripe_atlas section is missing")
+    ripe_atlas = config["ripe_atlas"]
+    if "timeout_per_probe_ms" not in ripe_atlas:
+        raise ValueError("ripe_atlas 'timeout_per_probe_ms' is missing")
+    if not isinstance(ripe_atlas["timeout_per_probe_ms"], float|int):
+        raise ValueError("ripe_atlas 'timeout_per_probe_ms' must be an 'int' or a 'float'(in ms)")
+    return ripe_atlas["timeout_per_probe_ms"]
+
+def get_packets_per_probe() -> float|int:
+    """
+    This method returns the number of tries that a probe will do for a measurement.
+    It will send "packets_per_probe" queries for that NTP server. (see RIPE Atlas documentation for more information)
 
     Raises:
         ValueError: If this variable has not been correctly set.
@@ -172,7 +249,23 @@ def get_ripe_number_of_probes_per_measurement() -> int:
         raise ValueError("ripe_atlas 'number_of_probes_per_measurement' must be an 'int'")
     return ripe_atlas["number_of_probes_per_measurement"]
 
-def get_ripe_probes_wanted_percentages() -> int:
+def get_max_probes_per_measurement() -> int:
+    """
+    This method returns the maximum number of probes requested per measurement.
+
+    Raises:
+        ValueError: If this variable has not been correctly set.
+    """
+    if "ripe_atlas" not in config:
+        raise ValueError("ripe_atlas section is missing")
+    ripe_atlas = config["ripe_atlas"]
+    if "max_probes_per_measurement" not in ripe_atlas:
+        raise ValueError("ripe_atlas 'max_probes_per_measurement' is missing")
+    if not isinstance(ripe_atlas["max_probes_per_measurement"], int):
+        raise ValueError("ripe_atlas 'max_probes_per_measurement' must be an 'int'")
+    return ripe_atlas["max_probes_per_measurement"]
+
+def get_ripe_probes_wanted_percentages() -> list[float]:
     """
     This method returns an array representing how many probes of each type (ASN, prefix, country, area, random) we want to use.
     The default distribution that we found excellent is [0.33, 0.30, 0.27, 0.10, 0.0] which means:
@@ -194,4 +287,4 @@ def get_ripe_probes_wanted_percentages() -> int:
     return ripe_atlas["probes_wanted_percentages"]
 
 
-verify_if_config_is_set()
+# verify_if_config_is_set()

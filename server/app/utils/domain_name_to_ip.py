@@ -4,6 +4,9 @@ import dns.message
 import dns.query
 import dns.edns
 import dns.rdatatype
+
+from app.utils.ip_utils import get_ip_family
+from app.utils.load_env_vals import get_edns_default_servers, get_mask_ipv6, get_mask_ipv4, get_edns_timeout_s
 from server.app.utils.validate import is_valid_domain_name
 
 
@@ -52,12 +55,11 @@ def domain_name_to_ip_default(domain_name: str) -> list[str] | None:
         return ips
     except Exception as e:
         print("Error in domain name to ip default: ", e)
-
         return None
 
 
-def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str, mask: int = 24,
-                                                    resolvers: list[str] = ['8.8.8.8', '1.1.1.1'],
+def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str,
+                                                    resolvers: list[str] = get_edns_default_servers(),
                                                     depth: int = 0, max_depth: int = 2) -> list[str] | None:
     """
     This method tries to obtain the ip addresses of the domain name from some popular DNS servers (resolvers)
@@ -76,7 +78,6 @@ def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str, mask: in
     Args:
         domain_name(str): The domain name.
         client_ip(str): The client IP.
-        mask(int): The DNS MASK. (how many bits of the ip)
         resolvers(list): A list of popular DNS resolvers that are ECS-capable.
         depth(int): The depth of the EDNS query if it returns a CNAME. (It is recommended to set this to 0.)
         max_depth(int): The maximum depth of the EDNS query. (It is recommended to set this to 2 or 3 to prevent long delay.)
@@ -86,6 +87,16 @@ def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str, mask: in
     """
     if not is_valid_domain_name(domain_name):
         return None
+    if client_ip is None:
+        return None
+
+    ip_type = get_ip_family(client_ip)
+    mask: int # The DNS MASK. (how many bits of the ip)
+    if ip_type == 6:
+        mask = get_mask_ipv6()
+    else:
+        mask = get_mask_ipv4()
+
     ips: list[str] = []
 
     try:
@@ -96,13 +107,12 @@ def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str, mask: in
             # stop if we already found some IP addresses. Remove this "if" if you want to get more IPs
             if len(ips) != 0:
                 break
-
-            response = perform_edns_query(domain_name, r, ecs)
+            response = perform_edns_query(domain_name, r, ecs, ip_type=ip_type)
 
             if response is None:
                 continue
             # collect the IPs or search further if we found a CNAME
-            ips = ips + edns_response_to_ips(response, client_ip, mask, resolvers, depth, max_depth)
+            ips = ips + edns_response_to_ips(response, client_ip, resolvers, depth, max_depth)
     except Exception as e:
         print("Error in domain name to ip close to client: ", e)
         return None
@@ -113,7 +123,7 @@ def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str, mask: in
 
 
 def perform_edns_query(domain_name: str, resolver_name: str, ecs: dns.edns.ECSOption,
-                       timeout: int = 2) -> dns.message.Message | None:
+                       ip_type: int, timeout: float|int = get_edns_timeout_s()) -> dns.message.Message | None:
     """
     This method performs a EDNS query against the domain name using the resolver as
     the DNS IP and returns the response.
@@ -122,13 +132,17 @@ def perform_edns_query(domain_name: str, resolver_name: str, ecs: dns.edns.ECSOp
          domain_name(str): The domain name.
          resolver_name(str): The resolver name.
          ecs(dns.edns.ECSOption): The EDNS query option. It contains information about the client IP.
-         timeout(int): The timeout for the EDNS query.
+         ip_type(int): The IP type of the EDNS query. (4 or 6)
+         timeout(float|int): The timeout for the EDNS query.
 
     Returns:
         dns.message.Message | None: The response from the EDNS query.
     """
     # prepare to ask the DNS
-    query = dns.message.make_query(domain_name, dns.rdatatype.A)
+    if ip_type == 4:
+        query = dns.message.make_query(domain_name, dns.rdatatype.A)
+    else:
+        query = dns.message.make_query(domain_name, dns.rdatatype.AAAA)
     query.use_edns(edns=True, options=[ecs])
     # try with udp and if it fails try with tcp
     try:
@@ -141,7 +155,7 @@ def perform_edns_query(domain_name: str, resolver_name: str, ecs: dns.edns.ECSOp
     return response
 
 
-def edns_response_to_ips(response: dns.message.Message, client_ip: str, mask: int,
+def edns_response_to_ips(response: dns.message.Message, client_ip: str,
                         resolvers: list[str], depth: int=0, max_depth: int=2) -> list[str]:
     """
     This method takes the IPs from the response. In case the response has a CNAME, it will
@@ -151,7 +165,6 @@ def edns_response_to_ips(response: dns.message.Message, client_ip: str, mask: in
     Args:
         response(dns.message.Message): The response from the EDNS query.
         client_ip(str): The client IP.
-        mask(int): The DNS MASK. (how many bits of the ip)
         resolvers(list): A list of popular DNS resolvers that are ECS-capable. They are used in the CNAME case.
         depth(int): The depth of the EDNS query.
         max_depth(int): The maximum depth of the EDNS query.
@@ -171,7 +184,7 @@ def edns_response_to_ips(response: dns.message.Message, client_ip: str, mask: in
                 next_domain_name = str(list(ans.items)[0]).rstrip('.')
                 print("redirecting to ", next_domain_name)
                 if depth < max_depth:
-                    a = domain_name_to_ip_close_to_client(next_domain_name, client_ip, mask, resolvers, depth + 1, max_depth)
+                    a = domain_name_to_ip_close_to_client(next_domain_name, client_ip, resolvers, depth + 1, max_depth)
                     if a is not None:
                         ips += a
     return ips
