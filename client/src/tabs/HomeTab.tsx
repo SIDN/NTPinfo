@@ -37,7 +37,7 @@ function HomeTab() {
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
   const {fetchData: fetchHistoricalData, loading: apiHistoricalLoading, error: apiHistoricalError} = useFetchHistoricalIPData()
   const {triggerMeasurement, error: triggerRipeError} = triggerRipeMeasurement()
-  const {result: ripeMeasurementResp, status: ripeMeasurementStatus, error: apiRipeError} = useFetchRIPEData(measurementId)
+  const {result: ripeMeasurementResp, status: ripeMeasurementStatus} = useFetchRIPEData(measurementId)
 
 const ntpServer: LatLngTuple = [41.509985, -103.181674];
 
@@ -179,9 +179,6 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
         <div className='map-box'>
           <WorldMap probes={ripeMeasurementResp} ntpServer={ntpServer} status = {ripeMeasurementStatus} />
         </div>
-        )}
-        {(ripeMeasurementStatus === "error") && (
-          <p style={{ color: 'red' }}>{apiRipeError?.toString()}</p>
         )}
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>)}
 
