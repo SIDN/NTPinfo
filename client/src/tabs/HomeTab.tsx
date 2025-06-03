@@ -28,8 +28,7 @@ function HomeTab() {
   const [chartData, setChartData] = useState<NTPData[] | null>(null)
   const [measured, setMeasured] = useState(false)
   const [popupOpen, setPopupOpen] = useState(false)
-  const [selOption1, setOption1] = useState("Last Hour")
-  const [selOption2, setOption2] = useState("Hours")
+  const [selOption, setOption] = useState("Last Hour")
   const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
   const [measurementId, setMeasurementId] = useState<string | null>(null)
 
@@ -42,23 +41,12 @@ function HomeTab() {
 const ntpServer: LatLngTuple = [41.509985, -103.181674];
 
   //dropdown format
-  // second one will removed after custom time intervals are added
-  const dropdown = [
-    {
-      label: "Time period",
+  const dropdown = {
       options: ["Last Hour", "Last Day", "Last Week", "Custom"],
-      selectedValue: selOption1,
-      onSelect: setOption1,
-      className: "time-dropdown"
-    },
-    {
-      label: "Time Option",
-      options: ["Hours", "Days"],
-      selectedValue: selOption2,
-      onSelect: setOption2,
-      className: "custom-time-dropdown"
+      selectedValue: selOption,
+      onSelect: setOption,
     }
-  ]
+  
 
   //
   //functions for handling state changes
@@ -206,7 +194,7 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
           <VisualizationPopup
           isOpen={popupOpen}
           onClose={() => setPopupOpen(false)}
-          dropdowns={dropdown}
+          dropdown={dropdown}
           data = {chartData}/>
         </div>
       </div>)}
