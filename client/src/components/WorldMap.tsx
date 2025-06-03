@@ -108,7 +108,7 @@ const DrawConnectingLines = ({probes, ntpServer}: {probes: L.LatLngExpression[],
 
   useEffect(() => {
     probes.map(x => {
-      L.polyline([x,ntpServer], {color: 'blue', opacity: 0.8}).addTo(map)
+      L.polyline([x,ntpServer], {color: 'blue', opacity: 0.8, weight: 1}).addTo(map)
     })
   },[map, probes, ntpServer])
 
@@ -137,7 +137,7 @@ const getIconByRTT = (rtt: number, measured: boolean): L.Icon => {
  * @returns a string indicating this specific value
  */
 const stringifyRTTAndOffset = (value: number): string => {
-  if (value === -1) return "No Reply"
+  if (value === -1000) return "No Reply"
   else return value.toString()
 }
 

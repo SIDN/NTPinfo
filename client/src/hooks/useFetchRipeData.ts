@@ -12,7 +12,7 @@ import { transformJSONDataToRIPEData } from "../utils/transformJSONDataToRIPEDat
  * @param intervalMs the interval at which data will be polled from the endpoint
  * @returns the current set of results, the status of the polling, and if an error has occured
  */
-export const useFetchRIPEData = (measurementId: string | null, intervalMs = 1000) => {
+export const useFetchRIPEData = (measurementId: string | null, intervalMs = 400) => {
     const [result, setResult] = useState<RIPEData[] | null>(null)
     const [status, setStatus] = useState<"idle" | "polling" | "complete" | "error">("idle")
     const [error, setError] = useState<Error | null>(null)
