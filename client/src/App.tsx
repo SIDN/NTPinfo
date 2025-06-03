@@ -9,7 +9,7 @@ import CompareTab from './tabs/CompareTab.tsx'
 
 
 function App() {
-  
+
   //TODO
   // for now the switching system is not implemented, will be added later
   const [selectedTab, setSelectedTab] = useState<number>(2)
@@ -21,7 +21,7 @@ function App() {
     <div className="app-container">
       <Hero />
 
-      {(selectedTab == 1 && (<HomeTab />)) || 
+      {(selectedTab == 1 && (<HomeTab />)) ||
        (selectedTab == 2 && (<CompareTab />))}
     </div>
      )

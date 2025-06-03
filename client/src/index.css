@@ -11,7 +11,7 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  
+
   /* global variables */
   --bg-clr-primary: #292f36;
   --bg-clr-secondary: #323E4C;
@@ -24,7 +24,7 @@
   --clr-red-3: #c03039;
   --clr-yellow: #FBB13C;
   --clr-btn-selected-purple: #0d0d0e;
-  --clr-search-placeholder: #b3b3b3;
+  --clr-input-placeholder: #b3b3b3;
 }
 *, *::before, *::after {
   box-sizing: border-box;

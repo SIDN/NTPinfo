@@ -316,7 +316,7 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> list[RipeM
     return ripe_measurements
 
 # print(len(parse_data_from_ripe_measurement(get_data_from_ripe_measurement("105960562"))))
-# parse_data_from_ripe_measurement(get_data_from_ripe_measurement("m106323686"))
+# print(parse_data_from_ripe_measurement(get_data_from_ripe_measurement("106323686")))
 # parse_data_from_ripe_measurement(get_data_from_ripe_measurement("106125660"))
 # print(parse_probe_data(get_probe_data_from_ripe_by_id("7304")))
 # print(check_all_measurements_scheduled("107134561"))

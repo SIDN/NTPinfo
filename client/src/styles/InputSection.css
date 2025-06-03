@@ -1,6 +1,6 @@
 @import '../index.css';
 
-.search-bar {
+.input-bar {
     display: flex;
     align-items: center;
     width: 100%;
@@ -11,7 +11,7 @@
     gap: 0.5rem;
   }
 
-  .search-bar input {
+  .input-bar input {
     flex-grow: 1;
     border: none;
     border-radius: 1rem;
@@ -22,11 +22,11 @@
     outline: none;
   }
 
-  .search-bar input::placeholder {
-    color: var(--clr-search-placeholder);
+  .input-bar input::placeholder {
+    color: var(--clr-input-placeholder);
   }
 
-  .search-bar button {
+  .input-bar button {
     background-color: var(--clr-red-2);
     color: white;
     border: none;
@@ -38,11 +38,11 @@
     transition: background-color 0.3s ease;
   }
 
-  .search-bar button:hover {
+  .input-bar button:hover {
     background-color: var(--clr-red-3);
   }
 
-  .search-section {
+  .input-section {
     /* position: relative;
     margin-top: 6rem;
     padding-left: 2rem;
@@ -52,7 +52,7 @@
   }
 
 
-  .search-bar-text {
+  .input-bar-text {
     font-size: 1.3rem;
     font-weight: 500;
     color: var(--clr-font-white);
@@ -63,7 +63,7 @@
   }
 
   .jitter-options {
-    
+
     padding: .7rem;
     display: flex;
     align-items: center;
@@ -91,7 +91,7 @@
     position: relative;
     transition: background-color 0.2s, border 0.2s;
   }
-  
+
   .custom-checkbox input[type="checkbox"]:checked + .checkmark{
     background-color: var(--clr-red-2);
   }

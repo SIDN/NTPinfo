@@ -6,7 +6,106 @@ from unittest.mock import Mock, patch
 from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.dtos.ProbeData import ProbeData
 from server.app.utils.ripe_fetch_data import get_data_from_ripe_measurement, get_probe_data_from_ripe_by_id, \
-    parse_probe_data, is_failed_measurement, successful_measurement, parse_data_from_ripe_measurement
+    parse_probe_data, is_failed_measurement, successful_measurement, parse_data_from_ripe_measurement, \
+    check_all_measurements_scheduled
+
+MOCK_MEASUREMENT_INFO = {
+    "af": 4,
+    "creation_time": 1748876705,
+    "credits_per_result": 13,
+    "description": "NTP measurement to 18.252.12.124",
+    "estimated_results_per_day": 12,
+    "group": "https://atlas.ripe.net/api/v2/measurements/groups/123456/",
+    "group_id": 123456,
+    "id": 123456,
+    "in_wifi_group": False,
+    "interval": None,
+    "is_all_scheduled": True,
+    "is_oneoff": True,
+    "is_public": True,
+    "packets": 2,
+    "participant_count": 12,
+    "probes_requested": 12,
+    "probes_scheduled": 12,
+    "resolve_on_probe": False,
+    "resolved_ips": [
+        "18.252.12.124"
+    ],
+    "result": "https://atlas.ripe.net/api/v2/measurements/123456/results/",
+    "size": None,
+    "spread": None,
+    "start_time": 1748876705,
+    "status": {
+        "id": 4,
+        "name": "Stopped",
+        "when": 1748877060
+    },
+    "stop_time": 1748877060,
+    "tags": [],
+    "target": "18.252.12.124",
+    "target_asn": None,
+    "target_ip": "18.252.12.124",
+    "target_prefix": None,
+    "timeout": 4000,
+    "type": "ntp"
+}
+
+MOCK_MEASUREMENT_INFO_NOT_SCHEDULED = {
+    "af": 4,
+    "creation_time": 1748876705,
+    "credits_per_result": 13,
+    "description": "NTP measurement to 18.252.12.124",
+    "estimated_results_per_day": 12,
+    "group": "https://atlas.ripe.net/api/v2/measurements/groups/123456/",
+    "group_id": 123456,
+    "id": 123456,
+    "in_wifi_group": False,
+    "interval": None,
+    "is_all_scheduled": True,
+    "is_oneoff": True,
+    "is_public": True,
+    "packets": 2,
+    "participant_count": 12,
+    "probes_requested": 12,
+    "probes_scheduled": 5,
+    "resolve_on_probe": False,
+    "resolved_ips": [
+        "18.252.12.124"
+    ],
+    "result": "https://atlas.ripe.net/api/v2/measurements/123456/results/",
+    "size": None,
+    "spread": None,
+    "start_time": 1748876705,
+    "status": {
+        "id": 4,
+        "name": "Stopped",
+        "when": 1748877060
+    },
+    "stop_time": 1748877060,
+    "tags": [],
+    "target": "18.252.12.124",
+    "target_asn": None,
+    "target_ip": "18.252.12.124",
+    "target_prefix": None,
+    "timeout": 4000,
+    "type": "ntp"
+}
+
+MOCK_MEASUREMENT_INFO_PROBES_ERROR = {
+
+    "participant_count": 12,
+    "probes_requested": -1,
+    "probes_scheduled": 5,
+}
+
+MOCK_MEASUREMENT_ERROR = {
+    "error": {
+        "detail": "Method \"GET\" not allowed.",
+        "status": 405,
+        "title": "Method Not Allowed",
+        "code": 104
+    }
+}
 
 MOCK_MEASUREMENT_RESPONSE = [
     {
@@ -373,3 +472,40 @@ def test_parse_data_from_ripe_measurement_with_no_response(mock_get_probe):
 
     assert results[0].ntp_measurement.timestamps.client_recv_time.seconds == -1
     assert results[0].ntp_measurement.timestamps.client_recv_time.fraction == 0
+
+
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_check_all_measurement_scheduled(mock_get):
+    mock_get.return_value = Mock(status_code=200)
+    mock_get.return_value.json.return_value = MOCK_MEASUREMENT_INFO
+
+    data = check_all_measurements_scheduled("123456")
+    assert data is True
+
+
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_check_all_measurement_not_scheduled(mock_get):
+    mock_get.return_value = Mock(status_code=200)
+    mock_get.return_value.json.return_value = MOCK_MEASUREMENT_INFO_NOT_SCHEDULED
+
+    data = check_all_measurements_scheduled("123456")
+    assert data is False
+
+
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_check_all_measurement_probes_error(mock_get):
+    mock_get.return_value = Mock(status_code=200)
+    mock_get.return_value.json.return_value = MOCK_MEASUREMENT_INFO_PROBES_ERROR
+
+    with pytest.raises(ValueError, match="RIPE API error: The number of scheduled probes is negative"):
+        check_all_measurements_scheduled("123456")
+
+
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_check_all_measurement_error_get(mock_get):
+    mock_get.return_value = Mock(status_code=200)
+    mock_get.return_value.json.return_value = MOCK_MEASUREMENT_ERROR
+
+    with pytest.raises(ValueError,
+                       match=r'RIPE API error: Method Not Allowed - Method "GET" not allowed\.'):
+        check_all_measurements_scheduled("123456")

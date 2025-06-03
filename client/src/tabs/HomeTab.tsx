@@ -8,47 +8,42 @@ import VisualizationPopup from '../components/Visualization'
 import LineChart from '../components/LineGraph'
 import { useFetchIPData } from '../hooks/useFetchIPData.ts'
 import { useFetchHistoricalIPData } from '../hooks/useFetchHistoricalIPData.ts'
+import { useFetchRIPEData } from '../hooks/useFetchRipeData.ts'
 import { dateFormatConversion } from '../utils/dateFormatConversion.ts'
 import {downloadJSON, downloadCSV} from '../utils/downloadFormats.ts'
 import WorldMap from '../components/WorldMap.tsx'
 
-import { NTPData } from '../utils/types.ts'
+import { NTPData, RIPEData } from '../utils/types.ts'
 import { Measurement } from '../utils/types.ts'
 import { LatLngTuple } from 'leaflet'
 
 import 'leaflet/dist/leaflet.css'
+import { triggerRipeMeasurement } from '../hooks/triggerRipeMeasurement.ts'
 
 function HomeTab() {
+  //
+  // states we need to define
+  //
+  const [ntpData, setNtpData] = useState<NTPData | null>(null)
+  const [chartData, setChartData] = useState<NTPData[] | null>(null)
+  const [measured, setMeasured] = useState(false)
+  const [popupOpen, setPopupOpen] = useState(false)
+  const [selOption1, setOption1] = useState("Last Hour")
+  const [selOption2, setOption2] = useState("Hours")
+  const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
+  const [measurementId, setMeasurementId] = useState<string | null>(null)
 
-    //
-    // states we need to define 
-    //
-    const [ntpData, setNtpData] = useState<NTPData | null>(null)
-    const [chartData, setChartData] = useState<NTPData[] | null>(null)
-    const [measured, setMeasured] = useState(false)
-    const [popupOpen, setPopupOpen] = useState(false)
-    const [selOption1, setOption1] = useState("Last Hour")
-    const [selOption2, setOption2] = useState("Hours")
-    const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
-    
-    //Variables to log and use API hooks
-    const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
-    const {fetchData: fetchHistoricalData, loading: apiHistoricalLoading, error: apiHistoricalError} = useFetchHistoricalIPData()
+  //Varaibles to log and use API hooks
+  const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
+  const {fetchData: fetchHistoricalData, loading: apiHistoricalLoading, error: apiHistoricalError} = useFetchHistoricalIPData()
+  const {triggerMeasurement, error: triggerRipeError} = triggerRipeMeasurement()
+  const {result: ripeMeasurementResp, status: ripeMeasurementStatus, error: apiRipeError} = useFetchRIPEData(measurementId)
 
-    
+const ntpServer: LatLngTuple = [41.509985, -103.181674];
 
-    const probes: [NTPData, LatLngTuple][] = [ 
-        [{ offset: 12.5, RTT: 34.2, stratum: 2, jitter: 0.3, precision: -20, status: "synced", time: 1716895200, ip: "192.168.1.10", ip_list: ["192.168.1.11", "192.168.1.12"], server_name: "ntp1.local", ref_ip: "192.168.1.1", ref_name: "ref1.local", root_delay: 1.2 },[51.51, -0.1]],
-        [{ offset: -7.3, RTT: 28.4, stratum: 3, jitter: null, precision: -18, status: "unsynced", time: 1716895300, ip: "10.0.0.5", ip_list: ["10.0.0.6"], server_name: "ntp2.domain", ref_ip: "10.0.0.1", ref_name: "ref2.domain", root_delay: 0.8 },[51.52, -0.08]],
-        [{ offset: 0.0, RTT: 45.1, stratum: 1, jitter: 0.1, precision: -19, status: "synced", time: 1716895400, ip: "172.16.0.2", ip_list: ["172.16.0.3", "172.16.0.4"], server_name: "ntp3.network", ref_ip: "172.16.0.1", ref_name: "ref3.network", root_delay: 0.5 },[51.5, -0.07]]
-    ];
-
-
-    const ntpServer: LatLngTuple = [51.53, -0.09];
-
-    //dropdown format
-    // second one will removed after custom time intervals are added
-    const dropdown = [
+  //dropdown format
+  // second one will removed after custom time intervals are added
+  const dropdown = [
     {
       label: "Time period",
       options: ["Last Hour", "Last Day", "Last Week", "Custom"],
@@ -63,56 +58,98 @@ function HomeTab() {
       onSelect: setOption2,
       className: "custom-time-dropdown"
     }
-    ]
+  ]
 
-    //
+  //
   //functions for handling state changes
   //
-  
-  //main function called when measuring by pressing the button
-  const handleSearch = async (query: string, jitter_flag: boolean, measurements_no: number) => {
+
+  /**
+   * Function called on the press of the search button.
+   * Performs a normal measurement call, a historical measurement call for the graph, and a RIPE measurement call for the map.
+   * @param query The input given by the user
+   * @param jitter_flag flag indicating whether jitter should be measured for normal measurement calls
+   * @param measurements_no How many measurements should be done for the jitter calculation
+   */
+  const handleInput = async (query: string, jitter_flag: boolean, measurements_no: number) => {
     if (query.length == 0)
       return
-    
+
+    //Reset the hook
+    setMeasurementId(null)
+    setMeasured(false)
+    setNtpData(null)
+    setChartData(null)
+
+    /**
+     * The payload for the measurement call, containing the server,
+     * if the jitter should be calculated and the number of measurements to be done.
+     */
     const payload = {
       server: query,
       jitter_flag: jitter_flag,
       measurements_no: jitter_flag ? measurements_no : 0
     }
 
-    // Get the response from the measurement data API
-    const fullurlMeasurementData = `http://localhost:8000/measurements/`
+    /**
+     * Get the response from the measurement data endpoint
+     */
+    const fullurlMeasurementData = `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/`
     const apiMeasurementResp = await fetchMeasurementData(fullurlMeasurementData, payload)
 
-    //Get data from past day from historical data API to chart in the graph
+    /**
+     * Get data from past day from historical data endpoint to chart in the graph.
+     */
     const startDate = dateFormatConversion(Date.now()-86400000)
     const endDate = dateFormatConversion(Date.now())
-    const fullurlHistoricalData = `http://localhost:8000/measurements/history/?server=${query}&start=${startDate}&end=${endDate}`
+    const fullurlHistoricalData = `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/history/?server=${query}&start=${startDate}&end=${endDate}`
     const apiHistoricalResp = await fetchHistoricalData(fullurlHistoricalData)
-    
-    //update data stored and show the data again
+
+    /**
+     * Update the stored data and show it again
+     */
     setMeasured(true)
     const data = apiMeasurementResp
     const chartData = apiHistoricalResp
     setNtpData(data ?? null)
     setChartData(chartData ?? null)
+
+    /**
+     * Payload for the RIPE measurement call, containing only the ip of the server to be measured.
+     */
+    const ripePayload = {
+      server: data === null ? query : data.ip,
+      jitter_flag: jitter_flag,
+      measurements_no: jitter_flag ? measurements_no : 0
+    }
+
+    /**
+     * Get the data from the RIPE measurement endpoint and update it.
+     */
+    const ripeTriggerResp = await triggerMeasurement(ripePayload)
+    setMeasurementId(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.measurementId)
   }
 
-  //function to determine what value to use on the y axis of the graph
+  /**
+   * Function to determine what value of Measreuemnt to use on the y axis of the visualization graph
+   */
   const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSelMeasurement(event.target.value as Measurement);
   }
-    return (
-    <>
-        <div className="search-wrapper">
-        <InputSection onSearch={handleSearch} />
+
+  return (
+    <div className="app-container">
+      <div className="input-wrapper">
+        <InputSection onClick={handleInput} />
       </div>
         <div className="result-text">
           {(!apiDataLoading && measured && (<p>Results</p>)) || (apiDataLoading && <p>Loading...</p>)}
         </div>
+        {/* The main page shown after the main measurement is done */}
       {(ntpData && !apiDataLoading && (<div className="results-and-graph">
         <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>
-       
+
+        {/* Div for the visualization graph, and the radios for setting the what measurement to show */}
         <div className="graphs">
           <div className='graph-box'>
             <label>
@@ -138,25 +175,30 @@ function HomeTab() {
             <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day"/>
           </div>
         </div>
+        {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "polling") && (
         <div className='map-box'>
-          <WorldMap probes={probes} ntpServer={ntpServer}/>
+          <WorldMap probes={ripeMeasurementResp} ntpServer={ntpServer} status = {ripeMeasurementStatus} />
         </div>
+        )}
+        {(ripeMeasurementStatus === "error") && (
+          <p style={{ color: 'red' }}>{apiRipeError?.toString()}</p>
+        )}
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>)}
-      
+
       {/*Only shown when a domain name is queried. Users can download IP addresses corresponding to that domain name*/}
       {ntpData && !apiDataLoading && ntpData.server_name && ntpData.ip_list.length && (() => {
 
                 const downloadContent = `Server name: ${ntpData.server_name}\n\n${ntpData.ip_list.join('\n')}`
                 const blob = new Blob([downloadContent], { type: 'text/plain' })
                 const downloadUrl = URL.createObjectURL(blob)
-               return (<p className="ip-list">You can download more IP addresses corresponding to this domain name  
+               return (<p className="ip-list">You can download more IP addresses corresponding to this domain name
                <span> <a href={downloadUrl} download="ip-list.txt">here</a></span>
                 </p>)
             })()}
-      
+
       {/*Buttons to download results in JSON and CSV format as well as open a popup displaying historical data*/}
       {ntpData && !apiDataLoading && (<div className="download-buttons">
-      
+
         <DownloadButton name="Download JSON" onclick={() => downloadJSON({data : [ntpData]})} />
         <DownloadButton name="Download CSV" onclick={() => downloadCSV({data : [ntpData]})} />
         <div>
@@ -168,8 +210,8 @@ function HomeTab() {
           data = {chartData}/>
         </div>
       </div>)}
-    </>
-    )
+    </div>
+     )
 }
 
 export default HomeTab
