@@ -128,6 +128,7 @@ def get_measurements_timestamps_dn(session: Session, dn: str, start: PreciseTime
     )
     return convert_to_proper_format(query.all())
 
+
 def convert_to_proper_format(rows: list[Row[tuple[Measurement, Time]]]) -> list[dict[str, Any]]:
     """
     Gets the necessary measurement data from the tuple and converts it to a dictionary.
@@ -140,7 +141,6 @@ def convert_to_proper_format(rows: list[Row[tuple[Measurement, Time]]]) -> list[
     """
     result = []
     for row in rows:
-
         m: Measurement = row.Measurement
         t: Time = row.Time
 
@@ -171,3 +171,32 @@ def convert_to_proper_format(rows: list[Row[tuple[Measurement, Time]]]) -> list[
             "client_recv_prec": t.client_recv_prec
         })
     return result
+
+
+def get_measurements_for_jitter_ip(session: Session, ip: IPv4Address | IPv6Address | None, number: int = 8) -> list[
+    dict[str, Any]]:
+    """
+    Fetches the last specified number (default 8) of measurements for specific IP address for calculating the jitter.
+
+    This function queries the `measurements` table, joined with the `times` table,
+    and filters the results by: The NTP server IP (`ntp_server_ip`) and limits the result to the number specified.
+
+    Args:
+        session (Session): The currently active database session.
+        ip (IPv4Address | IPv6Address): The IP address of the NTP server.
+        number (int): The number of measurements to get
+
+    Returns:
+        list[dict]: A list of measurement records (as dictionaries), each including
+            - Measurement metadata (IP, version, stratum, etc.)
+            - Timing data (client/server send/receive with fractions)
+    """
+    query = (
+        session.query(Measurement, Time)
+        .join(Time, Measurement.time_id == Time.id)
+        .filter(
+            Measurement.ntp_server_ip == str(ip),
+        )
+        .limit(number)
+    )
+    return convert_to_proper_format(query.all())
