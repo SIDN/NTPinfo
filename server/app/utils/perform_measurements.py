@@ -2,16 +2,16 @@ import socket, ntplib
 from ipaddress import ip_address, IPv4Address, IPv6Address
 from datetime import datetime, timezone
 import json
+from typing import Optional
 
 import requests
 
-from server.app.utils.ip_utils import get_ip_family, ref_id_to_ip_or_name, \
-    get_ip_network_details, get_prefix_from_ip
-from server.app.utils.load_env_vals import get_ripe_account_email, get_ripe_api_token
+from server.app.utils.ip_utils import get_ip_family, ref_id_to_ip_or_name
+from server.app.utils.load_env_vals import get_ripe_account_email, get_ripe_api_token, get_ntp_version, \
+    get_edns_default_servers, get_timeout_measurement_s
 from server.app.utils.ripe_probes import get_probes
 from server.app.services.NtpCalculator import NtpCalculator
-from server.app.utils.domain_name_to_ip import (domain_name_to_ip_default, domain_name_to_ip_close_to_client, \
-    domain_name_to_ip_list)
+from server.app.utils.domain_name_to_ip import domain_name_to_ip_list
 from server.app.dtos.NtpExtraDetails import NtpExtraDetails
 from server.app.dtos.NtpMainDetails import NtpMainDetails
 from server.app.dtos.NtpMeasurement import NtpMeasurement
@@ -61,7 +61,7 @@ def get_server_ip() -> IPv4Address | IPv6Address | None:
     # use a dummy connection to get the outward-facing IP
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        s.connect(('8.8.8.8', 80))
+        s.connect((get_edns_default_servers()[0], 80))
         ip = s.getsockname()[0]
     except Exception as e:
         return None
@@ -73,8 +73,8 @@ def get_server_ip() -> IPv4Address | IPv6Address | None:
         return None
 
 
-def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", client_ip: str | None = None,
-                                        ntp_version: int = 4) -> NtpMeasurement | None:
+def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", client_ip: Optional[str] = None,
+                                        ntp_version: int = get_ntp_version()) -> Optional[NtpMeasurement]:
     """
     This method performs a NTP measurement on a NTP server from its domain name. The "other IPs list" of the
     measurement will be an empty list, or it will contain some elements. It would not be None.
@@ -85,7 +85,7 @@ def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", clien
         ntp_version (int): the version of the ntp that you want to use
 
     Returns:
-        NtpMeasurement | None: it returns the NTP measurement object or None if there is a timeout
+        Optional[NtpMeasurement]: it returns the NTP measurement object or None if there is a timeout
 
     Raises:
         Exception: If the domain name is invalid or cannot be converted to an IP list
@@ -95,7 +95,7 @@ def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", clien
     ip_str = domain_ips[0]
     try:
         client = ntplib.NTPClient()
-        response_from_ntplib = client.request(server_name, ntp_version, timeout=6)
+        response_from_ntplib = client.request(server_name, ntp_version, timeout=get_timeout_measurement_s())
         r = convert_ntp_response_to_measurement(response=response_from_ntplib,
                                                 server_ip_str=ip_str,
                                                 server_name=server_name,
@@ -110,7 +110,7 @@ def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", clien
         return None
 
 
-def perform_ntp_measurement_ip(server_ip_str: str, ntp_version: int = 4) -> NtpMeasurement | None:
+def perform_ntp_measurement_ip(server_ip_str: str, ntp_version: int = get_ntp_version()) -> Optional[NtpMeasurement]:
     """
     This method performs a NTP measurement on a NTP server from its IP address. The "other IPs list" of the
     measurement will be None.
@@ -121,14 +121,14 @@ def perform_ntp_measurement_ip(server_ip_str: str, ntp_version: int = 4) -> NtpM
         ntp_version (int): the version of the ntp that you want to use
 
     Returns:
-        NtpMeasurement | None: it returns the NTP measurement object or None if something wrong happened (usually timeouts).
+        Optional[NtpMeasurement]: it returns the NTP measurement object or None if something wrong happened (usually timeouts).
     """
     if is_ip_address(server_ip_str) is None:
         return None
     # server_name is not available here. We can only use the ip which is initially a string
     try:
         client = ntplib.NTPClient()
-        response = client.request(server_ip_str, ntp_version, timeout=6)
+        response = client.request(server_ip_str, ntp_version, timeout=get_timeout_measurement_s())
         return convert_ntp_response_to_measurement(response=response,
                                                    server_ip_str=server_ip_str,
                                                    server_name=None,
@@ -139,34 +139,21 @@ def perform_ntp_measurement_ip(server_ip_str: str, ntp_version: int = 4) -> NtpM
         return None
 
 
-def convert_timestamp_to_precise_time(t: float) -> PreciseTime:
-    """
-    This method converts a timestamp to precise time.
-
-    Args:
-        t (float): the timestamp
-
-    Returns:
-        PreciseTime: the precise time
-    """
-    return PreciseTime(ntplib._to_int(t), ntplib._to_frac(t))
-
-
-def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str: str, server_name: str | None,
-                                        other_server_ips: list[str] | None,
-                                        ntp_version: int = 4, ) -> NtpMeasurement | None:
+def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str: str, server_name: Optional[str],
+                                        other_server_ips: Optional[list[str]],
+                                        ntp_version: int = get_ntp_version()) -> Optional[NtpMeasurement]:
     """
     This method converts a NTP response to a NTP measurement object.
 
     Args:
         response (ntplib.NTPStats): the NTP response to convert
         server_ip_str (str): the ip address of the ntp server in string format
-        server_name (str|None): the name of the ntp server
-        ntp_version (int): the version of the ntp that you want to use
-        other_server_ips (list[str] | None): an optional list of IP addresses if the measurement is performed on a domain name.
+        server_name (Optional[str]): the name of the ntp server
+        other_server_ips (Optional[list[str]]): an optional list of IP addresses if the measurement is performed on a domain name
+        ntp_version (int): the version of the ntp that you want to use.
 
     Returns:
-        NtpMeasurement | None: it returns a NTP measurement object if converting was successful.
+        Optional[NtpMeasurement]: it returns a NTP measurement object if converting was successful.
     """
     try:
         vantage_point_ip_temp = get_server_ip()

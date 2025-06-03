@@ -1,0 +1,17 @@
+ntp:
+  version: 4
+  timeout_measurement_s: 6  # in seconds
+  number_of_measurements_for_calculating_jitter: 8
+
+
+edns:
+  default_order_of_edns_servers: # you can add multiple servers ipv4 or ipv6. The first one has the highest priority.
+  # The others are used in case the first one cannot solve the domain name
+    - "8.8.8.8"
+    - "1.1.1.1"
+
+
+ripe_atlas:
+  timeout_per_probe_ms: 2000
+  number_of_probes_per_measurement: 35
+  probes_wanted_percentages: [0.33, 0.30, 0.27, 0.10, 0.0]
