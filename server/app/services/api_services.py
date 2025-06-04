@@ -13,7 +13,7 @@ from server.app.utils.validate import ensure_utc, is_ip_address, parse_ip
 from server.app.services.NtpCalculator import NtpCalculator
 from server.app.utils.perform_measurements import perform_ntp_measurement_ip, perform_ntp_measurement_domain_name, \
     perform_ripe_measurement_ip
-from server.app.utils.perform_measurements import human_date_to_ntp_precise_time, ntp_precise_time_to_human_date, \
+from server.app.utils.perform_measurements import human_date_to_ntp_precise_time, \
     calculate_jitter_from_measurements
 from datetime import datetime
 from server.app.dtos.ProbeData import ProbeLocation

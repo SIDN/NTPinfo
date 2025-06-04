@@ -164,7 +164,7 @@ def ip_to_location(ip_str: str) -> tuple[float, float]:
     """
     response = requests.get(f"https://ipwhois.app/json/{ip_str}")
     data = response.json()
-    latitude: float = data.get("latitude", )
+    latitude: float = data.get("latitude", None)
     longitude: float = data.get("longitude", None)
     return latitude, longitude
 # import time

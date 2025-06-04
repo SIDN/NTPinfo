@@ -233,7 +233,7 @@ def get_ripe_timeout_per_probe_ms() -> float|int:
         raise ValueError("ripe_atlas 'timeout_per_probe_ms' must be > 0")
     return ripe_atlas["timeout_per_probe_ms"]
 
-def get_ripe_packets_per_probe() -> float|int:
+def get_ripe_packets_per_probe() -> int:
     """
     This method returns the number of tries that a probe will do for a measurement.
     It will send "packets_per_probe" queries for that NTP server. (see RIPE Atlas documentation for more information)
@@ -244,11 +244,13 @@ def get_ripe_packets_per_probe() -> float|int:
     if "ripe_atlas" not in config:
         raise ValueError("ripe_atlas section is missing")
     ripe_atlas = config["ripe_atlas"]
-    if "timeout_per_probe_ms" not in ripe_atlas:
-        raise ValueError("ripe_atlas 'timeout_per_probe_ms' is missing")
-    if not isinstance(ripe_atlas["timeout_per_probe_ms"], float | int):
-        raise ValueError("ripe_atlas 'timeout_per_probe_ms' must be a 'float' or an 'int' in ms")
-    return ripe_atlas["timeout_per_probe_ms"]
+    if "packets_per_probe" not in ripe_atlas:
+        raise ValueError("ripe_atlas 'packets_per_probe' is missing")
+    if not isinstance(ripe_atlas["packets_per_probe"], int):
+        raise ValueError("ripe_atlas 'packets_per_probe' must be an 'int'")
+    if ripe_atlas["packets_per_probe"] <= 0:
+        raise ValueError("ripe_atlas 'packets_per_probe' must be > 0")
+    return ripe_atlas["packets_per_probe"]
 
 def get_ripe_number_of_probes_per_measurement() -> int:
     """
@@ -264,6 +266,8 @@ def get_ripe_number_of_probes_per_measurement() -> int:
         raise ValueError("ripe_atlas 'number_of_probes_per_measurement' is missing")
     if not isinstance(ripe_atlas["number_of_probes_per_measurement"], int):
         raise ValueError("ripe_atlas 'number_of_probes_per_measurement' must be an 'int'")
+    if ripe_atlas["number_of_probes_per_measurement"] <= 0:
+        raise ValueError("ripe_atlas 'number_of_probes_per_measurement' must be > 0")
     return ripe_atlas["number_of_probes_per_measurement"]
 
 def get_ripe_max_probes_per_measurement() -> int:
@@ -280,6 +284,8 @@ def get_ripe_max_probes_per_measurement() -> int:
         raise ValueError("ripe_atlas 'max_probes_per_measurement' is missing")
     if not isinstance(ripe_atlas["max_probes_per_measurement"], int):
         raise ValueError("ripe_atlas 'max_probes_per_measurement' must be an 'int'")
+    if ripe_atlas["max_probes_per_measurement"] <= 0:
+        raise ValueError("ripe_atlas 'max_probes_per_measurement' must be > 0")
     return ripe_atlas["max_probes_per_measurement"]
 
 def get_ripe_probes_wanted_percentages() -> list[float]:

@@ -6,6 +6,7 @@ from typing import Optional
 
 import requests
 
+from server.app.utils.calculations import ntp_precise_time_to_human_date
 from server.app.utils.ip_utils import get_ip_family, ref_id_to_ip_or_name
 from server.app.utils.load_config_data import get_ripe_account_email, get_ripe_api_token, get_ntp_version, \
     get_edns_default_servers, get_timeout_measurement_s, get_ripe_number_of_probes_per_measurement, \
@@ -215,26 +216,6 @@ def convert_float_to_precise_time(value: float) -> PreciseTime:
     seconds = int(value)
     fraction = ntplib._to_frac(value)  # by default, a second is split into 2^32 parts
     return PreciseTime(seconds, fraction)
-
-
-def ntp_precise_time_to_human_date(t: PreciseTime) -> str:
-    """
-    Converts a PreciseTime object to a human-readable time string in UTC. (ex:'2025-05-05 14:30:15.123456 UTC')
-    We need to shift from ntp time to unix time so we need to subtract all the seconds from 1900 to 1970
-
-    Args:
-        t (PreciseTime): The PreciseTime object.
-
-    Returns:
-        str: the date in UTC format or empty, depending on whether the PreciseTime object could be converted to UTC.
-    """
-    try:
-        timestamp = ntplib._to_time(t.seconds - ntplib.NTP.NTP_DELTA, t.fraction)
-        dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
-        return dt.strftime("%Y-%m-%d %H:%M:%S.%f UTC")
-    except Exception as e:
-        print(e)
-        return ""
 
 
 def human_date_to_ntp_precise_time(dt: datetime) -> PreciseTime:

@@ -1,10 +1,65 @@
 import pytest
 from unittest.mock import patch, MagicMock
 
-from server.app.utils.load_config_data import get_ipinfo_lite_api_token, get_ripe_account_email, get_ripe_api_token, \
-    get_ntp_version, get_timeout_measurement_s, get_nr_of_measurements_for_jitter, get_mask_ipv4, get_mask_ipv6, \
-    get_edns_default_servers, get_edns_timeout_s, get_ripe_timeout_per_probe_ms
+from server.app.utils.load_config_data import *
 
+@patch("server.app.utils.load_config_data.os.path.exists")
+def test_load_config(mock):
+    mock.return_value = False
+    with pytest.raises(FileNotFoundError):
+        load_config()
+
+@patch("server.app.utils.load_config_data.get_ripe_probes_wanted_percentages")
+@patch("server.app.utils.load_config_data.get_ripe_max_probes_per_measurement")
+@patch("server.app.utils.load_config_data.get_ripe_number_of_probes_per_measurement")
+@patch("server.app.utils.load_config_data.get_ripe_packets_per_probe")
+@patch("server.app.utils.load_config_data.get_ripe_timeout_per_probe_ms")
+@patch("server.app.utils.load_config_data.get_edns_timeout_s")
+@patch("server.app.utils.load_config_data.get_edns_default_servers")
+@patch("server.app.utils.load_config_data.get_mask_ipv6")
+@patch("server.app.utils.load_config_data.get_mask_ipv4")
+@patch("server.app.utils.load_config_data.get_nr_of_measurements_for_jitter")
+@patch("server.app.utils.load_config_data.get_timeout_measurement_s")
+@patch("server.app.utils.load_config_data.get_ntp_version")
+@patch("server.app.utils.load_config_data.get_ripe_api_token")
+@patch("server.app.utils.load_config_data.get_ripe_account_email")
+@patch("server.app.utils.load_config_data.get_ipinfo_lite_api_token")
+def test_verify_if_config_is_set(mock_ipinfo_lite_api_token, mock_ripe_account_email, mock_ripe_api_token, mock_ntp_version,
+                                 mock_timeout_measurement_s, mock_nr_of_measurements_for_jitter, mock_mask_ipv4, mock_mask_ipv6,
+                                 mock_edns_default_servers, mock_timeout_s, mock_ripe_timeout_per_probe_ms, mock_ripe_packets_per_probe,
+                                 mock_ripe_number_of_probes_per_measurement, mock_ripe_max_probes_per_measurement, mock_ripe_probes_wanted_percentages):
+    mock_ipinfo_lite_api_token.return_value = "s"
+    mock_ripe_account_email.return_value = "e@email.com"
+    mock_ripe_api_token.return_value = "e"
+    mock_ntp_version.return_value = 4
+    mock_timeout_measurement_s.return_value = 3
+    mock_nr_of_measurements_for_jitter.return_value = 1
+    mock_mask_ipv4.return_value = 21
+    mock_mask_ipv6.return_value = 45
+    mock_edns_default_servers.return_value = ["9.9.9.9"]
+    mock_timeout_s.return_value = 2
+    mock_ripe_timeout_per_probe_ms.return_value = 2
+    mock_ripe_packets_per_probe.return_value = 2
+    mock_ripe_number_of_probes_per_measurement.return_value = 1
+    mock_ripe_max_probes_per_measurement.return_value = 1
+    mock_ripe_probes_wanted_percentages.return_value = [0.2, 0.2, 0.2, 0.2, 0.2]
+
+    verify_if_config_is_set()
+    mock_ipinfo_lite_api_token.assert_called_once()
+    mock_ripe_account_email.assert_called_once()
+    mock_ripe_api_token.assert_called_once()
+    mock_ntp_version.assert_called_once()
+    mock_timeout_measurement_s.assert_called_once()
+    mock_nr_of_measurements_for_jitter.assert_called_once()
+    mock_mask_ipv4.assert_called_once()
+    mock_mask_ipv6.assert_called_once()
+    mock_edns_default_servers.assert_called_once()
+    mock_timeout_s.assert_called_once()
+    mock_ripe_timeout_per_probe_ms.assert_called_once()
+    mock_ripe_packets_per_probe.assert_called_once()
+    mock_ripe_number_of_probes_per_measurement.assert_called_once()
+    mock_ripe_max_probes_per_measurement.assert_called_once()
+    mock_ripe_probes_wanted_percentages.assert_called_once()
 
 @patch("server.app.utils.load_config_data.os.getenv")
 def test_get_ipinfo_lite_api_token(mock):
@@ -313,3 +368,137 @@ def test_get_ripe_timeout_per_probe_ms_boundaries(mock_config):
         get_ripe_timeout_per_probe_ms()
     mock_config["ripe_atlas"] = {"timeout_per_probe_ms": 0.2}
     assert get_ripe_timeout_per_probe_ms() == 0.2
+
+# ripe_atlas packets_per_probe
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_packets_per_probe_ok(mock_config):
+    mock_config["ripe_atlas"] = {"packets_per_probe": 30}
+    assert get_ripe_packets_per_probe() == 30
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_packets_per_probe_missing_section(mock_config):
+    with pytest.raises(ValueError, match="ripe_atlas section is missing"):
+        get_ripe_packets_per_probe()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_packets_per_probe_missing_var(mock_config):
+    mock_config["ripe_atlas"] = {"blabla": 5}
+    with pytest.raises(ValueError, match="ripe_atlas 'packets_per_probe' is missing"):
+        get_ripe_packets_per_probe()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_packets_per_probe_different_type(mock_config):
+    mock_config["ripe_atlas"] = {"packets_per_probe": 0.5}
+    with pytest.raises(ValueError, match="ripe_atlas 'packets_per_probe' must be an 'int'"):
+        get_ripe_packets_per_probe()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_packets_per_probe_boundaries(mock_config):
+    mock_config["ripe_atlas"] = {"packets_per_probe": -1}
+    with pytest.raises(ValueError, match="ripe_atlas 'packets_per_probe' must be > 0"):
+        get_ripe_packets_per_probe()
+    mock_config["ripe_atlas"] = {"packets_per_probe": 0}
+    with pytest.raises(ValueError, match="ripe_atlas 'packets_per_probe' must be > 0"):
+        get_ripe_packets_per_probe()
+    mock_config["ripe_atlas"] = {"packets_per_probe": 1}
+    assert get_ripe_packets_per_probe() == 1
+
+# ripe_atlas number_of_probes_per_measurement
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_number_of_probes_per_measurement_ok(mock_config):
+    mock_config["ripe_atlas"] = {"number_of_probes_per_measurement": 30}
+    assert get_ripe_number_of_probes_per_measurement() == 30
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_number_of_probes_per_measurement_missing_section(mock_config):
+    with pytest.raises(ValueError, match="ripe_atlas section is missing"):
+        get_ripe_number_of_probes_per_measurement()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_number_of_probes_per_measurement_missing_var(mock_config):
+    mock_config["ripe_atlas"] = {"blabla": 5}
+    with pytest.raises(ValueError, match="ripe_atlas 'number_of_probes_per_measurement' is missing"):
+        get_ripe_number_of_probes_per_measurement()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_number_of_probes_per_measurement_different_type(mock_config):
+    mock_config["ripe_atlas"] = {"number_of_probes_per_measurement": 0.5}
+    with pytest.raises(ValueError, match="ripe_atlas 'number_of_probes_per_measurement' must be an 'int'"):
+        get_ripe_number_of_probes_per_measurement()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_number_of_probes_per_measurement_boundaries(mock_config):
+    mock_config["ripe_atlas"] = {"number_of_probes_per_measurement": -1}
+    with pytest.raises(ValueError, match="ripe_atlas 'number_of_probes_per_measurement' must be > 0"):
+        get_ripe_number_of_probes_per_measurement()
+    mock_config["ripe_atlas"] = {"number_of_probes_per_measurement": 0}
+    with pytest.raises(ValueError, match="ripe_atlas 'number_of_probes_per_measurement' must be > 0"):
+        get_ripe_number_of_probes_per_measurement()
+    mock_config["ripe_atlas"] = {"number_of_probes_per_measurement": 1}
+    assert get_ripe_number_of_probes_per_measurement() == 1
+
+# ripe_atlas max_probes_per_measurement
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_max_probes_per_measurement_ok(mock_config):
+    mock_config["ripe_atlas"] = {"max_probes_per_measurement": 30}
+    assert get_ripe_max_probes_per_measurement() == 30
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_max_probes_per_measurement_missing_section(mock_config):
+    with pytest.raises(ValueError, match="ripe_atlas section is missing"):
+        get_ripe_max_probes_per_measurement()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_max_probes_per_measurement_missing_var(mock_config):
+    mock_config["ripe_atlas"] = {"blabla": 5}
+    with pytest.raises(ValueError, match="ripe_atlas 'max_probes_per_measurement' is missing"):
+        get_ripe_max_probes_per_measurement()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_max_probes_per_measurement_different_type(mock_config):
+    mock_config["ripe_atlas"] = {"max_probes_per_measurement": 0.5}
+    with pytest.raises(ValueError, match="ripe_atlas 'max_probes_per_measurement' must be an 'int'"):
+        get_ripe_max_probes_per_measurement()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_max_probes_per_measurement_boundaries(mock_config):
+    mock_config["ripe_atlas"] = {"max_probes_per_measurement": -1}
+    with pytest.raises(ValueError, match="ripe_atlas 'max_probes_per_measurement' must be > 0"):
+        get_ripe_max_probes_per_measurement()
+    mock_config["ripe_atlas"] = {"max_probes_per_measurement": 0}
+    with pytest.raises(ValueError, match="ripe_atlas 'max_probes_per_measurement' must be > 0"):
+        get_ripe_max_probes_per_measurement()
+    mock_config["ripe_atlas"] = {"max_probes_per_measurement": 1}
+    assert get_ripe_max_probes_per_measurement() == 1
+
+# ripe_atlas probes_wanted_percentages
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_probes_wanted_percentages_ok(mock_config):
+    mock_config["ripe_atlas"] = {"probes_wanted_percentages": [0.2, 0.3, 0.4, 0.1, 0.0]}
+    assert get_ripe_probes_wanted_percentages() == [0.2, 0.3, 0.4, 0.1, 0.0]
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_probes_wanted_percentages_missing_section(mock_config):
+    with pytest.raises(ValueError, match="ripe_atlas section is missing"):
+        get_ripe_probes_wanted_percentages()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_probes_wanted_percentages_missing_var(mock_config):
+    mock_config["ripe_atlas"] = {"blabla": 5}
+    with pytest.raises(ValueError, match="ripe_atlas 'probes_wanted_percentages' is missing"):
+        get_ripe_probes_wanted_percentages()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_probes_wanted_percentages_different_type(mock_config):
+    mock_config["ripe_atlas"] = {"probes_wanted_percentages": 0.5}
+    with pytest.raises(ValueError, match="ripe_atlas 'probes_wanted_percentages' must be a 'list'"):
+        get_ripe_probes_wanted_percentages()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_probes_wanted_percentages_invalid_length(mock_config):
+    mock_config["ripe_atlas"] = {"probes_wanted_percentages": [0.2, 0.3, 0.4, 0.1]}
+    with pytest.raises(ValueError, match="ripe_atlas 'probes_wanted_percentages' must contain exactly 5 elements"):
+        get_ripe_probes_wanted_percentages()
+    mock_config["ripe_atlas"] = {"probes_wanted_percentages": [0.2, 0.3, 0.4, 0.1, 0.3, 0.6]}
+    with pytest.raises(ValueError, match="ripe_atlas 'probes_wanted_percentages' must contain exactly 5 elements"):
+        get_ripe_probes_wanted_percentages()
