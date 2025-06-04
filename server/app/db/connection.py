@@ -16,6 +16,16 @@ from typing import Any
 
 
 def row_to_dict(m: Measurement, t: Time) -> dict[str, Any]:
+    """
+    Converts a Measurement and Time SQLAlchemy row into a dictionary.
+
+    Args:
+        m (Measurement): The measurement row containing NTP measurement data
+        t (Time): The time row containing timestamp data for the measurement
+
+    Returns:
+        dict[str, Any]: A dictionary representation of the combined measurement and timestamp data
+    """
     return {
         "id": m.id,
         "vantage_point_ip": m.vantage_point_ip,
@@ -45,10 +55,28 @@ def row_to_dict(m: Measurement, t: Time) -> dict[str, Any]:
 
 
 def rows_to_dicts(rows: list[Row[tuple[Measurement, Time]]]) -> list[dict[str, Any]]:
+    """
+    Converts a list of Measurement-Time row tuples into a list of dictionaries.
+
+    Args:
+        rows (list[Row[tuple[Measurement, Time]]]): List of database rows containing Measurement and Time
+
+    Returns:
+        list[dict[str, Any]]: A list of dictionaries where each dictionary contains combined data from Measurement and Time
+    """
     return [row_to_dict(row.Measurement, row.Time) for row in rows]
 
 
 def dict_to_measurement(entry: dict[str, Any]) -> NtpMeasurement:
+    """
+    Converts a dictionary representation of a measurement into an NtpMeasurement object.
+
+    Args:
+        entry (dict[str, Any]): A dictionary containing the keys needed to construct an NtpMeasurement object
+
+    Returns:
+        NtpMeasurement: A fully constructed NtpMeasurement using the provided data
+    """
     vantage_point_ip = entry['vantage_point_ip']
     server_info = NtpServerInfo(entry['ntp_version'], entry['ntp_server_ip'], entry['ntp_server_name'],
                                 entry['ntp_server_ref_parent_ip'], entry['ref_name'], None)
@@ -66,6 +94,15 @@ def dict_to_measurement(entry: dict[str, Any]) -> NtpMeasurement:
 
 
 def rows_to_measurements(rows: list[Row[tuple[Measurement, Time]]]) -> list[NtpMeasurement]:
+    """
+    Converts a list of Measurement-Time row tuples into NtpMeasurement objects.
+
+    Args:
+        rows (list[Row[tuple[Measurement, Time]]]): List of database rows containing Measurement and Time data.
+
+    Returns:
+        list[NtpMeasurement]: A list of NtpMeasurement objects created from the row data.
+    """
     return [dict_to_measurement(d) for d in rows_to_dicts(rows)]
 
 
