@@ -1,3 +1,4 @@
+import math
 import os
 from typing import Any, cast
 import yaml
@@ -307,7 +308,10 @@ def get_ripe_probes_wanted_percentages() -> list[float]:
         raise ValueError("ripe_atlas 'probes_wanted_percentages' must be a 'list'")
     if len(ripe_atlas["probes_wanted_percentages"]) != 5:
         raise ValueError("ripe_atlas 'probes_wanted_percentages' must contain exactly 5 elements")
+    s: float = sum(ripe_atlas["probes_wanted_percentages"])
+    if not math.isclose(s, 1.0, rel_tol=1e-9):
+        raise ValueError("ripe_atlas 'probes_wanted_percentages' must have total sum 1")
     return ripe_atlas["probes_wanted_percentages"]
 
 
-verify_if_config_is_set()
+# verify_if_config_is_set()

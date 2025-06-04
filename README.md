@@ -78,9 +78,40 @@ To set up and run the backend server, follow these steps:
     DB_PASSWORD=postgres
     DB_HOST=localhost
     DB_PORT=5432
+    IPINFO_LITE_API_TOKEN={API}
+    ripe_api_token={ripe API with persmission to perform measurments}
+    ripe_account_email={email of your ripe account}
     ```
+    Besides, the config file for the server is `server/server_config.yaml` and it contains the following variables:
+    
+      ```yaml
+        ntp:
+          version: 4
+          timeout_measurement_s: 6  # in seconds
+          number_of_measurements_for_calculating_jitter: 8
+        
+        
+        edns:
+          mask_ipv4: 24 # bits
+          mask_ipv6: 56 # bits
+          default_order_of_edns_servers: # you can add multiple servers ipv4 or ipv6. The first one has the highest priority.
+          # The others are used in case the first one cannot solve the domain name
+            - "8.8.8.8"
+            - "1.1.1.1"
+          edns_timeout_s: 2 # in seconds
+        
+        
+        ripe_atlas:
+          timeout_per_probe_ms: 2000
+          packets_per_probe: 3
+          number_of_probes_per_measurement: 35
+          max_probes_per_measurement: 100
+          probes_wanted_percentages: [0.33, 0.30, 0.27, 0.10, 0.0] # exactly 5 values and their sum must be 1 (100%)
+      ```
 
-   **Note**: Ensure PostgreSQL is running and accessible with the credentials provided in the `.env` file.
+    **Note**: 
+    - Ensure PostgreSQL is running and accessible with the credentials provided in the `.env` file.
+    - You can edit the config variables, but if there are any variables that are missing or have invalid data, the server will not start, and it will tell you exactly which config variables have problems.
 
 ---
 

@@ -502,3 +502,13 @@ def test_get_ripe_probes_wanted_percentages_invalid_length(mock_config):
     mock_config["ripe_atlas"] = {"probes_wanted_percentages": [0.2, 0.3, 0.4, 0.1, 0.3, 0.6]}
     with pytest.raises(ValueError, match="ripe_atlas 'probes_wanted_percentages' must contain exactly 5 elements"):
         get_ripe_probes_wanted_percentages()
+
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_probes_wanted_percentages_sum_1(mock_config):
+    mock_config["ripe_atlas"] = {"probes_wanted_percentages": [0.2, 0.3, 0.4, 0.1,0.001]}
+    with pytest.raises(ValueError, match="ripe_atlas 'probes_wanted_percentages' must have total sum 1"):
+        get_ripe_probes_wanted_percentages()
+    mock_config["ripe_atlas"] = {"probes_wanted_percentages": [0.2, 0.3, 0.4, 0.00009, 0.0]}
+    with pytest.raises(ValueError, match="ripe_atlas 'probes_wanted_percentages' must have total sum 1"):
+        get_ripe_probes_wanted_percentages()
