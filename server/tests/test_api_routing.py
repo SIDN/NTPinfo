@@ -32,8 +32,12 @@ def override_get_db():
         db.close()
 
 
+# @patch("server.app.main.load_config_data.verify_if_config_is_set")
+# @patch("server.app.db_config.init_engine")
 @pytest.fixture(scope="function", autouse=True)
-def test_client():
+def test_client():#mock_init_engine, mock_verify_config):
+    # mock_init_engine.return_value = True
+    # mock_verify_config.return_value = True
     with patch("server.app.db_config.init_engine") as mocked_init_engine:
         mocked_init_engine.return_value = None
 

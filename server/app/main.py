@@ -27,18 +27,15 @@ def create_app(dev: bool = True) -> FastAPI:
     Raises:
         Exception: if the server_config file is not correctly set.
     """
-    try:
-        verify_if_config_is_set()
-    except Exception as e:
-        print(f"Configuration error: {e}")
-        raise  # Prevent app creation
+    if dev: # only in this mode verify the config file
+        try:
+            verify_if_config_is_set()
+        except Exception as e:
+            print(f"Configuration error: {e}")
+            raise  # Prevent app creation
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:
-        # try:
-        #     verify_if_config_is_set()
-        # except Exception:
-        #     raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
         if dev:
             engine = init_engine()
             Base.metadata.create_all(bind=engine)
@@ -91,9 +88,7 @@ def create_app(dev: bool = True) -> FastAPI:
 
     return app
 
-app = create_app()
-
+# app = create_app()
 if __name__ == "__main__":
     import uvicorn
-
-    uvicorn.run("main:app", reload=True)
+    uvicorn.run("server.app.main:create_app", reload=True)
