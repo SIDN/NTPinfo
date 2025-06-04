@@ -1,18 +1,14 @@
-import { useState } from "react";
-import axios from "axios";
+import { useState } from "react"
+import axios from "axios"
 
 export interface IPInfoData {
-    ip: string,
-    loc?: string,
-    country?: string,
-    is_anycast?: boolean
+    coordinates: [number,number]
+    country_code: string
 }
 
 const transformIpData = (input: any): IPInfoData => ({
-    ip: input.ip,
-    loc: input.loc,
-    country: input.country,
-    is_anycast: input.is_anycast
+    coordinates: [input.lat, input.lon],
+    country_code: input.countryCode
 })
 
 export const useIPInfo = () => {
@@ -20,11 +16,11 @@ export const useIPInfo = () => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<Error | null>(null)
 
-    const fetchIP = async (): Promise<IPInfoData | null> => {
-        setLoading(true);
-        setError(null);
+    const fetchIPInfo = async (ip: string) => {
+        setLoading(true)
+        setError(null)
         try{
-            const res = await axios.get(`https://ipinfo.io/json?token=${import.meta.env.VITE_IPINFO_TOKEN}`)
+            const res = await axios.get(`http://ip-api.com/json/${ip}`)
             const data = transformIpData(res.data)
             setIPInfo(data)
             return data
@@ -38,5 +34,5 @@ export const useIPInfo = () => {
 
     const clearIP = () => setIPInfo(null)
 
-    return {ipInfo, fetchIP, clearIP, loading, error}
+    return {ipInfo, fetchIPInfo, clearIP, loading, error}
 }

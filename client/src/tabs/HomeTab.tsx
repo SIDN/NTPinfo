@@ -38,8 +38,6 @@ function HomeTab() {
   const {triggerMeasurement, error: triggerRipeError} = triggerRipeMeasurement()
   const {result: ripeMeasurementResp, status: ripeMeasurementStatus} = useFetchRIPEData(measurementId)
 
-const ntpServer: LatLngTuple = [41.509985, -103.181674];
-
   //dropdown format
   const dropdown = {
       options: ["Last Hour", "Last Day", "Last Week", "Custom"],
@@ -59,7 +57,7 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
    * @param jitter_flag flag indicating whether jitter should be measured for normal measurement calls
    * @param measurements_no How many measurements should be done for the jitter calculation
    */
-  const handleInput = async (query: string, jitter_flag: boolean, measurements_no: number) => {
+  const handleInput = async (query: string) => {
     if (query.length == 0)
       return
 
@@ -75,8 +73,7 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
      */
     const payload = {
       server: query,
-      jitter_flag: jitter_flag,
-      measurements_no: jitter_flag ? measurements_no : 0
+      random_probes: false
     }
 
     /**
@@ -108,8 +105,7 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
      */
     const ripePayload = {
       server: data === null ? query : data.ip,
-      jitter_flag: jitter_flag,
-      measurements_no: jitter_flag ? measurements_no : 0
+      random_probes: false
     }
 
     /**
@@ -171,7 +167,7 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
         </div>
         {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "polling") && (
         <div className='map-box'>
-          <WorldMap probes={ripeMeasurementResp} ntpServer={ntpServer} status = {ripeMeasurementStatus} />
+          <WorldMap probes={ripeMeasurementResp} status = {ripeMeasurementStatus} />
         </div>
         )}
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>)}
