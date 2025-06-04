@@ -16,7 +16,6 @@ function Hero() {
                         <img src={github}  alt="GitHub Logo" />
                     </a>
                 </div>
-
             </nav>
          </div>
         </>

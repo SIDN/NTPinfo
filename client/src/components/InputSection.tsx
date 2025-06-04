@@ -1,11 +1,11 @@
-import '../styles/SearchBar.css'
+import '../styles/InputSection.css'
 import React, { useState } from 'react';
 
 interface InputProps {
-    onSearch: (query: string, jitterFlag: boolean, measurementsNo: number) => void;
+    onClick: (query: string, jitterFlag: boolean, measurementsNo: number) => void;
 }
 
-const InputSection: React.FC<InputProps> = ({ onSearch }) => {
+const InputSection: React.FC<InputProps> = ({ onClick }) => {
     const [query, setQuery] = useState('');
     const [jitterFlag, setJitterFlag] = useState(false);
     const [measurementsNo, setMeasurementsNo] = useState(1);
@@ -14,28 +14,28 @@ const InputSection: React.FC<InputProps> = ({ onSearch }) => {
         setQuery(event.target.value);
     };
 
-    const handleSearch = () => {
-        onSearch(query, jitterFlag, measurementsNo);
+    const handleClick = () => {
+        onClick(query.trim(), jitterFlag, measurementsNo);
     };
 
     return (
-        <div className="search-section">
-            <div className="search-bar-text">
+        <div className="input-section">
+            <div className="input-bar-text">
                 <p>
                     Enter the domain name or IP address of the NTP server you want to measure.
                 </p>
             </div>
-            <div className="search-bar">
+            <div className="input-bar">
                 <input
                     type="text"
                     value={query}
                     onChange={handleInputChange}
                     onKeyDown={(e) => {
-                        if (e.key === "Enter") {handleSearch()}
+                        if (e.key === "Enter") {handleClick()}
                       }}
                     placeholder="time.google.com"
                 />
-                <button onClick={handleSearch}>
+                <button onClick={handleClick}>
                     Measure
                 </button>
             </div>

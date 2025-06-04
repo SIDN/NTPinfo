@@ -96,7 +96,7 @@ To set up and run the backend server, follow these steps:
 4. **Run the server**:
 
     ```bash
-    uvicorn server.app.api.routing:app --reload
+    uvicorn server.app.main:app --reload
     ```
 
 ### Client

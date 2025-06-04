@@ -10,7 +10,6 @@
   text-align: center;
 }
 
-
 html, body, #root {
   margin: 0;
   padding: 0;
@@ -98,7 +97,7 @@ body { /* instead of html */
   text-align: left;
 }
 
-.search-wrapper {
+.input-wrapper {
   margin-top: 0;
   margin-left: 1rem;
   /* max-width: 600px; */
