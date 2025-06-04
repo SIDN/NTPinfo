@@ -49,7 +49,7 @@ def test_calculate_jitter_from_measurements(mock_get_measurements):
     expected = NtpCalculator.calculate_jitter(offsets)
 
     assert res == expected
-    assert no_measurement == 5
+    assert no_measurement == 4
 
 
 @patch("server.app.utils.calculations.get_measurements_for_jitter_ip")
@@ -62,7 +62,7 @@ def test_calculate_jitter_with_no_history(mock_get_measurements):
     res, no_measurement = calculate_jitter_from_measurements(fake_session, fake_initial_measurement)
 
     assert res == 0.0  # or whatever default you expect
-    assert no_measurement == 1
+    assert no_measurement == 0
 
 
 @patch("server.app.utils.calculations.get_measurements_for_jitter_ip")
@@ -88,7 +88,7 @@ def test_calculate_jitter_with_some_none(mock_get_measurements):
     expected = NtpCalculator.calculate_jitter(valid_offsets)
 
     assert res == expected
-    assert no_measurement == 3
+    assert no_measurement == 2
 
 
 @patch("server.app.utils.calculations.get_measurements_for_jitter_ip")
@@ -102,4 +102,4 @@ def test_calculate_jitter_with_identical_offsets(mock_get_measurements):
     res, no_measurement = calculate_jitter_from_measurements(fake_session, fake_initial_measurement)
 
     assert res == 0.0
-    assert no_measurement == 6
+    assert no_measurement == 5
