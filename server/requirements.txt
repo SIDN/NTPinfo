@@ -48,6 +48,8 @@ black~=24.4.2
 mypy~=1.10.0
 types-requests
 numpy~=2.2.5
+pyyaml~=6.0.2
+types-PyYAML~=6.0.12.20250516
 #ripe
 ripe~=0.0.4
 ripe-atlas-cousteau~=2.0.0

@@ -5,6 +5,7 @@ from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
+from server.app.utils.load_config_data import verify_if_config_is_set
 from server.app.db_config import init_engine
 from server.app.models.Base import Base
 from server.app.api.routing import router
@@ -23,7 +24,16 @@ def create_app(dev: bool = True) -> FastAPI:
         dev (bool): Tells us whether to initialize the real database or not (so if we are not in testing).
     Returns:
         FastAPI: A FastAPI application.
+    Raises:
+        Exception: if the server_config file is not correctly set.
     """
+    if dev: # only in this mode verify the config file
+        try:
+            verify_if_config_is_set()
+        except Exception as e:
+            print(f"Configuration error: {e}")
+            raise  # Prevent app creation
+
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:
         if dev:
@@ -78,9 +88,7 @@ def create_app(dev: bool = True) -> FastAPI:
 
     return app
 
-app = create_app()
-
+# app = create_app()
 if __name__ == "__main__":
     import uvicorn
-
-    uvicorn.run("main:app", reload=True)
+    uvicorn.run("server.app.main:create_app", reload=True)

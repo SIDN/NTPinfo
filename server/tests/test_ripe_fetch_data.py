@@ -308,8 +308,10 @@ MOCK_PROBE_RESPONSE_NO_ADDR = {
 }
 
 
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
 @patch("server.app.utils.ripe_fetch_data.requests.get")
-def test_get_data_from_ripe_measurement(mock_get):
+def test_get_data_from_ripe_measurement(mock_get, mock_get_token):
+    mock_get_token.return_value = "token"
     mock_get.return_value = Mock(status_code=200)
     mock_get.return_value.json.return_value = MOCK_MEASUREMENT_RESPONSE
 
@@ -324,8 +326,10 @@ def test_get_data_from_ripe_measurement(mock_get):
     assert data[0]["prb_id"] == 9999
 
 
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
 @patch("server.app.utils.ripe_fetch_data.requests.get")
-def test_get_data_from_ripe_measurement_raises_on_error_response(mock_get):
+def test_get_data_from_ripe_measurement_raises_on_error_response(mock_get, mock_get_token):
+    mock_get_token.return_value = "token"
     mock_get.return_value = Mock(status_code=400)
     mock_get.return_value.json.return_value = {
         "error": {
@@ -340,8 +344,10 @@ def test_get_data_from_ripe_measurement_raises_on_error_response(mock_get):
     assert "RIPE API error: Bad Request - Invalid measurement ID." in str(exc_info.value)
 
 
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
 @patch("server.app.utils.ripe_fetch_data.requests.get")
-def test_get_probe_data_from_ripe_by_id(mock_get):
+def test_get_probe_data_from_ripe_by_id(mock_get, mock_get_token):
+    mock_get_token.return_value = "token"
     mock_get.return_value = Mock(status_code=200)
     mock_get.return_value.json.return_value = MOCK_PROBE_RESPONSE
 
@@ -474,8 +480,10 @@ def test_parse_data_from_ripe_measurement_with_no_response(mock_get_probe):
     assert results[0].ntp_measurement.timestamps.client_recv_time.fraction == 0
 
 
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
 @patch("server.app.utils.ripe_fetch_data.requests.get")
-def test_check_all_measurement_scheduled(mock_get):
+def test_check_all_measurement_scheduled(mock_get, mock_get_token):
+    mock_get_token.return_value = "token"
     mock_get.return_value = Mock(status_code=200)
     mock_get.return_value.json.return_value = MOCK_MEASUREMENT_INFO
 
@@ -483,8 +491,10 @@ def test_check_all_measurement_scheduled(mock_get):
     assert data is True
 
 
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
 @patch("server.app.utils.ripe_fetch_data.requests.get")
-def test_check_all_measurement_not_scheduled(mock_get):
+def test_check_all_measurement_not_scheduled(mock_get, mock_get_token):
+    mock_get_token.return_value = "token"
     mock_get.return_value = Mock(status_code=200)
     mock_get.return_value.json.return_value = MOCK_MEASUREMENT_INFO_NOT_SCHEDULED
 
@@ -492,8 +502,10 @@ def test_check_all_measurement_not_scheduled(mock_get):
     assert data is False
 
 
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
 @patch("server.app.utils.ripe_fetch_data.requests.get")
-def test_check_all_measurement_probes_error(mock_get):
+def test_check_all_measurement_probes_error(mock_get, mock_get_token):
+    mock_get_token.return_value = "token"
     mock_get.return_value = Mock(status_code=200)
     mock_get.return_value.json.return_value = MOCK_MEASUREMENT_INFO_PROBES_ERROR
 
@@ -501,8 +513,10 @@ def test_check_all_measurement_probes_error(mock_get):
         check_all_measurements_scheduled("123456")
 
 
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
 @patch("server.app.utils.ripe_fetch_data.requests.get")
-def test_check_all_measurement_error_get(mock_get):
+def test_check_all_measurement_error_get(mock_get, mock_get_token):
+    mock_get_token.return_value = "token"
     mock_get.return_value = Mock(status_code=200)
     mock_get.return_value.json.return_value = MOCK_MEASUREMENT_ERROR
 

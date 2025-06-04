@@ -160,7 +160,7 @@ def test_measure_with_jitter(mock_jitter, mock_measure_ip, mock_measure_domain, 
     mock_measure_ip.return_value = fake_measurement
     mock_jitter.return_value = 0.75, 4
     fake_session = MagicMock(spec=Session)
-    result = measure("192.168.1.1", session=fake_session)
+    result = measure("192.168.1.1", session=fake_session, measurement_no=7)
 
     assert result == (fake_measurement, 0.75, 4)
     mock_measure_ip.assert_called_once_with("192.168.1.1")

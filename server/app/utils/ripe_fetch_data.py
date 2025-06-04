@@ -1,9 +1,8 @@
 from ipaddress import ip_address, IPv4Address, IPv6Address
 
 import requests
-import os
-from dotenv import load_dotenv
 
+from server.app.utils.load_config_data import get_ripe_api_token
 from server.app.dtos.PreciseTime import PreciseTime
 from server.app.dtos.NtpExtraDetails import NtpExtraDetails
 from server.app.dtos.NtpMainDetails import NtpMainDetails
@@ -14,8 +13,6 @@ from server.app.dtos.ProbeData import ProbeLocation, ProbeData
 from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.utils.perform_measurements import convert_float_to_precise_time
 from typing import Any, cast
-
-load_dotenv()
 
 
 def check_all_measurements_scheduled(measurement_id: str) -> bool:
@@ -39,7 +36,7 @@ def check_all_measurements_scheduled(measurement_id: str) -> bool:
     url = f"https://atlas.ripe.net/api/v2/measurements/{measurement_id}/"
 
     headers = {
-        "Authorization": f"Key {os.getenv('RIPE_KEY')}",
+        "Authorization": f"Key {get_ripe_api_token()}",
         "Content-Type": "application/json"
     }
     response = requests.get(url, headers=headers)
@@ -80,7 +77,7 @@ def get_data_from_ripe_measurement(measurement_id: str) -> list[dict[str, Any]]:
     url = f"https://atlas.ripe.net/api/v2/measurements/{measurement_id}/results/"
 
     headers = {
-        "Authorization": f"Key {os.getenv('RIPE_KEY')}",
+        "Authorization": f"Key {get_ripe_api_token()}",
         "Content-Type": "application/json"
     }
     response = requests.get(url, headers=headers)
@@ -118,7 +115,7 @@ def get_probe_data_from_ripe_by_id(probe_id: str) -> dict[str, Any]:
     url = f"https://atlas.ripe.net/api/v2/probes/{probe_id}/"
 
     headers = {
-        "Authorization": f"Key {os.getenv('RIPE_KEY')}",
+        "Authorization": f"Key {get_ripe_api_token()}",
         "Content-Type": "application/json"
     }
     response = requests.get(url, headers=headers)

@@ -40,7 +40,7 @@ def test_calculate_jitter_from_measurements(mock_get_measurements):
 
     mock_get_measurements.return_value = other_measurements
 
-    times = 4
+    times = 6
     res, no_measurement = calculate_jitter_from_measurements(fake_session, fake_initial_measurement, times)
 
     offsets = [NtpCalculator.calculate_offset(fake_initial_measurement.timestamps)] + [

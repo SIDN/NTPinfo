@@ -1,6 +1,7 @@
 from typing import Any, Optional
 from sqlalchemy.orm import Session
 
+from server.app.utils.load_config_data import get_ripe_number_of_probes_per_measurement, get_nr_of_measurements_for_jitter
 from server.app.utils.calculations import calculate_jitter_from_measurements
 from server.app.utils.ip_utils import ip_to_str
 
@@ -13,26 +14,25 @@ from server.app.utils.validate import ensure_utc, is_ip_address, parse_ip
 from server.app.services.NtpCalculator import NtpCalculator
 from server.app.utils.perform_measurements import perform_ntp_measurement_ip, perform_ntp_measurement_domain_name, \
     perform_ripe_measurement_ip
-from server.app.utils.perform_measurements import human_date_to_ntp_precise_time, ntp_precise_time_to_human_date
+from server.app.utils.perform_measurements import human_date_to_ntp_precise_time
 from datetime import datetime
 from server.app.dtos.ProbeData import ProbeLocation
 from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.utils.ripe_fetch_data import parse_data_from_ripe_measurement, get_data_from_ripe_measurement
 from server.app.db.connection import insert_measurement
 from server.app.db.connection import get_measurements_timestamps_ip, get_measurements_timestamps_dn
-
 from server.app.dtos.NtpMeasurement import NtpMeasurement
 
 
-def get_format(measurement: NtpMeasurement, jitter: float | None = None, nr_jitter_measurements: int | None = None) -> \
-        dict[str, Any]:
+def get_format(measurement: NtpMeasurement, jitter: Optional[float] = None,
+               nr_jitter_measurements: int = get_ripe_number_of_probes_per_measurement()) -> dict[str, Any]:
     """
     Format an NTP measurement object into a dictionary suitable for JSON serialization.
 
     Args:
         measurement (NtpMeasurement): An object representing the NTP measurement result
-        jitter (float|None): Optional jitter value if multiple measurements are performed
-        nr_jitter_measurements (int|None): Optional number of measurements used in the jitter calculation
+        jitter (Optional[float]): Optional jitter value if multiple measurements are performed
+        nr_jitter_measurements (int): The number of measurements used in the jitter calculation
 
     Returns:
         dict: A dictionary containing key measurement details like this:
@@ -133,7 +133,7 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
 
 
 def measure(server: str, session: Session, client_ip: Optional[str] = None,
-            measurement_no: int = 7) -> tuple[NtpMeasurement, float | None, int | None] | None:
+            measurement_no: int = get_nr_of_measurements_for_jitter()) -> tuple[NtpMeasurement, float | None, int] | None:
     """
     Performs an NTP measurement for a given server (IP or domain name) and stores the result in the database.
 
@@ -148,7 +148,7 @@ def measure(server: str, session: Session, client_ip: Optional[str] = None,
         measurement_no (int): How many extra measurements to perform if the jitter_flag is True.
 
     Returns:
-        tuple[NtpMeasurement, float | None] | None:
+        tuple[NtpMeasurement, float | None, int] | None:
             - A pair with a populated `NtpMeasurement` object if the measurement is successful, and the jitter if the jitter_flag is True.
             - `None` if an exception occurs during the measurement process.
 

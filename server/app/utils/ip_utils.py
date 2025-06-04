@@ -3,7 +3,7 @@ from ipaddress import ip_address, IPv4Address, IPv6Address
 from typing import Optional
 import ntplib
 import requests
-from server.app.utils.load_env_vals import get_ipinfo_lite_api_token
+from server.app.utils.load_config_data import get_ipinfo_lite_api_token
 from server.app.utils.validate import is_ip_address
 
 
@@ -164,7 +164,7 @@ def ip_to_location(ip_str: str) -> tuple[float, float]:
     """
     response = requests.get(f"https://ipwhois.app/json/{ip_str}")
     data = response.json()
-    latitude: float = data.get("latitude", )
+    latitude: float = data.get("latitude", None)
     longitude: float = data.get("longitude", None)
     return latitude, longitude
 # import time

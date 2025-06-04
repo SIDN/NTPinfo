@@ -1,0 +1,514 @@
+import pytest
+from unittest.mock import patch, MagicMock
+
+from server.app.utils.load_config_data import *
+
+@patch("server.app.utils.load_config_data.os.path.exists")
+def test_load_config(mock):
+    mock.return_value = False
+    with pytest.raises(FileNotFoundError):
+        load_config()
+
+@patch("server.app.utils.load_config_data.get_ripe_probes_wanted_percentages")
+@patch("server.app.utils.load_config_data.get_ripe_max_probes_per_measurement")
+@patch("server.app.utils.load_config_data.get_ripe_number_of_probes_per_measurement")
+@patch("server.app.utils.load_config_data.get_ripe_packets_per_probe")
+@patch("server.app.utils.load_config_data.get_ripe_timeout_per_probe_ms")
+@patch("server.app.utils.load_config_data.get_edns_timeout_s")
+@patch("server.app.utils.load_config_data.get_edns_default_servers")
+@patch("server.app.utils.load_config_data.get_mask_ipv6")
+@patch("server.app.utils.load_config_data.get_mask_ipv4")
+@patch("server.app.utils.load_config_data.get_nr_of_measurements_for_jitter")
+@patch("server.app.utils.load_config_data.get_timeout_measurement_s")
+@patch("server.app.utils.load_config_data.get_ntp_version")
+@patch("server.app.utils.load_config_data.get_ripe_api_token")
+@patch("server.app.utils.load_config_data.get_ripe_account_email")
+@patch("server.app.utils.load_config_data.get_ipinfo_lite_api_token")
+def test_verify_if_config_is_set(mock_ipinfo_lite_api_token, mock_ripe_account_email, mock_ripe_api_token, mock_ntp_version,
+                                 mock_timeout_measurement_s, mock_nr_of_measurements_for_jitter, mock_mask_ipv4, mock_mask_ipv6,
+                                 mock_edns_default_servers, mock_timeout_s, mock_ripe_timeout_per_probe_ms, mock_ripe_packets_per_probe,
+                                 mock_ripe_number_of_probes_per_measurement, mock_ripe_max_probes_per_measurement, mock_ripe_probes_wanted_percentages):
+    mock_ipinfo_lite_api_token.return_value = "s"
+    mock_ripe_account_email.return_value = "e@email.com"
+    mock_ripe_api_token.return_value = "e"
+    mock_ntp_version.return_value = 4
+    mock_timeout_measurement_s.return_value = 3
+    mock_nr_of_measurements_for_jitter.return_value = 1
+    mock_mask_ipv4.return_value = 21
+    mock_mask_ipv6.return_value = 45
+    mock_edns_default_servers.return_value = ["9.9.9.9"]
+    mock_timeout_s.return_value = 2
+    mock_ripe_timeout_per_probe_ms.return_value = 2
+    mock_ripe_packets_per_probe.return_value = 2
+    mock_ripe_number_of_probes_per_measurement.return_value = 1
+    mock_ripe_max_probes_per_measurement.return_value = 1
+    mock_ripe_probes_wanted_percentages.return_value = [0.2, 0.2, 0.2, 0.2, 0.2]
+
+    verify_if_config_is_set()
+    mock_ipinfo_lite_api_token.assert_called_once()
+    mock_ripe_account_email.assert_called_once()
+    mock_ripe_api_token.assert_called_once()
+    mock_ntp_version.assert_called_once()
+    mock_timeout_measurement_s.assert_called_once()
+    mock_nr_of_measurements_for_jitter.assert_called_once()
+    mock_mask_ipv4.assert_called_once()
+    mock_mask_ipv6.assert_called_once()
+    mock_edns_default_servers.assert_called_once()
+    mock_timeout_s.assert_called_once()
+    mock_ripe_timeout_per_probe_ms.assert_called_once()
+    mock_ripe_packets_per_probe.assert_called_once()
+    mock_ripe_number_of_probes_per_measurement.assert_called_once()
+    mock_ripe_max_probes_per_measurement.assert_called_once()
+    mock_ripe_probes_wanted_percentages.assert_called_once()
+
+@patch("server.app.utils.load_config_data.os.getenv")
+def test_get_ipinfo_lite_api_token(mock):
+    mock.return_value = "token"
+    assert get_ipinfo_lite_api_token() == "token"
+    mock.assert_called_with("IPINFO_LITE_API_TOKEN")
+
+    # None -> Exception
+    mock.return_value = None
+    with pytest.raises(ValueError):
+        get_ipinfo_lite_api_token()
+    mock.assert_called_with("IPINFO_LITE_API_TOKEN")
+
+@patch("server.app.utils.load_config_data.os.getenv")
+def test_get_ripe_account_email(mock):
+    mock.return_value = "email"
+    assert get_ripe_account_email() == "email"
+    mock.assert_called_with("ripe_account_email")
+
+    # None -> Exception
+    mock.return_value = None
+    with pytest.raises(ValueError):
+        get_ripe_account_email()
+    mock.assert_called_with("ripe_account_email")
+
+@patch("server.app.utils.load_config_data.os.getenv")
+def test_get_ripe_api_token(mock):
+    mock.return_value = "ripe token"
+    assert get_ripe_api_token() == "ripe token"
+    mock.assert_called_with("ripe_api_token")
+
+    # None -> Exception
+    mock.return_value = None
+    with pytest.raises(ValueError):
+        get_ripe_api_token()
+    mock.assert_called_with("ripe_api_token")
+
+# ntp version
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ntp_version_ok(mock_config):
+    mock_config["ntp"] = {"version": 5}
+    assert get_ntp_version() == 5
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ntp_version_missing_section(mock_config):
+    with pytest.raises(ValueError, match="ntp section is missing"):
+        get_ntp_version()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ntp_version_missing_var(mock_config):
+    mock_config["ntp"] = {"blabla": 5}
+    with pytest.raises(ValueError, match="ntp 'version' is missing"):
+        get_ntp_version()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ntp_version_different_type(mock_config):
+    mock_config["ntp"] = {"version": "no"}
+    with pytest.raises(ValueError, match="ntp 'version' must be an 'int'"):
+        get_ntp_version()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ntp_version_boundaries(mock_config):
+    mock_config["ntp"] = {"version": -1}
+    with pytest.raises(ValueError, match="ntp 'version' must be > 0"):
+        get_ntp_version()
+    mock_config["ntp"] = {"version": 0}
+    with pytest.raises(ValueError, match="ntp 'version' must be > 0"):
+        get_ntp_version()
+    mock_config["ntp"] = {"version": 1}
+    assert get_ntp_version() == 1
+
+# ntp timeout_measurement_s
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_gget_timeout_measurement_s_ok(mock_config):
+    mock_config["ntp"] = {"timeout_measurement_s": 5}
+    assert get_timeout_measurement_s() == 5
+    mock_config["ntp"] = {"timeout_measurement_s": 5.2}
+    assert get_timeout_measurement_s() == 5.2
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_timeout_measurement_s_missing_section(mock_config):
+    with pytest.raises(ValueError, match="ntp section is missing"):
+        get_timeout_measurement_s()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_timeout_measurement_s_missing_var(mock_config):
+    mock_config["ntp"] = {"blabla": 5.3}
+    with pytest.raises(ValueError, match="ntp 'timeout_measurement_s' is missing"):
+        get_timeout_measurement_s()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_timeout_measurement_s_different_type(mock_config):
+    mock_config["ntp"] = {"timeout_measurement_s": "no"}
+    with pytest.raises(ValueError, match="ntp 'timeout_measurement_s' must be a 'float' or an 'int'"):
+        get_timeout_measurement_s()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_timeout_measurement_s_boundaries(mock_config):
+    mock_config["ntp"] = {"timeout_measurement_s": -0.1}
+    with pytest.raises(ValueError, match="ntp 'timeout_measurement_s' cannot be negative"):
+        get_timeout_measurement_s()
+    mock_config["ntp"] = {"timeout_measurement_s": 0}
+    assert get_timeout_measurement_s() == 0
+
+# ntp number_of_measurements_for_calculating_jitter
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_nr_of_measurements_for_jitter_ok(mock_config):
+    mock_config["ntp"] = {"number_of_measurements_for_calculating_jitter": 6}
+    assert get_nr_of_measurements_for_jitter() == 6
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_nr_of_measurements_for_jitter_missing_section(mock_config):
+    with pytest.raises(ValueError, match="ntp section is missing"):
+        get_nr_of_measurements_for_jitter()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_nr_of_measurements_for_jitter_missing_var(mock_config):
+    mock_config["ntp"] = {"blabla": 5}
+    with pytest.raises(ValueError, match="ntp 'number_of_measurements_for_calculating_jitter' is missing"):
+        get_nr_of_measurements_for_jitter()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_nr_of_measurements_for_jitter_different_type(mock_config):
+    mock_config["ntp"] = {"number_of_measurements_for_calculating_jitter": 9.8}
+    with pytest.raises(ValueError, match="ntp 'number_of_measurements_for_calculating_jitter' must be an 'int'"):
+        get_nr_of_measurements_for_jitter()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_nr_of_measurements_for_jitter_boundaries(mock_config):
+    mock_config["ntp"] = {"number_of_measurements_for_calculating_jitter": -1}
+    with pytest.raises(ValueError, match="ntp 'number_of_measurements_for_calculating_jitter' must be > 0"):
+        get_nr_of_measurements_for_jitter()
+    mock_config["ntp"] = {"number_of_measurements_for_calculating_jitter": 0}
+    with pytest.raises(ValueError, match="ntp 'number_of_measurements_for_calculating_jitter' must be > 0"):
+        get_nr_of_measurements_for_jitter()
+    mock_config["ntp"] = {"number_of_measurements_for_calculating_jitter": 1}
+    assert get_nr_of_measurements_for_jitter() == 1
+
+
+# edns mask_ipv4
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_mask_ipv4_ok(mock_config):
+    mock_config["edns"] = {"mask_ipv4": 6}
+    assert get_mask_ipv4() == 6
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_mask_ipv4_missing_section(mock_config):
+    with pytest.raises(ValueError, match="edns section is missing"):
+        get_mask_ipv4()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_mask_ipv4_missing_var(mock_config):
+    mock_config["edns"] = {"blabla": 5}
+    with pytest.raises(ValueError, match="edns 'mask_ipv4' is missing"):
+        get_mask_ipv4()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_mask_ipv4_different_type(mock_config):
+    mock_config["edns"] = {"mask_ipv4": "no"}
+    with pytest.raises(ValueError, match="edns 'mask_ipv4' must be an 'int'"):
+        get_mask_ipv4()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_mask_ipv4_boundaries(mock_config):
+    mock_config["edns"] = {"mask_ipv4": -1}
+    with pytest.raises(ValueError, match="edns 'mask_ipv4' must be between 0 and 32 inclusive"):
+        get_mask_ipv4()
+    mock_config["edns"] = {"mask_ipv4": 33}
+    with pytest.raises(ValueError, match="edns 'mask_ipv4' must be between 0 and 32 inclusive"):
+        get_mask_ipv4()
+    mock_config["edns"] = {"mask_ipv4": 0}
+    assert get_mask_ipv4() == 0
+    mock_config["edns"] = {"mask_ipv4": 32}
+    assert get_mask_ipv4() == 32
+
+# edns mask_ipv6
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_mask_ipv6_ok(mock_config):
+    mock_config["edns"] = {"mask_ipv6": 40}
+    assert get_mask_ipv6() == 40
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_mask_ipv6_missing_section(mock_config):
+    with pytest.raises(ValueError, match="edns section is missing"):
+        get_mask_ipv6()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_mask_ipv6_missing_var(mock_config):
+    mock_config["edns"] = {"blabla": 5}
+    with pytest.raises(ValueError, match="edns 'mask_ipv6' is missing"):
+        get_mask_ipv6()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_mask_ipv6_different_type(mock_config):
+    mock_config["edns"] = {"mask_ipv6": "no"}
+    with pytest.raises(ValueError, match="edns 'mask_ipv6' must be an 'int'"):
+        get_mask_ipv6()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_mask_ipv6_boundaries(mock_config):
+    mock_config["edns"] = {"mask_ipv6": -1}
+    with pytest.raises(ValueError, match="edns 'mask_ipv6' must be between 0 and 64 inclusive"):
+        get_mask_ipv6()
+    mock_config["edns"] = {"mask_ipv6": 65}
+    with pytest.raises(ValueError, match="edns 'mask_ipv6' must be between 0 and 64 inclusive"):
+        get_mask_ipv6()
+    mock_config["edns"] = {"mask_ipv6": 0}
+    assert get_mask_ipv6() == 0
+    mock_config["edns"] = {"mask_ipv6": 64}
+    assert get_mask_ipv6() == 64
+
+# edns edns_default_servers
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_edns_default_servers_ok(mock_config):
+    mock_config["edns"] = {"default_order_of_edns_servers": ["2.2.2.2", "8.3.5.3"]}
+    assert get_edns_default_servers() == ["2.2.2.2","8.3.5.3"]
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_edns_default_servers_missing_section(mock_config):
+    with pytest.raises(ValueError, match="edns section is missing"):
+        get_edns_default_servers()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_edns_default_servers_missing_var(mock_config):
+    mock_config["edns"] = {"blabla": 5}
+    with pytest.raises(ValueError, match="edns 'default_order_of_edns_servers' is missing"):
+        get_edns_default_servers()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_edns_default_servers_different_type(mock_config):
+    mock_config["edns"] = {"default_order_of_edns_servers": "3.2.4.5"}
+    with pytest.raises(ValueError, match="edns 'default_order_of_edns_servers' must be a 'list'"):
+        get_edns_default_servers()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_edns_default_servers_empty(mock_config):
+    mock_config["edns"] = {"default_order_of_edns_servers": []}
+    with pytest.raises(ValueError, match="edns 'default_order_of_edns_servers' cannot be empty"):
+        get_edns_default_servers()
+
+# edns edns_timeout_s
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_edns_timeout_s_ok(mock_config):
+    mock_config["edns"] = {"edns_timeout_s": 3}
+    assert get_edns_timeout_s() == 3
+    mock_config["edns"] = {"edns_timeout_s": 3.09}
+    assert get_edns_timeout_s() == 3.09
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_edns_timeout_s_missing_section(mock_config):
+    with pytest.raises(ValueError, match="edns section is missing"):
+        get_edns_timeout_s()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_edns_timeout_s_missing_var(mock_config):
+    mock_config["edns"] = {"blabla": 5}
+    with pytest.raises(ValueError, match="edns 'edns_timeout_s' is missing"):
+        get_edns_timeout_s()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_edns_timeout_s_different_type(mock_config):
+    mock_config["edns"] = {"edns_timeout_s": "yes"}
+    with pytest.raises(ValueError, match="edns 'edns_timeout_s' must be a 'float' or an 'int' in s"):
+        get_edns_timeout_s()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_edns_timeout_s_boundaries(mock_config):
+    mock_config["edns"] = {"edns_timeout_s": -2}
+    with pytest.raises(ValueError, match="edns 'edns_timeout_s' cannot be negative"):
+        get_edns_timeout_s()
+    mock_config["edns"] = {"edns_timeout_s": 0}
+    assert get_edns_timeout_s() == 0
+
+# ripe_atlas timeout_per_probe_ms
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_timeout_per_probe_ms_ok(mock_config):
+    mock_config["ripe_atlas"] = {"timeout_per_probe_ms": 300}
+    assert get_ripe_timeout_per_probe_ms() == 300
+    mock_config["ripe_atlas"] = {"timeout_per_probe_ms": 30.09}
+    assert get_ripe_timeout_per_probe_ms() == 30.09
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_timeout_per_probe_ms_missing_section(mock_config):
+    with pytest.raises(ValueError, match="ripe_atlas section is missing"):
+        get_ripe_timeout_per_probe_ms()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_timeout_per_probe_ms_missing_var(mock_config):
+    mock_config["ripe_atlas"] = {"blabla": 5}
+    with pytest.raises(ValueError, match="ripe_atlas 'timeout_per_probe_ms' is missing"):
+        get_ripe_timeout_per_probe_ms()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_timeout_per_probe_ms_different_type(mock_config):
+    mock_config["ripe_atlas"] = {"timeout_per_probe_ms": "yes"}
+    with pytest.raises(ValueError, match="ripe_atlas 'timeout_per_probe_ms' must be a 'float' or an 'int' in ms"):
+        get_ripe_timeout_per_probe_ms()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_timeout_per_probe_ms_boundaries(mock_config):
+    mock_config["ripe_atlas"] = {"timeout_per_probe_ms": -0.1}
+    with pytest.raises(ValueError, match="ripe_atlas 'timeout_per_probe_ms' must be > 0"):
+        get_ripe_timeout_per_probe_ms()
+    mock_config["ripe_atlas"] = {"timeout_per_probe_ms": 0}
+    with pytest.raises(ValueError, match="ripe_atlas 'timeout_per_probe_ms' must be > 0"):
+        get_ripe_timeout_per_probe_ms()
+    mock_config["ripe_atlas"] = {"timeout_per_probe_ms": 0.2}
+    assert get_ripe_timeout_per_probe_ms() == 0.2
+
+# ripe_atlas packets_per_probe
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_packets_per_probe_ok(mock_config):
+    mock_config["ripe_atlas"] = {"packets_per_probe": 30}
+    assert get_ripe_packets_per_probe() == 30
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_packets_per_probe_missing_section(mock_config):
+    with pytest.raises(ValueError, match="ripe_atlas section is missing"):
+        get_ripe_packets_per_probe()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_packets_per_probe_missing_var(mock_config):
+    mock_config["ripe_atlas"] = {"blabla": 5}
+    with pytest.raises(ValueError, match="ripe_atlas 'packets_per_probe' is missing"):
+        get_ripe_packets_per_probe()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_packets_per_probe_different_type(mock_config):
+    mock_config["ripe_atlas"] = {"packets_per_probe": 0.5}
+    with pytest.raises(ValueError, match="ripe_atlas 'packets_per_probe' must be an 'int'"):
+        get_ripe_packets_per_probe()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_packets_per_probe_boundaries(mock_config):
+    mock_config["ripe_atlas"] = {"packets_per_probe": -1}
+    with pytest.raises(ValueError, match="ripe_atlas 'packets_per_probe' must be > 0"):
+        get_ripe_packets_per_probe()
+    mock_config["ripe_atlas"] = {"packets_per_probe": 0}
+    with pytest.raises(ValueError, match="ripe_atlas 'packets_per_probe' must be > 0"):
+        get_ripe_packets_per_probe()
+    mock_config["ripe_atlas"] = {"packets_per_probe": 1}
+    assert get_ripe_packets_per_probe() == 1
+
+# ripe_atlas number_of_probes_per_measurement
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_number_of_probes_per_measurement_ok(mock_config):
+    mock_config["ripe_atlas"] = {"number_of_probes_per_measurement": 30}
+    assert get_ripe_number_of_probes_per_measurement() == 30
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_number_of_probes_per_measurement_missing_section(mock_config):
+    with pytest.raises(ValueError, match="ripe_atlas section is missing"):
+        get_ripe_number_of_probes_per_measurement()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_number_of_probes_per_measurement_missing_var(mock_config):
+    mock_config["ripe_atlas"] = {"blabla": 5}
+    with pytest.raises(ValueError, match="ripe_atlas 'number_of_probes_per_measurement' is missing"):
+        get_ripe_number_of_probes_per_measurement()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_number_of_probes_per_measurement_different_type(mock_config):
+    mock_config["ripe_atlas"] = {"number_of_probes_per_measurement": 0.5}
+    with pytest.raises(ValueError, match="ripe_atlas 'number_of_probes_per_measurement' must be an 'int'"):
+        get_ripe_number_of_probes_per_measurement()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_number_of_probes_per_measurement_boundaries(mock_config):
+    mock_config["ripe_atlas"] = {"number_of_probes_per_measurement": -1}
+    with pytest.raises(ValueError, match="ripe_atlas 'number_of_probes_per_measurement' must be > 0"):
+        get_ripe_number_of_probes_per_measurement()
+    mock_config["ripe_atlas"] = {"number_of_probes_per_measurement": 0}
+    with pytest.raises(ValueError, match="ripe_atlas 'number_of_probes_per_measurement' must be > 0"):
+        get_ripe_number_of_probes_per_measurement()
+    mock_config["ripe_atlas"] = {"number_of_probes_per_measurement": 1}
+    assert get_ripe_number_of_probes_per_measurement() == 1
+
+# ripe_atlas max_probes_per_measurement
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_max_probes_per_measurement_ok(mock_config):
+    mock_config["ripe_atlas"] = {"max_probes_per_measurement": 30}
+    assert get_ripe_max_probes_per_measurement() == 30
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_max_probes_per_measurement_missing_section(mock_config):
+    with pytest.raises(ValueError, match="ripe_atlas section is missing"):
+        get_ripe_max_probes_per_measurement()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_max_probes_per_measurement_missing_var(mock_config):
+    mock_config["ripe_atlas"] = {"blabla": 5}
+    with pytest.raises(ValueError, match="ripe_atlas 'max_probes_per_measurement' is missing"):
+        get_ripe_max_probes_per_measurement()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_max_probes_per_measurement_different_type(mock_config):
+    mock_config["ripe_atlas"] = {"max_probes_per_measurement": 0.5}
+    with pytest.raises(ValueError, match="ripe_atlas 'max_probes_per_measurement' must be an 'int'"):
+        get_ripe_max_probes_per_measurement()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_max_probes_per_measurement_boundaries(mock_config):
+    mock_config["ripe_atlas"] = {"max_probes_per_measurement": -1}
+    with pytest.raises(ValueError, match="ripe_atlas 'max_probes_per_measurement' must be > 0"):
+        get_ripe_max_probes_per_measurement()
+    mock_config["ripe_atlas"] = {"max_probes_per_measurement": 0}
+    with pytest.raises(ValueError, match="ripe_atlas 'max_probes_per_measurement' must be > 0"):
+        get_ripe_max_probes_per_measurement()
+    mock_config["ripe_atlas"] = {"max_probes_per_measurement": 1}
+    assert get_ripe_max_probes_per_measurement() == 1
+
+# ripe_atlas probes_wanted_percentages
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_probes_wanted_percentages_ok(mock_config):
+    mock_config["ripe_atlas"] = {"probes_wanted_percentages": [0.2, 0.3, 0.4, 0.1, 0.0]}
+    assert get_ripe_probes_wanted_percentages() == [0.2, 0.3, 0.4, 0.1, 0.0]
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_probes_wanted_percentages_missing_section(mock_config):
+    with pytest.raises(ValueError, match="ripe_atlas section is missing"):
+        get_ripe_probes_wanted_percentages()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_probes_wanted_percentages_missing_var(mock_config):
+    mock_config["ripe_atlas"] = {"blabla": 5}
+    with pytest.raises(ValueError, match="ripe_atlas 'probes_wanted_percentages' is missing"):
+        get_ripe_probes_wanted_percentages()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_probes_wanted_percentages_different_type(mock_config):
+    mock_config["ripe_atlas"] = {"probes_wanted_percentages": 0.5}
+    with pytest.raises(ValueError, match="ripe_atlas 'probes_wanted_percentages' must be a 'list'"):
+        get_ripe_probes_wanted_percentages()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_probes_wanted_percentages_invalid_length(mock_config):
+    mock_config["ripe_atlas"] = {"probes_wanted_percentages": [0.2, 0.3, 0.4, 0.1]}
+    with pytest.raises(ValueError, match="ripe_atlas 'probes_wanted_percentages' must contain exactly 5 elements"):
+        get_ripe_probes_wanted_percentages()
+    mock_config["ripe_atlas"] = {"probes_wanted_percentages": [0.2, 0.3, 0.4, 0.1, 0.3, 0.6]}
+    with pytest.raises(ValueError, match="ripe_atlas 'probes_wanted_percentages' must contain exactly 5 elements"):
+        get_ripe_probes_wanted_percentages()
+
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_ripe_probes_wanted_percentages_sum_1(mock_config):
+    mock_config["ripe_atlas"] = {"probes_wanted_percentages": [0.2, 0.3, 0.4, 0.1,0.001]}
+    with pytest.raises(ValueError, match="ripe_atlas 'probes_wanted_percentages' must have total sum 1"):
+        get_ripe_probes_wanted_percentages()
+    mock_config["ripe_atlas"] = {"probes_wanted_percentages": [0.2, 0.3, 0.4, 0.00009, 0.0]}
+    with pytest.raises(ValueError, match="ripe_atlas 'probes_wanted_percentages' must have total sum 1"):
+        get_ripe_probes_wanted_percentages()
