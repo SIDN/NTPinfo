@@ -20,7 +20,7 @@ html, body, #root {
 }
 
 body { /* instead of html */
-  padding-top: 10rem;
+  padding-top: 160px;
 
   /* global variables */
   --bg-clr-primary: #292f36;

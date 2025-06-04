@@ -1,10 +1,24 @@
 @import '../index.css';
 
+.compare-tab {
+    width: 100%;
+    height: calc(100vh - 160px);
+    display: flex;
+    align-items: flex-start;
+    padding: 1rem;
+    gap: 2rem;
+  }
 .compare-tab p, label {
     color: var(--clr-font-white);
 }
 .compare-input {
-width: fit-content;
+  width: 40%;
+  flex: 0 1 40%;
+  height: 90%;
+  display: flex;
+  gap: 2rem;
+  flex-direction: column;
+  align-items: flex-start;
 }
 .compare-tab  p {
     font-size: 1.5rem;
@@ -19,13 +33,14 @@ label {
 }
 
 .compare-tab form {
-    padding: 1rem;
-    display: flex;
-    
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: space-evenly;
-    gap: 1.25rem;
+  padding: 1rem;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-evenly;
+  gap: 2rem;
+  padding-left: 2rem;
 }
 
 .compare-tab input {
@@ -62,26 +77,27 @@ label {
   .compare-tab input::placeholder {
     color: var(--clr-input-placeholder);
   }
-
+  .compare-tab .custom-time-amount {
+    flex-wrap: nowrap;
+  }
   .label-and-input {
     display: flex;
     text-wrap: nowrap;
     flex-direction: column;
     align-items: start;
     gap: .5rem;
-    width: min(50%, 250px);
+    width: min(60%, 300px);
   }
 
-  .compare-tab {
-    display: flex;
-    align-items: flex-start;
-  }
+  
 
   .compare-tab .submit-btn {
     color: var(--clr-font-white);
     background-color: var(--clr-red-2);
     cursor: pointer;
     border-radius: 15px;
+    font-size: 1.1rem;
+    margin-top: 2rem;
     transition: background-color 0.3s ease;
     border: none;
   }
@@ -102,3 +118,71 @@ label {
     background-color: var(--clr-red-2);
     cursor: auto;
   }
+
+  .compare-tab .radio-group {
+    display: flex;
+    margin-left: 0;
+    align-items: center;
+    gap: 1em;
+  }
+
+  .compare-tab .chart-wrapper {
+    width: 95%;
+    height: 90%;
+    
+  }
+
+  .compare-tab .graph-container {
+    height: 100%;
+    display: flex;
+    gap: 2rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 60%;
+    flex-basis: 1 1 60%;
+    grid-area: summary;
+    padding: 0;
+  
+  }
+
+  .compare-tab .radio-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 95%;
+    gap: 2em;
+    padding: 1rem;
+}
+
+.compare-tab .radio-measurement-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 1.4em;
+    font-weight: 500;
+    color: var(--clr-font-white);
+}
+
+.compare-tab .radio-measurement-label input {
+  width: max-content
+}
+
+.chart-emoji {
+  scale: 2.5;
+  padding: 0;
+  width: fit-content;
+}
+
+.placeholder-text-compare {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding-bottom: 5rem;
+}
+.placeholder-text-compare > .text-compare {
+  text-wrap: wrap;
+  color: var(--clr-input-placeholder-dark);
+}

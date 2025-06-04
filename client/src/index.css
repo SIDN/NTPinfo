@@ -25,6 +25,7 @@
   --clr-yellow: #FBB13C;
   --clr-btn-selected-purple: #0d0d0e;
   --clr-input-placeholder: #b3b3b3;
+  --clr-input-placeholder-dark:#898585;
 }
 *, *::before, *::after {
   box-sizing: border-box;

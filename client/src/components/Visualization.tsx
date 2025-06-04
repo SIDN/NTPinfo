@@ -15,13 +15,12 @@ interface PopupDropdownProps{
     isOpen: boolean
     onClose: () => void
     dropdown: DropdownConfig
-    data: NTPData[] | null
+    data: Map<string, NTPData[]> | null
 }
 
 export default function VisualizationPopup({isOpen, onClose, dropdown, data}: PopupDropdownProps ) {
     const popupRef = useRef(null)
 
-    const [textVal, setTextVal] = useState("")
     const [selMeasurement, setSelMeasurement] = useState<Measurement>("RTT")
     const [selOption, setSelOption] = useState("Last Day")
 

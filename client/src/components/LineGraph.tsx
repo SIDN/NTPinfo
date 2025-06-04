@@ -17,7 +17,7 @@ import { Measurement } from '../utils/types.ts'
 import 'chartjs-adapter-date-fns';
 
 type ChartInputData = {
-    data: NTPData[] | null
+    data: Map<string, NTPData[]> | null
     selectedMeasurement: Measurement
     selectedOption: string
     customRange?: { from: string; to: string }
@@ -66,11 +66,9 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
   if (data == null)
     return null
 
-  //sort data chronologically
-  const sortedData = [...data].sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
-
+   
   const now = new Date()
-
+  const graphColors: string[] = ['rgb(53, 126, 235)', 'rgb(208, 120, 12)']
   //
   // format X axis labels based on which time interval is selected
   //
@@ -111,20 +109,38 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
 
   const SAMPLE_DENSITY = 100;  // data points reduction factor
 
-  const axisMs     = endPoint.getTime() - startingPoint.getTime();
+  const axisMs = endPoint.getTime() - startingPoint.getTime();
+  
+  const datasets: any[] = [];
   const thresholdMs =
         SAMPLE_DENSITY > 0 && axisMs > 0
           ? axisMs / SAMPLE_DENSITY
           : 0;
+  //sort data chronologically for every server IP or name
+  let clrIndex = 0 // used to iterate through the colors array
+  for (const [server, series] of data.entries()) {
+    const sortedSeries = [...series].sort((a, b) =>
+      new Date(a.time).getTime() - new Date(b.time).getTime()
+    );
 
-  const thinned = thinByProximity(sortedData, thresholdMs);
+    const thinned = thinByProximity(sortedSeries, thresholdMs);
 
-  const points = thinned.map(d => ({
-    x: new Date(d.time).toISOString(),
-    y: d[selectedMeasurement]
-  }))
+    const points = thinned.map(d => ({
+      x: new Date(d.time).toISOString(),
+      y: d[selectedMeasurement]
+    }));
 
-  const yValues = points.map(p => p.y);
+    datasets.push({
+      label: `${server} - ${measurementMap[selectedMeasurement]}`,
+      data: points,
+      borderColor: graphColors[clrIndex++],
+      backgroundColor: 'rgba(236, 240, 243, 0.3)',
+      tension: 0,
+      pointRadius: 5,
+    });
+  }
+
+  const yValues: number[] = datasets.flatMap(ds => ds.data.map((p: any) => p.y));
   let minY = 0, maxY = 1;
   if (yValues.length) {
     const minV = Math.min(...yValues);
@@ -185,19 +201,9 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
     },
   }
 
-  const chartData = {
-    datasets: [
-      {
-        label: measurementMap[selectedMeasurement],
-        data: points,
-        borderColor: 'rgba(53, 162, 235, 0.8)',
-        backgroundColor: 'rgba(236, 240, 243, 0.3)',
-        color: 'rgb(255, 255, 255)',
-        tension: 0,
-        pointRadius: 3
-      }
-    ]
-  }
+
+  const chartData = { datasets };
+  
 
   return <Line options={options} data={chartData} />
 }

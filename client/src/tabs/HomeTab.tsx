@@ -25,7 +25,7 @@ function HomeTab() {
   // states we need to define
   //
   const [ntpData, setNtpData] = useState<NTPData | null>(null)
-  const [chartData, setChartData] = useState<NTPData[] | null>(null)
+  const [chartData, setChartData] = useState<Map<string, NTPData[]> | null>(null)
   const [measured, setMeasured] = useState(false)
   const [popupOpen, setPopupOpen] = useState(false)
   const [selOption, setOption] = useState("Last Hour")
@@ -98,7 +98,8 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
      */
     setMeasured(true)
     const data = apiMeasurementResp
-    const chartData = apiHistoricalResp
+    const chartData = new Map<string, NTPData[]>()
+    chartData.set(payload.server, apiHistoricalResp)
     setNtpData(data ?? null)
     setChartData(chartData ?? null)
 

@@ -8,7 +8,6 @@
 .custom-time-amount {
     display: flex;
     flex-direction: row;
-    flex-wrap: nowrap;
 }
 .compare-tab .dropdown-select:hover,
 .compare-tab .dt-input:hover,
