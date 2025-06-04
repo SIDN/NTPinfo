@@ -1,10 +1,10 @@
 import { useState } from 'react'
-
 import '../styles/HomeTab.css'
 import InputSection from '../components/InputSection.tsx'
 import ResultSummary from '../components/ResultSummary'
 import DownloadButton from '../components/DownloadButton'
 import VisualizationPopup from '../components/Visualization'
+import LoadingSpinner from '../components/LoadingSpinner'
 import LineChart from '../components/LineGraph'
 import { useFetchIPData } from '../hooks/useFetchIPData.ts'
 import { useFetchHistoricalIPData } from '../hooks/useFetchHistoricalIPData.ts'
@@ -129,10 +129,15 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
   return (
     <div className="app-container">
       <div className="input-wrapper">
-        <InputSection onClick={handleInput} />
+        <InputSection onClick={handleInput} loading={apiDataLoading} />
       </div>
         <div className="result-text">
-          {(!apiDataLoading && measured && (<p>Results</p>)) || (apiDataLoading && <p>Loading...</p>)}
+          {(!apiDataLoading && measured && (<p>Results</p>)) || 
+                    (apiDataLoading && <div className="loading-div">
+                        <p>Loading...</p>
+                        <LoadingSpinner size="small"/>
+                    </div>  
+                        )}
         </div>
         {/* The main page shown after the main measurement is done */}
       {(ntpData && !apiDataLoading && (<div className="results-and-graph">

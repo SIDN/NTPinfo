@@ -186,3 +186,20 @@ label {
   text-wrap: wrap;
   color: var(--clr-input-placeholder-dark);
 }
+
+.compare-tab .loading-div {
+  display: flex;
+  
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 60%;
+  padding-bottom: 2rem;
+  flex-basis: 1 1 60%;
+  gap: .5rem;
+}
+
+.compare-tab .loading-div p {
+  color: var(--clr-input-placeholder-dark); 
+}

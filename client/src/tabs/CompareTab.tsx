@@ -3,6 +3,7 @@ import '../styles/CompareTab.css'
 import { dateFormatConversion } from '../utils/dateFormatConversion'
 import { useFetchHistoricalIPData } from '../hooks/useFetchHistoricalIPData'
 import { TimeInput } from '../components/TimeInput'
+import LoadingSpinner from '../components/LoadingSpinner'
 import { NTPData, Measurement } from '../utils/types'
 import LineChart from '../components/LineGraph'
 function CompareTab() {
@@ -154,7 +155,12 @@ function CompareTab() {
                 <LineChart data = {data} selectedMeasurement={selMeasurement} selectedOption={selOption}/>
                 </div>            
                         
-            </div>)) || (
+            </div>)) ||
+            (loading && (<div className="loading-div">
+                            <p>Loading...</p>
+                            <LoadingSpinner size="large"/>
+                        </div>)) ||
+            (
                 <div className='graph-container'>
                     <div className="placeholder-text-compare">
                     <p className="chart-emoji">📈</p>
@@ -163,7 +169,7 @@ function CompareTab() {
                     </div>
                    
                 </div>
-                ) }
+            )}
            
             
           

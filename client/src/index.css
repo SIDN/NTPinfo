@@ -5,7 +5,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  background-color: var(--bg-clr-primary);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -25,7 +25,7 @@
   --clr-yellow: #FBB13C;
   --clr-btn-selected-purple: #0d0d0e;
   --clr-input-placeholder: #b3b3b3;
-  --clr-input-placeholder-dark:#898585;
+  --clr-input-placeholder-dark:#6b6a6a;
 }
 *, *::before, *::after {
   box-sizing: border-box;
@@ -43,7 +43,9 @@ a {
 a:hover {
   color: #535bf2;
 }
-
+html {
+  background-color: var(--bg-clr-primary);
+}
 body {
   margin: 0;
   display: flex;

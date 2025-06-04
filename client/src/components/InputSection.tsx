@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 
 interface InputProps {
     onClick: (query: string, jitterFlag: boolean, measurementsNo: number) => void;
+    loading: boolean;
 }
 
-const InputSection: React.FC<InputProps> = ({ onClick }) => {
+const InputSection: React.FC<InputProps> = ({ onClick, loading }) => {
     const [query, setQuery] = useState('');
     const [jitterFlag, setJitterFlag] = useState(false);
     const [measurementsNo, setMeasurementsNo] = useState(1);
@@ -35,7 +36,7 @@ const InputSection: React.FC<InputProps> = ({ onClick }) => {
                       }}
                     placeholder="time.google.com"
                 />
-                <button onClick={handleClick}>
+                <button onClick={handleClick} disabled={!query.trim() || loading}>
                     Measure
                 </button>
             </div>

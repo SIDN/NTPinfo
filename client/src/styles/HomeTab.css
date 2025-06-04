@@ -139,3 +139,9 @@
 .ip-list a {
   text-decoration: underline;
 }
+
+.loading-div {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
