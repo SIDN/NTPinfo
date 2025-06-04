@@ -12,7 +12,7 @@ function App() {
 
   //TODO
   // for now the switching system is not implemented, will be added later
-  const [selectedTab, setSelectedTab] = useState<number>(2)
+  const [selectedTab, setSelectedTab] = useState<number>(1)
 
   //
   //The actual app component
