@@ -21,8 +21,8 @@ export const transformJSONDataToRIPEData = (fetchedData: any): RIPEData | null =
     const measurement = fetchedData.result[0]
 
     const measurementData: NTPData = {
-        offset: measurement.offset * 1000,
-        RTT: measurement.rtt * 1000,
+        offset: Number((measurement.offset * 1000).toFixed(3)),
+        RTT: Number((measurement.rtt * 1000).toFixed(3)),
         stratum: fetchedData.stratum,
         jitter: null,
         precision: fetchedData.precision,
@@ -39,7 +39,7 @@ export const transformJSONDataToRIPEData = (fetchedData: any): RIPEData | null =
         measurementData: measurementData,
         probe_id: fetchedData.probe_id,
         probe_country: fetchedData.probe_location.country_code,
-        probe_location: fetchedData.probe_location.coordinates,
+        probe_location: [fetchedData.probe_location.coordinates[1], fetchedData.probe_location.coordinates[0]],
         got_results: measurement.rtt !== -1,
         probe_types: [fetchedData.probe_count_per_type.asn, fetchedData.probe_count_per_type.prefix, fetchedData.probe_count_per_type.country, fetchedData.probe_count_per_type.area, fetchedData.probe_count_per_type.random]
     }

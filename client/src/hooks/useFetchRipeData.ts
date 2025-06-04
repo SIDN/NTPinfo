@@ -8,11 +8,12 @@ import { transformJSONDataToRIPEData } from "../utils/transformJSONDataToRIPEDat
  * When a new measurement is started, it resets the state of teh measurement to not show old data
  * It then performs a GET request every interval and updates the data that was fetched
  * When the status becomes "complete" or "error", the call ends
+ * If a new measurement is started, the old one gets cancelled and the new one begins
  * @param measurementId the ID of the RIPE measurement to be polled
  * @param intervalMs the interval at which data will be polled from the endpoint
  * @returns the current set of results, the status of the polling, and if an error has occured
  */
-export const useFetchRIPEData = (measurementId: string | null, intervalMs = 1000) => {
+export const useFetchRIPEData = (measurementId: string | null, intervalMs = 500) => {
     const [result, setResult] = useState<RIPEData[] | null>(null)
     const [status, setStatus] = useState<"idle" | "polling" | "complete" | "error">("idle")
     const [error, setError] = useState<Error | null>(null)
@@ -21,6 +22,12 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 1000
     const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
     useEffect(() => {
+        
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current)
+            intervalRef.current = null
+        }
+
         if (!measurementId) {
             setResult(null)
             setStatus("idle")
@@ -31,9 +38,14 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 1000
         setStatus("polling")
         setError(null)
 
+        const controller = new AbortController()
+
         const fetchResult = async () => {
             try {
-                const res = await axios.get(`${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/ripe/${measurementId}`)
+                const res = await axios.get(
+                    `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/ripe/${measurementId}`,
+                    { signal: controller.signal }
+                )
                 if (res.data?.results) {
                     const transformedData = res.data.results.map((d: any) => transformJSONDataToRIPEData(d))
                     setResult(transformedData)
@@ -60,6 +72,7 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 1000
         
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current)
+                controller.abort()
         }
     }, [measurementId])
 
