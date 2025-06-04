@@ -5,7 +5,7 @@ from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.utils.load_config_data import verify_if_config_is_set
+from server.app.utils.load_config_data import verify_if_config_is_set
 from server.app.db_config import init_engine
 from server.app.models.Base import Base
 from server.app.api.routing import router
