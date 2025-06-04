@@ -1,10 +1,10 @@
 import { useState } from 'react'
-
 import '../styles/HomeTab.css'
 import InputSection from '../components/InputSection.tsx'
 import ResultSummary from '../components/ResultSummary'
 import DownloadButton from '../components/DownloadButton'
 import VisualizationPopup from '../components/Visualization'
+import LoadingSpinner from '../components/LoadingSpinner'
 import LineChart from '../components/LineGraph'
 import { useFetchIPData } from '../hooks/useFetchIPData.ts'
 import { useFetchHistoricalIPData } from '../hooks/useFetchHistoricalIPData.ts'
@@ -25,11 +25,10 @@ function HomeTab() {
   // states we need to define
   //
   const [ntpData, setNtpData] = useState<NTPData | null>(null)
-  const [chartData, setChartData] = useState<NTPData[] | null>(null)
+  const [chartData, setChartData] = useState<Map<string, NTPData[]> | null>(null)
   const [measured, setMeasured] = useState(false)
   const [popupOpen, setPopupOpen] = useState(false)
-  const [selOption1, setOption1] = useState("Last Hour")
-  const [selOption2, setOption2] = useState("Hours")
+  const [selOption, setOption] = useState("Last Hour")
   const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
   const [measurementId, setMeasurementId] = useState<string | null>(null)
 
@@ -42,23 +41,12 @@ function HomeTab() {
 const ntpServer: LatLngTuple = [41.509985, -103.181674];
 
   //dropdown format
-  // second one will removed after custom time intervals are added
-  const dropdown = [
-    {
-      label: "Time period",
+  const dropdown = {
       options: ["Last Hour", "Last Day", "Last Week", "Custom"],
-      selectedValue: selOption1,
-      onSelect: setOption1,
-      className: "time-dropdown"
-    },
-    {
-      label: "Time Option",
-      options: ["Hours", "Days"],
-      selectedValue: selOption2,
-      onSelect: setOption2,
-      className: "custom-time-dropdown"
+      selectedValue: selOption,
+      onSelect: setOption,
     }
-  ]
+  
 
   //
   //functions for handling state changes
@@ -110,7 +98,8 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
      */
     setMeasured(true)
     const data = apiMeasurementResp
-    const chartData = apiHistoricalResp
+    const chartData = new Map<string, NTPData[]>()
+    chartData.set(payload.server, apiHistoricalResp)
     setNtpData(data ?? null)
     setChartData(chartData ?? null)
 
@@ -140,10 +129,15 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
   return (
     <div className="app-container">
       <div className="input-wrapper">
-        <InputSection onClick={handleInput} />
+        <InputSection onClick={handleInput} loading={apiDataLoading} />
       </div>
         <div className="result-text">
-          {(!apiDataLoading && measured && (<p>Results</p>)) || (apiDataLoading && <p>Loading...</p>)}
+          {(!apiDataLoading && measured && (<p>Results</p>)) || 
+                    (apiDataLoading && <div className="loading-div">
+                        <p>Loading...</p>
+                        <LoadingSpinner size="small"/>
+                    </div>  
+                        )}
         </div>
         {/* The main page shown after the main measurement is done */}
       {(ntpData && !apiDataLoading && (<div className="results-and-graph">
@@ -203,7 +197,7 @@ const ntpServer: LatLngTuple = [41.509985, -103.181674];
           <VisualizationPopup
           isOpen={popupOpen}
           onClose={() => setPopupOpen(false)}
-          dropdowns={dropdown}
+          dropdown={dropdown}
           data = {chartData}/>
         </div>
       </div>)}
