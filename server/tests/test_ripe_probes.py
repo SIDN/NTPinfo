@@ -78,7 +78,9 @@ def test_get_probes_unexpected(mock_get_prefix_from_ip, mock_get_network_details
     ]
     assert probes_result == answer
 
-def test_get_best_probe_types_first_3_none():
+@patch("server.app.utils.ripe_probes.get_ripe_max_probes_per_measurement")
+def test_get_best_probe_types_first_3_none(mock_get_max_probes):
+    mock_get_max_probes.return_value = 40
     #all None
     result = get_best_probe_types(None,None,None,None,4,34)
     assert result["asn"] == 0
@@ -101,11 +103,17 @@ def test_get_best_probe_types_first_3_none():
     with pytest.raises(Exception):
         get_best_probe_types("AS15169", "2a06:93c0::/29", "NL", "North-Central", 6, -1)
 
+    mock_get_max_probes.return_value = 1
+    with pytest.raises(Exception):
+        get_best_probe_types(None,None,None,"West",6,37)
+
+@patch("server.app.utils.ripe_probes.get_ripe_max_probes_per_measurement")
 @patch("server.app.utils.ripe_probes.get_available_probes_country")
 @patch("server.app.utils.ripe_probes.get_available_probes_prefix")
 @patch("server.app.utils.ripe_probes.get_available_probes_asn")
 def test_get_best_probe_types_normal(mock_get_available_probes_asn, mock_get_available_probes_prefix,
-                                     mock_get_available_probes_country):
+                                     mock_get_available_probes_country,mock_get_max_probes):
+    mock_get_max_probes.return_value = 40
     mock_get_available_probes_asn.return_value = 8
     mock_get_available_probes_prefix.return_value = 3
     mock_get_available_probes_country.return_value = 120
@@ -121,7 +129,7 @@ def test_get_best_probe_types_normal(mock_get_available_probes_asn, mock_get_ava
     result = get_best_probe_types("AS15169","80.211.224.0/20","NL","North-Central",4,40)
     assert result == expected
 
-    #not enough from anything ->area or random
+    #not enough from anything -> area or random
     mock_get_available_probes_asn.return_value = 1
     mock_get_available_probes_prefix.return_value = 1
     mock_get_available_probes_country.return_value = 1

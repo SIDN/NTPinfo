@@ -3,7 +3,7 @@ from ipaddress import ip_address, IPv4Address, IPv6Address
 from typing import Optional
 import ntplib
 import requests
-from server.app.utils.load_env_vals import get_ipinfo_lite_api_token
+from server.app.utils.load_config_data import get_ipinfo_lite_api_token
 from server.app.utils.validate import is_ip_address
 
 

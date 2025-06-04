@@ -7,9 +7,9 @@ from typing import Optional
 import requests
 
 from server.app.utils.ip_utils import get_ip_family, ref_id_to_ip_or_name
-from server.app.utils.load_env_vals import get_ripe_account_email, get_ripe_api_token, get_ntp_version, \
+from server.app.utils.load_config_data import get_ripe_account_email, get_ripe_api_token, get_ntp_version, \
     get_edns_default_servers, get_timeout_measurement_s, get_ripe_number_of_probes_per_measurement, \
-    get_ripe_timeout_per_probe, get_packets_per_probe
+    get_ripe_timeout_per_probe_ms, get_ripe_packets_per_probe
 from server.app.utils.ripe_probes import get_probes
 from server.app.services.NtpCalculator import NtpCalculator
 from server.app.utils.domain_name_to_ip import domain_name_to_ip_list
@@ -355,7 +355,7 @@ def perform_ripe_measurement_ip(ntp_server_ip: str,
     # measurement settings
     ip_family = get_ip_family(ntp_server_ip) # this will throw an exception if the ntp_server_ip is not an IP address
     api_key = get_ripe_api_token()
-    packets_count = get_packets_per_probe()
+    packets_count = get_ripe_packets_per_probe()
     ripe_account_email = get_ripe_account_email()
 
     headers = {
@@ -369,7 +369,7 @@ def perform_ripe_measurement_ip(ntp_server_ip: str,
             "resolve_on_probe": True,
             "description": f"NTP measurement to {ntp_server_ip}",
             "packets": packets_count,
-            "timeout": get_ripe_timeout_per_probe(),
+            "timeout": get_ripe_timeout_per_probe_ms(),
             "skip_dns_check": False,
             "target": ntp_server_ip
         }

@@ -5,8 +5,8 @@ import dns.query
 import dns.edns
 import dns.rdatatype
 
-from app.utils.ip_utils import get_ip_family
-from app.utils.load_env_vals import get_edns_default_servers, get_mask_ipv6, get_mask_ipv4, get_edns_timeout_s
+from server.app.utils.ip_utils import get_ip_family
+from server.app.utils.load_config_data import get_edns_default_servers, get_mask_ipv6, get_mask_ipv4, get_edns_timeout_s
 from server.app.utils.validate import is_valid_domain_name
 
 

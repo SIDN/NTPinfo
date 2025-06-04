@@ -40,11 +40,16 @@ def verify_if_config_is_set() -> bool:
     get_ntp_version()
     get_timeout_measurement_s()
     get_nr_of_measurements_for_jitter()
-    print(get_edns_default_servers())
-    get_ripe_timeout_per_probe()
+    get_mask_ipv4()
+    get_mask_ipv6()
+    get_edns_default_servers()
+    get_edns_timeout_s()
+    get_ripe_timeout_per_probe_ms()
+    get_ripe_packets_per_probe()
     get_ripe_number_of_probes_per_measurement()
+    get_ripe_max_probes_per_measurement()
     get_ripe_probes_wanted_percentages()
-
+    # everything is fine
     return True
 
 def get_ipinfo_lite_api_token() -> str:
@@ -97,9 +102,11 @@ def get_ntp_version() -> int:
         raise ValueError("ntp 'version' is missing")
     if not isinstance(ntp["version"], int):
         raise ValueError("ntp 'version' must be an 'int'")
+    if ntp["version"] <= 0:
+        raise ValueError("ntp 'version' must be > 0")
     return ntp["version"]
 
-def get_timeout_measurement_s() -> int:
+def get_timeout_measurement_s() -> float | int:
     """
     This method returns the timeout for an NTP measurement.
 
@@ -111,8 +118,10 @@ def get_timeout_measurement_s() -> int:
     ntp = config["ntp"]
     if "timeout_measurement_s" not in ntp:
         raise ValueError("ntp 'timeout_measurement_s' is missing")
-    if not isinstance(ntp["timeout_measurement_s"], int):
-        raise ValueError("ntp 'timeout_measurement_s' must be an 'int'")
+    if not isinstance(ntp["timeout_measurement_s"], float | int):
+        raise ValueError("ntp 'timeout_measurement_s' must be a 'float' or an 'int'")
+    if ntp["timeout_measurement_s"] < 0:
+        raise ValueError("ntp 'timeout_measurement_s' cannot be negative")
     return ntp["timeout_measurement_s"]
 
 def get_nr_of_measurements_for_jitter() -> int:
@@ -129,6 +138,8 @@ def get_nr_of_measurements_for_jitter() -> int:
         raise ValueError("ntp 'number_of_measurements_for_calculating_jitter' is missing")
     if not isinstance(ntp["number_of_measurements_for_calculating_jitter"], int):
         raise ValueError("ntp 'number_of_measurements_for_calculating_jitter' must be an 'int'")
+    if ntp["number_of_measurements_for_calculating_jitter"] <= 0:
+        raise ValueError("ntp 'number_of_measurements_for_calculating_jitter' must be > 0")
     return ntp["number_of_measurements_for_calculating_jitter"]
 
 def get_mask_ipv4() -> int:
@@ -145,8 +156,8 @@ def get_mask_ipv4() -> int:
         raise ValueError("edns 'mask_ipv4' is missing")
     if not isinstance(edns["mask_ipv4"], int):
         raise ValueError("edns 'mask_ipv4' must be an 'int'")
-    if edns["mask_ipv4"] < 0 or edns["mask_ipv6"] > 64:
-        raise ValueError("edns 'mask_ipv4' must be between 0 and 64 inclusive")
+    if edns["mask_ipv4"] < 0 or edns["mask_ipv4"] > 32:
+        raise ValueError("edns 'mask_ipv4' must be between 0 and 32 inclusive")
     return edns["mask_ipv4"]
 
 
@@ -164,8 +175,8 @@ def get_mask_ipv6() -> int:
         raise ValueError("edns 'mask_ipv6' is missing")
     if not isinstance(edns["mask_ipv6"], int):
         raise ValueError("edns 'mask_ipv6' must be an 'int'")
-    if edns["mask_ipv6"] < 0 or edns["mask_ipv6"] > 32:
-        raise ValueError("edns 'mask_ipv6' must be between 0 and 32 inclusive")
+    if edns["mask_ipv6"] < 0 or edns["mask_ipv6"] > 64:
+        raise ValueError("edns 'mask_ipv6' must be between 0 and 64 inclusive")
     return edns["mask_ipv6"]
 
 def get_edns_default_servers() -> list[str]:
@@ -182,6 +193,8 @@ def get_edns_default_servers() -> list[str]:
         raise ValueError("edns 'default_order_of_edns_servers' is missing")
     if not isinstance(edns["default_order_of_edns_servers"], list):
         raise ValueError("edns 'default_order_of_edns_servers' must be a 'list'")
+    if len(edns["default_order_of_edns_servers"]) == 0:
+        raise ValueError("edns 'default_order_of_edns_servers' cannot be empty")
     return edns["default_order_of_edns_servers"]
 
 def get_edns_timeout_s() -> float|int:
@@ -197,10 +210,12 @@ def get_edns_timeout_s() -> float|int:
     if "edns_timeout_s" not in edns:
         raise ValueError("edns 'edns_timeout_s' is missing")
     if not isinstance(edns["edns_timeout_s"], float | int):
-        raise ValueError("edns 'edns_timeout_s' must be an 'int' or a 'float' in ms")
+        raise ValueError("edns 'edns_timeout_s' must be a 'float' or an 'int' in s")
+    if edns["edns_timeout_s"] < 0:
+        raise ValueError("edns 'edns_timeout_s' cannot be negative")
     return edns["edns_timeout_s"]
 
-def get_ripe_timeout_per_probe() -> float|int:
+def get_ripe_timeout_per_probe_ms() -> float|int:
     """
     This method returns the timeout that a probe has to receive an answer from a measurement.
 
@@ -213,10 +228,12 @@ def get_ripe_timeout_per_probe() -> float|int:
     if "timeout_per_probe_ms" not in ripe_atlas:
         raise ValueError("ripe_atlas 'timeout_per_probe_ms' is missing")
     if not isinstance(ripe_atlas["timeout_per_probe_ms"], float|int):
-        raise ValueError("ripe_atlas 'timeout_per_probe_ms' must be an 'int' or a 'float'(in ms)")
+        raise ValueError("ripe_atlas 'timeout_per_probe_ms' must be a 'float' or an 'int' in ms")
+    if ripe_atlas["timeout_per_probe_ms"] <= 0:
+        raise ValueError("ripe_atlas 'timeout_per_probe_ms' must be > 0")
     return ripe_atlas["timeout_per_probe_ms"]
 
-def get_packets_per_probe() -> float|int:
+def get_ripe_packets_per_probe() -> float|int:
     """
     This method returns the number of tries that a probe will do for a measurement.
     It will send "packets_per_probe" queries for that NTP server. (see RIPE Atlas documentation for more information)
@@ -230,7 +247,7 @@ def get_packets_per_probe() -> float|int:
     if "timeout_per_probe_ms" not in ripe_atlas:
         raise ValueError("ripe_atlas 'timeout_per_probe_ms' is missing")
     if not isinstance(ripe_atlas["timeout_per_probe_ms"], float | int):
-        raise ValueError("ripe_atlas 'timeout_per_probe_ms' must be a 'float or an int' (in ms)")
+        raise ValueError("ripe_atlas 'timeout_per_probe_ms' must be a 'float' or an 'int' in ms")
     return ripe_atlas["timeout_per_probe_ms"]
 
 def get_ripe_number_of_probes_per_measurement() -> int:
@@ -249,7 +266,7 @@ def get_ripe_number_of_probes_per_measurement() -> int:
         raise ValueError("ripe_atlas 'number_of_probes_per_measurement' must be an 'int'")
     return ripe_atlas["number_of_probes_per_measurement"]
 
-def get_max_probes_per_measurement() -> int:
+def get_ripe_max_probes_per_measurement() -> int:
     """
     This method returns the maximum number of probes requested per measurement.
 
@@ -287,4 +304,4 @@ def get_ripe_probes_wanted_percentages() -> list[float]:
     return ripe_atlas["probes_wanted_percentages"]
 
 
-# verify_if_config_is_set()
+verify_if_config_is_set()

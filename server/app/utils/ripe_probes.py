@@ -1,6 +1,6 @@
 from typing import TypeVar
 from typing import Optional
-from app.utils.load_env_vals import get_ripe_number_of_probes_per_measurement, get_max_probes_per_measurement, \
+from server.app.utils.load_config_data import get_ripe_number_of_probes_per_measurement, get_ripe_max_probes_per_measurement, \
     get_ripe_probes_wanted_percentages
 from server.app.utils.ip_utils import get_ip_network_details, get_prefix_from_ip, get_ip_family
 from ripe.atlas.cousteau import ProbeRequest
@@ -81,7 +81,7 @@ def get_best_probe_types(ip_asn: Optional[str], ip_prefix: Optional[str], ip_cou
     # the best distribution of probes that we desire:
     probes_wanted_percentages = get_ripe_probes_wanted_percentages()
     # [0.33, 0.3, 0.27, 0.10, 0.0]
-    max_pbs = get_max_probes_per_measurement()
+    max_pbs = get_ripe_max_probes_per_measurement()
     # type 0 is ASN, type 1 is prefix, type 2 is country code, type 3 is area and type 4 is random
     mapping_indexes_to_type = {
         0: "asn",

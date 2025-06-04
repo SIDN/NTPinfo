@@ -2,7 +2,7 @@ from ipaddress import ip_address, IPv4Address, IPv6Address
 
 import requests
 
-from app.utils.load_env_vals import get_ripe_api_token
+from server.app.utils.load_config_data import get_ripe_api_token
 from server.app.dtos.PreciseTime import PreciseTime
 from server.app.dtos.NtpExtraDetails import NtpExtraDetails
 from server.app.dtos.NtpMainDetails import NtpMainDetails

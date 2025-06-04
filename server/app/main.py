@@ -5,6 +5,7 @@ from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.utils.load_config_data import verify_if_config_is_set
 from server.app.db_config import init_engine
 from server.app.models.Base import Base
 from server.app.api.routing import router
@@ -23,9 +24,21 @@ def create_app(dev: bool = True) -> FastAPI:
         dev (bool): Tells us whether to initialize the real database or not (so if we are not in testing).
     Returns:
         FastAPI: A FastAPI application.
+    Raises:
+        Exception: if the server_config file is not correctly set.
     """
+    try:
+        verify_if_config_is_set()
+    except Exception as e:
+        print(f"Configuration error: {e}")
+        raise  # Prevent app creation
+
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:
+        # try:
+        #     verify_if_config_is_set()
+        # except Exception:
+        #     raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
         if dev:
             engine = init_engine()
             Base.metadata.create_all(bind=engine)
