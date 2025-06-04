@@ -7,8 +7,6 @@ from sqlalchemy import create_engine, StaticPool
 from sqlalchemy.orm import Session, sessionmaker
 
 from server.app.models.Base import Base
-from server.app.dtos.ProbeData import ProbeData, ProbeLocation
-from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.main import create_app
 from server.app.dtos.NtpExtraDetails import NtpExtraDetails
 from server.app.dtos.NtpMainDetails import NtpMainDetails

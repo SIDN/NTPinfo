@@ -1,5 +1,4 @@
 from server.app.utils.perform_measurements import *
-# import unittest
 from unittest.mock import patch, MagicMock
 from server.app.utils.calculations import ntp_precise_time_to_human_date
 from server.app.dtos.PreciseTime import PreciseTime

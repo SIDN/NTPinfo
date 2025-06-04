@@ -1,7 +1,7 @@
 from typing import Any, Optional
 from sqlalchemy.orm import Session
 
-from app.utils.load_config_data import get_ripe_number_of_probes_per_measurement, get_nr_of_measurements_for_jitter
+from server.app.utils.load_config_data import get_ripe_number_of_probes_per_measurement, get_nr_of_measurements_for_jitter
 from server.app.utils.calculations import calculate_jitter_from_measurements
 from server.app.utils.ip_utils import ip_to_str
 
@@ -21,13 +21,8 @@ from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.utils.ripe_fetch_data import parse_data_from_ripe_measurement, get_data_from_ripe_measurement
 from server.app.db.connection import insert_measurement
 from server.app.db.connection import get_measurements_timestamps_ip, get_measurements_timestamps_dn
-
-from server.app.dtos.NtpMainDetails import NtpMainDetails
 from server.app.dtos.NtpMeasurement import NtpMeasurement
-from server.app.dtos.NtpServerInfo import NtpServerInfo
-from server.app.dtos.NtpTimestamps import NtpTimestamps
-from server.app.dtos.PreciseTime import PreciseTime
-from server.app.dtos.NtpExtraDetails import NtpExtraDetails
+
 
 def get_format(measurement: NtpMeasurement, jitter: Optional[float] = None,
                nr_jitter_measurements: int = get_ripe_number_of_probes_per_measurement()) -> dict[str, Any]:
