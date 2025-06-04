@@ -1,4 +1,4 @@
-from app.utils.load_config_data import get_nr_of_measurements_for_jitter
+from server.app.utils.load_config_data import get_nr_of_measurements_for_jitter
 from server.app.db.connection import get_measurements_for_jitter_ip
 from server.app.dtos.NtpMeasurement import NtpMeasurement
 from server.app.services.NtpCalculator import NtpCalculator

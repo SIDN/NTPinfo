@@ -2,7 +2,6 @@ import ipaddress
 from datetime import datetime, timezone
 from ipaddress import IPv4Address, IPv6Address
 import dns.name
-import requests
 
 def is_valid_domain_name(domain_name: str) -> bool:
     """
