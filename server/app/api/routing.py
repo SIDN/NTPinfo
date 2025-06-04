@@ -67,8 +67,7 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
             client_ip = request.headers.get("X-Forwarded-For", request.client.host)
         except Exception as e:
             client_ip = None
-    times = payload.measurements_no if payload.measurements_no else 0
-    response = measure(server, session, client_ip, payload.jitter_flag, times - 1)
+    response = measure(server, session, client_ip)
     if response is not None:
         result, jitter, nr_jitter_measurements = response
         return {

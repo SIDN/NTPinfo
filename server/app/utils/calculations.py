@@ -34,4 +34,4 @@ def calculate_jitter_from_measurements(session: Session, initial_measurement: Nt
             offsets.append(NtpCalculator.calculate_offset(m.timestamps))
             nr_m = nr_m + 1
 
-    return float(NtpCalculator.calculate_jitter(offsets)), nr_m + 1
+    return float(NtpCalculator.calculate_jitter(offsets)), nr_m

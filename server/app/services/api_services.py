@@ -132,7 +132,7 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
     }
 
 
-def measure(server: str, session: Session, client_ip: Optional[str] = None, jitter_flag: bool = False,
+def measure(server: str, session: Session, client_ip: Optional[str] = None,
             measurement_no: int = 7) -> tuple[NtpMeasurement, float | None, int | None] | None:
     """
     Performs an NTP measurement for a given server (IP or domain name) and stores the result in the database.
@@ -145,7 +145,6 @@ def measure(server: str, session: Session, client_ip: Optional[str] = None, jitt
         server (str): A string representing either an IPv4/IPv6 address or a domain name.
         session (Session): The currently active database session.
         client_ip (Optional[str]): The client IP or None if it was not provided.
-        jitter_flag (bool): Boolean representing whether the client wants to perform multiple measurements to get the jitter.
         measurement_no (int): How many extra measurements to perform if the jitter_flag is True.
 
     Returns:
@@ -163,12 +162,11 @@ def measure(server: str, session: Session, client_ip: Optional[str] = None, jitt
             m = perform_ntp_measurement_ip(server)
             if m is not None:
                 jitter = None
-                nr_jitter_measurements = None
-                if jitter_flag:
-                    result = calculate_jitter_from_measurements(session, m, measurement_no)
-                    if result is not None:
-                        jitter, nr_jitter_measurements = result
+                nr_jitter_measurements = 0
                 insert_measurement(m, session)
+                result = calculate_jitter_from_measurements(session, m, measurement_no)
+                if result is not None:
+                    jitter, nr_jitter_measurements = result
                 return m, jitter, nr_jitter_measurements
             # the measurement failed
             print("The ntp server " + server + " is not responding.")
@@ -179,12 +177,11 @@ def measure(server: str, session: Session, client_ip: Optional[str] = None, jitt
                 m = ans
 
                 jitter = None
-                nr_jitter_measurements = None
-                if jitter_flag:
-                    result = calculate_jitter_from_measurements(session, m, measurement_no)
-                    if result is not None:
-                        jitter, nr_jitter_measurements = result
+                nr_jitter_measurements = 0
                 insert_measurement(m, session)
+                result = calculate_jitter_from_measurements(session, m, measurement_no)
+                if result is not None:
+                    jitter, nr_jitter_measurements = result
                 return m, jitter, nr_jitter_measurements
             print("The ntp server " + server + " is not responding.")
             return None
