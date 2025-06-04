@@ -23,31 +23,6 @@ from server.app.dtos.PreciseTime import PreciseTime
 from server.app.utils.validate import is_ip_address
 
 
-def calculate_jitter_from_measurements(initial_measurement: NtpMeasurement, times: int = 0) -> float:
-    """
-    For a single measurement, calculates a burst of measurements to calculate the jitter.
-    Args:
-        initial_measurement (NtpMeasurement): measurement that is actually saved in the DB, serving as the "mean" for the standard deviation.
-        times (int): number of measurements performed to calculate jitter.
-
-    Returns:
-        float: jitter in seconds.
-    """
-    offsets = [NtpCalculator.calculate_offset(initial_measurement.timestamps)]
-    measurements_done = 0
-    for _ in range(times):
-        measurement = perform_ntp_measurement_ip(
-            str(initial_measurement.server_info.ntp_server_ip),
-            initial_measurement.server_info.ntp_version
-        )
-        if measurement is None:
-            break
-        offsets.append(NtpCalculator.calculate_offset(measurement.timestamps))
-        measurements_done += 1
-
-    return float(NtpCalculator.calculate_jitter(offsets))
-
-
 def get_server_ip() -> IPv4Address | IPv6Address | None:
     """
     Determines the outward-facing IP address of the server by opening a
@@ -289,7 +264,7 @@ def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
         print("Error:", e)
         return False
 
-def perform_ripe_measurement_domain_name(server_name: str, client_ip: Optional[str]=None,
+def perform_ripe_measurement_domain_name(server_name: str, client_ip: Optional[str] = None,
                                          probes_requested: int =
                                          get_ripe_number_of_probes_per_measurement()) -> tuple[int, list[str]]:
     """

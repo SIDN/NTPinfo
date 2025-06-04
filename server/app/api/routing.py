@@ -3,7 +3,6 @@ from fastapi import HTTPException, APIRouter, Request, Depends
 from datetime import datetime, timezone
 from typing import Any, Optional, Generator
 
-
 from sqlalchemy.orm import Session
 
 from server.app.db_config import get_db
@@ -14,7 +13,6 @@ from server.app.services.api_services import perform_ripe_measurement
 from server.app.rate_limiter import limiter
 from server.app.dtos.MeasurementRequest import MeasurementRequest
 from server.app.services.api_services import get_format, measure, fetch_historic_data_with_timestamps
-
 
 router = APIRouter()
 
@@ -69,12 +67,11 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
             client_ip = request.headers.get("X-Forwarded-For", request.client.host)
         except Exception as e:
             client_ip = None
-    times = payload.measurements_no if payload.measurements_no else 0
-    response = measure(server, session, client_ip, payload.jitter_flag, times)
+    response = measure(server, session, client_ip)
     if response is not None:
-        result, jitter = response
+        result, jitter, nr_jitter_measurements = response
         return {
-            "measurement": get_format(result, jitter)
+            "measurement": get_format(result, jitter, nr_jitter_measurements)
         }
     else:
         raise HTTPException(status_code=404, detail="Your search does not seem to match any server")

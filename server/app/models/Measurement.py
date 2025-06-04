@@ -9,9 +9,10 @@ from sqlalchemy.sql.type_api import TypeEngine
 from server.app.models.Base import Base
 from server.app.models.Time import Time
 
-class IPAddress(TypeDecorator):
 
+class IPAddress(TypeDecorator):
     impl = INET
+    cache_ok = True
 
     def load_dialect_impl(self, dialect: Dialect) -> TypeEngine:
         """
@@ -24,6 +25,7 @@ class IPAddress(TypeDecorator):
         if dialect.name == "sqlite":
             return dialect.type_descriptor(String())
         return dialect.type_descriptor(INET())
+
 
 class Measurement(Base):
     __tablename__ = "measurements"
