@@ -277,7 +277,9 @@ def perform_ripe_measurement(ntp_server: str, client_ip: Optional[str]) -> str:
     """
     # use our server as the client if the client IP is not provided
     if client_ip is None:
-        client_ip = get_server_ip()
+        client_ip = ip_to_str(get_server_ip())
+        if client_ip is None:
+            raise InputError("Could not determine IP address of neither server nor client")
     try:
         if is_ip_address(ntp_server) is not None:
             measurement_id = perform_ripe_measurement_ip(ntp_server, client_ip)
