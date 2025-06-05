@@ -1,9 +1,8 @@
-from typing import Any, Optional
 from sqlalchemy.orm import Session
 
 from server.app.utils.load_config_data import get_ripe_number_of_probes_per_measurement, \
     get_nr_of_measurements_for_jitter
-from server.app.utils.calculations import calculate_jitter_from_measurements
+from server.app.utils.calculations import calculate_jitter_from_measurements, human_date_to_ntp_precise_time
 from server.app.utils.ip_utils import ip_to_str
 
 from ipaddress import IPv4Address, IPv6Address, ip_address
@@ -15,13 +14,12 @@ from server.app.utils.validate import ensure_utc, is_ip_address, parse_ip
 from server.app.services.NtpCalculator import NtpCalculator
 from server.app.utils.perform_measurements import perform_ntp_measurement_ip, perform_ntp_measurement_domain_name, \
     perform_ripe_measurement_ip
-from server.app.utils.perform_measurements import human_date_to_ntp_precise_time
 from datetime import datetime
 from server.app.dtos.ProbeData import ProbeLocation
 from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.utils.ripe_fetch_data import parse_data_from_ripe_measurement, get_data_from_ripe_measurement
-from server.app.db.connection import insert_measurement
-from server.app.db.connection import get_measurements_timestamps_ip, get_measurements_timestamps_dn
+from server.app.db.db_interaction import insert_measurement
+from server.app.db.db_interaction import get_measurements_timestamps_ip, get_measurements_timestamps_dn
 from server.app.dtos.NtpMeasurement import NtpMeasurement
 
 
