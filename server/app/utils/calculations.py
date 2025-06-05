@@ -1,5 +1,5 @@
 from server.app.utils.load_config_data import get_nr_of_measurements_for_jitter
-from server.app.db.connection import get_measurements_for_jitter_ip
+from server.app.db.db_interaction import get_measurements_for_jitter_ip
 from server.app.dtos.NtpMeasurement import NtpMeasurement
 from server.app.services.NtpCalculator import NtpCalculator
 from sqlalchemy.orm import Session
@@ -40,6 +40,7 @@ def calculate_jitter_from_measurements(session: Session, initial_measurement: Nt
 
     return float(NtpCalculator.calculate_jitter(offsets)), nr_m
 
+
 def ntp_precise_time_to_human_date(t: PreciseTime) -> str:
     """
     Converts a PreciseTime object to a human-readable time string in UTC. (ex:'2025-05-05 14:30:15.123456 UTC')
@@ -58,3 +59,40 @@ def ntp_precise_time_to_human_date(t: PreciseTime) -> str:
     except Exception as e:
         print(e)
         return ""
+
+
+def convert_float_to_precise_time(value: float) -> PreciseTime:
+    """
+    Converts a float value to a PreciseTime object.
+
+    Args:
+        value (float): the float value to convert
+
+    Returns:
+        a PreciseTime object
+    """
+    seconds = int(value)
+    fraction = ntplib._to_frac(value)  # by default, a second is split into 2^32 parts
+    return PreciseTime(seconds, fraction)
+
+
+def human_date_to_ntp_precise_time(dt: datetime) -> PreciseTime:
+    """
+    Converts a UTC datetime object to a PreciseTime object in NTP time.
+
+    Args:
+        dt (datetime): A timezone-aware datetime object in UTC.
+
+    Returns:
+        PreciseTime: The corresponding NTP time.
+    """
+    if dt.tzinfo is None:
+        raise ValueError("Input datetime must be timezone-aware (UTC)")
+
+    unix_timestamp = dt.timestamp()
+    ntp_timestamp = unix_timestamp + ntplib.NTP.NTP_DELTA
+
+    ntp_seconds = int(ntp_timestamp)
+    ntp_fraction = int((ntp_timestamp - ntp_seconds) * (2 ** 32))
+
+    return PreciseTime(ntp_seconds, ntp_fraction)

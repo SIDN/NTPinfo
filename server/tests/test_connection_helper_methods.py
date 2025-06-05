@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
 
-from server.app.db.connection import row_to_dict, rows_to_dicts, dict_to_measurement, rows_to_measurements
+from server.app.db.db_interaction import row_to_dict, rows_to_dicts, dict_to_measurement, rows_to_measurements
 from server.app.models.Measurement import Measurement
 from server.app.models.Time import Time
 from server.app.dtos.NtpMeasurement import NtpMeasurement
