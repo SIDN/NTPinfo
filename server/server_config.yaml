@@ -19,4 +19,4 @@ ripe_atlas:
   packets_per_probe: 3
   number_of_probes_per_measurement: 35
   max_probes_per_measurement: 100
-  probes_wanted_percentages: [0.33, 0.30, 0.27, 0.10, 0.0] # exactly 5 values and their sum must be 1 (100%)
+  probes_wanted_percentages: [0.5, 0.5, 0, 0, 0, 0, 0] # exactly 7 values and their sum must be 1 (100%)

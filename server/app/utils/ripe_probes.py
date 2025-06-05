@@ -9,7 +9,7 @@ from ripe.atlas.cousteau import ProbeRequest
 T = TypeVar('T', int, float) # float or int
 
 
-def get_probes(ntp_server_ip: str,
+def get_probes(client_ip: str,
                probes_requested: int=get_ripe_number_of_probes_per_measurement()) -> list[dict]:
     """
     This method handles all cases regarding what probes we should send.
@@ -17,7 +17,7 @@ def get_probes(ntp_server_ip: str,
     may be affected)
 
     Args:
-        ntp_server_ip (str): The IP address of the NTP server.
+        client_ip (str): The IP address of the client.
         probes_requested (int): The total number of probes that we will request.
 
     Returns:
@@ -27,9 +27,9 @@ def get_probes(ntp_server_ip: str,
         Exception: If the NTP server IP address is invalid or
     """
     # get the details. (this will take around 150-200ms)
-    ip_family: int = get_ip_family(ntp_server_ip)
-    ip_asn, ip_country, ip_area = get_ip_network_details(ntp_server_ip)
-    ip_prefix = get_prefix_from_ip(ntp_server_ip)
+    ip_family: int = get_ip_family(client_ip)
+    ip_asn, ip_country, ip_area = get_ip_network_details(client_ip)
+    ip_prefix = get_prefix_from_ip(client_ip)
     # settings:
     probes: list[dict] = []
     probe_functions = {
@@ -39,10 +39,17 @@ def get_probes(ntp_server_ip: str,
         "area": lambda c: get_area_probes(ip_area, c),
         "random": lambda c: get_random_probes(c)
     }
+    # Try to see if we have probes with the same ASN and prefix OR same ASN and same country. They have the highest priority.
+    probes_requested, initial_probes_ids = getting_best_probes_with_multiple_attributes(ip_asn=ip_asn, ip_prefix=ip_prefix, ip_country=ip_country,
+                                                 ip_family=ip_family, probes_requested=probes_requested)
+    # add their IDs.
+    if len(initial_probes_ids) > 0:
+        probes.append(get_probes_by_ids(initial_probes_ids))
+    # we have found our probes -> return
+    if probes_requested <= 0:
+        return probes
 
-    # the types of probes that we will use. We will use the input parameters to determine which probe types to use.
-    # But for now we use a default order. We would change this logic in future
-
+    # if we still need more probes or if the method above failed, continue trying with filters by a single attributes.
     best_probe_types: dict[str, int] = get_best_probe_types(ip_asn=ip_asn, ip_prefix=ip_prefix, ip_country=ip_country,
                                                 ip_area=ip_area, ip_family=ip_family, probes_requested=probes_requested)
 
@@ -67,7 +74,7 @@ def get_best_probe_types(ip_asn: Optional[str], ip_prefix: Optional[str], ip_cou
         ip_country (str): The country of the NTP server IP address.
         ip_area (str): The area of the NTP server IP address.
         ip_family (int): The family of the NTP server IP address. (4 or 6)
-        probes_requested (int): The total number of probes that we will request.
+        probes_requested (int): The number of probes that we will request.
 
     Returns:
         dict[str, int]: The set of probe types and the respective number of probes.
@@ -78,29 +85,24 @@ def get_best_probe_types(ip_asn: Optional[str], ip_prefix: Optional[str], ip_cou
     if probes_requested < 0:
         raise Exception("Probe requested cannot be negative")
     ip_type = "ipv" + str(ip_family)
-    # the best distribution of probes that we desire:
+    # the best distribution of probes that we desire at this point:
     probes_wanted_percentages = get_ripe_probes_wanted_percentages()
-    # [0.33, 0.3, 0.27, 0.10, 0.0]
     max_pbs = get_ripe_max_probes_per_measurement()
-    # type 0 is ASN, type 1 is prefix, type 2 is country code, type 3 is area and type 4 is random
     mapping_indexes_to_type = {
         0: "asn",
         1: "prefix",
         2: "country",
         3: "area",
-        4: "random",
+        4: "random"
     }
     # it contains the number of probes for each type (as a float because we would add float numbers to these fields,
     # and we want for example 0.5+0.5 to be 1, not 0)
-    probes_wanted: list[float] = [0.0 for i in range(5)]
-    probes_wanted[0] = probes_requested * probes_wanted_percentages[0]
-    probes_wanted[1] = probes_requested * probes_wanted_percentages[1]
-    probes_wanted[2] = probes_requested * probes_wanted_percentages[2]
-    probes_wanted[3] = probes_requested * probes_wanted_percentages[3]
-    # probes_wanted[4] = 0.0  #this is just a reminder that we do not want random probes
+    probes_wanted: list[float] = [0.0 for _ in range(5)]
+    for i in range(5):
+        probes_wanted[i] = probes_requested * probes_wanted_percentages[i]
 
     # "ans" means how many probes of each type we will ask for, see "mapping_indexes_to_type" for details
-    ans: list[float] = [0, 0, 0, 0, 0] # how many probes
+    ans: list[float] = [0.0 for _ in range(5)] # how many probes
 
     probes_available: list[float] = [0, 0, 0, 0, max_pbs] # random type always has enough probes
     # see what is available on RIPE Atlas
@@ -146,7 +148,77 @@ def get_best_probe_types(ip_asn: Optional[str], ip_prefix: Optional[str], ip_cou
         best_probe_types[mapping_indexes_to_type[i]] = ans_integers[i]
     return best_probe_types
 
+def getting_best_probes_with_multiple_attributes(ip_asn: Optional[str], ip_prefix: Optional[str], ip_country: Optional[str],
+                          ip_family: int,
+                         probes_requested: int=get_ripe_number_of_probes_per_measurement()) -> tuple[int, list[int]]:
+    """
+    This method tries to get probes that has the same ASN and prefix OR the same ASN and country and subtract them
+    from the probes_requested. These probes have the highest priority as they have multiple attributes as the client IP
+    (same ASN and same prefix OR same ASN or same country)
 
+    Args:
+        ip_asn (int): The ASN of the NTP server IP address.
+        ip_prefix (str): The prefix of the NTP server IP address.
+        ip_country (str): The country of the NTP server IP address.
+        ip_family (int): The family of the NTP server IP address. (4 or 6)
+        probes_requested (int): The total number of probes that we will request.
+
+    Returns:
+        tuple[int, list[int]]: The updated number of requested probes still needed and
+                               a list of the IDs of the probes that we found until now.
+
+    Raises:
+        Exception: If the input is invalid or probes_requested is negative.
+    """
+    if probes_requested < 0:
+        raise Exception("Probe requested cannot be negative")
+
+    ip_type = "ipv" + str(ip_family)
+    probes_ids_set: set[int] = set()
+    # see if we can get enough probes from probes with the same ASN and same prefix:
+    count, ids = get_available_probes_asn_and_prefix(ip_asn, ip_prefix, ip_type) if (
+                ip_asn is not None and ip_prefix is not None) else (0, [])
+    for pb in ids:
+        if pb not in probes_ids_set:
+            probes_ids_set.add(pb)
+            probes_requested -= 1
+            if probes_requested <= 0:
+                return 0, list(probes_ids_set)
+    # try with the probes from the same ASN and country
+    count, ids = get_available_probes_asn_and_country(ip_asn, ip_country, ip_type) if (
+                ip_asn is not None and ip_country is not None) else (0, [])
+    for pb in ids:
+        if pb not in probes_ids_set:
+            probes_ids_set.add(pb)
+            probes_requested -= 1
+            if probes_requested <= 0:
+                return 0, list(probes_ids_set)
+    return probes_requested, list(probes_ids_set)
+
+def get_probes_by_ids(probe_ids: list[int]) -> dict:
+    """
+        This method selects probes by their IDs.
+
+        Args:
+            probe_ids (list[int]): The IDs of the probes.
+
+        Returns:
+            dict: the selected probes
+
+        Raises:
+            Exception: If the input is invalid
+        """
+    if len(probe_ids) == 0:
+        raise ValueError("probe_ids cannot be empty")
+    list_str = [str(p) for p in probe_ids]
+    formatted_list=','.join(list_str)
+    print(formatted_list)
+    probes = {
+        "type": "probes",
+        "value": formatted_list,
+        "requested": len(probe_ids)
+  }
+    return probes
 def get_asn_probes(ip_asn: Optional[str|int], n: int) -> dict:
     """
     This method selects n probes that belong to the same ASN network.
@@ -246,6 +318,119 @@ def get_random_probes(n: int) -> dict:
         dict: the selected probes
     """
     return get_area_probes("WW", n)
+def get_available_probes_asn_and_prefix_and_country(ip_asn: str, ip_prefix: str,
+                                                    ip_country_code: str, ip_type: str) -> tuple[int, list[int]]:
+    """
+    This method gets how many probes that has the same ASN and same prefix as the IP are available.
+    These probes should also support ipv4 or ipv6, it depends on the type.
+
+    Args:
+        ip_asn (str): the ASN of the searched network
+        ip_prefix(str): the prefix of the respective IP
+        ip_country_code(str): the country code of the respective IP
+        ip_type (str): the IP type (ipv4 or ipv6). (not case-sensitive)
+
+    Returns:
+        tuple[int, list[str]]: the number of available probes and the list with the IPs of the probes
+
+    Raises:
+        Exception: If the input is invalid
+    """
+    ip_asn_number = int(ip_asn[2:])
+    prefix_type: str = "prefix_v4" if ip_type == "ipv4" else "prefix_v6"
+    filters = {
+       "asn": ip_asn_number,
+        prefix_type: ip_prefix,
+        "country_code": ip_country_code,
+        "status": 1,  # Connected probes
+        "tags": f"system-{ip_type.lower()}-works",
+    }
+    probes = ProbeRequest(
+        return_objects=True,
+        fields="id",
+        page_size=200,
+        **filters,
+    )
+    probe_ids_list: list[int] = []
+    for p in probes:
+        probe_ids_list.append(p.id)
+
+    #print(probe_ids_list)
+    ans: int = len(probe_ids_list)
+    return ans, probe_ids_list
+def get_available_probes_asn_and_prefix(ip_asn: str, ip_prefix: str, ip_type: str) -> tuple[int, list[int]]:
+    """
+    This method gets how many probes that has the same ASN and same prefix as the IP are available.
+    These probes should also support ipv4 or ipv6, it depends on the type.
+
+    Args:
+        ip_asn (str): the ASN of the searched network
+        ip_prefix(str): the prefix of the respective IP
+        ip_type (str): the IP type (ipv4 or ipv6). (not case-sensitive)
+
+    Returns:
+        tuple[int, list[str]]: the number of available probes and the list with the IPs of the probes
+
+    Raises:
+        Exception: If the input is invalid
+    """
+    ip_asn_number = int(ip_asn[2:])
+    prefix_type: str = "prefix_v4" if ip_type == "ipv4" else "prefix_v6"
+    filters = {
+       "asn": ip_asn_number,
+        prefix_type: ip_prefix,
+        "status": 1,  # Connected probes
+        "tags": f"system-{ip_type.lower()}-works",
+    }
+    probes = ProbeRequest(
+        return_objects=True,
+        fields="id",
+        page_size=200,
+        **filters,
+    )
+    probe_ids_list: list[int] = []
+    for p in probes:
+        probe_ids_list.append(p.id)
+
+    #print(probe_ids_list)
+    ans: int = len(probe_ids_list)
+    return ans, probe_ids_list
+def get_available_probes_asn_and_country(ip_asn: str, ip_country_code: str, ip_type: str) -> tuple[int, list[int]]:
+    """
+    This method gets how many probes that has the same ASN and same country code as the IP are available.
+    These probes should also support ipv4 or ipv6, it depends on the type.
+
+    Args:
+        ip_asn (str): the ASN of the searched network
+        ip_country_code(str): the country code of the respective IP
+        ip_type (str): the IP type (ipv4 or ipv6). (not case-sensitive)
+
+    Returns:
+        tuple[int, list[str]]: the number of available probes and the list with the IPs of the probes
+
+    Raises:
+        Exception: If the input is invalid
+    """
+    ip_asn_number = int(ip_asn[2:])
+    filters = {
+       "asn": ip_asn_number,
+        "country_code": ip_country_code,
+        "status": 1,  # Connected probes
+        "tags": f"system-{ip_type.lower()}-works",
+    }
+    probes = ProbeRequest(
+        return_objects=True,
+        fields="id",
+        page_size=200,
+        **filters,
+    )
+    probe_ids_list: list[int] = []
+    for p in probes:
+        probe_ids_list.append(p.id)
+
+    #print(probe_ids_list)
+    ans: int = len(probe_ids_list)
+    return ans, probe_ids_list
 def get_available_probes_asn(ip_asn: str, ip_type: str) -> int:
     """
     This method selects n probes that has the same prefix and supports ipv4 or ipv6, it depends on the type.
@@ -397,11 +582,19 @@ def take_from_available_probes(needed: T, probes_available: list[T],
     # ans_for_index would always be the initial value of needed
     return probes_available, ans
 
-# import time
-# start = time.time()
+# prefixx = get_prefix_from_ip("89.46.74.148")
+# print(prefixx)
+import time
+start = time.time()
+print(get_probes("89.46.74.148", 20))
+# a,b=get_available_probes_asn_and_prefix("AS15435","149.143.64.0/18","ipv4")
+# print(a,b)
+# c=get_probes_by_ids(b)
+# print(c)
+# print(get_available_probes_asn_and_country("AS15435","BL","ipv4"))
 # print(get_available_probes_asn("AS9009","ipv4"))
-# print(get_available_probes_prefix("80.211.224.0/16","ipv4"))
+# print(get_available_probes_prefix(prefixx,"ipv4"))
 # print(get_available_probes_country("NL","ipv4"))
 # print(get_best_probe_types("AS9009", "80.211.224.0/20", "NL", "da", 4, 40))
-# end = time.time()
-# print(end - start)
+end = time.time()
+print(end - start)
