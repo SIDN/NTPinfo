@@ -1,5 +1,7 @@
 from typing import TypeVar
 from typing import Optional
+
+from server.app.models.CustomError import InputError
 from server.app.utils.load_config_data import get_ripe_number_of_probes_per_measurement, get_ripe_max_probes_per_measurement, \
     get_ripe_probes_wanted_percentages
 from server.app.utils.ip_utils import get_ip_network_details, get_prefix_from_ip, get_ip_family
@@ -80,10 +82,10 @@ def get_best_probe_types(ip_asn: Optional[str], ip_prefix: Optional[str], ip_cou
         dict[str, int]: The set of probe types and the respective number of probes.
 
     Raises:
-        Exception: If the NTP server IP is invalid or if the probes_requested is negative.
+        InputError: If the NTP server IP is invalid or if the probes_requested is negative.
     """
     if probes_requested < 0:
-        raise Exception("Probe requested cannot be negative")
+        raise InputError("Probe requested cannot be negative")
     ip_type = "ipv" + str(ip_family)
     # the best distribution of probes that we desire at this point:
     probes_wanted_percentages = get_ripe_probes_wanted_percentages()
@@ -98,8 +100,11 @@ def get_best_probe_types(ip_asn: Optional[str], ip_prefix: Optional[str], ip_cou
     # it contains the number of probes for each type (as a float because we would add float numbers to these fields,
     # and we want for example 0.5+0.5 to be 1, not 0)
     probes_wanted: list[float] = [0.0 for _ in range(5)]
-    for i in range(5):
-        probes_wanted[i] = probes_requested * probes_wanted_percentages[i]
+    probes_wanted[0] = probes_requested * probes_wanted_percentages[0]
+    probes_wanted[1] = probes_requested * probes_wanted_percentages[1]
+    probes_wanted[2] = probes_requested * probes_wanted_percentages[2]
+    probes_wanted[3] = probes_requested * probes_wanted_percentages[3]
+    probes_wanted[4] = probes_requested * probes_wanted_percentages[4]
 
     # "ans" means how many probes of each type we will ask for, see "mapping_indexes_to_type" for details
     ans: list[float] = [0.0 for _ in range(5)] # how many probes
@@ -168,10 +173,10 @@ def getting_best_probes_with_multiple_attributes(ip_asn: Optional[str], ip_prefi
                                a list of the IDs of the probes that we found until now.
 
     Raises:
-        Exception: If the input is invalid or probes_requested is negative.
+        InputError: If the input is invalid or probes_requested is negative.
     """
     if probes_requested < 0:
-        raise Exception("Probe requested cannot be negative")
+        raise InputError("Probe requested cannot be negative")
 
     ip_type = "ipv" + str(ip_family)
     probes_ids_set: set[int] = set()
@@ -206,13 +211,13 @@ def get_probes_by_ids(probe_ids: list[int]) -> dict:
             dict: the selected probes
 
         Raises:
-            Exception: If the input is invalid
+            InputError: If the input is invalid
         """
     if len(probe_ids) == 0:
-        raise ValueError("probe_ids cannot be empty")
+        raise InputError("probe_ids cannot be empty")
     list_str = [str(p) for p in probe_ids]
-    formatted_list=','.join(list_str)
-    print(formatted_list)
+    formatted_list = ','.join(list_str)
+    #print(formatted_list)
     probes = {
         "type": "probes",
         "value": formatted_list,
@@ -231,10 +236,10 @@ def get_asn_probes(ip_asn: Optional[str|int], n: int) -> dict:
         dict: the selected probes
 
     Raises:
-        ValueError: if the ASN network is None
+        InputError: if the ASN network is None
     """
     if ip_asn is None:
-        raise ValueError("ip_asn cannot be None")
+        raise InputError("ip_asn cannot be None")
     probes = {
             "type": "asn",
             "value": ip_asn,
@@ -253,10 +258,10 @@ def get_prefix_probes(ip_prefix: Optional[str], n: int) -> dict:
         dict: the selected probes
 
     Raises:
-        ValueError: if the IP prefix is None
+        InputError: if the IP prefix is None
     """
     if ip_prefix is None:
-        raise ValueError("ip_prefix cannot be None")
+        raise InputError("ip_prefix cannot be None")
     probes = {
             "type": "prefix",
             "value": ip_prefix,
@@ -275,10 +280,10 @@ def get_country_probes(ip_country_code: Optional[str], n: int) -> dict:
         dict: the selected probes
 
     Raises:
-        ValueError: if the country code is None
+        InputError: if the country code is None
     """
     if ip_country_code is None:
-        raise ValueError("ip_country_code cannot be None")
+        raise InputError("ip_country_code cannot be None")
     probes = {
             "type": "country",
             "value": ip_country_code,
@@ -297,10 +302,10 @@ def get_area_probes(area: Optional[str], n: int) -> dict:
         dict: the selected probes
 
     Raises:
-        ValueError: If area is not valid
+        InputError: If area is not valid
     """
     if area is None:
-        raise ValueError("area cannot be None")
+        raise InputError("area cannot be None")
     probes = {
         "type": "area",
         "value": area,
@@ -584,9 +589,9 @@ def take_from_available_probes(needed: T, probes_available: list[T],
 
 # prefixx = get_prefix_from_ip("89.46.74.148")
 # print(prefixx)
-import time
-start = time.time()
-print(get_probes("89.46.74.148", 20))
+# import time
+# start = time.time()
+# print(get_probes("89.46.74.148", 20))
 # a,b=get_available_probes_asn_and_prefix("AS15435","149.143.64.0/18","ipv4")
 # print(a,b)
 # c=get_probes_by_ids(b)
@@ -596,5 +601,5 @@ print(get_probes("89.46.74.148", 20))
 # print(get_available_probes_prefix(prefixx,"ipv4"))
 # print(get_available_probes_country("NL","ipv4"))
 # print(get_best_probe_types("AS9009", "80.211.224.0/20", "NL", "da", 4, 40))
-end = time.time()
-print(end - start)
+# end = time.time()
+# print(end - start)

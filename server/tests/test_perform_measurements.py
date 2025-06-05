@@ -1,3 +1,5 @@
+from ipaddress import IPv4Address
+
 from server.app.utils.perform_measurements import *
 from unittest.mock import patch, MagicMock
 from server.app.utils.calculations import ntp_precise_time_to_human_date
@@ -29,7 +31,7 @@ def test_ntp_precise_time_to_human_date():
     assert ntp_precise_time_to_human_date(t2) == "2025-05-06 09:39:43.145286 UTC"
 
 
-@patch("server.app.utils.perform_measurements.socket.getaddrinfo")
+@patch("server.app.utils.domain_name_to_ip.socket.getaddrinfo")
 @patch("server.app.utils.perform_measurements.ntplib.NTPClient.request")
 def test_perform_ntp_measurement_domain_name(mock_request, mock_getaddrinfo):
     # Mock socket.getaddrinfo

@@ -4,7 +4,7 @@ from server.app.utils.domain_name_to_ip import domain_name_to_ip_default, domain
 import dns.rdatatype
 
 
-@patch("server.app.utils.perform_measurements.socket.getaddrinfo")
+@patch("server.app.utils.domain_name_to_ip.socket.getaddrinfo")
 def test_domain_name_to_ip_default_error(mock_getaddrinfo):
     # Mock socket.getaddrinfo
     mock_getaddrinfo.side_effect = socket.gaierror("Mocked error")
@@ -18,7 +18,7 @@ def test_domain_name_to_ip_default_error(mock_getaddrinfo):
     assert result is None
 
 
-@patch("server.app.utils.perform_measurements.socket.getaddrinfo")
+@patch("server.app.utils.domain_name_to_ip.socket.getaddrinfo")
 def test_domain_name_to_ip_default_empty(mock_getaddrinfo):
     # Mock socket.getaddrinfo
     mock_getaddrinfo.return_value = []
@@ -28,7 +28,7 @@ def test_domain_name_to_ip_default_empty(mock_getaddrinfo):
 
     assert result == mock_ans
 
-@patch("server.app.utils.perform_measurements.socket.getaddrinfo")
+@patch("server.app.utils.domain_name_to_ip.socket.getaddrinfo")
 def test_domain_name_to_ip_default_one_ip(mock_getaddrinfo):
     # Mock socket.getaddrinfo
     mock_getaddrinfo.return_value = [(None, None, None, None, ("83.25.24.10", 0))]
@@ -39,7 +39,7 @@ def test_domain_name_to_ip_default_one_ip(mock_getaddrinfo):
 
     assert result == mock_ans
 
-@patch("server.app.utils.perform_measurements.socket.getaddrinfo")
+@patch("server.app.utils.domain_name_to_ip.socket.getaddrinfo")
 def test_domain_name_to_ip_default_more_ips(mock_getaddrinfo):
     # Mock socket.getaddrinfo
     mock_getaddrinfo.return_value = [

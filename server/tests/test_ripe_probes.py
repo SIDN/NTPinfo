@@ -1,15 +1,20 @@
 import math
 import pytest
+
+from server.app.models.CustomError import InputError
 from server.app.utils.ripe_probes import get_random_probes, get_area_probes, get_asn_probes, get_prefix_probes, \
     get_country_probes, get_best_probe_types, get_probes, get_available_probes_asn, get_available_probes_prefix, \
     get_available_probes_country, take_from_available_probes
 from unittest.mock import patch, MagicMock
 
 
+@patch("server.app.utils.ripe_probes.getting_best_probes_with_multiple_attributes")
 @patch("server.app.utils.ripe_probes.get_best_probe_types")
 @patch("server.app.utils.ripe_probes.get_ip_network_details")
 @patch("server.app.utils.ripe_probes.get_prefix_from_ip")
-def test_get_probes_all_good(mock_get_prefix_from_ip, mock_get_network_details, mock_get_best_probe_types):
+def test_get_probes_all_good(mock_get_prefix_from_ip, mock_get_network_details, mock_get_best_probe_types,
+                             mock_get_multiple_attributes):
+    mock_get_multiple_attributes.return_value = (13, [])
     types: dict[str, int] = {
         "country": 1,
         "area": 10,
@@ -21,7 +26,7 @@ def test_get_probes_all_good(mock_get_prefix_from_ip, mock_get_network_details, 
     mock_get_network_details.return_value = ("AS15169","IT","West")
     mock_get_best_probe_types.return_value = types
 
-    probes_result = get_probes("80.211.238.247")
+    probes_result = get_probes("80.211.238.247", 13)
 
     answer= [{'requested': 1, 'type': 'country', 'value': 'IT'},
              {'requested': 10, 'type': 'area', 'value': 'West'},
@@ -31,10 +36,13 @@ def test_get_probes_all_good(mock_get_prefix_from_ip, mock_get_network_details, 
     ]
     assert probes_result == answer
 
+@patch("server.app.utils.ripe_probes.getting_best_probes_with_multiple_attributes")
 @patch("server.app.utils.ripe_probes.get_best_probe_types")
 @patch("server.app.utils.ripe_probes.get_ip_network_details")
 @patch("server.app.utils.ripe_probes.get_prefix_from_ip")
-def test_get_probes_some_none(mock_get_prefix_from_ip, mock_get_network_details, mock_get_best_probe_types):
+def test_get_probes_some_none(mock_get_prefix_from_ip, mock_get_network_details, mock_get_best_probe_types,
+                              mock_get_multiple_attributes):
+    mock_get_multiple_attributes.return_value = (13, [])
     types: dict[str, int] = {
         "country": 1,
         "area": 0,
@@ -46,7 +54,7 @@ def test_get_probes_some_none(mock_get_prefix_from_ip, mock_get_network_details,
     mock_get_network_details.return_value = ("AS15169","IT",None)
     mock_get_best_probe_types.return_value = types
 
-    probes_result= get_probes("80.211.238.247")#(ip_asn="AS15169", ip_prefix="None", ip_country="IT", ip_area="None")
+    probes_result = get_probes("80.211.238.247", 13)#(ip_asn="AS15169", ip_prefix="None", ip_country="IT", ip_area="None")
 
     answer= [{'requested': 1, 'type': 'country', 'value': 'IT'},
              {'requested': 2, 'type': 'asn', 'value': 'AS15169'},
@@ -54,10 +62,13 @@ def test_get_probes_some_none(mock_get_prefix_from_ip, mock_get_network_details,
     ]
     assert probes_result == answer
 
+@patch("server.app.utils.ripe_probes.getting_best_probes_with_multiple_attributes")
 @patch("server.app.utils.ripe_probes.get_best_probe_types")
 @patch("server.app.utils.ripe_probes.get_ip_network_details")
 @patch("server.app.utils.ripe_probes.get_prefix_probes")
-def test_get_probes_unexpected(mock_get_prefix_from_ip, mock_get_network_details, mock_get_best_probe_types):
+def test_get_probes_unexpected(mock_get_prefix_from_ip, mock_get_network_details, mock_get_best_probe_types,
+                               mock_get_multiple_attributes):
+    mock_get_multiple_attributes.return_value = (13, [])
     types: dict[str, int] = {
         "country": 0,
         "area": 0,
@@ -70,7 +81,7 @@ def test_get_probes_unexpected(mock_get_prefix_from_ip, mock_get_network_details
     mock_get_network_details.return_value = ("AS15169", None, None)
     mock_get_best_probe_types.return_value = types
 
-    probes_result = get_probes("80.211.238.247")
+    probes_result = get_probes("80.211.238.247",13)
 
     answer= [{'requested': 2, 'type': 'asn', 'value': 'AS15169'},
              {'requested': 10, 'type': 'area', 'value': 'WW'},
@@ -78,9 +89,11 @@ def test_get_probes_unexpected(mock_get_prefix_from_ip, mock_get_network_details
     ]
     assert probes_result == answer
 
+@patch("server.app.utils.ripe_probes.get_ripe_probes_wanted_percentages")
 @patch("server.app.utils.ripe_probes.get_ripe_max_probes_per_measurement")
-def test_get_best_probe_types_first_3_none(mock_get_max_probes):
+def test_get_best_probe_types_first_3_none(mock_get_max_probes, mock_wanted_percentages):
     mock_get_max_probes.return_value = 40
+    mock_wanted_percentages.return_value = ([0.33,0.3,0.27,0.1,0])
     #all None
     result = get_best_probe_types(None,None,None,None,4,34)
     assert result["asn"] == 0
@@ -107,12 +120,15 @@ def test_get_best_probe_types_first_3_none(mock_get_max_probes):
     with pytest.raises(Exception):
         get_best_probe_types(None,None,None,"West",6,37)
 
+@patch("server.app.utils.ripe_probes.get_ripe_probes_wanted_percentages")
 @patch("server.app.utils.ripe_probes.get_ripe_max_probes_per_measurement")
 @patch("server.app.utils.ripe_probes.get_available_probes_country")
 @patch("server.app.utils.ripe_probes.get_available_probes_prefix")
 @patch("server.app.utils.ripe_probes.get_available_probes_asn")
 def test_get_best_probe_types_normal(mock_get_available_probes_asn, mock_get_available_probes_prefix,
-                                     mock_get_available_probes_country,mock_get_max_probes):
+                                     mock_get_available_probes_country, mock_get_max_probes,
+                                     mock_wanted_percentages):
+    mock_wanted_percentages.return_value = ([0.33,0.3,0.27,0.1,0])
     mock_get_max_probes.return_value = 40
     mock_get_available_probes_asn.return_value = 8
     mock_get_available_probes_prefix.return_value = 3
@@ -151,7 +167,7 @@ def test_get_asn_probes():
     }
     assert get_asn_probes("AS13335",20) == answer
 
-    with pytest.raises(ValueError):
+    with pytest.raises(InputError):
         get_asn_probes(None, 23)
 
 
@@ -169,7 +185,7 @@ def test_get_prefix_probes():
     }
     assert get_prefix_probes("192.2.3.0/8",20) == answer
 
-    with pytest.raises(ValueError):
+    with pytest.raises(InputError):
         get_prefix_probes(None, 23)
 
 def test_get_country_probes():
@@ -186,7 +202,7 @@ def test_get_country_probes():
     }
     assert get_country_probes("RO",20) == answer
 
-    with pytest.raises(ValueError):
+    with pytest.raises(InputError):
         get_country_probes(None, 23)
 
 def test_get_area_probes():
@@ -203,7 +219,7 @@ def test_get_area_probes():
     }
     assert get_area_probes("North-East",70) == answer
 
-    with pytest.raises(ValueError):
+    with pytest.raises(InputError):
         get_area_probes(None, 23)
 
 def test_get_random_probes():
