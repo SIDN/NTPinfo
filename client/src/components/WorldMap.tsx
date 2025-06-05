@@ -9,6 +9,7 @@ import yellowProbeImg from '../assets/yellow-probe.png'
 import redProbeImg from '../assets/red-probe.png'
 import darkRedProbeImg from '../assets/dark-red-probe.png'
 import grayProbeImg from '../assets/gray-probe.png'
+import { useIPInfo } from '../hooks/useIPInfo'
 
 /**
  * Standard code added for the proper functioning of the default icon when using Leaflet with Vite
@@ -17,7 +18,8 @@ delete (L.Icon.Default.prototype as any)._getIconUrl
 
 L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
-  shadowUrl: markerShadow
+  shadowUrl: markerShadow,
+  zIndexOffset: 1000
 })
 
 /**
@@ -63,7 +65,6 @@ const grayIcon = new L.Icon({
  */
 interface MapComponentProps {
   probes: RIPEData[] | null
-  ntpServer: L.LatLngExpression
   status: string | null
 }
 
@@ -74,13 +75,15 @@ interface MapComponentProps {
  * @param probes the geolocation of all the probes to the shown on the map
  * @param probes the geolocation of the NTP server that the measurement was performed on
  */
-const FitMapBounds = ({probes, ntpServer}: {probes: L.LatLngExpression[], ntpServer: L.LatLngExpression}) => {
+const FitMapBounds = ({probes, ntpServer}: {probes: L.LatLngExpression[], ntpServer: L.LatLngExpression | null}) => {
   const map = useMap()
   const userInteracted = useRef(false)
+  const ignoreEvents = useRef(false)
 
   useEffect(() => {
 
     const onZoomOrMove = () => {
+      if (ignoreEvents.current) return
       userInteracted.current = true
     }
 
@@ -94,12 +97,18 @@ const FitMapBounds = ({probes, ntpServer}: {probes: L.LatLngExpression[], ntpSer
   }, [map])
 
   useEffect(() => {
-    if (userInteracted.current || probes.length === 0) return
+    if (probes.length === 0 || !ntpServer) return
+    
+    if (userInteracted.current) return
 
     const fitBounds = () => {
       const allPoints = [...probes, ntpServer]
       const bounds = L.latLngBounds(allPoints)
+      ignoreEvents.current = true
       map.fitBounds(bounds, { padding: [15, 15] })
+      setTimeout(() => {
+        ignoreEvents.current = false
+      }, 100)
     }
 
     fitBounds()
@@ -121,10 +130,11 @@ const FitMapBounds = ({probes, ntpServer}: {probes: L.LatLngExpression[], ntpSer
  * @param probes the geolocation of all the probes to the shown on the map
  * @param probes the geolocation of the NTP server that the measurement was performed on
  */
-const DrawConnectingLines = ({probes, ntpServer}: {probes: L.LatLngExpression[], ntpServer: L.LatLngExpression}) => {
+const DrawConnectingLines = ({probes, ntpServer}: {probes: L.LatLngExpression[], ntpServer: L.LatLngExpression | null}) => {
   const map = useMap()
 
   useEffect(() => {
+    if (!ntpServer) return
     probes.map(x => {
       L.polyline([x,ntpServer], {color: 'blue', opacity: 0.8, weight: 1}).addTo(map)
     })
@@ -177,12 +187,13 @@ const stringifyRTTAndOffset = (value: number): string => {
  * The map has lines drawn in between each probe and the NTP server for better visualization
  * The map's zoom get automatically readjusted depending on the size of the map on the page
  * @param probes Data of all the measured probes, as an array of RIPEData values
- * @param ntpServer The geolocation of the NTP server
  * @param status the current status of the polling of the RIPE measurements 
  * @returns a WorldMap component showing all probes, the NTP server and relevant values for all of them
  */
-export default function WorldMap ({probes, ntpServer, status}: MapComponentProps) {
+export default function WorldMap ({probes, status}: MapComponentProps) {
   const [statusMessage, setStatusMessage] = useState<string>("")
+  const [ntpServer, setNtpServer] = useState<L.LatLngExpression | null>(null)
+  const { fetchIPInfo } = useIPInfo()
   useEffect(() => {
     if (status === "idle" || status === "polling"){
       setStatusMessage("Map Loading...")
@@ -193,8 +204,22 @@ export default function WorldMap ({probes, ntpServer, status}: MapComponentProps
     }
     }, [probes, status])
 
+  useEffect(() => {
+    const fetchLocation = async () => {
+      const ip = probes?.[0].measurementData.ip
+
+      if (ip && !ntpServer) {
+        const ipInfo = await fetchIPInfo(ip)
+        if (ipInfo)
+          setNtpServer(ipInfo.coordinates)
+      }
+    };
+    fetchLocation()
+  }, [probes])
+
   const probe_locations = probes?.map(x => x.probe_location) ?? []
   const icons = probes?.map(x => getIconByRTT(x.measurementData.RTT, x.got_results)) ?? []
+  
     return (
       <div style={{height: '500px', width: '100%'}}>
         <h2>{statusMessage}</h2>
@@ -217,7 +242,7 @@ export default function WorldMap ({probes, ntpServer, status}: MapComponentProps
                 </Popup>
               </Marker>))}
 
-              <Marker position = {ntpServer}>
+              ntpServer &&<Marker position = {ntpServer ?? [0,0]}>
                   <Popup>
                     NTP Server<br/>
                     IP: {probes[0].measurementData.ip}<br/>

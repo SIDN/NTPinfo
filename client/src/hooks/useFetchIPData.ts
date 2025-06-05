@@ -14,7 +14,7 @@ export const useFetchIPData = () => {
      * @param payload the server that will be measured, as well as the choice of the user whether to calculate the jitter
      * @returns the data received from the measurement as NTPData, or null
      */
-    const fetchData = async (endpoint: string, payload: {server: string, jitter_flag : boolean, measurements_no : number | null}) => {
+    const fetchData = async (endpoint: string, payload: {server: string, random_probes : boolean}) => {
         setLoading(true);
         setError(null);
         try {
