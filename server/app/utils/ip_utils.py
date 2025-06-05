@@ -3,6 +3,8 @@ from ipaddress import ip_address, IPv4Address, IPv6Address
 from typing import Optional
 import ntplib
 import requests
+
+from server.app.models.CustomError import InputError
 from server.app.utils.load_config_data import get_ipinfo_lite_api_token, get_edns_default_servers
 from server.app.utils.validate import is_ip_address
 
@@ -40,21 +42,21 @@ def ref_id_to_ip_or_name(ref_id: int, stratum: int) \
 
 def get_ip_family(ip_str: str) -> int:
     """
-    This method returns the ip family of the given ip address. It returns 4 if we have an IPv4, and
-    it returns 6 if we have an IPv6 address. Otherwise, it raises an exception
+    This method returns the IP family of the given IP address. It returns 4 if we have an IPv4, and
+    it returns 6 if we have an IPv6 address. Otherwise, it raises an exception.
 
     Args:
-        ip_str: The ip address
+        ip_str: The IP address
 
     Returns:
         int: The ip family or an exception if we do not get an IP address
 
     Raises:
-        Exception: If the IP provided is not an IPv4 or IPv6 address.
+        InputError: If the IP provided is not an IPv4 or IPv6 address.
     """
     ans = is_ip_address(ip_str)
     if ans is None:
-        raise Exception("ip_str is not an IP address")
+        raise InputError(f"{ip_str} is not an IP address")
     if ans == "ipv4":
         return 4
     return 6

@@ -5,6 +5,9 @@ from typing import Any, Optional, Generator
 
 from sqlalchemy.orm import Session
 
+from server.app.utils.ip_utils import ip_to_str
+from server.app.models.CustomError import InputError, RipeMeasurementError
+from server.app.utils.ip_utils import get_server_ip
 from server.app.db_config import get_db
 
 from server.app.services.api_services import fetch_ripe_data
@@ -67,6 +70,7 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
         except Exception as e:
             client_ip = None
     response = measure(server, session, client_ip)
+    print(response)
     if response is not None:
         result, jitter, nr_jitter_measurements = response
         return {
@@ -156,6 +160,7 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
         HTTPException:
             - 400: If the `server` field is empty
             - 500: If the RIPE measurement could not be initiated
+            - 503: If we could not get client IP address or our server's IP address
     """
     server = payload.server
     if len(server) == 0:
@@ -166,18 +171,30 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
         client_ip = None
     else:
         client_ip = request.headers.get("X-Forwarded-For", request.client.host)
-
+    # we need an IP. If this is None, just use our server IP.
+    if client_ip is None:
+        try:
+            client_ip = ip_to_str(get_server_ip())
+        except Exception as e:
+            raise HTTPException(status_code=503, detail="failed to get client IP address or a default IP address to use")
     try:
-        measurement_id, ip_list = perform_ripe_measurement(server, client_ip=client_ip)
+        measurement_id = perform_ripe_measurement(server, client_ip=client_ip)
         return {
             "measurement_id": measurement_id,
             "status": "started",
             "message": "You can fetch the result at /measurements/ripe/{measurement_id}",
-            "ip_list": ip_list
+            "ip_list": []
         }
+    except InputError as e:
+        print(e)
+        raise HTTPException(status_code=400, detail=f"Input parameter is invalid. Failed to initiate measurement: {str(e)}")
+    except RipeMeasurementError as e:
+        print(e)
+        raise HTTPException(status_code=400, detail=f"Ripe measurement initiated, but it failed: {str(e)}")
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=f"Failed to initiate measurement: {str(e)}")
+
 
 
 @router.get("/measurements/ripe/{measurement_id}")

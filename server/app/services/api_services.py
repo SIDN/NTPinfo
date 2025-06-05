@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
 
+from server.app.utils.ip_utils import get_server_ip
+from server.app.models.CustomError import InputError, RipeMeasurementError
 from server.app.utils.load_config_data import get_ripe_number_of_probes_per_measurement, \
     get_nr_of_measurements_for_jitter
 from server.app.utils.calculations import calculate_jitter_from_measurements, human_date_to_ntp_precise_time
@@ -256,33 +258,41 @@ def fetch_ripe_data(measurement_id: str) -> tuple[list[dict], str]:
 # print(fetch_ripe_data("106549701"))
 
 
-def perform_ripe_measurement(server: str, client_ip: Optional[str] = None) -> tuple[str, list]:
+def perform_ripe_measurement(ntp_server: str, client_ip: Optional[str]) -> str:
     """
-    Initiate a RIPE Atlas measurement for a given server (IP or domain name).
+    Initiate a RIPE Atlas measurement for a given server (IP address or domain name).
 
     This function determines whether the provided server is an IP address or a domain name,
-    and triggers the appropriate RIPE measurement. If the server is an IP address,
-    a simple measurement is initiated. If it is a domain name, a list of ips near to the client is also returned.
+    and triggers the appropriate RIPE measurement.
 
     Args:
-        server (str): The IP address or domain name of the target NTP server
-        client_ip (Optional[str]): The IP address of the client requesting the measurement (only for domain names)
+        ntp_server (str): The IP address or domain name of the target NTP server.
+        client_ip (Optional[str]): The IP address of the client requesting the measurement.
 
     Returns:
-        tuple[str, list]: A tuple containing:
-            - The RIPE measurement ID (as a string)
-            - A list of IP addresses (empty if an IP address was provided)
+        str: The RIPE measurement ID (as a string)
 
     Raises:
-        ValueError: If the server string is invalid or resolution fails in domain name mode
+        Exception: If the server string is invalid or the measurement failed.
     """
+    # use our server as the client if the client IP is not provided
+    if client_ip is None:
+        client_ip = ip_to_str(get_server_ip())
+        if client_ip is None:
+            raise InputError("Could not determine IP address of neither server nor client")
     try:
-        ip_address(server)
-        measurement_id = perform_ripe_measurement_ip(server)
-        return str(measurement_id), []
-    except ValueError:
-        measurement_id, ip_list = perform_ripe_measurement_domain_name(server, client_ip)
-        return str(measurement_id), ip_list
+        if is_ip_address(ntp_server) is not None:
+            measurement_id = perform_ripe_measurement_ip(ntp_server, client_ip)
+            return str(measurement_id)
+        else:
+            measurement_id = perform_ripe_measurement_domain_name(ntp_server, client_ip)
+            return str(measurement_id)
+    except InputError as e:
+        raise e
+    except RipeMeasurementError as e:
+        raise e
+    except Exception as e: #TODO
+        raise ValueError(e)
 
 
 def check_ripe_measurement_scheduled(measurement_id: str) -> bool:

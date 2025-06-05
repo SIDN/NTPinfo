@@ -504,7 +504,7 @@ def test_trigger_ripe_measurement_server_not_present(test_client):
 
 @patch("server.app.api.routing.perform_ripe_measurement")
 def test_trigger_ripe_measurement_server_ip(mock_perform_ripe_measurement, test_client):
-    mock_perform_ripe_measurement.return_value = ("123456", [])
+    mock_perform_ripe_measurement.return_value = "123456"
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = test_client.post("/measurements/ripe/trigger/",
                                 json={"server": "83.25.24.10", "random_probes": True},
@@ -513,12 +513,11 @@ def test_trigger_ripe_measurement_server_ip(mock_perform_ripe_measurement, test_
     assert response.json()["measurement_id"] == "123456"
     assert response.json()["status"] == "started"
     assert response.json()["message"] == "You can fetch the result at /measurements/ripe/{measurement_id}"
-    assert response.json()["ip_list"] == []
 
 
 @patch("server.app.api.routing.perform_ripe_measurement")
 def test_trigger_ripe_measurement_server_dn(mock_perform_ripe_measurement, test_client):
-    mock_perform_ripe_measurement.return_value = ("123456", ["83.231.3.54", "82.211.23.56"])
+    mock_perform_ripe_measurement.return_value = "123456"
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = test_client.post("/measurements/ripe/trigger/",
                                 json={"server": "time.server_some.com", "random_probes": True},
@@ -527,7 +526,6 @@ def test_trigger_ripe_measurement_server_dn(mock_perform_ripe_measurement, test_
     assert response.json()["measurement_id"] == "123456"
     assert response.json()["status"] == "started"
     assert response.json()["message"] == "You can fetch the result at /measurements/ripe/{measurement_id}"
-    assert response.json()["ip_list"] == ["83.231.3.54", "82.211.23.56"]
 
 
 @patch("server.app.api.routing.perform_ripe_measurement")

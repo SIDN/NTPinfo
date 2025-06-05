@@ -354,30 +354,28 @@ def test_get_ripe_format():
 @patch("server.app.services.api_services.perform_ripe_measurement_ip")
 def test_perform_ripe_measurement_with_dn_with_client_ip(mock_m_ip, mock_m_dn):
     mock_m_ip.return_value = 0
-    mock_m_dn.return_value = (123456, ["83.231.3.54", "82.211.23.56"])
+    mock_m_dn.return_value = 123456
 
-    m_id, ip_list = perform_ripe_measurement("time.some_server.com", "82.211.23.56")
+    m_id = perform_ripe_measurement("time.some_server.com", "82.211.23.56")
 
     mock_m_ip.assert_not_called()
     mock_m_dn.assert_called_once()
 
     assert m_id == "123456"
-    assert ip_list == ["83.231.3.54", "82.211.23.56"]
 
 
 @patch("server.app.services.api_services.perform_ripe_measurement_domain_name")
 @patch("server.app.services.api_services.perform_ripe_measurement_ip")
 def test_perform_ripe_measurement_with_dn_without_client_ip(mock_m_ip, mock_m_dn):
     mock_m_ip.return_value = 0
-    mock_m_dn.return_value = (123456, ["83.231.3.54", "82.211.23.56"])
+    mock_m_dn.return_value = 123456
 
-    m_id, ip_list = perform_ripe_measurement("time.some_server.com")
+    m_id = perform_ripe_measurement("time.some_server.com","82.211.23.56")
 
     mock_m_ip.assert_not_called()
     mock_m_dn.assert_called_once()
 
     assert m_id == "123456"
-    assert ip_list == ["83.231.3.54", "82.211.23.56"]
 
 
 @patch("server.app.services.api_services.perform_ripe_measurement_domain_name")
@@ -386,14 +384,12 @@ def test_perform_ripe_measurement_with_ip(mock_m_ip, mock_m_dn):
     mock_m_ip.return_value = 123456
     mock_m_dn.return_value = 0
 
-    m_id, ip_list = perform_ripe_measurement("18.252.12.124")
+    m_id = perform_ripe_measurement("18.252.12.124", "82.211.23.56")
 
     mock_m_ip.assert_called_once()
     mock_m_dn.assert_not_called()
 
     assert m_id == "123456"
-    assert len(ip_list) == 0
-    assert ip_list == []
 
 
 @patch("server.app.services.api_services.check_all_measurements_scheduled")
