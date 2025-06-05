@@ -1,7 +1,8 @@
 from typing import Any, Optional
 from sqlalchemy.orm import Session
 
-from server.app.utils.load_config_data import get_ripe_number_of_probes_per_measurement, get_nr_of_measurements_for_jitter
+from server.app.utils.load_config_data import get_ripe_number_of_probes_per_measurement, \
+    get_nr_of_measurements_for_jitter
 from server.app.utils.calculations import calculate_jitter_from_measurements
 from server.app.utils.ip_utils import ip_to_str
 
@@ -133,7 +134,8 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
 
 
 def measure(server: str, session: Session, client_ip: Optional[str] = None,
-            measurement_no: int = get_nr_of_measurements_for_jitter()) -> tuple[NtpMeasurement, float | None, int] | None:
+            measurement_no: int = get_nr_of_measurements_for_jitter()) -> tuple[
+                                                                              NtpMeasurement, float | None, int] | None:
     """
     Performs an NTP measurement for a given server (IP or domain name) and stores the result in the database.
 
@@ -232,7 +234,7 @@ def fetch_historic_data_with_timestamps(server: str, start: datetime, end: datet
     return measurements
 
 
-def fetch_ripe_data(measurement_id: str) -> list[dict] | None:
+def fetch_ripe_data(measurement_id: str) -> tuple[list[dict], str] | None:
     """
     Fetches and formats NTP measurement data from RIPE Atlas.
 
@@ -246,11 +248,11 @@ def fetch_ripe_data(measurement_id: str) -> list[dict] | None:
     Returns:
         list[dict]: A list of dictionaries, each representing a formatted NTP measurement
     """
-    measurements = parse_data_from_ripe_measurement(get_data_from_ripe_measurement(measurement_id))
+    measurements, status = parse_data_from_ripe_measurement(get_data_from_ripe_measurement(measurement_id))
     measurements_formated = []
     for m in measurements:
         measurements_formated.append(get_ripe_format(m))
-    return measurements_formated
+    return measurements_formated, status
 
 
 # print(fetch_ripe_data("106549701"))

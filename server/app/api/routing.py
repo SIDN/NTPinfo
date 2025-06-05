@@ -209,23 +209,30 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
         - A result is only marked "complete" when all requested probes have been scheduled
     """
     try:
-        ripe_measurement_result = fetch_ripe_data(measurement_id=measurement_id)
+        ripe_measurement_result, status = fetch_ripe_data(measurement_id=measurement_id)
         if not ripe_measurement_result:
             return {
                 "status": "pending",
                 "message": "Measurement not ready yet. Please try again later."
             }
-        all_scheduled = check_ripe_measurement_complete(measurement_id=measurement_id)
-        if all_scheduled is True:
+
+        if status == "Complete":
             return {
                 "status": "complete",
                 "results": ripe_measurement_result
             }
-        else:
+
+        if status == "Ongoing":
             return {
                 "status": "partial_results",
                 "results": ripe_measurement_result
             }
+
+        return {
+            "status": "timeout",
+            "message": "RIPE data likely completed but incomplete probe responses."
+        }
+
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=f"Failed to fetch result: {str(e)}")
