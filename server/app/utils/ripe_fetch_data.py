@@ -55,6 +55,32 @@ def check_all_measurements_scheduled(measurement_id: str) -> bool:
 
 
 def check_all_measurements_done(measurement_id: str, measurement_req: int) -> str:
+    """
+    Check the status of a RIPE Atlas measurement.
+
+    This function queries the RIPE Atlas API for a given measurement ID and determines
+    whether the measurement is complete, ongoing, or should be considered timed out. The status is based
+    on the number of probes requested, the measurement status provided by RIPE, and
+    how much time has passed since the measurement started.
+
+    Parameters:
+        measurement_id (str): RIPE Atlas measurement ID
+        measurement_req (int): The number of probes expected for the measurement to be considered complete
+
+    Returns:
+        str:
+            - "Complete": All expected probes have responded or the measurement is stopped
+            - "Ongoing": The measurement is still in progress and has not exceeded the timeout threshold
+            - "Timeout": The measurement did not complete within the allowed time window
+
+    Raises:
+        ValueError: If the RIPE API returns an error response
+
+    Notes:
+        - If the difference between the current time and the measurement's start time exceeds the configured time in seconds,
+          and the measurement is not yet complete, it is considered "Timeout"
+        - This function assumes a successful HTTP response from the RIPE API; if not, it will raise an exception
+    """
     url = f"https://atlas.ripe.net/api/v2/measurements/{measurement_id}/"
 
     headers = {

@@ -293,9 +293,9 @@ def mock_ripe_parse_result():
 @patch("server.app.services.api_services.get_data_from_ripe_measurement")
 def test_fetch_ripe_data(mock_get_data_from_ripe, mock_parse_data_from_ripe):
     mock_get_data_from_ripe.return_value = []
-    mock_parse_data_from_ripe.return_value = [mock_ripe_parse_result()]
+    mock_parse_data_from_ripe.return_value = [mock_ripe_parse_result()], "Complete"
 
-    result = fetch_ripe_data("123456")
+    result, status = fetch_ripe_data("123456")
 
     assert isinstance(result, list)
     assert len(result) == 1
@@ -400,7 +400,7 @@ def test_perform_ripe_measurement_with_ip(mock_m_ip, mock_m_dn):
 def test_check_ripe_measurement_complete_true(mock_check_scheduled):
     mock_check_scheduled.return_value = True
 
-    result = check_ripe_measurement_complete("123456")
+    result = check_ripe_measurement_scheduled("123456")
     mock_check_scheduled.assert_called_once()
     assert result is True
 
@@ -409,7 +409,7 @@ def test_check_ripe_measurement_complete_true(mock_check_scheduled):
 def test_check_ripe_measurement_complete_false(mock_check_scheduled):
     mock_check_scheduled.return_value = False
 
-    result = check_ripe_measurement_complete("123456")
+    result = check_ripe_measurement_scheduled("123456")
     mock_check_scheduled.assert_called_once()
     assert result is False
 
@@ -419,7 +419,7 @@ def test_check_ripe_measurement_complete_raises_value_error(mock_check_scheduled
     mock_check_scheduled.side_effect = ValueError("RIPE API error: Something went wrong")
 
     with pytest.raises(ValueError, match="RIPE API error: Something went wrong"):
-        check_ripe_measurement_complete("123456")
+        check_ripe_measurement_scheduled("123456")
     mock_check_scheduled.assert_called_once_with(measurement_id="123456")
 
 
@@ -428,5 +428,5 @@ def test_check_ripe_measurement_complete_raises_generic_exception(mock_check_sch
     mock_check_scheduled.side_effect = ValueError("RIPE API error: The number of scheduled probes is negative")
 
     with pytest.raises(ValueError, match="RIPE API error: The number of scheduled probes is negative"):
-        check_ripe_measurement_complete("123456")
+        check_ripe_measurement_scheduled("123456")
     mock_check_scheduled.assert_called_once_with(measurement_id="123456")

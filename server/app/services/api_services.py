@@ -234,7 +234,7 @@ def fetch_historic_data_with_timestamps(server: str, start: datetime, end: datet
     return measurements
 
 
-def fetch_ripe_data(measurement_id: str) -> tuple[list[dict], str] | None:
+def fetch_ripe_data(measurement_id: str) -> tuple[list[dict], str]:
     """
     Fetches and formats NTP measurement data from RIPE Atlas.
 
@@ -287,7 +287,7 @@ def perform_ripe_measurement(server: str, client_ip: Optional[str] = None) -> tu
         return str(measurement_id), ip_list
 
 
-def check_ripe_measurement_complete(measurement_id: str) -> bool:
+def check_ripe_measurement_scheduled(measurement_id: str) -> bool:
     """
     Check if a RIPE Atlas measurement has been fully scheduled.
 

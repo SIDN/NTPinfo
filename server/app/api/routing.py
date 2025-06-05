@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 
 from server.app.db_config import get_db
 
-from server.app.services.api_services import check_ripe_measurement_complete
 from server.app.services.api_services import fetch_ripe_data
 from server.app.services.api_services import perform_ripe_measurement
 from server.app.rate_limiter import limiter
