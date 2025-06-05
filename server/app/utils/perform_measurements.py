@@ -1,18 +1,16 @@
 import socket, ntplib
 from ipaddress import ip_address, IPv4Address, IPv6Address
-from datetime import datetime, timezone
 import json
 from typing import Optional
 
 import requests
 
-from server.app.utils.calculations import ntp_precise_time_to_human_date
-from server.app.utils.ip_utils import get_ip_family, ref_id_to_ip_or_name
+from server.app.utils.calculations import ntp_precise_time_to_human_date, convert_float_to_precise_time
+from server.app.utils.ip_utils import get_ip_family, ref_id_to_ip_or_name, get_server_ip
 from server.app.utils.load_config_data import get_ripe_account_email, get_ripe_api_token, get_ntp_version, \
-    get_edns_default_servers, get_timeout_measurement_s, get_ripe_number_of_probes_per_measurement, \
+    get_timeout_measurement_s, get_ripe_number_of_probes_per_measurement, \
     get_ripe_timeout_per_probe_ms, get_ripe_packets_per_probe
 from server.app.utils.ripe_probes import get_probes
-from server.app.services.NtpCalculator import NtpCalculator
 from server.app.utils.domain_name_to_ip import domain_name_to_ip_list
 from server.app.dtos.NtpExtraDetails import NtpExtraDetails
 from server.app.dtos.NtpMainDetails import NtpMainDetails
@@ -21,33 +19,6 @@ from server.app.dtos.NtpServerInfo import NtpServerInfo
 from server.app.dtos.NtpTimestamps import NtpTimestamps
 from server.app.dtos.PreciseTime import PreciseTime
 from server.app.utils.validate import is_ip_address
-
-
-def get_server_ip() -> IPv4Address | IPv6Address | None:
-    """
-    Determines the outward-facing IP address of the server by opening a
-    dummy UDP connection to a well-known external host (Google DNS).
-
-    Returns:
-        Optional[Union[IPv4Address, IPv6Address]]: The server's external IP address
-        as an IPv4Address or IPv6Address object, or None if detection fails.
-
-    Raises:
-        ValueError: If the detected IP address is not a valid IPv4 or IPv6 address.
-    """
-    # use a dummy connection to get the outward-facing IP
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        s.connect((get_edns_default_servers()[0], 80))
-        ip = s.getsockname()[0]
-    except Exception as e:
-        return None
-    finally:
-        s.close()
-    try:
-        return ip_address(ip)
-    except ValueError:
-        return None
 
 
 def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", client_ip: Optional[str] = None,
@@ -178,43 +149,6 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
         return None
 
 
-def convert_float_to_precise_time(value: float) -> PreciseTime:
-    """
-    Converts a float value to a PreciseTime object.
-
-    Args:
-        value (float): the float value to convert
-
-    Returns:
-        a PreciseTime object
-    """
-    seconds = int(value)
-    fraction = ntplib._to_frac(value)  # by default, a second is split into 2^32 parts
-    return PreciseTime(seconds, fraction)
-
-
-def human_date_to_ntp_precise_time(dt: datetime) -> PreciseTime:
-    """
-    Converts a UTC datetime object to a PreciseTime object in NTP time.
-
-    Args:
-        dt (datetime): A timezone-aware datetime object in UTC.
-
-    Returns:
-        PreciseTime: The corresponding NTP time.
-    """
-    if dt.tzinfo is None:
-        raise ValueError("Input datetime must be timezone-aware (UTC)")
-
-    unix_timestamp = dt.timestamp()
-    ntp_timestamp = unix_timestamp + ntplib.NTP.NTP_DELTA
-
-    ntp_seconds = int(ntp_timestamp)
-    ntp_fraction = int((ntp_timestamp - ntp_seconds) * (2 ** 32))
-
-    return PreciseTime(ntp_seconds, ntp_fraction)
-
-
 def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
     """
         It prints the ntp measurement in a human-readable format and returns True if the printing was successful.
@@ -341,7 +275,7 @@ def perform_ripe_measurement_ip(ntp_server_ip: str, client_ip: str,
     return ans
 
 def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_ip: str,
-                         probes_requested: int) -> tuple[dict,dict]:
+                         probes_requested: int=get_ripe_number_of_probes_per_measurement()) -> tuple[dict,dict]:
     headers = {
         "Authorization": f"Key {get_ripe_api_token()}",
         "Content-Type": "application/json"

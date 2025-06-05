@@ -33,7 +33,7 @@ def override_get_db():
 # @patch("server.app.main.load_config_data.verify_if_config_is_set")
 # @patch("server.app.db_config.init_engine")
 @pytest.fixture(scope="function", autouse=True)
-def test_client():#mock_init_engine, mock_verify_config):
+def test_client():  # mock_init_engine, mock_verify_config):
     # mock_init_engine.return_value = True
     # mock_verify_config.return_value = True
     with patch("server.app.db_config.init_engine") as mocked_init_engine:
@@ -544,44 +544,36 @@ def test_trigger_ripe_measurement_server_error(mock_perform_ripe_measurement, te
                "error"] == "Failed to initiate measurement: Could not find any IP address for time.server_some.com."
 
 
-@patch("server.app.api.routing.check_ripe_measurement_complete")
 @patch("server.app.api.routing.fetch_ripe_data")
-def test_get_ripe_measurement_result_pending(mock_fetch_ripe_data, mock_check_measurement_complete, test_client):
-    mock_fetch_ripe_data.return_value = None
-    mock_check_measurement_complete.return_value = False
+def test_get_ripe_measurement_result_pending(mock_fetch_ripe_data, test_client):
+    mock_fetch_ripe_data.return_value = None, "Timeout"
     response = test_client.get("/measurements/ripe/123456")
     assert response.status_code == 200
     assert response.json()["status"] == "pending"
     assert response.json()["message"] == "Measurement not ready yet. Please try again later."
 
 
-@patch("server.app.api.routing.check_ripe_measurement_complete")
 @patch("server.app.api.routing.fetch_ripe_data")
-def test_get_ripe_measurement_result_partial(mock_fetch_ripe_data, mock_check_measurement_complete, test_client):
-    mock_fetch_ripe_data.return_value = mock_fetch_ripe_data_result()
-    mock_check_measurement_complete.return_value = False
+def test_get_ripe_measurement_result_partial(mock_fetch_ripe_data, test_client):
+    mock_fetch_ripe_data.return_value = mock_fetch_ripe_data_result(), "Ongoing"
     response = test_client.get("/measurements/ripe/123456")
     assert response.status_code == 200
     assert response.json()["status"] == "partial_results"
     assert response.json()["results"] == mock_fetch_ripe_data_result()
 
 
-@patch("server.app.api.routing.check_ripe_measurement_complete")
 @patch("server.app.api.routing.fetch_ripe_data")
-def test_get_ripe_measurement_result_complete(mock_fetch_ripe_data, mock_check_measurement_complete, test_client):
-    mock_fetch_ripe_data.return_value = mock_fetch_ripe_data_result()
-    mock_check_measurement_complete.return_value = True
+def test_get_ripe_measurement_result_complete(mock_fetch_ripe_data, test_client):
+    mock_fetch_ripe_data.return_value = mock_fetch_ripe_data_result(), "Complete"
     response = test_client.get("/measurements/ripe/123456")
     assert response.status_code == 200
     assert response.json()["status"] == "complete"
     assert response.json()["results"] == mock_fetch_ripe_data_result()
 
 
-@patch("server.app.api.routing.check_ripe_measurement_complete")
 @patch("server.app.api.routing.fetch_ripe_data")
-def test_get_ripe_measurement_result_error(mock_fetch_ripe_data, mock_check_measurement_complete, test_client):
+def test_get_ripe_measurement_result_error(mock_fetch_ripe_data, test_client):
     mock_fetch_ripe_data.side_effect = ValueError("RIPE API error: Bad Request - There was a problem with your request")
-    mock_check_measurement_complete.return_value = False
     response = test_client.get("/measurements/ripe/123456")
     assert response.status_code == 500
     assert response.json()[

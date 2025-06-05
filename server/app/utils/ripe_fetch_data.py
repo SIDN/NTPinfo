@@ -1,3 +1,4 @@
+import time
 from ipaddress import ip_address, IPv4Address, IPv6Address
 
 import requests
@@ -51,6 +52,63 @@ def check_all_measurements_scheduled(measurement_id: str) -> bool:
         raise ValueError(
             f"RIPE API error: The number of scheduled probes is negative")
     return probes_requested == probes_scheduled  # and status == "Stopped"
+
+
+def check_all_measurements_done(measurement_id: str, measurement_req: int) -> str:
+    """
+    Check the status of a RIPE Atlas measurement.
+
+    This function queries the RIPE Atlas API for a given measurement ID and determines
+    whether the measurement is complete, ongoing, or should be considered timed out. The status is based
+    on the number of probes requested, the measurement status provided by RIPE, and
+    how much time has passed since the measurement started.
+
+    Parameters:
+        measurement_id (str): RIPE Atlas measurement ID
+        measurement_req (int): The number of probes expected for the measurement to be considered complete
+
+    Returns:
+        str:
+            - "Complete": All expected probes have responded or the measurement is stopped
+            - "Ongoing": The measurement is still in progress and has not exceeded the timeout threshold
+            - "Timeout": The measurement did not complete within the allowed time window
+
+    Raises:
+        ValueError: If the RIPE API returns an error response
+
+    Notes:
+        - If the difference between the current time and the measurement's start time exceeds the configured time in seconds,
+          and the measurement is not yet complete, it is considered "Timeout"
+        - This function assumes a successful HTTP response from the RIPE API; if not, it will raise an exception
+    """
+    url = f"https://atlas.ripe.net/api/v2/measurements/{measurement_id}/"
+
+    headers = {
+        "Authorization": f"Key {get_ripe_api_token()}",
+        "Content-Type": "application/json"
+    }
+    response = requests.get(url, headers=headers)
+    json_data = response.json()
+    if isinstance(json_data, dict) and 'error' in json_data:
+        raise ValueError(
+            f"RIPE API error: {json_data['error']['title']} - {json_data['error']['detail']}")
+    probes_requested: int = json_data.get("probes_requested", -1)
+    status_ripe: str = json_data["status"].get("name", "NO RESPONSE")
+
+    if probes_requested == measurement_req:
+        return "Complete"
+    else:
+        if status_ripe == "Stopped":
+            return "Complete"
+        else:
+            if status_ripe == "NO RESPONSE":
+                return "Timeout"
+            start_time = int(json_data.get("start_time", 0))
+            current_time = int(time.time())
+            if (current_time - start_time) > 60:
+                return "Timeout"
+            else:
+                return "Ongoing"
 
 
 def get_data_from_ripe_measurement(measurement_id: str) -> list[dict[str, Any]]:
@@ -218,7 +276,7 @@ def successful_measurement(entry: dict[str, Any]) -> int | None:
     return min_index
 
 
-def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> list[RipeMeasurement]:
+def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list[RipeMeasurement], str]:
     """
     Parses raw RIPE Atlas measurement data into a list of RipeMeasurement objects.
 
@@ -239,6 +297,7 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> list[RipeM
         - Probe metadata is fetched using the probe ID (`prb_id`) in each measurement.
         - Timestamps are converted using `convert_float_to_precise_time`.
     """
+    msm_id = -1
     ripe_measurements = []
     for measurement in data_measurement:
         # check for result if ok
@@ -298,6 +357,7 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> list[RipeM
         root_dispersion = measurement.get('root-dispersion', -1.0)
         ref_id = measurement.get('ref-id', 'NO REFERENCE')
         measurement_id = measurement.get('msm_id', -1)
+        msm_id = measurement_id
 
         ripe_measurement = RipeMeasurement(
             measurement_id=measurement_id,
@@ -310,7 +370,7 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> list[RipeM
         ripe_measurements.append(ripe_measurement)
     #     print(ripe_measurement)
     # print(len(ripe_measurements))
-    return ripe_measurements
+    return ripe_measurements, check_all_measurements_done(str(msm_id), len(ripe_measurements))
 
 # print(len(parse_data_from_ripe_measurement(get_data_from_ripe_measurement("105960562"))))
 # print(parse_data_from_ripe_measurement(get_data_from_ripe_measurement("106323686")))

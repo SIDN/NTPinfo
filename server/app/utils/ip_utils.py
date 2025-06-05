@@ -3,7 +3,7 @@ from ipaddress import ip_address, IPv4Address, IPv6Address
 from typing import Optional
 import ntplib
 import requests
-from server.app.utils.load_config_data import get_ipinfo_lite_api_token
+from server.app.utils.load_config_data import get_ipinfo_lite_api_token, get_edns_default_servers
 from server.app.utils.validate import is_ip_address
 
 
@@ -30,12 +30,13 @@ def ref_id_to_ip_or_name(ref_id: int, stratum: int) \
         if text in ntplib.NTP.REF_ID_TABLE:
             return None, ntplib.NTP.REF_ID_TABLE[text]
         else:
-            return None, text #ntplib.ref_id_to_text(ref_id, stratum)
+            return None, text  # ntplib.ref_id_to_text(ref_id, stratum)
     else:
         if stratum < 256:  # we can get an IP address
             return ip_address(socket.inet_ntoa(ref_id.to_bytes(4, 'big'))), None  # 'big' is from big endian
         else:
             return None, None  # invalid stratum!!
+
 
 def get_ip_family(ip_str: str) -> int:
     """
@@ -57,6 +58,7 @@ def get_ip_family(ip_str: str) -> int:
     if ans == "ipv4":
         return 4
     return 6
+
 
 def get_ip_network_details(ip_str: str) -> tuple[Optional[str], Optional[str], Optional[str]]:
     """
@@ -80,6 +82,7 @@ def get_ip_network_details(ip_str: str) -> tuple[Optional[str], Optional[str], O
     except Exception as e:
         print(e)
         return None, None, None
+
 
 def get_area_of_ip(ip_country: str, ip_continent: Optional[str]) -> str:
     """
@@ -132,6 +135,7 @@ def get_prefix_from_ip(ip_str: str) -> Optional[str]:
         print(e)
         return None
 
+
 def ip_to_str(ip: Optional[IPv4Address | IPv6Address]) -> Optional[str]:
     """
     Converts an IP address (either IPv4 or IPv6) to its string representation.
@@ -146,6 +150,7 @@ def ip_to_str(ip: Optional[IPv4Address | IPv6Address]) -> Optional[str]:
         Optional[str]: The string representation of the IP address, or `None` if the input is `None`.
     """
     return str(ip) if ip is not None else None
+
 
 def ip_to_location(ip_str: str) -> tuple[float, float]:
     """
@@ -167,9 +172,37 @@ def ip_to_location(ip_str: str) -> tuple[float, float]:
     latitude: float = data.get("latitude", None)
     longitude: float = data.get("longitude", None)
     return latitude, longitude
+
+
 # import time
 
 # start = time.time()
 # print(get_ip_network_details("80.211.238.247"))
 # print(get_prefix_from_ip("80.211.238.247"))
 # end = time.time()
+
+def get_server_ip() -> IPv4Address | IPv6Address | None:
+    """
+    Determines the outward-facing IP address of the server by opening a
+    dummy UDP connection to a well-known external host (Google DNS).
+
+    Returns:
+        Optional[Union[IPv4Address, IPv6Address]]: The server's external IP address
+        as an IPv4Address or IPv6Address object, or None if detection fails.
+
+    Raises:
+        ValueError: If the detected IP address is not a valid IPv4 or IPv6 address.
+    """
+    # use a dummy connection to get the outward-facing IP
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect((get_edns_default_servers()[0], 80))
+        ip = s.getsockname()[0]
+    except Exception as e:
+        return None
+    finally:
+        s.close()
+    try:
+        return ip_address(ip)
+    except ValueError:
+        return None

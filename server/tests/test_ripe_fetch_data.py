@@ -7,7 +7,7 @@ from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.dtos.ProbeData import ProbeData
 from server.app.utils.ripe_fetch_data import get_data_from_ripe_measurement, get_probe_data_from_ripe_by_id, \
     parse_probe_data, is_failed_measurement, successful_measurement, parse_data_from_ripe_measurement, \
-    check_all_measurements_scheduled
+    check_all_measurements_scheduled, check_all_measurements_done
 
 MOCK_MEASUREMENT_INFO = {
     "af": 4,
@@ -91,11 +91,63 @@ MOCK_MEASUREMENT_INFO_NOT_SCHEDULED = {
     "type": "ntp"
 }
 
+MOCK_MEASUREMENT_INFO_ONGOING = {
+    "af": 4,
+    "creation_time": 1748876705,
+    "credits_per_result": 13,
+    "description": "NTP measurement to 18.252.12.124",
+    "estimated_results_per_day": 12,
+    "group": "https://atlas.ripe.net/api/v2/measurements/groups/123456/",
+    "group_id": 123456,
+    "id": 123456,
+    "in_wifi_group": False,
+    "interval": None,
+    "is_all_scheduled": True,
+    "is_oneoff": True,
+    "is_public": True,
+    "packets": 2,
+    "participant_count": 12,
+    "probes_requested": 12,
+    "probes_scheduled": 5,
+    "resolve_on_probe": False,
+    "resolved_ips": [
+        "18.252.12.124"
+    ],
+    "result": "https://atlas.ripe.net/api/v2/measurements/123456/results/",
+    "size": None,
+    "spread": None,
+    "start_time": 1748876705,
+    "status": {
+        "id": 4,
+        "name": "Ongoing",
+        "when": 1748877060
+    },
+    "stop_time": 1748877060,
+    "tags": [],
+    "target": "18.252.12.124",
+    "target_asn": None,
+    "target_ip": "18.252.12.124",
+    "target_prefix": None,
+    "timeout": 4000,
+    "type": "ntp"
+}
+
 MOCK_MEASUREMENT_INFO_PROBES_ERROR = {
 
     "participant_count": 12,
     "probes_requested": -1,
     "probes_scheduled": 5,
+}
+
+MOCK_MEASUREMENT_INFO_NO_RESPONSE = {
+
+    "participant_count": 12,
+    "probes_requested": -1,
+    "probes_scheduled": 5,
+    "status": {
+        "id": 2,
+        "when": None
+    }
 }
 
 MOCK_MEASUREMENT_ERROR = {
@@ -426,10 +478,13 @@ def test_successful_measurement_none():
     assert successful_measurement(result) is None
 
 
+@patch("server.app.utils.ripe_fetch_data.check_all_measurements_done")
 @patch("server.app.utils.ripe_fetch_data.get_probe_data_from_ripe_by_id")
-def test_parse_data_from_ripe_measurement(mock_get_probe):
+def test_parse_data_from_ripe_measurement(mock_get_probe, mock_check_done):
     mock_get_probe.return_value = MOCK_PROBE_RESPONSE
-    results = parse_data_from_ripe_measurement(MOCK_MEASUREMENT_RESPONSE)
+    mock_check_done.return_value = "Complete"
+    results, status = parse_data_from_ripe_measurement(MOCK_MEASUREMENT_RESPONSE)
+    assert status == "Complete"
     assert isinstance(results, list)
     assert isinstance(results[0], RipeMeasurement)
     assert results[0].ntp_measurement.vantage_point_ip == ip_address("83.231.3.54")
@@ -453,10 +508,13 @@ def test_parse_data_from_ripe_measurement(mock_get_probe):
     assert results[0].ntp_measurement.timestamps.client_recv_time.fraction != 0
 
 
+@patch("server.app.utils.ripe_fetch_data.check_all_measurements_done")
 @patch("server.app.utils.ripe_fetch_data.get_probe_data_from_ripe_by_id")
-def test_parse_data_from_ripe_measurement_with_no_response(mock_get_probe):
+def test_parse_data_from_ripe_measurement_with_no_response(mock_get_probe, mock_check_done):
     mock_get_probe.return_value = MOCK_PROBE_RESPONSE
-    results = parse_data_from_ripe_measurement(MOCK_MEASUREMENT_RESPONSE_FAILED)
+    mock_check_done.return_value = "Timeout"
+    results, status = parse_data_from_ripe_measurement(MOCK_MEASUREMENT_RESPONSE_FAILED)
+    assert status == "Timeout"
     assert isinstance(results, list)
     assert isinstance(results[0], RipeMeasurement)
     assert results[0].ntp_measurement.vantage_point_ip == ip_address("83.231.3.54")
@@ -515,7 +573,7 @@ def test_check_all_measurement_probes_error(mock_get, mock_get_token):
 
 @patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
 @patch("server.app.utils.ripe_fetch_data.requests.get")
-def test_check_all_measurement_error_get(mock_get, mock_get_token):
+def test_check_all_measurement_scheduled_error_get(mock_get, mock_get_token):
     mock_get_token.return_value = "token"
     mock_get.return_value = Mock(status_code=200)
     mock_get.return_value.json.return_value = MOCK_MEASUREMENT_ERROR
@@ -523,3 +581,75 @@ def test_check_all_measurement_error_get(mock_get, mock_get_token):
     with pytest.raises(ValueError,
                        match=r'RIPE API error: Method Not Allowed - Method "GET" not allowed\.'):
         check_all_measurements_scheduled("123456")
+
+
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_check_all_measurement_done(mock_get, mock_get_token):
+    mock_get_token.return_value = "token"
+    mock_get.return_value = Mock(status_code=200)
+    mock_get.return_value.json.return_value = MOCK_MEASUREMENT_INFO
+
+    response = check_all_measurements_done("123456", 12)
+    assert response == "Complete"
+
+
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_check_all_measurement_done_stopped(mock_get, mock_get_token):
+    mock_get_token.return_value = "token"
+    mock_get.return_value = Mock(status_code=200)
+    mock_get.return_value.json.return_value = MOCK_MEASUREMENT_INFO
+
+    # status is 'Stopped'
+    response = check_all_measurements_done("123456", 10)
+    assert response == "Complete"
+
+
+@patch("server.app.utils.ripe_fetch_data.time.time")
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_check_all_measurement_done_ongoing(mock_get, mock_get_token, mock_time):
+    mock_get_token.return_value = "token"
+    mock_get.return_value = Mock(status_code=200)
+    mock_time.return_value = 1748876764
+    mock_get.return_value.json.return_value = MOCK_MEASUREMENT_INFO_ONGOING
+
+    response = check_all_measurements_done("123456", 10)
+    assert response == "Ongoing"
+
+
+@patch("server.app.utils.ripe_fetch_data.time.time")
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_check_all_measurement_done_timeout(mock_get, mock_get_token, mock_time):
+    mock_get_token.return_value = "token"
+    mock_time.return_value = 1748876770
+    mock_get.return_value = Mock(status_code=200)
+    mock_get.return_value.json.return_value = MOCK_MEASUREMENT_INFO_ONGOING
+
+    response = check_all_measurements_done("123456", 10)
+    assert response == "Timeout"
+
+
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_check_all_measurement_done_no_status_name_from_ripe(mock_get, mock_get_token):
+    mock_get_token.return_value = "token"
+    mock_get.return_value = Mock(status_code=200)
+    mock_get.return_value.json.return_value = MOCK_MEASUREMENT_INFO_NO_RESPONSE
+
+    response = check_all_measurements_done("123456", 10)
+    assert response == "Timeout"
+
+
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_check_all_measurement_done_error_get(mock_get, mock_get_token):
+    mock_get_token.return_value = "token"
+    mock_get.return_value = Mock(status_code=200)
+    mock_get.return_value.json.return_value = MOCK_MEASUREMENT_ERROR
+
+    with pytest.raises(ValueError,
+                       match=r'RIPE API error: Method Not Allowed - Method "GET" not allowed\.'):
+        check_all_measurements_done("123456", 1)
