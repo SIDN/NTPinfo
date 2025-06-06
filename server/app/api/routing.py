@@ -70,11 +70,14 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
         except Exception as e:
             client_ip = None
     response = measure(server, session, client_ip)
-    print(response)
+    # print(response)
     if response is not None:
-        result, jitter, nr_jitter_measurements = response
+        new_format = []
+        for r in response:
+            result, jitter, nr_jitter_measurements = r
+            new_format.append(get_format(result, jitter, nr_jitter_measurements))
         return {
-            "measurement": get_format(result, jitter, nr_jitter_measurements)
+            "measurement": new_format
         }
     else:
         raise HTTPException(status_code=404, detail="Your search does not seem to match any server")
@@ -176,25 +179,25 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
         try:
             client_ip = ip_to_str(get_server_ip())
         except Exception as e:
-            raise HTTPException(status_code=503, detail="failed to get client IP address or a default IP address to use")
+            raise HTTPException(status_code=503,
+                                detail="failed to get client IP address or a default IP address to use")
     try:
         measurement_id = perform_ripe_measurement(server, client_ip=client_ip)
         return {
             "measurement_id": measurement_id,
             "status": "started",
             "message": "You can fetch the result at /measurements/ripe/{measurement_id}",
-            "ip_list": []
         }
     except InputError as e:
         print(e)
-        raise HTTPException(status_code=400, detail=f"Input parameter is invalid. Failed to initiate measurement: {str(e)}")
+        raise HTTPException(status_code=400,
+                            detail=f"Input parameter is invalid. Failed to initiate measurement: {str(e)}")
     except RipeMeasurementError as e:
         print(e)
         raise HTTPException(status_code=400, detail=f"Ripe measurement initiated, but it failed: {str(e)}")
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=f"Failed to initiate measurement: {str(e)}")
-
 
 
 @router.get("/measurements/ripe/{measurement_id}")

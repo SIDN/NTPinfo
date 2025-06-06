@@ -8,7 +8,5 @@ class MeasurementRequest(BaseModel):
 
     Attributes:
         server (str): The IP address or domain name of the NTP server to be measured.
-        random_probes (bool): Whether the user wants to have random probes around the world (default : selected around their location)
     """
     server: str
-    random_probes: bool

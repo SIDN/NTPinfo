@@ -316,7 +316,6 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
             ntp_server_name=dst_name,
             ntp_server_ref_parent_ip=None,
             ref_name=None,
-            other_server_ips=None
         )
 
         if not failed and idx is not None:

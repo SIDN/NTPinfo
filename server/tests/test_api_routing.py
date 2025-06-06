@@ -232,7 +232,7 @@ def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_mea
     mock_perform_measurement.return_value = measurement
 
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    response = test_client.post("/measurements/", json={"server": "pool.ntp.org", "random_probes": False},
+    response = test_client.post("/measurements/", json={"server": "pool.ntp.org"},
                                 headers=headers)
     assert response.status_code == 200
     assert "measurement" in response.json()
@@ -251,7 +251,7 @@ def test_read_data_measurement_missing_measurement_no(mock_is_ip, mock_insert, m
     mock_perform_measurement.return_value = (measurement, ["83.25.24.10"])
 
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    response = test_client.post("/measurements/", json={"server": "pool.ntp.org", "random_probes": True},
+    response = test_client.post("/measurements/", json={"server": "pool.ntp.org"},
                                 headers=headers)
     assert response.status_code == 404
     assert '{"error":"Your search does not seem to match any server"}' in response.text
@@ -269,7 +269,7 @@ def test_read_data_measurement_with_jitter(mock_jitter, mock_is_ip, mock_insert,
 
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = test_client.post("/measurements/",
-                                json={"server": "pool.ntp.org", "random_probes": True},
+                                json={"server": "pool.ntp.org"},
                                 headers=headers)
     assert response.status_code == 200
     json_data = response.json()
@@ -282,7 +282,7 @@ def test_read_data_measurement_with_jitter(mock_jitter, mock_is_ip, mock_insert,
 def test_read_data_measurement_missing_server(test_client):
     headers = {"X-Forwarded-For": "83.25.24.10"}
 
-    response = test_client.post("/measurements/", json={"server": "", "random_probes": False}, headers=headers)
+    response = test_client.post("/measurements/", json={"server": ""}, headers=headers)
     assert response.status_code == 400
     assert response.json() == {"error": "Either 'ip' or 'dn' must be provided"}
 
@@ -290,7 +290,7 @@ def test_read_data_measurement_missing_server(test_client):
 def test_read_data_measurement_wrong_server(test_client):
     headers = {"X-Forwarded-For": "83.25.24.10"}
 
-    response = test_client.post("/measurements/", json={"server": "random-server-name.org", "random_probes": False},
+    response = test_client.post("/measurements/", json={"server": "random-server-name.org", },
                                 headers=headers)
     assert response.status_code == 404
     assert response.json() == {"error": "Your search does not seem to match any server"}
@@ -395,7 +395,7 @@ def test_perform_measurement_with_rate_limiting(mock_is_ip, mock_insert, mock_pe
 
     for _ in range(5):
         headers = {"X-Forwarded-For": "83.25.24.10"}
-        response = test_client.post("/measurements/", json={"server": "pool.ntp.org", "random_probes": False},
+        response = test_client.post("/measurements/", json={"server": "pool.ntp.org"},
                                     headers=headers)
         assert response.status_code == 200
         assert "measurement" in response.json()
@@ -405,7 +405,7 @@ def test_perform_measurement_with_rate_limiting(mock_is_ip, mock_insert, mock_pe
 
     assert mock_perform_measurement.call_count == 5
     calls_before_6th = mock_perform_measurement.call_count
-    response = test_client.post("/measurements/", json={"server": "pool.ntp.org", "random_probes": False},
+    response = test_client.post("/measurements/", json={"server": "pool.ntp.org"},
                                 headers=headers)
     assert response.status_code == 429
     assert response.json() == {"error": "Rate limit exceeded: 5 per 1 second"}
@@ -496,7 +496,7 @@ def test_historic_data_dn_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock
 def test_trigger_ripe_measurement_server_not_present(test_client):
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = test_client.post("/measurements/ripe/trigger/",
-                                json={"server": "", "random_probes": True},
+                                json={"server": ""},
                                 headers=headers)
     assert response.status_code == 400
     assert response.json() == {"error": "Either 'ip' or 'dn' must be provided"}
@@ -507,7 +507,7 @@ def test_trigger_ripe_measurement_server_ip(mock_perform_ripe_measurement, test_
     mock_perform_ripe_measurement.return_value = "123456"
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = test_client.post("/measurements/ripe/trigger/",
-                                json={"server": "83.25.24.10", "random_probes": True},
+                                json={"server": "83.25.24.10"},
                                 headers=headers)
     assert response.status_code == 200
     assert response.json()["measurement_id"] == "123456"
@@ -520,7 +520,7 @@ def test_trigger_ripe_measurement_server_dn(mock_perform_ripe_measurement, test_
     mock_perform_ripe_measurement.return_value = "123456"
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = test_client.post("/measurements/ripe/trigger/",
-                                json={"server": "time.server_some.com", "random_probes": True},
+                                json={"server": "time.server_some.com"},
                                 headers=headers)
     assert response.status_code == 200
     assert response.json()["measurement_id"] == "123456"
@@ -534,7 +534,7 @@ def test_trigger_ripe_measurement_server_error(mock_perform_ripe_measurement, te
 
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = test_client.post("/measurements/ripe/trigger/",
-                                json={"server": "time.server_some.com", "random_probes": True},
+                                json={"server": "time.server_some.com"},
                                 headers=headers)
 
     assert response.status_code == 500
