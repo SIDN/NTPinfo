@@ -75,7 +75,7 @@ def test_perform_ntp_measurement_domain_name(mock_request, mock_getaddrinfo):
     assert result.timestamps.client_recv_time == PreciseTime(seconds=3948758386, fraction=0)
 
     assert result.main_details.offset == 0.001
-    assert result.main_details.delay == 0.002
+    assert result.main_details.rtt == 0.002
     assert result.main_details.stratum == 2
     assert result.main_details.precision == -20
     assert result.main_details.reachability == ""
@@ -122,7 +122,7 @@ def test_perform_ntp_measurement_ip(mock_request):
     assert result.timestamps.client_recv_time == PreciseTime(seconds=3948758386, fraction=0)
 
     assert result.main_details.offset == 0.001
-    assert result.main_details.delay == 0.002
+    assert result.main_details.rtt == 0.002
     assert result.main_details.stratum == 2
     assert result.main_details.precision == -20
     assert result.main_details.reachability == ""

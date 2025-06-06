@@ -145,7 +145,7 @@ def insert_measurement(measurement: NtpMeasurement, session: Session) -> None:
         ref_name=measurement.server_info.ref_name,
         time_id=time.id,
         time_offset=measurement.main_details.offset,
-        rtt=measurement.main_details.delay,
+        rtt=measurement.main_details.rtt,
         stratum=measurement.main_details.stratum,
         precision=measurement.main_details.precision,
         reachability=measurement.main_details.reachability,

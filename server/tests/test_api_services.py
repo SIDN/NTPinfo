@@ -34,7 +34,7 @@ MOCK_NTP_MEASUREMENT = NtpMeasurement(
     ),
     main_details=NtpMainDetails(
         offset=0.123,
-        delay=0.456,
+        rtt=0.456,
         stratum=2,
         precision=-20.0,
         reachability=""
@@ -253,7 +253,7 @@ def mock_ripe_parse_result():
             ),
             main_details=NtpMainDetails(
                 offset=0.065274,
-                delay=0.027344,
+                rtt=0.027344,
                 stratum=1,
                 precision=9.53674e-07,
                 reachability=""

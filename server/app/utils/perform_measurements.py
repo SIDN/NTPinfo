@@ -129,7 +129,7 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
 
         main_details: NtpMainDetails = NtpMainDetails(
             offset=response.offset,
-            delay=response.delay,
+            rtt=response.delay,
             stratum=response.stratum,
             precision=response.precision,
             reachability=""
@@ -179,7 +179,7 @@ def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
         # Main Details
         main = measurement.main_details
         print(f"Offset (s):            {main.offset}")
-        print(f"Delay (s):             {main.delay}")
+        print(f"Delay (s):             {main.rtt}")
         print(f"Stratum:               {main.stratum}")
         print(f"Precision:             {main.precision}")
         print(f"Reachability:          {main.reachability}")

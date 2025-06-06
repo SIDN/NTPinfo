@@ -74,7 +74,7 @@ def mock_measurement() -> NtpMeasurement:
         ),
         main_details=NtpMainDetails(
             offset=0.123,
-            delay=0.456,
+            rtt=0.456,
             stratum=2,
             precision=-20.0,
             reachability=""
@@ -106,7 +106,7 @@ def get_mock_data():
             ),
             main_details=NtpMainDetails(
                 offset=0.002,
-                delay=0.005,
+                rtt=0.005,
                 stratum=2,
                 precision=0.0001,
                 reachability="1111"
@@ -134,7 +134,7 @@ def get_mock_data():
             ),
             main_details=NtpMainDetails(
                 offset=0.004,
-                delay=0.008,
+                rtt=0.008,
                 stratum=1,
                 precision=0.0002,
                 reachability="1010"

@@ -56,7 +56,7 @@ def get_format(measurement: NtpMeasurement, jitter: Optional[float] = None,
         "client_recv_time": measurement.timestamps.client_recv_time,
 
         "offset": measurement.main_details.offset,
-        "rtt": measurement.main_details.delay,
+        "rtt": measurement.main_details.rtt,
         "stratum": measurement.main_details.stratum,
         "precision": measurement.main_details.precision,
         "reachability": measurement.main_details.reachability,
@@ -125,7 +125,7 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
                 "server_recv_time": measurement.ntp_measurement.timestamps.server_recv_time,
                 "server_sent_time": measurement.ntp_measurement.timestamps.server_sent_time,
                 "client_recv_time": measurement.ntp_measurement.timestamps.client_recv_time,
-                "rtt": measurement.ntp_measurement.main_details.delay,
+                "rtt": measurement.ntp_measurement.main_details.rtt,
                 "offset": measurement.ntp_measurement.main_details.offset
             }
         ]

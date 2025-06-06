@@ -327,16 +327,16 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
                 client_recv_time=convert_float_to_precise_time(result.get('final-ts', -1.0))
             )
             offset = result.get('offset', -1.0)
-            delay = result.get('rtt', -1.0)
+            rtt = result.get('rtt', -1.0)
         else:
             timestamps = NtpTimestamps(*(PreciseTime(-1, 0) for _ in range(4)))
-            offset = delay = -1
+            offset = rtt = -1
 
         stratum = measurement.get('stratum', -1)
         precision = measurement.get('precision', -1)
 
         main_details = NtpMainDetails(offset=offset,
-                                      delay=delay,
+                                      rtt=rtt,
                                       stratum=stratum,
                                       precision=precision,
                                       reachability="")
@@ -367,12 +367,12 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
             ref_id=ref_id
         )
         ripe_measurements.append(ripe_measurement)
-    #     print(ripe_measurement)
+        print(ripe_measurement)
     # print(len(ripe_measurements))
     return ripe_measurements, check_all_measurements_done(str(msm_id), len(ripe_measurements))
 
 # print(len(parse_data_from_ripe_measurement(get_data_from_ripe_measurement("105960562"))))
 # print(parse_data_from_ripe_measurement(get_data_from_ripe_measurement("106323686")))
-# parse_data_from_ripe_measurement(get_data_from_ripe_measurement("106125660"))
+# parse_data_from_ripe_measurement(get_data_from_ripe_measurement("107961234"))
 # print(parse_probe_data(get_probe_data_from_ripe_by_id("7304")))
 # print(check_all_measurements_scheduled("107134561"))
