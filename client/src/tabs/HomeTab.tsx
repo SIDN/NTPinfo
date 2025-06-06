@@ -81,8 +81,6 @@ function HomeTab() {
     const fullurlMeasurementData = `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/`
     const apiMeasurementResp = await fetchMeasurementData(fullurlMeasurementData, payload)
 
-    console.log(apiMeasurementResp)
-
     /**
      * Get data from past day from historical data endpoint to chart in the graph.
      */

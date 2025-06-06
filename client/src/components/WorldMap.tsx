@@ -195,9 +195,9 @@ export default function WorldMap ({probes, status}: MapComponentProps) {
   const [ntpServer, setNtpServer] = useState<L.LatLngExpression | null>(null)
   const { fetchIPInfo } = useIPInfo()
   useEffect(() => {
-    if (status === "idle" || status === "polling"){
+    if (status === "pending" || status === "partial_results"){
       setStatusMessage("Map Loading...")
-    } else if(status === "complete") {
+    } else if(status === "complete" || status === "timeout") {
       setStatusMessage("Map Fully Loaded")
     } else if (status === "error") {
       setStatusMessage("Error loading RIPE data")
@@ -219,6 +219,8 @@ export default function WorldMap ({probes, status}: MapComponentProps) {
 
   const probe_locations = probes?.map(x => x.probe_location) ?? []
   const icons = probes?.map(x => getIconByRTT(x.measurementData.RTT, x.got_results)) ?? []
+
+  console.log(probes)
   
     return (
       <div style={{height: '500px', width: '100%'}}>
