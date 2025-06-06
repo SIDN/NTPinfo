@@ -9,19 +9,12 @@ from ipaddress import ip_address, IPv4Address, IPv6Address
 from server.app.services.api_services import *
 from unittest.mock import patch, MagicMock
 from server.app.dtos.NtpMeasurement import NtpMeasurement
-from server.app.utils.ip_utils import ip_to_str
 from datetime import datetime
 import pytest
 
 
 def mock_precise(seconds=1234567890, fraction=0) -> PreciseTime:
     return PreciseTime(seconds=seconds, fraction=fraction)
-
-
-def test_ip_to_str():
-    assert ip_to_str(IPv4Address("123.45.67.89")) == "123.45.67.89"
-    assert ip_to_str(IPv6Address("2001:db8:3333:4444:5555:6666:7777:8888")) == "2001:db8:3333:4444:5555:6666:7777:8888"
-    assert ip_to_str(None) is None
 
 
 MOCK_NTP_MEASUREMENT = NtpMeasurement(
@@ -32,7 +25,6 @@ MOCK_NTP_MEASUREMENT = NtpMeasurement(
         ntp_server_name="pool.ntp.org",
         ntp_server_ref_parent_ip=None,
         ref_name=None,
-        other_server_ips=["192.168.10.1"]
     ),
     timestamps=NtpTimestamps(
         client_sent_time=mock_precise(1),
@@ -72,7 +64,6 @@ def test_get_format():
     assert formatted_measurement["reachability"] == ""
     assert formatted_measurement["leap"] == 0
     assert formatted_measurement["jitter"] == 0.75
-    assert formatted_measurement["other_server_ips"] == ["192.168.10.1"]
 
 
 @patch("server.app.services.api_services.calculate_jitter_from_measurements")
@@ -86,7 +77,7 @@ def test_measure_with_ip(mock_measure_ip, mock_measure_domain, mock_insert, mock
     mock_jitter.return_value = (0.5, 1)
     result = measure("192.168.1.1", fake_session)
 
-    assert result == (fake_measurement, 0.5, 1)
+    assert result == [(fake_measurement, 0.5, 1)]
     mock_measure_ip.assert_called_once_with("192.168.1.1")
     mock_insert.assert_called_once_with(fake_measurement, mock_insert.call_args[0][1])  # pool
     mock_measure_domain.assert_not_called()
@@ -98,13 +89,13 @@ def test_measure_with_ip(mock_measure_ip, mock_measure_domain, mock_insert, mock
 @patch("server.app.services.api_services.perform_ntp_measurement_ip")
 def test_measure_with_domain(mock_measure_ip, mock_measure_domain, mock_insert, mock_jitter):
     fake_measurement = MagicMock(spec=NtpMeasurement)
-    mock_measure_domain.return_value = fake_measurement
+    mock_measure_domain.return_value = [fake_measurement]
     mock_measure_ip.return_value = None
     mock_jitter.return_value = (0, 1)
     fake_session = MagicMock(spec=Session)
     result = measure("pool.ntp.org", fake_session)
 
-    assert result == (fake_measurement, 0, 1)
+    assert result == [(fake_measurement, 0, 1)]
     mock_measure_domain.assert_called_once_with("pool.ntp.org", None)
     mock_insert.assert_called_once_with(fake_measurement, mock_insert.call_args[0][1])  # pool
     mock_measure_ip.assert_not_called()
@@ -116,7 +107,7 @@ def test_measure_with_domain(mock_measure_ip, mock_measure_domain, mock_insert, 
 def test_measure_with_invalid_ip(mock_measure_ip, mock_measure_domain, mock_insert):
     fake_measurement = MagicMock(spec=NtpMeasurement)
     mock_measure_ip.return_value = None
-    mock_measure_domain.return_value = (fake_measurement)
+    mock_measure_domain.return_value = [fake_measurement]
     fake_session = MagicMock(spec=Session)
     result = measure("not.an.ip", fake_session)
 
@@ -162,7 +153,7 @@ def test_measure_with_jitter(mock_jitter, mock_measure_ip, mock_measure_domain, 
     fake_session = MagicMock(spec=Session)
     result = measure("192.168.1.1", session=fake_session, measurement_no=7)
 
-    assert result == (fake_measurement, 0.75, 4)
+    assert result == [(fake_measurement, 0.75, 4)]
     mock_measure_ip.assert_called_once_with("192.168.1.1")
     mock_insert.assert_called_once_with(fake_measurement, mock_insert.call_args[0][1])  # pool
     mock_jitter.assert_called_once_with(fake_session, fake_measurement, 7)
@@ -253,7 +244,6 @@ def mock_ripe_parse_result():
                 ntp_server_name='time.some_server.com',
                 ntp_server_ref_parent_ip=None,
                 ref_name=None,
-                other_server_ips=["8.8.8.8", "1.1.1.1"]
             ),
             timestamps=NtpTimestamps(
                 client_sent_time=mock_precise(3957337543, 1845620736),
@@ -370,7 +360,7 @@ def test_perform_ripe_measurement_with_dn_without_client_ip(mock_m_ip, mock_m_dn
     mock_m_ip.return_value = 0
     mock_m_dn.return_value = 123456
 
-    m_id = perform_ripe_measurement("time.some_server.com","82.211.23.56")
+    m_id = perform_ripe_measurement("time.some_server.com", "82.211.23.56")
 
     mock_m_ip.assert_not_called()
     mock_m_dn.assert_called_once()

@@ -65,7 +65,6 @@ def mock_measurement() -> NtpMeasurement:
             ntp_server_name="pool.ntp.org",
             ntp_server_ref_parent_ip=None,
             ref_name=None,
-            other_server_ips=None
         ),
         timestamps=NtpTimestamps(
             client_sent_time=mock_precise(1),
@@ -98,7 +97,6 @@ def get_mock_data():
                 ntp_server_name="pool.ntp.org",
                 ntp_server_ref_parent_ip=IPv4Address("192.168.1.2"),
                 ref_name="pool.ntp.org",
-                other_server_ips=None
             ),
             timestamps=NtpTimestamps(
                 client_sent_time=mock_precise(1609459200),
@@ -127,7 +125,6 @@ def get_mock_data():
                 ntp_server_name="pool.ntp.org",
                 ntp_server_ref_parent_ip=IPv4Address("192.168.1.3"),
                 ref_name="pool.ntp.org",
-                other_server_ips=None
             ),
             timestamps=NtpTimestamps(
                 client_sent_time=mock_precise(1609459201),
@@ -229,15 +226,15 @@ def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_mea
     mock_is_ip.return_value = None
     measurement = mock_measurement()
 
-    mock_perform_measurement.return_value = measurement
+    mock_perform_measurement.return_value = [measurement]
 
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = test_client.post("/measurements/", json={"server": "pool.ntp.org"},
                                 headers=headers)
     assert response.status_code == 200
     assert "measurement" in response.json()
-    assert response.json()["measurement"]["ntp_server_name"] == "pool.ntp.org"
-    assert response.json()["measurement"]["jitter"] == 0
+    assert response.json()["measurement"][0]["ntp_server_name"] == "pool.ntp.org"
+    assert response.json()["measurement"][0]["jitter"] == 0
     mock_perform_measurement.assert_called_with("pool.ntp.org", "83.25.24.10")
     mock_insert.assert_called_once_with(measurement, mock_insert.call_args[0][1])
 
@@ -264,7 +261,7 @@ def test_read_data_measurement_missing_measurement_no(mock_is_ip, mock_insert, m
 def test_read_data_measurement_with_jitter(mock_jitter, mock_is_ip, mock_insert, mock_perform_measurement, test_client):
     mock_is_ip.return_value = None
     measurement = mock_measurement()
-    mock_perform_measurement.return_value = measurement
+    mock_perform_measurement.return_value = [measurement]
     mock_jitter.return_value = 0.75, 4
 
     headers = {"X-Forwarded-For": "83.25.24.10"}
@@ -274,8 +271,8 @@ def test_read_data_measurement_with_jitter(mock_jitter, mock_is_ip, mock_insert,
     assert response.status_code == 200
     json_data = response.json()
     assert "measurement" in json_data
-    assert response.json()["measurement"]["jitter"] == 0.75
-    assert response.json()["measurement"]["nr_measurements_jitter"] == 4
+    assert response.json()["measurement"][0]["jitter"] == 0.75
+    assert response.json()["measurement"][0]["nr_measurements_jitter"] == 4
     mock_insert.assert_called_once()
 
 
@@ -391,7 +388,7 @@ def test_perform_measurement_with_rate_limiting(mock_is_ip, mock_insert, mock_pe
     mock_is_ip.return_value = None
     measurement = mock_measurement()
 
-    mock_perform_measurement.return_value = measurement
+    mock_perform_measurement.return_value = [measurement]
 
     for _ in range(5):
         headers = {"X-Forwarded-For": "83.25.24.10"}
@@ -399,8 +396,8 @@ def test_perform_measurement_with_rate_limiting(mock_is_ip, mock_insert, mock_pe
                                     headers=headers)
         assert response.status_code == 200
         assert "measurement" in response.json()
-        assert response.json()["measurement"]["ntp_server_name"] == "pool.ntp.org"
-        assert response.json()["measurement"]["jitter"] == 0.0
+        assert response.json()["measurement"][0]["ntp_server_name"] == "pool.ntp.org"
+        assert response.json()["measurement"][0]["jitter"] == 0.0
         mock_perform_measurement.assert_called_with("pool.ntp.org", "83.25.24.10")
 
     assert mock_perform_measurement.call_count == 5

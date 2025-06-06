@@ -1,8 +1,15 @@
-from ipaddress import IPv4Address
+from ipaddress import IPv4Address, IPv6Address
 from unittest.mock import patch, MagicMock
 import pytest
 
-from server.app.utils.ip_utils import ref_id_to_ip_or_name, get_ip_family, get_area_of_ip, get_ip_network_details
+from server.app.utils.ip_utils import ref_id_to_ip_or_name, get_ip_family, get_area_of_ip, get_ip_network_details, \
+    ip_to_str
+
+
+def test_ip_to_str():
+    assert ip_to_str(IPv4Address("123.45.67.89")) == "123.45.67.89"
+    assert ip_to_str(IPv6Address("2001:db8:3333:4444:5555:6666:7777:8888")) == "2001:db8:3333:4444:5555:6666:7777:8888"
+    assert ip_to_str(None) is None
 
 
 def test_ref_id_to_ip_or_name():
