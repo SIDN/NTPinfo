@@ -53,6 +53,7 @@
   transition: background-color 0.15s ease;
   /* padding-left: 16px; */
   /* justify-content: center; */
+  transition: background-color 0.15s ease, gap 0.2s ease;
 }
 
 .sidebar__item:hover {
@@ -64,7 +65,7 @@
 }
 
 .sidebar.closed .sidebar__item {
-  justify-content: center;
+  justify-content: left;
 }
 
 .sidebar__icon {
@@ -76,6 +77,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: opacity 0.2s ease, width 0.2s ease, margin 0.2s ease;
+  max-width: 160px;
 }
 
 .sidebar {
@@ -92,3 +95,9 @@
 .sidebar.closed { width: 64px;  }
 
 .sidebar__toggle {  }
+
+.sidebar.closed .sidebar__label {
+  opacity: 0;
+  max-width: 0;
+  margin-left: 0;
+}
