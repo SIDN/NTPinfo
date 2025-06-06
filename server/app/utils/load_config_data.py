@@ -21,8 +21,10 @@ def load_config() -> dict[str, Any]:
     with open(config_path, "r") as f:
         return cast(dict[str, Any], yaml.safe_load(f))
 
+
 load_dotenv()
 config = load_config()
+
 
 def verify_if_config_is_set() -> bool:
     """
@@ -53,6 +55,7 @@ def verify_if_config_is_set() -> bool:
     # everything is fine
     return True
 
+
 def get_ipinfo_lite_api_token() -> str:
     """
     This function returns the IPinfo Lite API token.
@@ -60,10 +63,11 @@ def get_ipinfo_lite_api_token() -> str:
     Raises:
         ValueError: If no IPinfo Lite API token is found.
     """
-    ans =  os.getenv('IPINFO_LITE_API_TOKEN')
+    ans = os.getenv('IPINFO_LITE_API_TOKEN')
     if ans is not None:
         return ans
     raise ValueError('IPINFO_LITE_API_TOKEN environment variable not set')
+
 
 def get_ripe_account_email() -> str:
     """
@@ -77,6 +81,7 @@ def get_ripe_account_email() -> str:
         return ans
     raise ValueError('ripe_account_email environment variable is not set')
 
+
 def get_ripe_api_token() -> str:
     """
     This function returns the RIPE Atlas API token.
@@ -84,10 +89,11 @@ def get_ripe_api_token() -> str:
     Raises:
         ValueError: If the RIPE Atlas API token is not set.
     """
-    ans =  os.getenv('ripe_api_token')
+    ans = os.getenv('ripe_api_token')
     if ans is not None:
         return ans
     raise ValueError('ripe_api_token environment variable not set')
+
 
 def get_ntp_version() -> int:
     """
@@ -107,6 +113,7 @@ def get_ntp_version() -> int:
         raise ValueError("ntp 'version' must be > 0")
     return ntp["version"]
 
+
 def get_timeout_measurement_s() -> float | int:
     """
     This method returns the timeout for an NTP measurement.
@@ -125,6 +132,7 @@ def get_timeout_measurement_s() -> float | int:
         raise ValueError("ntp 'timeout_measurement_s' cannot be negative")
     return ntp["timeout_measurement_s"]
 
+
 def get_nr_of_measurements_for_jitter() -> int:
     """
     This method returns the number of measurement requested for calculating the jitter.
@@ -142,6 +150,7 @@ def get_nr_of_measurements_for_jitter() -> int:
     if ntp["number_of_measurements_for_calculating_jitter"] <= 0:
         raise ValueError("ntp 'number_of_measurements_for_calculating_jitter' must be > 0")
     return ntp["number_of_measurements_for_calculating_jitter"]
+
 
 def get_mask_ipv4() -> int:
     """
@@ -180,6 +189,7 @@ def get_mask_ipv6() -> int:
         raise ValueError("edns 'mask_ipv6' must be between 0 and 64 inclusive")
     return edns["mask_ipv6"]
 
+
 def get_edns_default_servers() -> list[str]:
     """
     This method returns the default list of EDNS servers. (in the order of their priorities)
@@ -198,7 +208,8 @@ def get_edns_default_servers() -> list[str]:
         raise ValueError("edns 'default_order_of_edns_servers' cannot be empty")
     return edns["default_order_of_edns_servers"]
 
-def get_edns_timeout_s() -> float|int:
+
+def get_edns_timeout_s() -> float | int:
     """
     This method returns the timeout for the EDNS query request.
 
@@ -216,7 +227,8 @@ def get_edns_timeout_s() -> float|int:
         raise ValueError("edns 'edns_timeout_s' cannot be negative")
     return edns["edns_timeout_s"]
 
-def get_ripe_timeout_per_probe_ms() -> float|int:
+
+def get_ripe_timeout_per_probe_ms() -> float | int:
     """
     This method returns the timeout that a probe has to receive an answer from a measurement.
 
@@ -228,11 +240,12 @@ def get_ripe_timeout_per_probe_ms() -> float|int:
     ripe_atlas = config["ripe_atlas"]
     if "timeout_per_probe_ms" not in ripe_atlas:
         raise ValueError("ripe_atlas 'timeout_per_probe_ms' is missing")
-    if not isinstance(ripe_atlas["timeout_per_probe_ms"], float|int):
+    if not isinstance(ripe_atlas["timeout_per_probe_ms"], float | int):
         raise ValueError("ripe_atlas 'timeout_per_probe_ms' must be a 'float' or an 'int' in ms")
     if ripe_atlas["timeout_per_probe_ms"] <= 0:
         raise ValueError("ripe_atlas 'timeout_per_probe_ms' must be > 0")
     return ripe_atlas["timeout_per_probe_ms"]
+
 
 def get_ripe_packets_per_probe() -> int:
     """
@@ -253,6 +266,7 @@ def get_ripe_packets_per_probe() -> int:
         raise ValueError("ripe_atlas 'packets_per_probe' must be > 0")
     return ripe_atlas["packets_per_probe"]
 
+
 def get_ripe_number_of_probes_per_measurement() -> int:
     """
     This method returns the number of probes requested and desired for a measurement.
@@ -271,6 +285,7 @@ def get_ripe_number_of_probes_per_measurement() -> int:
         raise ValueError("ripe_atlas 'number_of_probes_per_measurement' must be > 0")
     return ripe_atlas["number_of_probes_per_measurement"]
 
+
 def get_ripe_max_probes_per_measurement() -> int:
     """
     This method returns the maximum number of probes requested per measurement.
@@ -288,6 +303,7 @@ def get_ripe_max_probes_per_measurement() -> int:
     if ripe_atlas["max_probes_per_measurement"] <= 0:
         raise ValueError("ripe_atlas 'max_probes_per_measurement' must be > 0")
     return ripe_atlas["max_probes_per_measurement"]
+
 
 def get_ripe_probes_wanted_percentages() -> list[float]:
     """
@@ -314,4 +330,7 @@ def get_ripe_probes_wanted_percentages() -> list[float]:
     return ripe_atlas["probes_wanted_percentages"]
 
 
+def get_max_mind_path() -> str:
+    max_mind = config["max_mind"]
+    return max_mind["path"]
 # verify_if_config_is_set()
