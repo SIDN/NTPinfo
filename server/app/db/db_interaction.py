@@ -79,7 +79,7 @@ def dict_to_measurement(entry: dict[str, Any]) -> NtpMeasurement:
     """
     vantage_point_ip = entry['vantage_point_ip']
     server_info = NtpServerInfo(entry['ntp_version'], entry['ntp_server_ip'], entry['ntp_server_name'],
-                                entry['ntp_server_ref_parent_ip'], entry['ref_name'], None)
+                                entry['ntp_server_ref_parent_ip'], entry['ref_name'])
     extra_details = NtpExtraDetails(PreciseTime(entry['root_delay'], entry['root_delay_prec']),
                                     PreciseTime(entry['ntp_last_sync_time'], entry['ntp_last_sync_time_prec']),
                                     0)
@@ -145,7 +145,7 @@ def insert_measurement(measurement: NtpMeasurement, session: Session) -> None:
         ref_name=measurement.server_info.ref_name,
         time_id=time.id,
         time_offset=measurement.main_details.offset,
-        rtt=measurement.main_details.delay,
+        rtt=measurement.main_details.rtt,
         stratum=measurement.main_details.stratum,
         precision=measurement.main_details.precision,
         reachability=measurement.main_details.reachability,

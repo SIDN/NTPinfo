@@ -56,11 +56,12 @@ def test_perform_ntp_measurement_domain_name(mock_request, mock_getaddrinfo):
     mock_response.leap = 0
     mock_request.return_value = mock_response
 
-    result_tuple = perform_ntp_measurement_domain_name("mock.ntp.server", None)
+    result_tuples = perform_ntp_measurement_domain_name_list("mock.ntp.server", None)
 
-    assert result_tuple is not None
-    result = result_tuple
-    assert result.server_info.other_server_ips == ["123.45.67.89"]
+    assert result_tuples is not None
+    assert isinstance(result_tuples, list)
+    assert len(result_tuples) == 1
+    result = result_tuples[0]
 
     assert result.server_info.ntp_version == 4
     assert result.server_info.ntp_server_ip == IPv4Address("123.45.67.89")
@@ -74,7 +75,7 @@ def test_perform_ntp_measurement_domain_name(mock_request, mock_getaddrinfo):
     assert result.timestamps.client_recv_time == PreciseTime(seconds=3948758386, fraction=0)
 
     assert result.main_details.offset == 0.001
-    assert result.main_details.delay == 0.002
+    assert result.main_details.rtt == 0.002
     assert result.main_details.stratum == 2
     assert result.main_details.precision == -20
     assert result.main_details.reachability == ""
@@ -121,7 +122,7 @@ def test_perform_ntp_measurement_ip(mock_request):
     assert result.timestamps.client_recv_time == PreciseTime(seconds=3948758386, fraction=0)
 
     assert result.main_details.offset == 0.001
-    assert result.main_details.delay == 0.002
+    assert result.main_details.rtt == 0.002
     assert result.main_details.stratum == 2
     assert result.main_details.precision == -20
     assert result.main_details.reachability == ""

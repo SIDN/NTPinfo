@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+from server.app.utils.perform_measurements import perform_ntp_measurement_domain_name_list
 from server.app.utils.ip_utils import get_server_ip
 from server.app.models.CustomError import InputError, RipeMeasurementError
 from server.app.utils.load_config_data import get_ripe_number_of_probes_per_measurement, \
@@ -26,7 +27,7 @@ from server.app.dtos.NtpMeasurement import NtpMeasurement
 
 
 def get_format(measurement: NtpMeasurement, jitter: Optional[float] = None,
-               nr_jitter_measurements: int = get_ripe_number_of_probes_per_measurement()) -> dict[str, Any]:
+               nr_jitter_measurements: int = get_nr_of_measurements_for_jitter()) -> dict[str, Any]:
     """
     Format an NTP measurement object into a dictionary suitable for JSON serialization.
 
@@ -56,7 +57,7 @@ def get_format(measurement: NtpMeasurement, jitter: Optional[float] = None,
         "client_recv_time": measurement.timestamps.client_recv_time,
 
         "offset": measurement.main_details.offset,
-        "rtt": measurement.main_details.delay,
+        "rtt": measurement.main_details.rtt,
         "stratum": measurement.main_details.stratum,
         "precision": measurement.main_details.precision,
         "reachability": measurement.main_details.reachability,
@@ -66,7 +67,6 @@ def get_format(measurement: NtpMeasurement, jitter: Optional[float] = None,
         # if it has value = 3 => invalid
         "leap": measurement.extra_details.leap,
         # if the server has multiple IPs addresses we should show them to the client
-        "other_server_ips": measurement.server_info.other_server_ips,
         "jitter": jitter,
         "nr_measurements_jitter": nr_jitter_measurements
     }
@@ -126,7 +126,7 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
                 "server_recv_time": measurement.ntp_measurement.timestamps.server_recv_time,
                 "server_sent_time": measurement.ntp_measurement.timestamps.server_sent_time,
                 "client_recv_time": measurement.ntp_measurement.timestamps.client_recv_time,
-                "rtt": measurement.ntp_measurement.main_details.delay,
+                "rtt": measurement.ntp_measurement.main_details.rtt,
                 "offset": measurement.ntp_measurement.main_details.offset
             }
         ]
@@ -134,8 +134,8 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
 
 
 def measure(server: str, session: Session, client_ip: Optional[str] = None,
-            measurement_no: int = get_nr_of_measurements_for_jitter()) -> tuple[
-                                                                              NtpMeasurement, float | None, int] | None:
+            measurement_no: int = get_nr_of_measurements_for_jitter()) -> list[tuple[
+    NtpMeasurement, float, int]] | None:
     """
     Performs an NTP measurement for a given server (IP or domain name) and stores the result in the database.
 
@@ -150,8 +150,8 @@ def measure(server: str, session: Session, client_ip: Optional[str] = None,
         measurement_no (int): How many extra measurements to perform if the jitter_flag is True.
 
     Returns:
-        tuple[NtpMeasurement, float | None, int] | None:
-            - A pair with a populated `NtpMeasurement` object if the measurement is successful, and the jitter if the jitter_flag is True.
+        list[tuple[NtpMeasurement, float | None, int]] | None:
+            - A list of pairs with a populated `NtpMeasurement` object if the measurement is successful, and the jitter.
             - `None` if an exception occurs during the measurement process.
 
     Notes:
@@ -163,28 +163,29 @@ def measure(server: str, session: Session, client_ip: Optional[str] = None,
         if is_ip_address(server) is not None:
             m = perform_ntp_measurement_ip(server)
             if m is not None:
-                jitter = None
+                jitter = 0.0
                 nr_jitter_measurements = 0
                 insert_measurement(m, session)
                 result = calculate_jitter_from_measurements(session, m, measurement_no)
                 if result is not None:
                     jitter, nr_jitter_measurements = result
-                return m, jitter, nr_jitter_measurements
+                return [(m, jitter, nr_jitter_measurements)]
             # the measurement failed
             print("The ntp server " + server + " is not responding.")
             return None
         else:
-            ans = perform_ntp_measurement_domain_name(server, client_ip)
-            if ans is not None:
-                m = ans
-
-                jitter = None
-                nr_jitter_measurements = 0
-                insert_measurement(m, session)
-                result = calculate_jitter_from_measurements(session, m, measurement_no)
-                if result is not None:
-                    jitter, nr_jitter_measurements = result
-                return m, jitter, nr_jitter_measurements
+            measurements: Optional[list[NtpMeasurement]] = perform_ntp_measurement_domain_name_list(server, client_ip)
+            if measurements is not None:
+                m_results = []
+                for m in measurements:
+                    jitter = 0.0
+                    nr_jitter_measurements = 0
+                    insert_measurement(m, session)
+                    result = calculate_jitter_from_measurements(session, m, measurement_no)
+                    if result is not None:
+                        jitter, nr_jitter_measurements = result
+                    m_results.append((m, jitter, nr_jitter_measurements))
+                return m_results
             print("The ntp server " + server + " is not responding.")
             return None
     except Exception as e:
@@ -291,7 +292,7 @@ def perform_ripe_measurement(ntp_server: str, client_ip: Optional[str]) -> str:
         raise e
     except RipeMeasurementError as e:
         raise e
-    except Exception as e: #TODO
+    except Exception as e:  # TODO
         raise ValueError(e)
 
 
