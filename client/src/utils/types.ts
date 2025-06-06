@@ -16,6 +16,7 @@ export type NTPData = {
   server_name: string,
   ref_ip: string,
   ref_name: string,
+  root_dispersion: number,
   root_delay: number
 }
 

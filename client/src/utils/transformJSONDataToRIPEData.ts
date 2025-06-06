@@ -24,7 +24,7 @@ export const transformJSONDataToRIPEData = (fetchedData: any): RIPEData | null =
         offset: Number((measurement.offset * 1000).toFixed(3)),
         RTT: Number((measurement.rtt * 1000).toFixed(3)),
         stratum: fetchedData.stratum,
-        jitter: null,
+        jitter: fetchedData.jitter,
         precision: fetchedData.precision,
         status: "",
         time: (measurement.client_sent_time.seconds - 2208988800) * 1000,
@@ -33,7 +33,8 @@ export const transformJSONDataToRIPEData = (fetchedData: any): RIPEData | null =
         server_name: fetchedData.ntp_server_name,
         ref_ip: "",
         ref_name: fetchedData.ref_id,
-        root_delay: fetchedData.root_delay.seconds
+        root_dispersion: fetchedData.root_dispersion,
+        root_delay: fetchedData.root_delay
     }
     return{
         measurementData: measurementData,

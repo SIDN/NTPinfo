@@ -137,7 +137,7 @@ function HomeTab() {
         </div>
         {/* The main page shown after the main measurement is done */}
       {(ntpData && !apiDataLoading && (<div className="results-and-graph">
-        <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>
+        <ResultSummary data={ntpData} ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null} err={apiErrorLoading} httpStatus={respStatus}/>
 
         {/* Div for the visualization graph, and the radios for setting the what measurement to show */}
         <div className="graphs">
@@ -170,7 +170,7 @@ function HomeTab() {
           <WorldMap probes={ripeMeasurementResp} status = {ripeMeasurementStatus} />
         </div>
         )}
-      </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>)}
+      </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus} ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null}/>)}
 
       {/*Only shown when a domain name is queried. Users can download IP addresses corresponding to that domain name*/}
       {ntpData && !apiDataLoading && ntpData.server_name && ntpData.ip_list.length && (() => {
