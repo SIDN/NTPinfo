@@ -1,30 +1,23 @@
-import { useState } from 'react'
-
-import './App.css'
-import Hero from './components/Hero'
-import 'leaflet/dist/leaflet.css'
-import HomeTab from './tabs/HomeTab.tsx'
-import CompareTab from './tabs/CompareTab.tsx'
-
-
+import React, { useState } from 'react';
+import Sidebar from './components/Sidebar';
+import Hero from './components/Hero';
+import HomeTab from './tabs/HomeTab';
+import CompareTab from './tabs/CompareTab';
+import './App.css';
 
 function App() {
+  const [selectedTab, setSelectedTab] = useState(1);
 
-  //TODO
-  // for now the switching system is not implemented, will be added later
-  const [selectedTab, setSelectedTab] = useState<number>(1)
-
-  //
-  //The actual app component
-  //
   return (
-    <div className="app-container">
-      <Hero />
-
-      {(selectedTab == 1 && (<HomeTab />)) ||
-       (selectedTab == 2 && (<CompareTab />))}
+    <div className="app-layout">
+      <Sidebar selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
+      <main className="app-content">
+        <Hero />
+        {selectedTab === 1 && <HomeTab />}
+        {selectedTab === 2 && <CompareTab />}
+      </main>
     </div>
-     )
+  );
 }
 
-export default App
+export default App;
