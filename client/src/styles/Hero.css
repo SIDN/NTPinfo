@@ -28,12 +28,13 @@
 
   .hero p, .hero h1 {
     color: var(--clr-font-dark);
+    font-size: 2.5vw;
   }
 
   .text-hero > p {
     color: var(--clr-font-dark);
     font-weight: 200;
-    font-size: 1.5rem;
+    font-size: 1.2vw;
     text-align: left;
   }
    .navbar {
@@ -42,9 +43,11 @@
   }
 
   .navbar a {
-    font-size: 2rem;
+    font-size: 2vw;
     font-weight: bold;
     color: var(--clr-font-dark);
+    display: flex;
+    align-items: center;
     /* border: 1px solid red; */
   }
 
@@ -58,12 +61,15 @@
   }
 
   .navbar .img-and-text img {
-    translate: 0px 4px;
+    height: 2.5vw;
+    max-height: 2rem;
+    object-fit: contain;
+    align-self: center;
   }
 
   .hero {
   width: 100%;
-  height: 7rem;
+  height: 6vw;
   display: flex;
   align-items: center;
   justify-content: space-between;
