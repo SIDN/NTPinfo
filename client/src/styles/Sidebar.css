@@ -23,6 +23,13 @@
   font-size: 1.5rem;
   cursor: pointer;
   padding: 0.5rem 1rem;
+   display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar.open .sidebar__toggle {
+  justify-content: flex-start;
 }
 
 .sidebar__nav {
@@ -44,6 +51,8 @@
   padding: 0.75rem 1rem;
   border-radius: 8px;
   transition: background-color 0.15s ease;
+  /* padding-left: 16px; */
+  /* justify-content: center; */
 }
 
 .sidebar__item:hover {
@@ -52,6 +61,10 @@
 
 .sidebar__item.active {
   background-color: var(--clr-btn-selected-purple);
+}
+
+.sidebar.closed .sidebar__item {
+  justify-content: center;
 }
 
 .sidebar__icon {
