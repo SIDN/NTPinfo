@@ -23,4 +23,4 @@ ripe_atlas:
 
 
 max_mind:
-  path: "GeoLite2-City.mmdb"
+  path: "../../GeoLite2-City.mmdb"
