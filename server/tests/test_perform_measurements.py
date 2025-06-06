@@ -56,7 +56,7 @@ def test_perform_ntp_measurement_domain_name(mock_request, mock_getaddrinfo):
     mock_response.leap = 0
     mock_request.return_value = mock_response
 
-    result_tuples = perform_ntp_measurement_domain_name("mock.ntp.server", None)
+    result_tuples = perform_ntp_measurement_domain_name_list("mock.ntp.server", None)
 
     assert result_tuples is not None
     assert isinstance(result_tuples, list)

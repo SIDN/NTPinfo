@@ -219,7 +219,7 @@ def test_read_root(test_client):
     assert response.json() == {"Hello": "World"}
 
 
-@patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
+@patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
 @patch("server.app.services.api_services.insert_measurement")
 @patch("server.app.services.api_services.is_ip_address")
 def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_measurement, test_client):
@@ -239,7 +239,7 @@ def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_mea
     mock_insert.assert_called_once_with(measurement, mock_insert.call_args[0][1])
 
 
-@patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
+@patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
 @patch("server.app.services.api_services.insert_measurement")
 @patch("server.app.services.api_services.is_ip_address")
 def test_read_data_measurement_missing_measurement_no(mock_is_ip, mock_insert, mock_perform_measurement, test_client):
@@ -254,7 +254,7 @@ def test_read_data_measurement_missing_measurement_no(mock_is_ip, mock_insert, m
     assert '{"error":"Your search does not seem to match any server"}' in response.text
 
 
-@patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
+@patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
 @patch("server.app.services.api_services.insert_measurement")
 @patch("server.app.services.api_services.is_ip_address")
 @patch("server.app.services.api_services.calculate_jitter_from_measurements")
@@ -381,7 +381,7 @@ def test_read_historic_data_wrong_end(test_client):
     assert response.json() == {"error": "'end' cannot be in the future"}
 
 
-@patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
+@patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
 @patch("server.app.services.api_services.insert_measurement")
 @patch("server.app.services.api_services.is_ip_address")
 def test_perform_measurement_with_rate_limiting(mock_is_ip, mock_insert, mock_perform_measurement, test_client):

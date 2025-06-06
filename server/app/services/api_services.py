@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+from server.app.utils.perform_measurements import perform_ntp_measurement_domain_name_list
 from server.app.utils.ip_utils import get_server_ip
 from server.app.models.CustomError import InputError, RipeMeasurementError
 from server.app.utils.load_config_data import get_ripe_number_of_probes_per_measurement, \
@@ -26,7 +27,7 @@ from server.app.dtos.NtpMeasurement import NtpMeasurement
 
 
 def get_format(measurement: NtpMeasurement, jitter: Optional[float] = None,
-               nr_jitter_measurements: int = 0) -> dict[str, Any]:
+               nr_jitter_measurements: int = get_nr_of_measurements_for_jitter()) -> dict[str, Any]:
     """
     Format an NTP measurement object into a dictionary suitable for JSON serialization.
 
@@ -173,9 +174,8 @@ def measure(server: str, session: Session, client_ip: Optional[str] = None,
             print("The ntp server " + server + " is not responding.")
             return None
         else:
-            ans = perform_ntp_measurement_domain_name(server, client_ip)
-            if ans is not None:
-                measurements = ans
+            measurements: Optional[list[NtpMeasurement]] = perform_ntp_measurement_domain_name_list(server, client_ip)
+            if measurements is not None:
                 m_results = []
                 for m in measurements:
                     jitter = 0.0

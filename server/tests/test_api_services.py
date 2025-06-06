@@ -85,7 +85,7 @@ def test_measure_with_ip(mock_measure_ip, mock_measure_domain, mock_insert, mock
 
 @patch("server.app.services.api_services.calculate_jitter_from_measurements")
 @patch("server.app.services.api_services.insert_measurement")
-@patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
+@patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
 @patch("server.app.services.api_services.perform_ntp_measurement_ip")
 def test_measure_with_domain(mock_measure_ip, mock_measure_domain, mock_insert, mock_jitter):
     fake_measurement = MagicMock(spec=NtpMeasurement)
@@ -102,7 +102,7 @@ def test_measure_with_domain(mock_measure_ip, mock_measure_domain, mock_insert, 
 
 
 @patch("server.app.services.api_services.insert_measurement")
-@patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
+@patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
 @patch("server.app.services.api_services.perform_ntp_measurement_ip")
 def test_measure_with_invalid_ip(mock_measure_ip, mock_measure_domain, mock_insert):
     fake_measurement = MagicMock(spec=NtpMeasurement)
@@ -118,7 +118,7 @@ def test_measure_with_invalid_ip(mock_measure_ip, mock_measure_domain, mock_inse
 
 
 @patch("server.app.services.api_services.insert_measurement")
-@patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
+@patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
 @patch("server.app.services.api_services.perform_ntp_measurement_ip")
 def test_measure_with_unresolvable_input(mock_measure_ip, mock_measure_domain, mock_insert):
     mock_measure_ip.return_value = None
@@ -161,7 +161,7 @@ def test_measure_with_jitter(mock_jitter, mock_measure_ip, mock_measure_domain, 
 
 
 @patch("server.app.services.api_services.insert_measurement")
-@patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
+@patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
 @patch("server.app.services.api_services.perform_ntp_measurement_ip")
 def test_measure_with_exception(mock_measure_ip, mock_measure_domain, mock_insert):
     mock_measure_ip.return_value = None

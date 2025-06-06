@@ -126,7 +126,7 @@ async def read_historic_data_time(server: str,
     # start_test = utc_time_from_9am
     # end_test = current_utc_time
     result = fetch_historic_data_with_timestamps(server, start, end, session)
-    formatted_results = [get_format(entry) for entry in result]
+    formatted_results = [get_format(entry, nr_jitter_measurements=0) for entry in result]
     return {
         "measurements": formatted_results
     }

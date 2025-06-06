@@ -22,7 +22,43 @@ from server.app.utils.validate import is_ip_address
 
 
 def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", client_ip: Optional[str] = None,
-                                        ntp_version: int = get_ntp_version()) -> Optional[list[NtpMeasurement]]:
+                                        ntp_version: int = get_ntp_version()) -> Optional[NtpMeasurement]:
+    """
+    This method performs a NTP measurement on a NTP server from its domain name. The "other IPs list" of the
+    measurement will be an empty list, or it will contain some elements. It would not be None.
+
+    Args:
+        server_name (str): the name of the ntp server
+        client_ip (str|None): the ip address of the client (if given)
+        ntp_version (int): the version of the ntp that you want to use
+
+    Returns:
+        Optional[NtpMeasurement]: it returns the NTP measurement object or None if there is a timeout
+
+    Raises:
+        Exception: If the domain name is invalid or cannot be converted to an IP list
+    """
+    domain_ips: list[str] = domain_name_to_ip_list(server_name, client_ip)
+    # domain_ips contains a list of ips that are good to use. We can simply use the first one
+    ip_str = domain_ips[0]
+    try:
+        client = ntplib.NTPClient()
+        response_from_ntplib = client.request(server_name, ntp_version, timeout=get_timeout_measurement_s())
+        r = convert_ntp_response_to_measurement(response=response_from_ntplib,
+                                                server_ip_str=ip_str,
+                                                server_name=server_name,
+                                                ntp_version=ntp_version)
+        if r is None:
+            return None
+        else:
+            return r
+    except Exception as e:
+        print("Error in measure from name:", e)
+        return None
+
+
+def perform_ntp_measurement_domain_name_list(server_name: str = "pool.ntp.org", client_ip: Optional[str] = None,
+                                             ntp_version: int = get_ntp_version()) -> Optional[list[NtpMeasurement]]:
     """
     This method performs a NTP measurement on a NTP server from all the ips got back from its domain name.
 
