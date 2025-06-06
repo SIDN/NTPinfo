@@ -29,7 +29,6 @@ export const transformJSONDataToRIPEData = (fetchedData: any): RIPEData | null =
         status: "",
         time: (measurement.client_sent_time.seconds - 2208988800) * 1000,
         ip: fetchedData.ntp_server_ip,
-        ip_list: [""],
         server_name: fetchedData.ntp_server_name,
         ref_ip: "",
         ref_name: fetchedData.ref_id,

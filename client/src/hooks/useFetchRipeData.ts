@@ -15,7 +15,7 @@ import { transformJSONDataToRIPEData } from "../utils/transformJSONDataToRIPEDat
  */
 export const useFetchRIPEData = (measurementId: string | null, intervalMs = 500) => {
     const [result, setResult] = useState<RIPEData[] | null>(null)
-    const [status, setStatus] = useState<"idle" | "polling" | "complete" | "error">("idle")
+    const [status, setStatus] = useState<"pending" | "partial_results" | "complete" | "timeout" | "error">("pending")
     const [error, setError] = useState<Error | null>(null)
 
     // @ts-ignore
@@ -30,12 +30,12 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 500)
 
         if (!measurementId) {
             setResult(null)
-            setStatus("idle")
+            setStatus("pending")
             setError(null)
             return
         }
 
-        setStatus("polling")
+        setStatus("partial_results")
         setError(null)
 
         const controller = new AbortController()
@@ -50,11 +50,11 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 500)
                     const transformedData = res.data.results.map((d: any) => transformJSONDataToRIPEData(d))
                     setResult(transformedData)
                 }
-                if (res.data.status === "complete") {
+                if (res.data.status === "complete" || res.data.status === "timeout") {
                     setStatus("complete")
                     if (intervalRef.current) clearInterval(intervalRef.current)
                 } else if (res.data.status === "pending") {
-                    setStatus("polling")
+                    setStatus("pending")
                 } else if (res.data.status === "error") {
                     setError(new Error(res.data.message || "Unknown error"))
                     setStatus("error")

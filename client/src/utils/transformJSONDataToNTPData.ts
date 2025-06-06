@@ -20,7 +20,6 @@ export const transformJSONDataToNTPData = (fetchedData: any): NTPData | null => 
         status: fetchedData.reachability,
         time: (fetchedData.client_sent_time.seconds - 2208988800) * 1000,
         ip: fetchedData.ntp_server_ip,
-        ip_list: fetchedData.other_server_ips,
         server_name: fetchedData.ntp_server_name,
         ref_ip: fetchedData.ntp_server_ref_parent_ip,
         ref_name: fetchedData.ref_name,

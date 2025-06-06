@@ -12,7 +12,7 @@ export const triggerRipeMeasurement = () => {
      * @returns the data returned by the call as RIPEResp, which contains the measurement id and the list of IPs that could be chosen
      * the loading status of the trigger call, the error that was caught in case of a bug, and a function to call the trigger function directly
      */
-    const triggerMeasurement = async (payload: {server: string, random_probes : boolean}) => {
+    const triggerMeasurement = async (payload: {server: string}) => {
         setLoading(true)
         setError(null)
         try {

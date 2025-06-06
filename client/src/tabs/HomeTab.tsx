@@ -72,8 +72,7 @@ function HomeTab() {
      * if the jitter should be calculated and the number of measurements to be done.
      */
     const payload = {
-      server: query,
-      random_probes: false
+      server: query
     }
 
     /**
@@ -81,6 +80,8 @@ function HomeTab() {
      */
     const fullurlMeasurementData = `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/`
     const apiMeasurementResp = await fetchMeasurementData(fullurlMeasurementData, payload)
+
+    console.log(apiMeasurementResp)
 
     /**
      * Get data from past day from historical data endpoint to chart in the graph.
@@ -94,7 +95,7 @@ function HomeTab() {
      * Update the stored data and show it again
      */
     setMeasured(true)
-    const data = apiMeasurementResp
+    const data = apiMeasurementResp[0]
     const chartData = new Map<string, NTPData[]>()
     chartData.set(payload.server, apiHistoricalResp)
     setNtpData(data ?? null)
@@ -104,8 +105,7 @@ function HomeTab() {
      * Payload for the RIPE measurement call, containing only the ip of the server to be measured.
      */
     const ripePayload = {
-      server: data === null ? query : data.ip,
-      random_probes: false
+      server: data === null ? query : data.ip
     }
 
     /**
@@ -165,14 +165,14 @@ function HomeTab() {
             <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day"/>
           </div>
         </div>
-        {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "polling") && (
+        {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
         <div className='map-box'>
           <WorldMap probes={ripeMeasurementResp} status = {ripeMeasurementStatus} />
         </div>
         )}
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>)}
 
-      {/*Only shown when a domain name is queried. Users can download IP addresses corresponding to that domain name*/}
+      {/*Only shown when a domain name is queried. Users can download IP addresses corresponding to that domain name
       {ntpData && !apiDataLoading && ntpData.server_name && ntpData.ip_list.length && (() => {
 
                 const downloadContent = `Server name: ${ntpData.server_name}\n\n${ntpData.ip_list.join('\n')}`
@@ -181,7 +181,7 @@ function HomeTab() {
                return (<p className="ip-list">You can download more IP addresses corresponding to this domain name
                <span> <a href={downloadUrl} download="ip-list.txt">here</a></span>
                 </p>)
-            })()}
+            })()}*/}
 
       {/*Buttons to download results in JSON and CSV format as well as open a popup displaying historical data*/}
       {ntpData && !apiDataLoading && (<div className="download-buttons">

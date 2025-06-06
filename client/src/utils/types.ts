@@ -12,7 +12,6 @@ export type NTPData = {
   status: string
   time: number
   ip: string
-  ip_list: string[]
   server_name: string,
   ref_ip: string,
   ref_name: string,
