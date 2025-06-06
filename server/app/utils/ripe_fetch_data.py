@@ -379,7 +379,7 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
             ref_id=ref_id
         )
         ripe_measurements.append(ripe_measurement)
-        print(ripe_measurement)
+        # print(ripe_measurement)
     # print(len(ripe_measurements))
     return ripe_measurements, check_all_measurements_done(str(msm_id), len(ripe_measurements))
 
