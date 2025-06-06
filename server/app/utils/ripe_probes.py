@@ -63,60 +63,9 @@ def get_probes(client_ip: str,
             probes.append(get_random_probes(probes_requested))
     return probes
 
-
-def get_best_probes_matched_by_single_attribute(client_ip: str, current_probes_set: set[int], ip_asn: Optional[str], ip_prefix:
-                                                Optional[str], ip_country: Optional[str], ip_family: int,
-                                                probes_requested: int = get_ripe_number_of_probes_per_measurement()) \
-                                        -> tuple[int, set[int]]:
-    """
-    This method is responsible for getting the best probes that has a match by a single attribute in this order: ASN, prefix, country.
-    As soon as we have enough probes we return.
-
-    Args:
-        client_ip (str): The IP address of the client.
-        current_probes_set (set[int]): The set of probes that we will use for the measurement. (to be sure that we do not include duplicates)
-        ip_asn (int): The ASN of the NTP server IP address.
-        ip_prefix (str): The prefix of the NTP server IP address.
-        ip_country (str): The country of the NTP server IP address.
-        ip_family (int): The family of the NTP server IP address. (4 or 6)
-        probes_requested (int): The number of probes that we will request.
-
-    Returns:
-        tuple[int, set[int]]: - The updated number of probes that we still need to find after this method call.
-                              - The set of probe types and the respective number of probes.
-
-    Raises:
-        InputError: If the NTP server IP is invalid or if the probes_requested is negative.
-    """
-    if probes_requested < 0:
-        raise InputError("Probe requested cannot be negative")
-    ip_type = "ipv" + str(ip_family)
-
-    # try ASN, prefix, country and the last fallback to area
-    ids = get_available_probes_asn(client_ip, ip_asn, ip_type) if ip_asn is not None else []
-    probes_requested, current_probes_set = consume_probes(probes_requested, current_probes_set, ids)
-    if probes_requested <= 0:
-        return 0, current_probes_set
-
-    # try prefix
-    ids = get_available_probes_prefix(client_ip, ip_prefix, ip_type) if ip_prefix is not None else []
-    probes_requested, current_probes_set = consume_probes(probes_requested, current_probes_set, ids)
-    if probes_requested <= 0:
-        return 0, current_probes_set
-
-    # try country
-    ids = get_available_probes_country(client_ip, ip_country, ip_type) if ip_country is not None else []
-    probes_requested, probes_to_use = consume_probes(probes_requested, current_probes_set, ids)
-    if probes_requested <= 0:
-        return 0, current_probes_set
-
-    # if we still need to find probes
-    return probes_requested, current_probes_set
-
-
 def get_best_probes_with_multiple_attributes(client_ip: str, current_probes_set: set[int], ip_asn: Optional[str], ip_prefix: Optional[str], ip_country: Optional[str],
                           ip_family: int,
-                         probes_requested: int=get_ripe_number_of_probes_per_measurement()) -> tuple[int, set[int]]:
+                          probes_requested: int=get_ripe_number_of_probes_per_measurement()) -> tuple[int, set[int]]:
     """
     This method tries to get probes that has the same ASN and prefix OR the same ASN and country and subtract them
     from the probes_requested. These probes have the highest priority as they have multiple attributes as the client IP
@@ -129,7 +78,7 @@ def get_best_probes_with_multiple_attributes(client_ip: str, current_probes_set:
         ip_prefix (str): The prefix of the NTP server IP address.
         ip_country (str): The country of the NTP server IP address.
         ip_family (int): The family of the NTP server IP address. (4 or 6)
-        probes_requested (int): The total number of probes that we will request.
+        probes_requested (int): The number of probes that we still need to request.
 
     Returns:
         tuple[int, list[int]]: The updated number of probes that we still need to find after this method call.
@@ -148,12 +97,67 @@ def get_best_probes_with_multiple_attributes(client_ip: str, current_probes_set:
     probes_requested, current_probes_set = consume_probes(probes_requested, current_probes_set, ids)
     if probes_requested <= 0:
         return 0, set(current_probes_set)
+
     # try with the probes from the same ASN and country
     ids = get_available_probes_asn_and_country(client_ip, ip_asn, ip_country, ip_type) if (
                 ip_asn is not None and ip_country is not None) else []
 
     probes_requested, current_probes_set = consume_probes(probes_requested, current_probes_set, ids)
     return probes_requested, set(current_probes_set)
+
+
+def get_best_probes_matched_by_single_attribute(client_ip: str, current_probes_set: set[int], ip_asn: Optional[str], ip_prefix:
+                                                Optional[str], ip_country: Optional[str], ip_family: int,
+                                                probes_requested: int = get_ripe_number_of_probes_per_measurement()) \
+                                        -> tuple[int, set[int]]:
+    """
+    This method is responsible for getting the best probes that has a match by a single attribute in this order: ASN, prefix, country.
+    As soon as we have enough probes we return.
+
+    Args:
+        client_ip (str): The IP address of the client.
+        current_probes_set (set[int]): The set of probes that we will use for the measurement. (to be sure that we do not include duplicates)
+        ip_asn (int): The ASN of the NTP server IP address.
+        ip_prefix (str): The prefix of the NTP server IP address.
+        ip_country (str): The country of the NTP server IP address.
+        ip_family (int): The family of the NTP server IP address. (4 or 6)
+        probes_requested (int): The number of probes that we still need to request.
+
+    Returns:
+        tuple[int, set[int]]: - The updated number of probes that we still need to find after this method call.
+                              - The set of probe types and the respective number of probes.
+
+    Raises:
+        InputError: If the NTP server IP is invalid or if the probes_requested is negative.
+    """
+    if probes_requested < 0:
+        raise InputError("Probe requested cannot be negative")
+    ip_type = "ipv" + str(ip_family)
+    ids: list[int]
+    # try ASN
+    if ip_asn is not None:
+        ids = get_available_probes_asn(client_ip, ip_asn, ip_type)
+        probes_requested, current_probes_set = consume_probes(probes_requested, current_probes_set, ids)
+        if probes_requested <= 0:
+            return 0, current_probes_set
+
+    # try prefix
+    if ip_prefix is not None:
+        ids = get_available_probes_prefix(client_ip, ip_prefix, ip_type)
+        probes_requested, current_probes_set = consume_probes(probes_requested, current_probes_set, ids)
+        if probes_requested <= 0:
+            return 0, current_probes_set
+
+    # try country
+    if ip_country is not None:
+        ids = get_available_probes_country(client_ip, ip_country, ip_type)
+        probes_requested, probes_to_use = consume_probes(probes_requested, current_probes_set, ids)
+        if probes_requested <= 0:
+            return 0, current_probes_set
+
+    # if we still need to find probes
+    return probes_requested, current_probes_set
+
 
 def get_probes_by_ids(probe_ids: list[int]) -> dict:
     """
@@ -505,14 +509,14 @@ def consume_probes(probes_requested: int, current_probes_set: set[int], probes_i
         tuple[int, set[int]]: - The remained number of probes still to find.
                               - The updated set of probes that we will use in the measurement.
     """
-    if probes_requested <0:
+    if probes_requested < 0:
         raise InputError("Probes_requested cannot be negative")
-    c=0
+    c = 0
     for pb in probes_ids:
         if pb not in current_probes_set:
             current_probes_set.add(pb)
             probes_requested -= 1
-            c+=1
+            c += 1
             if probes_requested <= 0:
                 print(c)
                 return 0, current_probes_set
@@ -544,8 +548,8 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
 
 # prefixx = get_prefix_from_ip("89.46.74.148")
 # print(prefixx)
-import time
-start = time.time()
+# import time
+# start = time.time()
 # print(get_available_probes_radius("ipv4"))
 # print(get_server_ip())
 # ipp="145.94.210.165"
@@ -553,7 +557,7 @@ start = time.time()
 # asn, cc, area = get_ip_network_details(ipp)
 # prefix=get_prefix_from_ip(ipp)
 # asn="AS6185"
-print(get_probes("89.46.74.148", 20))
+# print(get_probes("89.46.74.148", 20))
 # a,b=get_available_probes_asn_and_prefix("AS15435","149.143.64.0/18","ipv4")
 # print(a,b)
 # c=get_probes_by_ids(b)
@@ -568,5 +572,5 @@ print(get_probes("89.46.74.148", 20))
 # print(get_available_probes_prefix(prefixx,"ipv4"))
 # print(get_available_probes_country("NL","ipv4"))
 # print(get_best_probe_types("AS9009", "80.211.224.0/20", "NL", "da", 4, 40))
-end = time.time()
-print(end - start)
+# end = time.time()
+# print(end - start)

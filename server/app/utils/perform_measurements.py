@@ -371,10 +371,10 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
 # m=perform_ntp_measurement_domain_name("time.google.com")
 # m=perform_ntp_measurement_domain_name("ro.pool.ntp.org","83.25.24.10")
 # print_ntp_measurement(m)
-import time
+# import time
 
-start = time.time()
-print(perform_ripe_measurement_domain_name("time.apple.com","145.94.210.165")) #("89.46.74.148"))
-end = time.time()
-
-print(end - start)
+# start = time.time()
+# print(perform_ripe_measurement_domain_name("time.apple.com","145.94.210.165")) #("89.46.74.148"))
+# end = time.time()
+#
+# print(end - start)
