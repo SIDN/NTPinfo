@@ -209,12 +209,17 @@ def parse_probe_data(probe_response: dict) -> ProbeData:
     # print(probe_response.get('address_v6'))
     v4 = probe_response.get('address_v4')
     v6 = probe_response.get('address_v6')
-
-    ipv4 = ip_address(v4) if v4 is not None else None
-    if ipv4 is not None and not isinstance(ipv4, IPv4Address):
+    try:
+        ipv4 = ip_address(v4) if v4 is not None else None
+        if ipv4 is not None and not isinstance(ipv4, IPv4Address):
+            ipv4 = None
+    except Exception as e:
         ipv4 = None
-    ipv6 = ip_address(v6) if v6 is not None else None
-    if ipv6 is not None and not isinstance(ipv6, IPv6Address):
+    try:
+        ipv6 = ip_address(v6) if v6 is not None else None
+        if ipv6 is not None and not isinstance(ipv6, IPv6Address):
+            ipv6 = None
+    except Exception as e:
         ipv6 = None
     probe_addr: tuple[IPv4Address | None, IPv6Address | None] = (ipv4, ipv6)
 
@@ -305,14 +310,21 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
         idx = successful_measurement(measurement) if not failed else None
 
         from_ip = measurement.get('from')
-        vantage_point_ip = ip_address(from_ip) if from_ip is not None else None
+        try:
+            vantage_point_ip = ip_address(from_ip) if from_ip is not None else None
+        except Exception as e:
+            vantage_point_ip = None
         version = measurement.get('version', -1)
         dst_addr = measurement.get('dst_addr')
+        try:
+            dst_addr_ip = ip_address(dst_addr) if dst_addr is not None else None
+        except Exception as e:
+            dst_addr_ip = None
         dst_name = measurement.get('dst_name')
 
         server_info = NtpServerInfo(
             ntp_version=version,
-            ntp_server_ip=ip_address(dst_addr) if dst_addr is not None else None,
+            ntp_server_ip=dst_addr_ip,
             ntp_server_name=dst_name,
             ntp_server_ref_parent_ip=None,
             ref_name=None,
