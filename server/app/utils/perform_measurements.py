@@ -175,6 +175,7 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
             root_delay=convert_float_to_precise_time(response.root_delay),
             ntp_last_sync_time=convert_float_to_precise_time(response.ref_timestamp),
             leap=response.leap
+            #TODO include here poll and root dispersion
         )
 
         return NtpMeasurement(vantage_point_ip, server_info, timestamps, main_details, extra_details)
@@ -371,10 +372,10 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
 # m=perform_ntp_measurement_domain_name("time.google.com")
 # m=perform_ntp_measurement_domain_name("ro.pool.ntp.org","83.25.24.10")
 # print_ntp_measurement(m)
-# import time
+import time
 
-# start = time.time()
-# print(perform_ripe_measurement_domain_name("time.apple.com","145.94.210.165")) #("89.46.74.148"))
-# end = time.time()
-#
-# print(end - start)
+start = time.time()
+print(perform_ripe_measurement_domain_name("time.apple.com","145.94.210.165")) #("89.46.74.148"))
+end = time.time()
+
+print(end - start)

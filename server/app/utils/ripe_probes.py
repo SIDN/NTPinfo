@@ -1,7 +1,7 @@
-from math import radians, cos, sin, sqrt, atan2
 from typing import TypeVar
 from typing import Optional
 
+from server.app.utils.calculations import calculate_haversine_distance
 from server.app.models.CustomError import InputError
 from server.app.utils.load_config_data import get_ripe_number_of_probes_per_measurement
 from server.app.utils.ip_utils import get_ip_network_details, get_prefix_from_ip, get_ip_family
@@ -81,7 +81,7 @@ def get_best_probes_with_multiple_attributes(client_ip: str, current_probes_set:
         probes_requested (int): The number of probes that we still need to request.
 
     Returns:
-        tuple[int, list[int]]: The updated number of probes that we still need to find after this method call.
+        tuple[int, set[int]]: The updated number of probes that we still need to find after this method call.
                                a list of the IDs of the probes that we found until now.
 
     Raises:
@@ -92,17 +92,17 @@ def get_best_probes_with_multiple_attributes(client_ip: str, current_probes_set:
 
     ip_type = "ipv" + str(ip_family)
     # see if we can get enough probes from probes with the same ASN and same prefix:
-    ids = get_available_probes_asn_and_prefix(client_ip, ip_asn, ip_prefix, ip_type) if (
-                ip_asn is not None and ip_prefix is not None) else []
-    probes_requested, current_probes_set = consume_probes(probes_requested, current_probes_set, ids)
-    if probes_requested <= 0:
-        return 0, set(current_probes_set)
+    if ip_asn is not None and ip_prefix is not None:
+        ids = get_available_probes_asn_and_prefix(client_ip, ip_asn, ip_prefix, ip_type)
+        probes_requested, current_probes_set = consume_probes(probes_requested, current_probes_set, ids)
+        if probes_requested <= 0:
+            return 0, set(current_probes_set)
 
     # try with the probes from the same ASN and country
-    ids = get_available_probes_asn_and_country(client_ip, ip_asn, ip_country, ip_type) if (
-                ip_asn is not None and ip_country is not None) else []
+    if ip_asn is not None and ip_country is not None:
+        ids = get_available_probes_asn_and_country(client_ip, ip_asn, ip_country, ip_type)
+        probes_requested, current_probes_set = consume_probes(probes_requested, current_probes_set, ids)
 
-    probes_requested, current_probes_set = consume_probes(probes_requested, current_probes_set, ids)
     return probes_requested, set(current_probes_set)
 
 
@@ -317,7 +317,10 @@ def get_available_probes_asn_and_prefix(client_ip: str, ip_asn: str, ip_prefix: 
     )
     probe_ids_list: list[int] = []
     for p in probes:
-        probe_ids_list.append(p.id)
+        try:
+            probe_ids_list.append(p.id)
+        except Exception as e:
+            print(f"error (safe): {e}")
 
     #print(probe_ids_list)
     return probe_ids_list
@@ -358,7 +361,7 @@ def get_available_probes_asn_and_country(client_ip: str, ip_asn: str, ip_country
             coordinates = getattr(p, "geometry", {}).get("coordinates")
             if coordinates:
                 lon, lat = coordinates
-                dist: float = haversine_distance(lat, lon, lat_client, lon_client)
+                dist: float = calculate_haversine_distance(lat, lon, lat_client, lon_client)
                 probe_ids_dist_list.append((p.id, dist))
             else:
                 probe_ids_dist_list.append((p.id, 1000000)) #some large value to put this probe at the end of the list
@@ -399,7 +402,7 @@ def get_available_probes_asn(client_ip: str, ip_asn: str, ip_type: str) -> list[
     probes = ProbeRequest(
         return_objects=True,
         fields=["id"],
-        page_size=200,
+        page_size=250,
         **filters,
     )
     probe_ids_list: list[int] = []
@@ -436,7 +439,7 @@ def get_available_probes_prefix(client_ip: str, ip_prefix: str, ip_type: str) ->
     probes = ProbeRequest(
         return_objects=True,
         fields=["id"],
-        page_size=200,
+        page_size=250,
         **filters,
     )
     probe_ids_list: list[int] = []
@@ -482,7 +485,7 @@ def get_available_probes_country(client_ip: str, country_code: str, ip_type: str
             coordinates = getattr(p, "geometry", {}).get("coordinates")
             if coordinates:
                 lon, lat = coordinates
-                dist: float = haversine_distance(lat, lon, lat_client, lon_client)
+                dist: float = calculate_haversine_distance(lat, lon, lat_client, lon_client)
                 probe_ids_dist_list.append((p.id, dist))
             else:
                 probe_ids_dist_list.append((p.id, 1000000))  # some large value to put this probe at the end of the list
@@ -511,66 +514,24 @@ def consume_probes(probes_requested: int, current_probes_set: set[int], probes_i
     """
     if probes_requested < 0:
         raise InputError("Probes_requested cannot be negative")
-    c = 0
+    # c = 0
     for pb in probes_ids:
         if pb not in current_probes_set:
             current_probes_set.add(pb)
             probes_requested -= 1
-            c += 1
+            # c += 1
             if probes_requested <= 0:
-                print(c)
+                # print(c)
                 return 0, current_probes_set
-    print(c)
+    # print(c)
     return probes_requested, current_probes_set
-
-def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """
-    It calculates the haversine distance between two points using this formula:
-    d = 2 * R * asin(sqrt(a)) where R is Earth's radius in kilometers
-    and 'a' is a value calculated using the latitude and longitude difference of the two points.
-
-    Args:
-        lat1 (float): The latitude of the first point.
-        lon1 (float): The longitude of the first point.
-        lat2 (float): The latitude of the second point.
-        lon2 (float): The longitude of the second point.
-
-    Returns:
-        float: The haversine distance between the two points. (in kilometers)
-    """
-    r = 6371.0
-    dlat = radians(lat2 - lat1)
-    dlon = radians(lon2 - lon1)
-    a = sin(dlat / 2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2)**2
-    d = 2.0 * r * atan2(sqrt(a), sqrt(1 - a))
-    return d
 
 
 # prefixx = get_prefix_from_ip("89.46.74.148")
 # print(prefixx)
 # import time
 # start = time.time()
-# print(get_available_probes_radius("ipv4"))
-# print(get_server_ip())
 # ipp="145.94.210.165"
-# ipp="17.253.14.125" #"89.46.74.148"
-# asn, cc, area = get_ip_network_details(ipp)
-# prefix=get_prefix_from_ip(ipp)
-# asn="AS6185"
-# print(get_probes("89.46.74.148", 20))
-# a,b=get_available_probes_asn_and_prefix("AS15435","149.143.64.0/18","ipv4")
-# print(a,b)
-# c=get_probes_by_ids(b)
-# print(c)
-# print(get_available_probes_asn(asn, "ipv4"))
-# print(get_available_probes_prefix(prefix, "ipv4"))
-# print(get_available_probes_country(cc, "ipv4"))
-# print(domain_name_to_ip_list("time.apple.com",None))
-# print(get_available_probes_asn_and_country(asn, cc,"ipv4"))
 # print(get_probes(ipp))
-# print(get_available_probes_asn("AS9009","ipv4"))
-# print(get_available_probes_prefix(prefixx,"ipv4"))
-# print(get_available_probes_country("NL","ipv4"))
-# print(get_best_probe_types("AS9009", "80.211.224.0/20", "NL", "da", 4, 40))
 # end = time.time()
 # print(end - start)

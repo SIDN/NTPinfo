@@ -1,10 +1,10 @@
-import math
 import pytest
-
 from server.app.models.CustomError import InputError
 from server.app.utils.ripe_probes import get_random_probes, get_area_probes, get_asn_probes, get_prefix_probes, \
-    get_country_probes, get_best_probes_with_multiple_attributes, get_probes, get_available_probes_asn, get_available_probes_prefix, \
-    get_available_probes_country, get_best_probes_matched_by_single_attribute
+    get_country_probes, get_best_probes_with_multiple_attributes, get_probes, get_available_probes_asn, \
+    get_available_probes_prefix, \
+    get_available_probes_country, get_best_probes_matched_by_single_attribute, get_available_probes_asn_and_prefix, \
+    get_available_probes_asn_and_country, get_probes_by_ids, consume_probes
 from unittest.mock import patch, MagicMock
 
 @patch("server.app.utils.ripe_probes.get_probes_by_ids")
@@ -131,8 +131,33 @@ def test_get_probes_only_area(mock_get_prefix_from_ip, mock_get_network_details,
 
 
 
+@patch("server.app.utils.ripe_probes.get_available_probes_asn_and_prefix")
+@patch("server.app.utils.ripe_probes.get_available_probes_asn_and_country")
+def test_get_best_probes_with_multiple_attributes(mock_asn_country, mock_asn_prefix):
+    mock_asn_prefix.return_value = [23, 1, 73, 7429, 15]
+    mock_asn_country.return_value = [23, 45, 78, 90000]
+    # some values are in both lists
+    assert get_best_probes_with_multiple_attributes("80.211.238.247", {3}, "AS15169", "80.211.224.0/20",
+                                                    "IT", 4, 7) == (0, {3, 23, 1, 73, 7429, 15, 45, 78})
+    assert get_best_probes_with_multiple_attributes("80.211.238.247", {3}, "AS15169", "80.211.224.0/20",
+                                                    "IT", 4, 70) == (62, {3, 23, 1, 73, 7429, 15, 45, 78, 90000})
+    assert get_best_probes_with_multiple_attributes("80.211.238.247", {3,7888}, "AS15169", "80.211.224.0/20",
+                                                    "IT", 4, 2) == (0, {3, 7888, 23, 1})
+    # country None
+    assert get_best_probes_with_multiple_attributes("80.211.238.247", {3,7888}, "AS15169", "80.211.224.0/20",
+                                                    None, 4, 10) == (5, {3, 7888, 23, 1, 73, 7429, 15})
+    with pytest.raises(InputError):
+        get_best_probes_with_multiple_attributes("80.211.238.247", {3}, "AS15169", "80.211.224.0/20", "IT", 4, -7)
+    mock_asn_prefix.return_value = []
+    # not enough in total, but first category is empty
+    assert get_best_probes_with_multiple_attributes("80.211.238.247", {3,7888}, "AS15169", None,
+                                                    "IT", 4, 20) == (16, {3, 7888, 23, 45, 78, 90000})
 
-
+    assert get_best_probes_with_multiple_attributes("80.211.238.247", {3,7888}, "AS15169", "80.211.224.0/20",
+                                                    "IT", 4, 20) == (16, {3, 7888, 23, 45, 78, 90000})
+    # ASN is none
+    assert get_best_probes_with_multiple_attributes("80.211.238.247", {3,7888}, None, "80.211.224.0/20",
+                                                    "IT", 4, 20) == (20, {3, 7888})
 
 
 
@@ -193,6 +218,22 @@ def test_get_best_probe_types_return_early(mock_av_asn, mock_av_prefix, mock_av_
     assert c == 0
     assert ids == {34, 5, 12, 45, 13, 14, 16, 76, 23, 60, 61, 63}
 
+def test_get_probes_by_ids_probes():
+    answer = {
+        "type": "probes",
+        "value": "2",
+        "requested": 1
+    }
+    assert get_probes_by_ids([2]) == answer
+    answer = {
+        "type": "probes",
+        "value": "2,40,1",
+        "requested": 3
+    }
+    assert get_probes_by_ids([2, 40, 1]) == answer
+
+    with pytest.raises(InputError):
+        get_probes_by_ids([])
 
 def test_get_asn_probes():
     answer = {
@@ -272,6 +313,137 @@ def test_get_random_probes():
     assert get_random_probes(7) == answer
 
 @patch("server.app.utils.ripe_probes.ProbeRequest")
+def test_get_available_probes_asn_and_prefix(mock_probe_request):
+    mock_probe1 = MagicMock()
+    mock_probe1.id = 2
+    mock_probe2 = MagicMock()
+    mock_probe2.id = 234
+    mock_probe3 = MagicMock()
+    mock_probe3.id = 43
+    mock_probe4 = MagicMock()
+    mock_probe4.id = 878
+    mock_probe_request.return_value = [mock_probe1, mock_probe2, mock_probe3, mock_probe4]
+
+    #test ipv4
+    result = get_available_probes_asn_and_prefix("80.211.238.247", "AS12345", "80.211.224.0/20", "ipv4")
+    assert result == [2, 234, 43, 878]
+    assert mock_probe_request.call_count==1
+    args, kwargs = mock_probe_request.call_args
+    assert kwargs["prefix_v4"] == "80.211.224.0/20"
+    assert kwargs["tags"] == "system-ipv4-works"
+    assert kwargs["status"] == 1
+
+    #test ipv6
+    mock_probe_request.reset_mock()
+    result = get_available_probes_asn_and_prefix("2001:db8:3333:4444:5555:6666:7777:8888", "AS12345","2a06:93c0::/29","ipv6")
+    assert result == [2, 234, 43, 878]
+    assert mock_probe_request.call_count==1
+    args, kwargs = mock_probe_request.call_args
+    assert kwargs["prefix_v6"] == "2a06:93c0::/29"
+    assert kwargs["tags"] == "system-ipv6-works"
+    assert kwargs["status"] == 1
+
+@patch("server.app.utils.ripe_probes.ProbeRequest")
+def test_get_available_probes_asn_and_prefix_stop_iteration(mock_probe_request):
+    mock_probe1 = MagicMock()
+    mock_probe1.id = 2
+    mock_probe2 = MagicMock()
+    mock_probe2.id = 234
+    mock_probe3 = MagicMock()
+    mock_probe3.id = 43
+    mock_probe4 = MagicMock()
+    mock_probe4.id = 878
+    mock_probe_request.return_value = [mock_probe1, mock_probe2, 5, mock_probe4]
+
+    #test ipv4
+    result = get_available_probes_asn_and_prefix("80.211.238.247", "AS12345", "80.211.224.0/20", "ipv4")
+    assert result == [2, 234, 878]
+    assert mock_probe_request.call_count==1
+    args, kwargs = mock_probe_request.call_args
+    assert kwargs["prefix_v4"] == "80.211.224.0/20"
+    assert kwargs["tags"] == "system-ipv4-works"
+    assert kwargs["status"] == 1
+
+    #test ipv6
+    mock_probe_request.reset_mock()
+    result = get_available_probes_asn_and_prefix("2001:db8:3333:4444:5555:6666:7777:8888", "AS12345","2a06:93c0::/29","ipv6")
+    assert result == [2, 234, 878]
+    assert mock_probe_request.call_count==1
+    args, kwargs = mock_probe_request.call_args
+    assert kwargs["prefix_v6"] == "2a06:93c0::/29"
+    assert kwargs["tags"] == "system-ipv6-works"
+    assert kwargs["status"] == 1
+
+@patch("server.app.utils.ripe_probes.ProbeRequest")
+def test_get_available_probes_asn_and_country(mock_probe_request):
+    mock_probe1 = MagicMock()
+    mock_probe1.id = 2
+    mock_probe1.geometry = {"coordinates": [1.5, 17]}
+    mock_probe2 = MagicMock()
+    mock_probe2.id = 234
+    mock_probe2.geometry = {"coordinates": [16.5, -1.5]}
+    mock_probe3 = MagicMock()
+    mock_probe3.id = 43
+    mock_probe3.geometry = {"coordinates": [-45, 0.07]}
+    mock_probe4 = MagicMock()
+    mock_probe4.id = 8784
+    mock_probe4.geometry = {"coordinates": [23, -41]}
+    mock_probe_request.return_value = [mock_probe1, mock_probe2, mock_probe3, mock_probe4]
+
+    #test ipv4
+    result = get_available_probes_asn_and_country("80.211.238.247", "AS12345", "NL","ipv4")
+    assert result == [234, 2, 43, 8784]
+    assert mock_probe_request.call_count==1
+    args, kwargs = mock_probe_request.call_args
+    assert kwargs["country_code"] == "NL"
+    assert kwargs["tags"] == "system-ipv4-works"
+    assert kwargs["status"] == 1
+
+    #test ipv6
+    mock_probe_request.reset_mock()
+    result = get_available_probes_asn_and_country("2001:db8:3333:4444:5555:6666:7777:8888", "AS12345", "RO","ipv6")
+    assert result == [234, 2, 43, 8784]
+    assert mock_probe_request.call_count==1
+    args, kwargs = mock_probe_request.call_args
+    assert kwargs["country_code"] == "RO"
+    assert kwargs["tags"] == "system-ipv6-works"
+    assert kwargs["status"] == 1
+
+@patch("server.app.utils.ripe_probes.ProbeRequest")
+def test_get_available_probes_asn_and_country_stop_iteration(mock_probe_request):
+    mock_probe1 = MagicMock()
+    mock_probe1.id = 2
+    mock_probe1.geometry = {"coordinates": [1.5, 17]}
+    mock_probe2 = MagicMock()
+    mock_probe2.id = 234
+    mock_probe3 = MagicMock()
+    mock_probe3.id = 43
+    mock_probe3.geometry = {"coordinates": [-45, 0.07]}
+    mock_probe4 = MagicMock()
+    mock_probe4.id = 8784
+    mock_probe4.geometry = {"coordinates": [23, -41]}
+    mock_probe_request.return_value = [mock_probe1, mock_probe2, "n", mock_probe4]
+
+    #test ipv4
+    result = get_available_probes_asn_and_country("80.211.238.247", "AS12345", "NL","ipv4")
+    assert result == [2, 8784]
+    assert mock_probe_request.call_count==1
+    args, kwargs = mock_probe_request.call_args
+    assert kwargs["country_code"] =="NL"
+    assert kwargs["tags"] == "system-ipv4-works"
+    assert kwargs["status"] == 1
+
+    #test ipv6
+    mock_probe_request.reset_mock()
+    result = get_available_probes_asn_and_country("2001:db8:3333:4444:5555:6666:7777:8888", "AS12345", "NL","ipv6")
+    assert result == [2, 8784]
+    assert mock_probe_request.call_count==1
+    args, kwargs = mock_probe_request.call_args
+    assert kwargs["country_code"] == "NL"
+    assert kwargs["tags"] == "system-ipv6-works"
+    assert kwargs["status"] == 1
+
+@patch("server.app.utils.ripe_probes.ProbeRequest")
 def test_get_available_probes_asn(mock_probe_request):
     mock_probe1 = MagicMock()
     mock_probe1.id = 2
@@ -314,13 +486,15 @@ def test_get_available_probes_asn_stop_iteration(mock_probe_request):
     mock_probe_request.return_value = [mock_probe1, mock_probe2, 3, mock_probe4]
 
     #test ipv4
-    result = get_available_probes_asn("80.211.238.247", "AS12347","ipv4")
+    result = get_available_probes_asn("80.211.238.247", "12347","ipv4")
     assert result == [2, 234, 878]
     assert mock_probe_request.call_count==1
     args, kwargs = mock_probe_request.call_args
     assert kwargs["asn"] == 12347
     assert kwargs["tags"] == "system-ipv4-works"
     assert kwargs["status"] == 1
+    with pytest.raises(InputError):
+        get_available_probes_asn("80.211.238.247", "AS_invalid","ipv4")
 
     #test ipv6
     mock_probe_request.reset_mock()
@@ -331,6 +505,8 @@ def test_get_available_probes_asn_stop_iteration(mock_probe_request):
     assert kwargs["asn"] == 12340
     assert kwargs["tags"] == "system-ipv6-works"
     assert kwargs["status"] == 1
+    with pytest.raises(InputError):
+        get_available_probes_asn("2001:db8:3333:4444:5555:6666:7777:8888", "AS_invalid","ipv6")
 
 @patch("server.app.utils.ripe_probes.ProbeRequest")
 def test_get_available_probes_prefix(mock_probe_request):
@@ -462,3 +638,9 @@ def test_get_available_probes_country_stop_iteration(mock_probe_request):
     assert kwargs["country_code"] == "NL"
     assert kwargs["tags"] == "system-ipv6-works"
     assert kwargs["status"] == 1
+
+def test_consume_probes():
+    assert (5, {34, 67, 900}) == consume_probes(7, {34}, [67, 67, 900])
+    assert (0, {1, 34, 12, 23}) == consume_probes(2, {34, 1}, [12, 23, 67, 67, 900])
+    with pytest.raises(InputError):
+        consume_probes(-7, {34}, [67, 900])

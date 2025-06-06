@@ -48,8 +48,6 @@ def verify_if_config_is_set() -> bool:
     get_ripe_timeout_per_probe_ms()
     get_ripe_packets_per_probe()
     get_ripe_number_of_probes_per_measurement()
-    get_ripe_max_probes_per_measurement()
-    get_ripe_probes_wanted_percentages()
     # everything is fine
     return True
 
@@ -270,48 +268,5 @@ def get_ripe_number_of_probes_per_measurement() -> int:
     if ripe_atlas["number_of_probes_per_measurement"] <= 0:
         raise ValueError("ripe_atlas 'number_of_probes_per_measurement' must be > 0")
     return ripe_atlas["number_of_probes_per_measurement"]
-
-def get_ripe_max_probes_per_measurement() -> int:
-    """
-    This method returns the maximum number of probes requested per measurement.
-
-    Raises:
-        ValueError: If this variable has not been correctly set.
-    """
-    if "ripe_atlas" not in config:
-        raise ValueError("ripe_atlas section is missing")
-    ripe_atlas = config["ripe_atlas"]
-    if "max_probes_per_measurement" not in ripe_atlas:
-        raise ValueError("ripe_atlas 'max_probes_per_measurement' is missing")
-    if not isinstance(ripe_atlas["max_probes_per_measurement"], int):
-        raise ValueError("ripe_atlas 'max_probes_per_measurement' must be an 'int'")
-    if ripe_atlas["max_probes_per_measurement"] <= 0:
-        raise ValueError("ripe_atlas 'max_probes_per_measurement' must be > 0")
-    return ripe_atlas["max_probes_per_measurement"]
-
-def get_ripe_probes_wanted_percentages() -> list[float]:
-    """
-    This method returns an array representing how many probes of each type (ASN, prefix, country, area, random) we want to use.
-    The default distribution that we found excellent is [0.33, 0.30, 0.27, 0.10, 0.0] which means:
-    33% probes on the same ASN, 30% probes with the same prefix, 27% probes with the same country, 10% probes with the same area and
-    0% random probes.
-
-    Raises:
-        ValueError: If this variable has not been correctly set.
-    """
-    if "ripe_atlas" not in config:
-        raise ValueError("ripe_atlas section is missing")
-    ripe_atlas = config["ripe_atlas"]
-    if "probes_wanted_percentages" not in ripe_atlas:
-        raise ValueError("ripe_atlas 'probes_wanted_percentages' is missing")
-    if not isinstance(ripe_atlas["probes_wanted_percentages"], list):
-        raise ValueError("ripe_atlas 'probes_wanted_percentages' must be a 'list'")
-    if len(ripe_atlas["probes_wanted_percentages"]) != 5:
-        raise ValueError("ripe_atlas 'probes_wanted_percentages' must contain exactly 5 elements")
-    s: float = sum(ripe_atlas["probes_wanted_percentages"])
-    if not math.isclose(s, 1.0, rel_tol=1e-9):
-        raise ValueError("ripe_atlas 'probes_wanted_percentages' must have total sum 1")
-    return ripe_atlas["probes_wanted_percentages"]
-
 
 # verify_if_config_is_set()
