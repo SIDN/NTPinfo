@@ -12,7 +12,7 @@ function App() {
     <div className="app-layout">
       <Sidebar selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
       <main className="app-content">
-        <Hero />
+        {/* <Hero /> */}
         {selectedTab === 1 && <HomeTab />}
         {selectedTab === 2 && <CompareTab />}
       </main>

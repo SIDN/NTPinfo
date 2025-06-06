@@ -17,7 +17,7 @@ html, body, #root {
 }
 
 body {
-  padding-top: 110px;
+  /* padding-top: 110px; */
   --bg-clr-primary: #292f36;
   --bg-clr-secondary: #323E4C;
   --clr-font-white: #eff6ee;

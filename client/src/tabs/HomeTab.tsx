@@ -12,6 +12,7 @@ import { useFetchRIPEData } from '../hooks/useFetchRipeData.ts'
 import { dateFormatConversion } from '../utils/dateFormatConversion.ts'
 import {downloadJSON, downloadCSV} from '../utils/downloadFormats.ts'
 import WorldMap from '../components/WorldMap.tsx'
+import Hero from '../components/Hero';
 
 import { NTPData, RIPEData } from '../utils/types.ts'
 import { Measurement } from '../utils/types.ts'
@@ -44,7 +45,7 @@ function HomeTab() {
       selectedValue: selOption,
       onSelect: setOption,
     }
-  
+
 
   //
   //functions for handling state changes
@@ -123,16 +124,20 @@ function HomeTab() {
   }
 
   return (
+    <div>
+    {/* <Hero /> */}
+    {/* The main container for the app, containing the input section, results and graph, and the map */}
     <div className="app-container">
+      <Hero />
       <div className="input-wrapper">
         <InputSection onClick={handleInput} loading={apiDataLoading} />
       </div>
         <div className="result-text">
-          {(!apiDataLoading && measured && (<p>Results</p>)) || 
+          {(!apiDataLoading && measured && (<p>Results</p>)) ||
                     (apiDataLoading && <div className="loading-div">
                         <p>Loading...</p>
                         <LoadingSpinner size="small"/>
-                    </div>  
+                    </div>
                         )}
         </div>
         {/* The main page shown after the main measurement is done */}
@@ -197,6 +202,7 @@ function HomeTab() {
           data = {chartData}/>
         </div>
       </div>)}
+    </div>
     </div>
      )
 }
