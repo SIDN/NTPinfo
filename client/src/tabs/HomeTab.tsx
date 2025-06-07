@@ -32,6 +32,7 @@ function HomeTab() {
   const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
   const [measurementId, setMeasurementId] = useState<string | null>(null)
   const [vantagePointIp, setVantagePointIp] = useState<string | null>(null)
+  const [allNtpMeasurements, setAllNtpMeasurements] = useState<NTPData[] | null>(null)
 
   //Varaibles to log and use API hooks
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
@@ -97,6 +98,7 @@ function HomeTab() {
     const data = apiMeasurementResp[0]
     const chartData = new Map<string, NTPData[]>()
     chartData.set(payload.server, apiHistoricalResp)
+    setAllNtpMeasurements(apiMeasurementResp ?? null)
     setNtpData(data ?? null)
     setChartData(chartData ?? null)
 
@@ -167,7 +169,7 @@ function HomeTab() {
         </div>
         {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
         <div className='map-box'>
-          <WorldMap probes={ripeMeasurementResp} ntpServer = {ntpData} vantagePointIp = {vantagePointIp} status = {ripeMeasurementStatus} />
+          <WorldMap probes={ripeMeasurementResp} ntpServers = {allNtpMeasurements} vantagePointIp = {vantagePointIp} status = {ripeMeasurementStatus} />
         </div>
         )}
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>)}

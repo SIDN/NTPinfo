@@ -65,7 +65,7 @@ const grayIcon = new L.Icon({
  */
 interface MapComponentProps {
   probes: RIPEData[] | null
-  ntpServer: NTPData
+  ntpServers: NTPData[] | null
   vantagePointIp: string | null
   status: string | null
 }
@@ -195,11 +195,12 @@ const stringifyRTTAndOffset = (value: number): string => {
  * @param status the current status of the polling of the RIPE measurements 
  * @returns a WorldMap component showing all probes, the NTP server and relevant values for all of them
  */
-export default function WorldMap ({probes, ntpServer, vantagePointIp, status}: MapComponentProps) {
+export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: MapComponentProps) {
   const [statusMessage, setStatusMessage] = useState<string>("")
   const [ripeNtpServerLoc, setRipeNtpServerLoc] = useState<L.LatLngExpression | null>(null)
   const [measurementNtpServerLoc, setMeasurementNtpServerLoc] = useState<L.LatLngExpression | null>(null)
   const [vantagePointLoc, setVantagePointLoc] = useState<L.LatLngExpression | null>(null)
+  const [chosenNtpServer, setChosenNtpServer] = useState<NTPData | null>(null)
   const { fetchIPInfo } = useIPInfo()
   useEffect(() => {
     if (status === "pending" || status === "partial_results"){
@@ -211,14 +212,22 @@ export default function WorldMap ({probes, ntpServer, vantagePointIp, status}: M
     }
     }, [probes, status])
 
+  
+  useEffect(() => {
+    if (!probes || !ntpServers) return
+    const ripe_ip = probes[0].measurementData.ip
+    const chosen = ntpServers.find(x => x.ip === ripe_ip) || ntpServers[0]
+    setChosenNtpServer(chosen)
+  }, [probes, ntpServers])
+
+
   useEffect(() => {
     const fetchLocation = async () => {
       const ripe_ip = probes?.[0].measurementData.ip
-      const measurement_ip = ntpServer.ip
 
-      if (ripe_ip && measurement_ip && ntpServer && vantagePointIp) {
+      if (ripe_ip && chosenNtpServer && chosenNtpServer && vantagePointIp) {
         const ripeIpInfo = await fetchIPInfo(ripe_ip)
-        const measurementIpInfo = await fetchIPInfo(measurement_ip)
+        const measurementIpInfo = await fetchIPInfo(chosenNtpServer.ip)
         const vantagePointIpInfo = await fetchIPInfo(vantagePointIp)
         if (ripeIpInfo)
           setRipeNtpServerLoc(ripeIpInfo.coordinates)
@@ -229,7 +238,7 @@ export default function WorldMap ({probes, ntpServer, vantagePointIp, status}: M
       }
     };
     fetchLocation()
-  }, [probes, ntpServer, vantagePointIp])
+  }, [probes, ntpServers, vantagePointIp])
 
   const probe_locations = probes?.map(x => x.probe_location) ?? []
   const icons = probes?.map(x => getIconByRTT(x.measurementData.RTT, x.got_results)) ?? []
@@ -244,7 +253,7 @@ export default function WorldMap ({probes, ntpServer, vantagePointIp, status}: M
                 maxZoom={19}
             />
             
-            {probe_locations && icons && probes && (
+            {probe_locations && icons && probes && chosenNtpServer && (
             <>
               {probe_locations.map((pos, index) => (<Marker key = {index} position = {pos} icon = {icons[index]}>
                 <Popup>
@@ -255,21 +264,36 @@ export default function WorldMap ({probes, ntpServer, vantagePointIp, status}: M
                 </Popup>
               </Marker>))}
 
-              <Marker position = {ripeNtpServerLoc ?? [0,0]}>
-                  <Popup>
-                    NTP Server (RIPE)<br/>
-                    IP: {probes[0].measurementData.ip}<br/>
-                    Name: {probes[0].measurementData.server_name}
-                  </Popup>
-              </Marker>
 
-              <Marker position = {measurementNtpServerLoc ?? [0,0]}>
-                  <Popup>
-                    NTP Server (Vantage Point)<br/>
-                    IP: {ntpServer.ip}<br/>
-                    Name: {ntpServer.server_name}
-                  </Popup>
-              </Marker>
+              {(ripeNtpServerLoc !== measurementNtpServerLoc) && 
+                <>
+                <Marker position = {ripeNtpServerLoc ?? [0,0]}>
+                    <Popup>
+                      NTP Server (RIPE)<br/>
+                      IP: {probes[0].measurementData.ip}<br/>
+                      Name: {probes[0].measurementData.server_name}
+                    </Popup>
+                </Marker>
+
+                <Marker position = {measurementNtpServerLoc ?? [0,0]}>
+                    <Popup>
+                      NTP Server (Vantage Point)<br/>
+                      IP: {chosenNtpServer.ip}<br/>
+                      Name: {chosenNtpServer.server_name}
+                    </Popup>
+                </Marker>
+                </>
+              }
+
+              {(ripeNtpServerLoc === measurementNtpServerLoc) &&
+                <Marker position = {ripeNtpServerLoc ?? [0,0]}>
+                    <Popup>
+                      NTP Server<br/>
+                      IP: {probes[0].measurementData.ip}<br/>
+                      Name: {probes[0].measurementData.server_name}
+                    </Popup>
+                </Marker>
+              }
 
               <Marker position = {vantagePointLoc ?? [0,0]}>
                   <Popup>
