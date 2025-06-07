@@ -42,6 +42,8 @@ MOCK_NTP_MEASUREMENT = NtpMeasurement(
     extra_details=NtpExtraDetails(
         root_delay=mock_precise(5),
         ntp_last_sync_time=mock_precise(6),
+        root_dispersion=mock_precise(7),
+        poll=5,
         leap=0
     )
 )
@@ -261,6 +263,8 @@ def mock_ripe_parse_result():
             extra_details=NtpExtraDetails(
                 root_delay=mock_precise(0, 0),
                 ntp_last_sync_time=mock_precise(-1, 0),
+                poll=1,
+                root_dispersion=mock_precise(seconds=0, fraction=327679),
                 leap=0
             )
         ),
@@ -273,8 +277,6 @@ def mock_ripe_parse_result():
             )
         ),
         time_to_result=5014.4233,
-        poll=1,
-        root_dispersion=7.62939e-05,
         ref_id='GPSs'
     )
 
@@ -305,7 +307,7 @@ def test_fetch_ripe_data(mock_get_data_from_ripe, mock_parse_data_from_ripe):
     assert data["stratum"] == 1
     assert data["poll"] == 1
     assert data["precision"] == 9.53674e-07
-    assert data["root_dispersion"] == 7.62939e-05
+    assert data["root_dispersion"] == PreciseTime(seconds=0, fraction=327679)
     assert data["ref_id"] == "GPSs"
 
     result_data = data["result"][0]
@@ -331,7 +333,7 @@ def test_get_ripe_format():
     assert data["stratum"] == 1
     assert data["poll"] == 1
     assert data["precision"] == 9.53674e-07
-    assert data["root_dispersion"] == 7.62939e-05
+    assert data["root_dispersion"] == PreciseTime(seconds=0, fraction=327679)
     assert data["ref_id"] == "GPSs"
 
     result_data = data["result"][0]
