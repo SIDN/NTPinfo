@@ -20,12 +20,18 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 500)
 
     // @ts-ignore
     const intervalRef = useRef<NodeJS.Timeout | null>(null)
+    // @ts-ignore
+    const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     useEffect(() => {
         
         if (intervalRef.current) {
             clearInterval(intervalRef.current)
             intervalRef.current = null
+        }
+        if (retryTimeoutRef.current) {
+            clearTimeout(retryTimeoutRef.current)
+            retryTimeoutRef.current = null
         }
 
         if (!measurementId) {
@@ -61,9 +67,16 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 500)
                     if (intervalRef.current) clearInterval(intervalRef.current)
                 }
             } catch (err: any) {
-                setError(err)
-                setStatus("error")
-                if (intervalRef.current) clearInterval(intervalRef.current)
+                if (axios.isAxiosError(err) && err.response?.status === 405){
+                    console.warn("Received 405, retrying in 2 seconds...")
+                    retryTimeoutRef.current = setTimeout(() => {
+                        fetchResult()
+                    }, 2000)
+                } else {
+                    setError(err)
+                    setStatus("error")
+                    if (intervalRef.current) clearInterval(intervalRef.current)
+                }
             }
         }
 
