@@ -4,6 +4,7 @@ import LineChart from '../components/LineGraph';
 import { Measurement } from '../utils/types.ts';
 import { TimeInput } from '../components/TimeInput.tsx';
 import Hero from '../components/Hero';
+import StatisticsDisplay from '../components/StatisticsDisplay';
 import '../styles/HistoricalDataTab.css';
 
 // Define the props interface
@@ -65,13 +66,23 @@ const HistoricalDataTab: React.FC<HistoricalDataTabProps> = ({ data }) => {
           </label>
         </div>
       </div>
-      <div className="chart-box">
-        <LineChart
-          data={data}
-          selectedMeasurement={selMeasurement}
-          selectedOption={selOption}
-          customRange={{ from: customFrom, to: customTo }}
-        />
+      <div className="graph-statistics-container">
+        <div className="data-display-container">
+            <StatisticsDisplay
+            data={data}
+            selectedMeasurement={selMeasurement}
+            selectedOption={selOption}
+            customRange={{ from: customFrom, to: customTo }}
+            />
+            <div className="chart-box">
+            <LineChart
+                data={data}
+                selectedMeasurement={selMeasurement}
+                selectedOption={selOption}
+                customRange={{ from: customFrom, to: customTo }}
+            />
+            </div>
+        </div>
       </div>
     </div>
   );
