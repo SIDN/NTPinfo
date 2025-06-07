@@ -54,8 +54,6 @@ function HomeTab() {
    * Function called on the press of the search button.
    * Performs a normal measurement call, a historical measurement call for the graph, and a RIPE measurement call for the map.
    * @param query The input given by the user
-   * @param jitter_flag flag indicating whether jitter should be measured for normal measurement calls
-   * @param measurements_no How many measurements should be done for the jitter calculation
    */
   const handleInput = async (query: string) => {
     if (query.length == 0)
@@ -72,8 +70,7 @@ function HomeTab() {
      * if the jitter should be calculated and the number of measurements to be done.
      */
     const payload = {
-      server: query,
-      random_probes: false
+      server: query
     }
 
     /**
