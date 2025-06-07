@@ -4,6 +4,7 @@ from ipaddress import ip_address
 import json
 from typing import Optional
 import requests
+
 from server.app.models.CustomError import InputError, RipeMeasurementError
 from server.app.utils.calculations import ntp_precise_time_to_human_date, convert_float_to_precise_time
 from server.app.utils.ip_utils import get_ip_family, ref_id_to_ip_or_name, get_server_ip
@@ -43,7 +44,7 @@ def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", clien
     ip_str = domain_ips[0]
     try:
         client = ntplib.NTPClient()
-        response_from_ntplib = client.request(server_name, ntp_version, timeout=get_timeout_measurement_s())
+        response_from_ntplib = client.request(ip_str, ntp_version, timeout=get_timeout_measurement_s())
         r = convert_ntp_response_to_measurement(response=response_from_ntplib,
                                                 server_ip_str=ip_str,
                                                 server_name=server_name,
@@ -74,13 +75,12 @@ def perform_ntp_measurement_domain_name_list(server_name: str = "pool.ntp.org", 
         Exception: If the domain name is invalid or cannot be converted to an IP list
     """
     domain_ips: list[str] = domain_name_to_ip_list(server_name, client_ip)
-    # domain_ips contains a list of ips that are good to use. We can simply use the first one
-    ip_str = domain_ips[0]
+    # domain_ips contains a list of ips that are good to use.
     resulted_measurements = []
     for ip_str in domain_ips:
         try:
             client = ntplib.NTPClient()
-            response_from_ntplib = client.request(server_name, ntp_version, timeout=get_timeout_measurement_s())
+            response_from_ntplib = client.request(ip_str, ntp_version, timeout=get_timeout_measurement_s())
             r = convert_ntp_response_to_measurement(response=response_from_ntplib,
                                                     server_ip_str=ip_str,
                                                     server_name=server_name,
@@ -175,6 +175,7 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
             root_delay=convert_float_to_precise_time(response.root_delay),
             ntp_last_sync_time=convert_float_to_precise_time(response.ref_timestamp),
             leap=response.leap
+            #TODO include here poll and root dispersion
         )
 
         return NtpMeasurement(vantage_point_ip, server_info, timestamps, main_details, extra_details)
@@ -374,7 +375,7 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
 # import time
 #
 # start = time.time()
-# print(perform_ripe_measurement_domain_name("abracadabra","31.25.10.207")) #("89.46.74.148"))
+# print(perform_ripe_measurement_domain_name("time.apple.com","145.94.210.165")) #("89.46.74.148"))
 # end = time.time()
 #
 # print(end - start)

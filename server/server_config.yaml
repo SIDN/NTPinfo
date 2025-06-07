@@ -15,8 +15,6 @@ edns:
 
 
 ripe_atlas:
-  timeout_per_probe_ms: 2000
+  timeout_per_probe_ms: 4000
   packets_per_probe: 3
-  number_of_probes_per_measurement: 35
-  max_probes_per_measurement: 100
-  probes_wanted_percentages: [0.5, 0.5, 0, 0, 0] # exactly 5 values and their sum must be 1 (100%)
+  number_of_probes_per_measurement: 3
