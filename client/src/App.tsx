@@ -4,6 +4,7 @@ import Hero from './components/Hero';
 import HomeTab from './tabs/HomeTab';
 import CompareTab from './tabs/CompareTab';
 import HistoricalDataTab from './tabs/HistoricalDataTab';
+import AboutTab from './tabs/AboutTab';
 import { NTPData } from './utils/types';
 import './App.css';
 
@@ -19,6 +20,7 @@ function App() {
         {selectedTab === 1 && <HomeTab onVisualizationDataChange={setVisualizationData} />}
         {selectedTab === 2 && <HistoricalDataTab data={visualizationData} />}
         {selectedTab === 3 && <CompareTab />}
+        {selectedTab === 4 && <AboutTab />}
       </main>
     </div>
   );

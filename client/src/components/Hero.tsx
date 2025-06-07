@@ -9,7 +9,7 @@ function Hero() {
                 <p>A tool to evaluate the accuracy of publicly available NTP servers</p>
             </div>
             <nav className="navbar">
-                <a href="#" aria-label="About">About</a>
+                {/* <a href="#" aria-label="About">About</a> */}
                 <div className="img-and-text">
                     <a href="#" aria-label="GitHub Repository">Github</a>
                     <a href="https://github.com/your-repo" target="_blank" rel="noopener noreferrer" aria-label="GitHub Repository">

@@ -25,6 +25,11 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedTab, setSelectedTab }) => {
       label: 'Compare',
       icon: <span className="sidebar__icon">📊</span>,
     },
+    {
+      id: 4,
+      label: 'About',
+      icon: <span className="sidebar__icon">ℹ️</span>,
+    },
   ];
 
   return (
