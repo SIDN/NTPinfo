@@ -72,11 +72,8 @@ function HomeTab() {
      * if the jitter should be calculated and the number of measurements to be done.
      */
     const payload = {
-<<<<<<< HEAD
-      server: query
-=======
       server: query.trim()
->>>>>>> 87d24e74366c364058343e392b767e898c12affa
+
     }
 
     /**
@@ -147,7 +144,8 @@ function HomeTab() {
         {/* Div for the visualization graph, and the radios for setting the what measurement to show */}
         <div className="graphs">
           <div className='graph-box'>
-            <label>
+            <div className="radio-group-home">
+                <label>
               <input
                 type="radio"
                 name="measurement"
@@ -167,33 +165,17 @@ function HomeTab() {
               />
               Round-trip time
             </label>
+            </div>
             <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day"/>
           </div>
         </div>
-        {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
-        <div className='map-box'>
-          <WorldMap probes={ripeMeasurementResp} ntpServers = {allNtpMeasurements} vantagePointIp = {vantagePointIp} status = {ripeMeasurementStatus} />
-        </div>
-        )}
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus} ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null}/>)}
-
-      {/*Only shown when a domain name is queried. Users can download IP addresses corresponding to that domain name
-      {ntpData && !apiDataLoading && ntpData.server_name && ntpData.ip_list.length && (() => {
-
-                const downloadContent = `Server name: ${ntpData.server_name}\n\n${ntpData.ip_list.join('\n')}`
-                const blob = new Blob([downloadContent], { type: 'text/plain' })
-                const downloadUrl = URL.createObjectURL(blob)
-               return (<p className="ip-list">You can download more IP addresses corresponding to this domain name
-               <span> <a href={downloadUrl} download="ip-list.txt">here</a></span>
-                </p>)
-            })()}*/}
->>>>>>> 87d24e74366c364058343e392b767e898c12affa
 
       {/*Buttons to download results in JSON and CSV format as well as open a popup displaying historical data*/}
       {ntpData && !apiDataLoading && (<div className="download-buttons">
 
-        <DownloadButton name="Download JSON" onclick={() => downloadJSON({data : [ntpData]})} />
-        <DownloadButton name="Download CSV" onclick={() => downloadCSV({data : [ntpData]})} />
+        <DownloadButton name="Download JSON" onclick={() => downloadJSON(ripeMeasurementResp ? [ntpData, ripeMeasurementResp[0]] : [ntpData])} />
+        <DownloadButton name="Download CSV" onclick={() => downloadCSV(ripeMeasurementResp ? [ntpData, ripeMeasurementResp[0]] : [ntpData])} />
         <div>
           <button className="open-popup-btn" onClick={() => setPopupOpen(true)}>View Historical Data</button>
           <VisualizationPopup
@@ -203,6 +185,11 @@ function HomeTab() {
           data = {chartData}/>
         </div>
       </div>)}
+      {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
+        <div className='map-box'>
+          <WorldMap probes={ripeMeasurementResp} ntpServers = {allNtpMeasurements} vantagePointIp = {vantagePointIp} status = {ripeMeasurementStatus} />
+        </div>
+        )}
     </div>
      )
 }

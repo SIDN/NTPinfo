@@ -65,6 +65,7 @@
   gap: 1rem;
   flex-wrap: wrap;
   padding: 1rem;
+  align-items: center;
 }
 
 .result-text {
@@ -88,12 +89,12 @@
   display: flex;
   gap: 1rem;
   /* margin-top: 1rem; */
-  flex: 2 1 50%;
+  flex: 2 1 30%;
+  height: 100%;
 }
 
 .graph-box {
   /* flex: 1; */
-  height: 150px;
   background-color: #2a2a3c;
   /* border-radius: 8px; */
   display: flex;
@@ -101,20 +102,18 @@
   justify-content: center;
   font-weight: bold;
   color: white;
-  width: 500px;
+  width: 90%;
 
   margin-left: 1rem;
   grid-area: summary;
-  height: auto;
-  width: 600px;
   background-color: var(--bg-clr-secondary);
   color: var(--clr-font-white);
   font-weight: bold;
   border-radius: 8px;
-  padding: 1rem;
+  padding: 2rem;
+  margin-top: 2.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
 
   /* max-width: 600px;
   height: auto;
@@ -128,7 +127,10 @@
   min-width: 300px;
   max-height: 600px;
 }
-
+.radio-group-home {
+  display: flex;
+  gap: 1.5rem;
+}
 .graph-box canvas {
   max-height: 200px;
 }

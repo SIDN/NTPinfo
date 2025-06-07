@@ -41,7 +41,7 @@ function ResultSummary({data, ripeData, err, httpStatus} : {data : NTPData | nul
                         <div className="metric"><span title='The smallest time unit that the NTP server can measure or represent'>Precision</span><span>2<sup>{data?.precision}</sup></span></div>
                         <div className="metric"><span title='A hierarchical level number indicating the distance from the reference clock'>Stratum</span><span>{data?.stratum}</span></div>
                         <div className="metric"><span>IP address</span><span>{data?.ip}</span></div>
-                        <div className="metric"><span>Vantage point IP</span><span></span></div>
+                        <div className="metric"><span>Vantage point IP</span><span>{data?.vantage_point_ip}</span></div>
                         <div className="status-line">
                             <span className="status-label">STATUS:&nbsp;</span>
                             <span className={`status-value ${status?.toLowerCase()}`}>{status}</span>
@@ -64,7 +64,7 @@ function ResultSummary({data, ripeData, err, httpStatus} : {data : NTPData | nul
                         <div className="metric"><span title='The smallest time unit that the NTP server can measure or represent'>Precision</span><span>2<sup>{ripeData?.measurementData.precision}</sup></span></div>
                         <div className="metric"><span title='A hierarchical level number indicating the distance from the reference clock'>Stratum</span><span>{ripeData?.measurementData.stratum}</span></div>
                         <div className="metric"><span>IP address</span><span>{ripeData?.measurementData.ip}</span></div>
-                        <div className="metric"><span>Vantage point IP</span><span></span></div>
+                        <div className="metric"><span>Vantage point IP</span><span>{ripeData?.measurementData.vantage_point_ip}</span></div>
 
                     </div>
                 </div>
