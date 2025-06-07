@@ -17,8 +17,8 @@ function App() {
       <main className="app-content">
         {/* <Hero /> */}
         {selectedTab === 1 && <HomeTab onVisualizationDataChange={setVisualizationData} />}
-        {selectedTab === 2 && <CompareTab />}
-        {selectedTab === 3 && <HistoricalDataTab data={visualizationData} />}
+        {selectedTab === 2 && <HistoricalDataTab data={visualizationData} />}
+        {selectedTab === 3 && <CompareTab />}
       </main>
     </div>
   );

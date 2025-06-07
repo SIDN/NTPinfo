@@ -17,13 +17,13 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedTab, setSelectedTab }) => {
     },
     {
       id: 2,
-      label: 'Compare',
-      icon: <span className="sidebar__icon">📊</span>,
+      label: 'Historical Data',
+      icon: <span className="sidebar__icon">📈</span>,
     },
     {
       id: 3,
-      label: 'Historical Data',
-      icon: <span className="sidebar__icon">📈</span>,
+      label: 'Compare',
+      icon: <span className="sidebar__icon">📊</span>,
     },
   ];
 

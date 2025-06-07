@@ -2,82 +2,104 @@
 
 *, *::before, *::after {
     box-sizing: border-box;
-  }
+}
 
-
-  * {
+* {
     margin: 0;
-  }
+}
 
-  a {
+a {
     text-decoration: none;
-  }
+}
 
-  .hero {
-    position: fixed;
-    top: 0;
-    left: 0;
+.hero {
     width: 100%;
-    height: 7rem;
+    height: max(4.5rem, 5vw);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: var(--bg-clr-hero);
+    background: var(--bg-clr-hero);
     padding: 1rem 2rem;
-  }
+    position: sticky;
+    top: 0;
+    z-index: 3;
+}
 
-  .hero p, .hero h1 {
+.text-hero > h1 {
     color: var(--clr-font-dark);
-    font-size: 2.3vw;
-  }
+    font-size: clamp(1.5rem, 2.3vw, 2.5rem);
+    line-height: 1.2;
+}
 
-  .text-hero > p {
+.text-hero > p {
     color: var(--clr-font-dark);
     font-weight: 200;
-    font-size: 1.2vw;
+    font-size: clamp(0.8rem, 1.2vw, 1.2rem);
     text-align: left;
-  }
-   .navbar {
+}
+
+.navbar {
     display: flex;
     gap: 5rem;
-  }
+    align-items: center;
+}
 
-  .navbar a {
-    font-size: 1.5vw;
+.navbar a {
+    font-size: clamp(0.9rem, 1.5vw, 1.2rem);
     font-weight: bold;
     color: var(--clr-font-dark);
     display: flex;
     align-items: center;
-    /* border: 1px solid red; */
-  }
+}
 
-  .navbar .img-and-text {
+.navbar .img-and-text {
     display: flex;
     padding-inline: .5rem;
     align-items: center;
     gap: 1rem;
     justify-content: space-between;
-    /* border: 1px solid red; */
-  }
+}
 
-  .navbar .img-and-text img {
-    height: 2.5vw;
-    max-height: 2rem;
+.navbar .img-and-text img {
+    height: clamp(1.5rem, 2.5vw, 2rem);
+    width: auto;
     object-fit: contain;
     align-self: center;
-  }
+}
 
-  .hero {
-  width: 100%;
-  /* height: 6vw; */
-  height: max(4.5rem, 5vw);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--bg-clr-hero);
-  padding: 1rem 2rem;
+/* Media Queries */
+@media screen and (max-width: 768px) {
+    .hero {
+        padding: 0.75rem 1rem;
+    }
 
-  position: sticky;
-  top: 0;
-  z-index: 3;
+    .navbar {
+        gap: 2rem;
+    }
+
+    .navbar a:not(.img-and-text a:last-child) {
+        display: none;
+    }
+
+    .navbar .img-and-text {
+        gap: 0.5rem;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .hero {
+        padding: 0.5rem;
+    }
+
+    .text-hero > h1 {
+        font-size: clamp(1.2rem, 1.8vw, 1.5rem);
+    }
+
+    .text-hero > p {
+        font-size: clamp(0.7rem, 1vw, 0.9rem);
+    }
+
+    .navbar {
+        gap: 1rem;
+    }
 }
