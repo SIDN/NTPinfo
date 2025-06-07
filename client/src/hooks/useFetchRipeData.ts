@@ -85,7 +85,8 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 500)
         
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current)
-                controller.abort()
+            if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current)
+            controller.abort()
         }
     }, [measurementId])
 
