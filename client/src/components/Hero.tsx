@@ -11,8 +11,8 @@ function Hero() {
             <nav className="navbar">
                 {/* <a href="#" aria-label="About">About</a> */}
                 <div className="img-and-text">
-                    <a href="#" aria-label="GitHub Repository">Github</a>
-                    <a href="https://github.com/your-repo" target="_blank" rel="noopener noreferrer" aria-label="GitHub Repository">
+                    <a href="https://youtu.be/dQw4w9WgXcQ?si=wQTya5-1b1EyxcU8" target="_blank" rel="noopener noreferrer" aria-label="GitHub Repository">Github</a>
+                    <a href="https://youtu.be/dQw4w9WgXcQ?si=wQTya5-1b1EyxcU8" target="_blank" rel="noopener noreferrer" aria-label="GitHub Repository">
                         <img src={github} alt="GitHub Logo" />
                     </a>
                 </div>
@@ -21,4 +21,4 @@ function Hero() {
     );
 }
 
-export default Hero
+export default Hero;
