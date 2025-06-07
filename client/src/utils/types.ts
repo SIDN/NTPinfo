@@ -15,7 +15,8 @@ export type NTPData = {
   server_name: string,
   ref_ip: string,
   ref_name: string,
-  root_delay: number
+  root_delay: number,
+  vantage_point_ip: string
 }
 
 /**

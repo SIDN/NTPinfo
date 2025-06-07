@@ -23,6 +23,7 @@ export const transformJSONDataToNTPData = (fetchedData: any): NTPData | null => 
         server_name: fetchedData.ntp_server_name,
         ref_ip: fetchedData.ntp_server_ref_parent_ip,
         ref_name: fetchedData.ref_name,
-        root_delay: fetchedData.root_delay.seconds
+        root_delay: fetchedData.root_delay.seconds,
+        vantage_point_ip: fetchedData.vantage_point_ip
     }
 };
