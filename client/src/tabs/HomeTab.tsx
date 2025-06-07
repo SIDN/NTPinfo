@@ -124,6 +124,7 @@ function HomeTab() {
       <div className="input-wrapper">
         <InputSection onClick={handleInput} loading={apiDataLoading} />
       </div>
+      <h3 id="disclaimer">DISCLAIMER: Your IP may be used to get a RIPE probe close to you for the most accurate data.</h3>
         <div className="result-text">
           {(!apiDataLoading && measured && (<p>Results</p>)) || 
                     (apiDataLoading && <div className="loading-div">
@@ -168,17 +169,6 @@ function HomeTab() {
         </div>
         )}
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus} ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null}/>)}
-
-      {/*Only shown when a domain name is queried. Users can download IP addresses corresponding to that domain name*/}
-      {ntpData && !apiDataLoading && ntpData.server_name && ntpData.ip_list.length && (() => {
-
-                const downloadContent = `Server name: ${ntpData.server_name}\n\n${ntpData.ip_list.join('\n')}`
-                const blob = new Blob([downloadContent], { type: 'text/plain' })
-                const downloadUrl = URL.createObjectURL(blob)
-               return (<p className="ip-list">You can download more IP addresses corresponding to this domain name
-               <span> <a href={downloadUrl} download="ip-list.txt">here</a></span>
-                </p>)
-            })()}
 
       {/*Buttons to download results in JSON and CSV format as well as open a popup displaying historical data*/}
       {ntpData && !apiDataLoading && (<div className="download-buttons">
