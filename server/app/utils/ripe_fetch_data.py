@@ -355,7 +355,12 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
 
         root_delay = measurement.get('root-delay', -1.0)
 
+        poll = measurement.get('poll', -1)
+
+        root_dispersion = measurement.get('root-dispersion', -1.0)
+
         extra_details = NtpExtraDetails(root_delay=convert_float_to_precise_time(root_delay),
+                                        poll=poll, root_dispersion=convert_float_to_precise_time(root_dispersion),
                                         ntp_last_sync_time=convert_float_to_precise_time(-1.0),
                                         leap=0)
         ntp_measurement = NtpMeasurement(vantage_point_ip=vantage_point_ip, server_info=server_info,
@@ -363,9 +368,6 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
                                          extra_details=extra_details)
 
         time_to_result = measurement.get('ttr', -1.0)
-        poll = measurement.get('poll', -1)
-
-        root_dispersion = measurement.get('root-dispersion', -1.0)
         ref_id = measurement.get('ref-id', 'NO REFERENCE')
         measurement_id = measurement.get('msm_id', -1)
         msm_id = measurement_id
@@ -374,8 +376,7 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
             measurement_id=measurement_id,
             ntp_measurement=ntp_measurement,
             probe_data=parse_probe_data(get_probe_data_from_ripe_by_id(measurement['prb_id'])),
-            time_to_result=time_to_result, poll=poll,
-            root_dispersion=root_dispersion,
+            time_to_result=time_to_result,
             ref_id=ref_id
         )
         ripe_measurements.append(ripe_measurement)

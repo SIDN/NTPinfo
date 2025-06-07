@@ -8,15 +8,16 @@ edns:
   mask_ipv4: 24 # bits
   mask_ipv6: 56 # bits
   default_order_of_edns_servers: # you can add multiple servers ipv4 or ipv6. The first one has the highest priority.
-  # The others are used in case the first one cannot solve the domain name
+    # The others are used in case the first one cannot solve the domain name
     - "8.8.8.8"
     - "1.1.1.1"
   edns_timeout_s: 2 # in seconds
 
 
 ripe_atlas:
-  timeout_per_probe_ms: 2000
+  timeout_per_probe_ms: 4000
   packets_per_probe: 3
-  number_of_probes_per_measurement: 35
-  max_probes_per_measurement: 100
-  probes_wanted_percentages: [0.5, 0.5, 0, 0, 0] # exactly 5 values and their sum must be 1 (100%)
+  number_of_probes_per_measurement: 3
+
+max_mind:
+  path: "GeoLite2-City.mmdb"

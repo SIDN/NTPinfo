@@ -82,6 +82,8 @@ def mock_measurement() -> NtpMeasurement:
         extra_details=NtpExtraDetails(
             root_delay=mock_precise(5),
             ntp_last_sync_time=mock_precise(6),
+            root_dispersion=mock_precise(7),
+            poll=5,
             leap=0
         )
     )
@@ -114,6 +116,8 @@ def get_mock_data():
             extra_details=NtpExtraDetails(
                 root_delay=mock_precise(100),
                 ntp_last_sync_time=mock_precise(200),
+                root_dispersion=mock_precise(400),
+                poll=60,
                 leap=0
             )
         ),
@@ -142,6 +146,8 @@ def get_mock_data():
             extra_details=NtpExtraDetails(
                 root_delay=mock_precise(200),
                 ntp_last_sync_time=mock_precise(300),
+                root_dispersion=mock_precise(500),
+                poll=5,
                 leap=0
             )
         ),
@@ -315,6 +321,8 @@ def test_read_historic_data_ip(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, 
     data = response.json()["measurements"]
     assert len(data) == 2
     assert data[0]["ntp_server_ip"] == "192.168.1.1"
+    assert data[0]["poll"] == 60
+    assert data[1]["poll"] == 5
     mock_get_ip.assert_called_once()
     mock_get_dn.assert_not_called()
 
@@ -341,6 +349,8 @@ def test_read_historic_data_dn(mock_human_date_to_ntp, mock_is_ip, mock_get_ip, 
     data = response.json()["measurements"]
     assert len(data) == 2
     assert data[0]["ntp_server_name"] == "pool.ntp.org"
+    assert data[0]["poll"] == 60
+    assert data[1]["poll"] == 5
     mock_get_ip.assert_not_called()
     mock_get_dn.assert_called_once()
 
@@ -434,6 +444,8 @@ def test_historic_data_ip_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock
         data = response.json()["measurements"]
         assert len(data) == 2
         assert data[0]["ntp_server_ip"] == "192.168.1.1"
+        assert data[0]["poll"] == 60
+        assert data[1]["poll"] == 5
 
     assert mock_get_ip.call_count == 5
 
@@ -474,6 +486,8 @@ def test_historic_data_dn_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock
         data = response.json()["measurements"]
         assert len(data) == 2
         assert data[0]["ntp_server_name"] == "pool.ntp.org"
+        assert data[0]["poll"] == 60
+        assert data[1]["poll"] == 5
 
     assert mock_get_dn.call_count == 5
 
@@ -570,6 +584,6 @@ def test_get_ripe_measurement_result_complete(mock_fetch_ripe_data, test_client)
 def test_get_ripe_measurement_result_error(mock_fetch_ripe_data, test_client):
     mock_fetch_ripe_data.side_effect = ValueError("RIPE API error: Bad Request - There was a problem with your request")
     response = test_client.get("/measurements/ripe/123456")
-    assert response.status_code == 500
+    assert response.status_code == 405
     assert response.json()[
-               "error"] == "Failed to fetch result: RIPE API error: Bad Request - There was a problem with your request"
+               "error"] == "Failed to fetch result: RIPE API error: Bad Request - There was a problem with your request. Try again later!"
