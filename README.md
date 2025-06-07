@@ -19,7 +19,8 @@ The database used to store measurements uses `PostgreSQL` for its persistance.
 
 The design for the two tables used to store data are as follows:
 > * **measurements**
->    * id -                      `bigint`, **Non-nullable**, ***primary key***, key to identify each measurement
+    >
+* id -                      `bigint`, **Non-nullable**, ***primary key***, key to identify each measurement
 >    * ntp_server_ip -           `inet`, the IP adress of the NTP server that was measured. Supports IPv4 or IPv6.
 >    * ntp_server_name -         `text`, the name of the NTP server that was measured.
 >    * ntp_version -             `smallint`, the version of NTP used for the measurement.
@@ -36,7 +37,8 @@ The design for the two tables used to store data are as follows:
 >    * root_delay_prec -         `bigint`,
 >    * ntp_last_sync_time -      `bigint`,
 >* **times**
->  * id -         `bigint`, **Non-nullable**, ***primary key***, key to identify each measurement
+   >
+* id -         `bigint`, **Non-nullable**, ***primary key***, key to identify each measurement
 >  * client_sent -             `bigint`, the time the request was sent by the client in Epoch time.
 >  * client_sent_prec -        `bigint`, the 32 bits of accuracy for the client sent time.
 >  * server_recv -             `bigint`, the time the request was received by the server in Epoch time.
@@ -82,8 +84,8 @@ To set up and run the backend server, follow these steps:
     ripe_api_token={ripe API with persmission to perform measurments}
     ripe_account_email={email of your ripe account}
     ```
-    Besides, the config file for the server is `server/server_config.yaml` and it contains the following variables:
-    
+   Besides, the config file for the server is `server/server_config.yaml` and it contains the following variables:
+
       ```yaml
         ntp:
           version: 4
@@ -107,11 +109,15 @@ To set up and run the backend server, follow these steps:
           number_of_probes_per_measurement: 35
           max_probes_per_measurement: 100
           probes_wanted_percentages: [0.33, 0.30, 0.27, 0.10, 0.0] # exactly 5 values and their sum must be 1 (100%)
+        
+        max_mind:
+          path: "../../GeoLite2-City.mmdb"
       ```
 
-    **Note**: 
+   **Note**:
     - Ensure PostgreSQL is running and accessible with the credentials provided in the `.env` file.
-    - You can edit the config variables, but if there are any variables that are missing or have invalid data, the server will not start, and it will tell you exactly which config variables have problems.
+    - You can edit the config variables, but if there are any variables that are missing or have invalid data, the
+      server will not start, and it will tell you exactly which config variables have problems.
 
 ---
 

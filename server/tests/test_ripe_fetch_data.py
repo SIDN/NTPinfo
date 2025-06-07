@@ -3,6 +3,7 @@ from ipaddress import ip_address
 import pytest
 from unittest.mock import Mock, patch
 
+from server.app.dtos.PreciseTime import PreciseTime
 from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.dtos.ProbeData import ProbeData
 from server.app.utils.ripe_fetch_data import get_data_from_ripe_measurement, get_probe_data_from_ripe_by_id, \
@@ -490,9 +491,9 @@ def test_parse_data_from_ripe_measurement(mock_get_probe, mock_check_done):
     assert results[0].ntp_measurement.vantage_point_ip == ip_address("83.231.3.54")
     assert results[0].time_to_result == 36.760828
     assert results[0].measurement_id == 123
-    assert results[0].root_dispersion == 0.000198364
+    assert results[0].ntp_measurement.extra_details.root_dispersion == PreciseTime(seconds=0, fraction=851966)
     assert results[0].ref_id == "GPSs"
-    assert results[0].poll == 64
+    assert results[0].ntp_measurement.extra_details.poll == 64
     assert results[0].probe_data.probe_id == 9999
 
     assert results[0].ntp_measurement.timestamps.client_sent_time.seconds != 0
@@ -520,9 +521,9 @@ def test_parse_data_from_ripe_measurement_with_no_response(mock_get_probe, mock_
     assert results[0].ntp_measurement.vantage_point_ip == ip_address("83.231.3.54")
     assert results[0].time_to_result == -1
     assert results[0].measurement_id == 123
-    assert results[0].root_dispersion == -1
+    assert results[0].ntp_measurement.extra_details.root_dispersion == PreciseTime(seconds=-1, fraction=0)
     assert results[0].ref_id == "NO REFERENCE"
-    assert results[0].poll == -1
+    assert results[0].ntp_measurement.extra_details.poll == -1
     assert results[0].probe_data.probe_id == 9999
 
     assert results[0].ntp_measurement.timestamps.client_sent_time.seconds == -1

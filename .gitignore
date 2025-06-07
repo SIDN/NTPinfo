@@ -32,3 +32,6 @@ run_pipeline.sh
 .cache/
 .coverage
 venv/
+
+#MaxMind db
+/server/GeoLite2-City.mmdb

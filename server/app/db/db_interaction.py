@@ -41,6 +41,9 @@ def row_to_dict(m: Measurement, t: Time) -> dict[str, Any]:
         "reachability": m.reachability,
         "root_delay": m.root_delay,
         "root_delay_prec": m.root_delay_prec,
+        "poll": m.poll,
+        "root_dispersion": m.root_dispersion,
+        "root_dispersion_prec": m.root_dispersion_prec,
         "ntp_last_sync_time": m.ntp_last_sync_time,
         "ntp_last_sync_time_prec": m.ntp_last_sync_time_prec,
         "client_sent": t.client_sent,
@@ -81,6 +84,8 @@ def dict_to_measurement(entry: dict[str, Any]) -> NtpMeasurement:
     server_info = NtpServerInfo(entry['ntp_version'], entry['ntp_server_ip'], entry['ntp_server_name'],
                                 entry['ntp_server_ref_parent_ip'], entry['ref_name'])
     extra_details = NtpExtraDetails(PreciseTime(entry['root_delay'], entry['root_delay_prec']),
+                                    entry['poll'],
+                                    PreciseTime(entry['root_dispersion'], entry['root_dispersion_prec']),
                                     PreciseTime(entry['ntp_last_sync_time'], entry['ntp_last_sync_time_prec']),
                                     0)
     main_details = NtpMainDetails(entry['offset'], entry['RTT'], entry['stratum'],
@@ -150,8 +155,11 @@ def insert_measurement(measurement: NtpMeasurement, session: Session) -> None:
         precision=measurement.main_details.precision,
         reachability=measurement.main_details.reachability,
         root_delay=measurement.extra_details.root_delay.seconds,
-        ntp_last_sync_time=measurement.extra_details.ntp_last_sync_time.seconds,
         root_delay_prec=measurement.extra_details.root_delay.fraction,
+        poll=measurement.extra_details.poll,
+        root_dispersion=measurement.extra_details.root_dispersion.seconds,
+        root_dispersion_prec=measurement.extra_details.root_dispersion.fraction,
+        ntp_last_sync_time=measurement.extra_details.ntp_last_sync_time.seconds,
         ntp_last_sync_time_prec=measurement.extra_details.ntp_last_sync_time.fraction,
         timestamps=time
     )

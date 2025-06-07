@@ -1,18 +1,18 @@
 from typing import TypeVar
 from typing import Optional
 
+from server.app.utils.location_resolver import get_client_location
 from server.app.utils.calculations import calculate_haversine_distance
 from server.app.models.CustomError import InputError
 from server.app.utils.load_config_data import get_ripe_number_of_probes_per_measurement
 from server.app.utils.ip_utils import get_ip_network_details, get_prefix_from_ip, get_ip_family
 from ripe.atlas.cousteau import ProbeRequest
 
-
-T = TypeVar('T', int, float) # float or int
+T = TypeVar('T', int, float)  # float or int
 
 
 def get_probes(client_ip: str,
-               probes_requested: int=get_ripe_number_of_probes_per_measurement()) -> list[dict]:
+               probes_requested: int = get_ripe_number_of_probes_per_measurement()) -> list[dict]:
     """
     This method handles all cases regarding what probes we should send.
     This method assumes all inputs are either valid or None. (If there is a typo in the input, the measurement
@@ -38,8 +38,10 @@ def get_probes(client_ip: str,
     current_probes_set: set[int] = set()
     # Try to see if we have probes with the same ASN and prefix OR same ASN and same country. They have the highest priority.
     probes_requested, current_probes_set = (
-        get_best_probes_with_multiple_attributes(client_ip=client_ip, current_probes_set=current_probes_set, ip_asn=ip_asn, ip_prefix=ip_prefix,
-                                                 ip_country=ip_country, ip_family=ip_family, probes_requested=probes_requested))
+        get_best_probes_with_multiple_attributes(client_ip=client_ip, current_probes_set=current_probes_set,
+                                                 ip_asn=ip_asn, ip_prefix=ip_prefix,
+                                                 ip_country=ip_country, ip_family=ip_family,
+                                                 probes_requested=probes_requested))
 
     if probes_requested <= 0:
         # add the current IDs of the probes
@@ -48,7 +50,8 @@ def get_probes(client_ip: str,
 
     # if we still need more probes or if the method above failed, continue trying with filters by a single attributes.
     probes_requested, current_probes_set = (
-        get_best_probes_matched_by_single_attribute(client_ip=client_ip, current_probes_set=current_probes_set, ip_asn=ip_asn, ip_prefix=ip_prefix,
+        get_best_probes_matched_by_single_attribute(client_ip=client_ip, current_probes_set=current_probes_set,
+                                                    ip_asn=ip_asn, ip_prefix=ip_prefix,
                                                     ip_country=ip_country, ip_family=ip_family,
                                                     probes_requested=probes_requested))
     # add the IDs of the probes
@@ -63,9 +66,12 @@ def get_probes(client_ip: str,
             probes.append(get_random_probes(probes_requested))
     return probes
 
-def get_best_probes_with_multiple_attributes(client_ip: str, current_probes_set: set[int], ip_asn: Optional[str], ip_prefix: Optional[str], ip_country: Optional[str],
-                          ip_family: int,
-                          probes_requested: int=get_ripe_number_of_probes_per_measurement()) -> tuple[int, set[int]]:
+
+def get_best_probes_with_multiple_attributes(client_ip: str, current_probes_set: set[int], ip_asn: Optional[str],
+                                             ip_prefix: Optional[str], ip_country: Optional[str],
+                                             ip_family: int,
+                                             probes_requested: int = get_ripe_number_of_probes_per_measurement()) -> \
+        tuple[int, set[int]]:
     """
     This method tries to get probes that has the same ASN and prefix OR the same ASN and country and subtract them
     from the probes_requested. These probes have the highest priority as they have multiple attributes as the client IP
@@ -106,10 +112,11 @@ def get_best_probes_with_multiple_attributes(client_ip: str, current_probes_set:
     return probes_requested, set(current_probes_set)
 
 
-def get_best_probes_matched_by_single_attribute(client_ip: str, current_probes_set: set[int], ip_asn: Optional[str], ip_prefix:
+def get_best_probes_matched_by_single_attribute(client_ip: str, current_probes_set: set[int], ip_asn: Optional[str],
+                                                ip_prefix:
                                                 Optional[str], ip_country: Optional[str], ip_family: int,
                                                 probes_requested: int = get_ripe_number_of_probes_per_measurement()) \
-                                        -> tuple[int, set[int]]:
+        -> tuple[int, set[int]]:
     """
     This method is responsible for getting the best probes that has a match by a single attribute in this order: ASN, prefix, country.
     As soon as we have enough probes we return.
@@ -176,14 +183,16 @@ def get_probes_by_ids(probe_ids: list[int]) -> dict:
         raise InputError("probe_ids cannot be empty")
     list_str = [str(p) for p in probe_ids]
     formatted_list = ','.join(list_str)
-    #print(formatted_list)
+    # print(formatted_list)
     probes = {
         "type": "probes",
         "value": formatted_list,
         "requested": len(probe_ids)
-  }
+    }
     return probes
-def get_asn_probes(ip_asn: Optional[str|int], n: int) -> dict:
+
+
+def get_asn_probes(ip_asn: Optional[str | int], n: int) -> dict:
     """
     This method selects n probes that belong to the same ASN network.
 
@@ -200,11 +209,13 @@ def get_asn_probes(ip_asn: Optional[str|int], n: int) -> dict:
     if ip_asn is None:
         raise InputError("ip_asn cannot be None")
     probes = {
-            "type": "asn",
-            "value": ip_asn,
-            "requested": n
-        }
+        "type": "asn",
+        "value": ip_asn,
+        "requested": n
+    }
     return probes
+
+
 def get_prefix_probes(ip_prefix: Optional[str], n: int) -> dict:
     """
     This method selects n probes that belong to the same ASN network.
@@ -222,11 +233,13 @@ def get_prefix_probes(ip_prefix: Optional[str], n: int) -> dict:
     if ip_prefix is None:
         raise InputError("ip_prefix cannot be None")
     probes = {
-            "type": "prefix",
-            "value": ip_prefix,
-            "requested": n
-        }
+        "type": "prefix",
+        "value": ip_prefix,
+        "requested": n
+    }
     return probes
+
+
 def get_country_probes(ip_country_code: Optional[str], n: int) -> dict:
     """
     This method selects n probes that belong to the same country.
@@ -244,11 +257,13 @@ def get_country_probes(ip_country_code: Optional[str], n: int) -> dict:
     if ip_country_code is None:
         raise InputError("ip_country_code cannot be None")
     probes = {
-            "type": "country",
-            "value": ip_country_code,
-            "requested": n
-        }
+        "type": "country",
+        "value": ip_country_code,
+        "requested": n
+    }
     return probes
+
+
 def get_area_probes(area: Optional[str], n: int) -> dict:
     """
     This method selects n random probes from all over the world.
@@ -271,6 +286,8 @@ def get_area_probes(area: Optional[str], n: int) -> dict:
         "requested": n
     }
     return probes
+
+
 def get_random_probes(n: int) -> dict:
     """
     This method selects n random probes from all over the world.
@@ -282,6 +299,7 @@ def get_random_probes(n: int) -> dict:
         dict: the selected probes
     """
     return get_area_probes("WW", n)
+
 
 def get_available_probes_asn_and_prefix(client_ip: str, ip_asn: str, ip_prefix: str, ip_type: str) -> list[int]:
     """
@@ -304,7 +322,7 @@ def get_available_probes_asn_and_prefix(client_ip: str, ip_asn: str, ip_prefix: 
     ip_asn_number = int(ip_asn[2:])
     prefix_type: str = "prefix_v4" if ip_type == "ipv4" else "prefix_v6"
     filters = {
-       "asn": ip_asn_number,
+        "asn": ip_asn_number,
         prefix_type: ip_prefix,
         "status": 1,  # Connected probes
         "tags": f"system-{ip_type.lower()}-works",
@@ -322,8 +340,10 @@ def get_available_probes_asn_and_prefix(client_ip: str, ip_asn: str, ip_prefix: 
         except Exception as e:
             print(f"error (safe): {e}")
 
-    #print(probe_ids_list)
+    # print(probe_ids_list)
     return probe_ids_list
+
+
 def get_available_probes_asn_and_country(client_ip: str, ip_asn: str, ip_country_code: str, ip_type: str) -> list[int]:
     """
     This method gets the probes available on RIPE Atlas that has the same ASN and prefix as the client IP.
@@ -343,7 +363,7 @@ def get_available_probes_asn_and_country(client_ip: str, ip_asn: str, ip_country
     """
     ip_asn_number = int(ip_asn[2:])
     filters = {
-       "asn": ip_asn_number,
+        "asn": ip_asn_number,
         "country_code": ip_country_code,
         "status": 1,  # Connected probes
         "tags": f"system-{ip_type.lower()}-works",
@@ -354,7 +374,7 @@ def get_available_probes_asn_and_country(client_ip: str, ip_asn: str, ip_country
         page_size=300,
         **filters,
     )
-    lat_client, lon_client = 1.0, 1.0 #TODO add the real location of the client: get_client_location(client_ip)
+    lat_client, lon_client = get_client_location(client_ip)
     probe_ids_dist_list: list[tuple[int, float]] = []
     for p in probes:
         try:
@@ -364,7 +384,7 @@ def get_available_probes_asn_and_country(client_ip: str, ip_asn: str, ip_country
                 dist: float = calculate_haversine_distance(lat, lon, lat_client, lon_client)
                 probe_ids_dist_list.append((p.id, dist))
             else:
-                probe_ids_dist_list.append((p.id, 1000000)) #some large value to put this probe at the end of the list
+                probe_ids_dist_list.append((p.id, 1000000))  # some large value to put this probe at the end of the list
         except Exception as e:
             print(f"error (safe): {e}")
     probe_ids_dist_list.sort(key=lambda x: x[1])
@@ -372,6 +392,8 @@ def get_available_probes_asn_and_country(client_ip: str, ip_asn: str, ip_country
 
     # print(probe_ids_list)
     return probe_ids_list
+
+
 def get_available_probes_asn(client_ip: str, ip_asn: str, ip_type: str) -> list[int]:
     """
     This method gets the probes available on RIPE Atlas that has the same ASN as the client IP.
@@ -412,6 +434,8 @@ def get_available_probes_asn(client_ip: str, ip_asn: str, ip_type: str) -> list[
         except Exception as e:
             print(f"error (safe): {e}")
     return probe_ids_list
+
+
 def get_available_probes_prefix(client_ip: str, ip_prefix: str, ip_type: str) -> list[int]:
     """
     This method gets the probes available on RIPE Atlas that has the same prefix as the client IP.
@@ -449,6 +473,8 @@ def get_available_probes_prefix(client_ip: str, ip_prefix: str, ip_type: str) ->
         except Exception as e:
             print(f"error (safe): {e}")
     return probe_ids_list
+
+
 def get_available_probes_country(client_ip: str, country_code: str, ip_type: str) -> list[int]:
     """
     This method gets the probes available on RIPE Atlas that has the same country as the client IP.
@@ -478,7 +504,7 @@ def get_available_probes_country(client_ip: str, country_code: str, ip_type: str
         page_size=600,
         **filters,
     )
-    lat_client, lon_client = 1.0, 1.0 #TODO add the real location of the client: get_client_location(client_ip)
+    lat_client, lon_client = get_client_location(client_ip)
     probe_ids_dist_list: list[tuple[int, float]] = []
     for p in probes:
         try:
@@ -525,7 +551,6 @@ def consume_probes(probes_requested: int, current_probes_set: set[int], probes_i
                 return 0, current_probes_set
     # print(c)
     return probes_requested, current_probes_set
-
 
 # prefixx = get_prefix_from_ip("89.46.74.148")
 # print(prefixx)

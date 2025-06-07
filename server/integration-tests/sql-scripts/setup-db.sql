@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS times
 CREATE TABLE IF NOT EXISTS measurements
 (
     id bigserial NOT NULL,
+    vantage_point_ip inet,
     ntp_server_ip inet,
     ntp_server_name text COLLATE pg_catalog."default",
     ntp_version smallint,
@@ -29,10 +30,12 @@ CREATE TABLE IF NOT EXISTS measurements
     "precision" double precision,
     reachability text COLLATE pg_catalog."default",
     root_delay bigint,
-    ntp_last_sync_time bigint,
+    poll bigint,
     root_delay_prec bigint,
+    root_dispersion bigint,
+    root_dispersion_prec bigint,
+    ntp_last_sync_time bigint,
     ntp_last_sync_time_prec bigint,
-    vantage_point_ip inet,
     CONSTRAINT measurements_pkey PRIMARY KEY (id),
     CONSTRAINT fk FOREIGN KEY (time_id)
         REFERENCES public.times (id) MATCH SIMPLE
