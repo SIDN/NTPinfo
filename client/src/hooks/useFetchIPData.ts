@@ -24,7 +24,8 @@ export const useFetchIPData = () => {
                     }
                 }
             )
-            const transformedData = transformJSONDataToNTPData(resp.data.measurement)
+            const measurements = resp.data?.measurement || []
+            const transformedData = measurements.map((d: any) => transformJSONDataToNTPData(d))
             setData(transformedData)
             setHttpStatus(resp.status)
             return transformedData
