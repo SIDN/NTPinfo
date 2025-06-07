@@ -72,7 +72,7 @@ function HomeTab() {
      * if the jitter should be calculated and the number of measurements to be done.
      */
     const payload = {
-      server: query
+      server: query.trim()
     }
 
     /**
@@ -103,7 +103,7 @@ function HomeTab() {
      * Payload for the RIPE measurement call, containing only the ip of the server to be measured.
      */
     const ripePayload = {
-      server: data === null ? query : data.ip
+      server: query.trim()
     }
 
     /**
