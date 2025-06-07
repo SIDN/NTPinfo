@@ -21,7 +21,11 @@ import { LatLngTuple } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { triggerRipeMeasurement } from '../hooks/triggerRipeMeasurement.ts'
 
-function HomeTab() {
+interface HomeTabProps {
+    onVisualizationDataChange: (data: Map<string, NTPData[]> | null) => void;
+}
+
+function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
   //
   // states we need to define
   //
@@ -96,10 +100,11 @@ function HomeTab() {
      */
     setMeasured(true)
     const data = apiMeasurementResp
-    const chartData = new Map<string, NTPData[]>()
-    chartData.set(payload.server, apiHistoricalResp)
+    const newChartData = new Map<string, NTPData[]>()
+    newChartData.set(payload.server, apiHistoricalResp)
     setNtpData(data ?? null)
-    setChartData(chartData ?? null)
+    setChartData(newChartData ?? null)
+    onVisualizationDataChange(newChartData)
 
     /**
      * Payload for the RIPE measurement call, containing only the ip of the server to be measured.

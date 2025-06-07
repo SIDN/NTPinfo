@@ -28,7 +28,7 @@
 
   .hero p, .hero h1 {
     color: var(--clr-font-dark);
-    font-size: 2.5vw;
+    font-size: 2.3vw;
   }
 
   .text-hero > p {
@@ -43,7 +43,7 @@
   }
 
   .navbar a {
-    font-size: 2vw;
+    font-size: 1.5vw;
     font-weight: bold;
     color: var(--clr-font-dark);
     display: flex;
@@ -69,7 +69,8 @@
 
   .hero {
   width: 100%;
-  height: 6vw;
+  /* height: 6vw; */
+  height: max(4.5rem, 5vw);
   display: flex;
   align-items: center;
   justify-content: space-between;
