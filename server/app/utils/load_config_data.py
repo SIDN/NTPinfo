@@ -1,5 +1,6 @@
 import math
 import os
+from pathlib import Path
 from typing import Any, cast
 import yaml
 from dotenv import load_dotenv
@@ -285,6 +286,9 @@ def get_ripe_number_of_probes_per_measurement() -> int:
 
 
 def get_max_mind_path() -> str:
-    max_mind = config["max_mind"]
-    return max_mind["path"]
+    # This assumes this file is in server/app/utils/
+    server_dir = Path(__file__).resolve().parent.parent.parent
+    relative_path = config["max_mind"]["path"]
+    absolute_path = (server_dir / relative_path).resolve()
+    return str(absolute_path)
 # verify_if_config_is_set()
