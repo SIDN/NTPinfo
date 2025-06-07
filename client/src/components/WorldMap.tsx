@@ -174,6 +174,15 @@ const stringifyRTTAndOffset = (value: number): string => {
   else return value.toString()
 }
 
+const equalCoords = (a: L.LatLngExpression | null, b: L.LatLngExpression | null): boolean => {
+  if (a === null && b === null) return true
+  if (a === null) return false
+  if (b === null) return false
+  const exprA = L.latLng(a)
+  const exprB = L.latLng(b)
+  return exprA.lat === exprB.lat && exprA.lng === exprB.lng
+}
+
 /**
  * The function for creating the WorldMap Component
  * Shows error text in case that an error occurs in fetching RIPE Data
@@ -203,7 +212,12 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
   const [chosenNtpServer, setChosenNtpServer] = useState<NTPData | null>(null)
   const { fetchIPInfo } = useIPInfo()
   useEffect(() => {
-    if (status === "pending" || status === "partial_results"){
+    if (status === "pending"){
+      setRipeNtpServerLoc(null)
+      setMeasurementNtpServerLoc(null)
+      setVantagePointLoc(null)
+      return 
+    } else if (status === "partial_results"){
       setStatusMessage("Map Loading...")
     } else if(status === "complete" || status === "timeout") {
       setStatusMessage("Map Fully Loaded")
@@ -211,7 +225,6 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
       setStatusMessage("Error loading RIPE data")
     }
     }, [probes, status])
-
   
   useEffect(() => {
     if (!probes || !ntpServers) return
@@ -238,10 +251,13 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
       }
     };
     fetchLocation()
-  }, [probes, ntpServers, vantagePointIp])
+  }, [probes, ntpServers, vantagePointIp, chosenNtpServer])
 
   const probe_locations = probes?.map(x => x.probe_location) ?? []
   const icons = probes?.map(x => getIconByRTT(x.measurementData.RTT, x.got_results)) ?? []
+  console.log(ntpServers)
+  console.log(ripeNtpServerLoc)
+  console.log(measurementNtpServerLoc)
     return (
       <div style={{height: '500px', width: '100%'}}>
         <h2>{statusMessage}</h2>
@@ -265,7 +281,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
               </Marker>))}
 
 
-              {(ripeNtpServerLoc !== measurementNtpServerLoc) && 
+              {!equalCoords(ripeNtpServerLoc, measurementNtpServerLoc) && 
                 <>
                 <Marker position = {ripeNtpServerLoc ?? [0,0]}>
                     <Popup>
@@ -285,7 +301,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
                 </>
               }
 
-              {(ripeNtpServerLoc === measurementNtpServerLoc) &&
+              {equalCoords(ripeNtpServerLoc, measurementNtpServerLoc) &&
                 <Marker position = {ripeNtpServerLoc ?? [0,0]}>
                     <Popup>
                       NTP Server<br/>
@@ -295,14 +311,17 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
                 </Marker>
               }
 
-              <Marker position = {vantagePointLoc ?? [0,0]}>
-                  <Popup>
-                    Vantage Point<br/>
-                    IP: {vantagePointIp}<br/>
-                  </Popup>
-              </Marker>
-              <FitMapBounds probes={probe_locations} ripeNtpServer={ripeNtpServerLoc} measurementNtpServer = {measurementNtpServerLoc} vantagePoint = {vantagePointLoc}/>
-              <DrawConnectingLines probes={probe_locations} ripeNtpServer={ripeNtpServerLoc} measurementNtpServer = {measurementNtpServerLoc} vantagePoint = {vantagePointLoc}/>
+              {ripeNtpServerLoc && measurementNtpServerLoc && vantagePointLoc &&
+              <>
+                <Marker position = {vantagePointLoc ?? [0,0]}>
+                    <Popup>
+                      Vantage Point<br/>
+                      IP: {vantagePointIp}<br/>
+                    </Popup>
+                </Marker>
+                <FitMapBounds probes={probe_locations} ripeNtpServer={ripeNtpServerLoc} measurementNtpServer = {measurementNtpServerLoc} vantagePoint = {vantagePointLoc}/>
+                <DrawConnectingLines probes={probe_locations} ripeNtpServer={ripeNtpServerLoc} measurementNtpServer = {measurementNtpServerLoc} vantagePoint = {vantagePointLoc}/>
+              </>}
             </>)}
         </MapContainer>
         {(probes !== null) && (<div style={{display: "flex", gap: "10px"}}>
