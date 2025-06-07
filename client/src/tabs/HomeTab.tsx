@@ -31,6 +31,7 @@ function HomeTab() {
   const [selOption, setOption] = useState("Last Hour")
   const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
   const [measurementId, setMeasurementId] = useState<string | null>(null)
+  const [vantagePointIp, setVantagePointIp] = useState<string | null>(null)
 
   //Varaibles to log and use API hooks
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
@@ -110,6 +111,7 @@ function HomeTab() {
      * Get the data from the RIPE measurement endpoint and update it.
      */
     const ripeTriggerResp = await triggerMeasurement(ripePayload)
+    setVantagePointIp(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.vantage_point_ip)
     setMeasurementId(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.measurementId)
   }
 
@@ -165,7 +167,7 @@ function HomeTab() {
         </div>
         {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
         <div className='map-box'>
-          <WorldMap probes={ripeMeasurementResp} ntpServer = {ntpData} status = {ripeMeasurementStatus} />
+          <WorldMap probes={ripeMeasurementResp} ntpServer = {ntpData} vantagePointIp = {vantagePointIp} status = {ripeMeasurementStatus} />
         </div>
         )}
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>)}

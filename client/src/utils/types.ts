@@ -41,5 +41,5 @@ export type RIPEData = {
  */
 export type RIPEResp = {
   measurementId: number
-  ipList: string[]
+  vantage_point_ip: string
 }

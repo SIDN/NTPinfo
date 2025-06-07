@@ -66,6 +66,7 @@ const grayIcon = new L.Icon({
 interface MapComponentProps {
   probes: RIPEData[] | null
   ntpServer: NTPData
+  vantagePointIp: string | null
   status: string | null
 }
 
@@ -76,7 +77,8 @@ interface MapComponentProps {
  * @param probes the geolocation of all the probes to the shown on the map
  * @param probes the geolocation of the NTP server that the measurement was performed on
  */
-const FitMapBounds = ({probes, ntpServer}: {probes: L.LatLngExpression[], ntpServer: L.LatLngExpression | null}) => {
+const FitMapBounds = ({probes, ripeNtpServer, measurementNtpServer, vantagePoint}: {probes: L.LatLngExpression[], 
+  ripeNtpServer: L.LatLngExpression | null, measurementNtpServer: L.LatLngExpression | null, vantagePoint: L.LatLngExpression | null}) => {
   const map = useMap()
   const userInteracted = useRef(false)
   const ignoreEvents = useRef(false)
@@ -98,12 +100,12 @@ const FitMapBounds = ({probes, ntpServer}: {probes: L.LatLngExpression[], ntpSer
   }, [map])
 
   useEffect(() => {
-    if (probes.length === 0 || !ntpServer) return
+    if (probes.length === 0 || !ripeNtpServer || !measurementNtpServer || !vantagePoint) return
     
     if (userInteracted.current) return
 
     const fitBounds = () => {
-      const allPoints = [...probes, ntpServer]
+      const allPoints = [...probes, ripeNtpServer, measurementNtpServer, vantagePoint]
       const bounds = L.latLngBounds(allPoints)
       ignoreEvents.current = true
       map.fitBounds(bounds, { padding: [15, 15] })
@@ -121,7 +123,7 @@ const FitMapBounds = ({probes, ntpServer}: {probes: L.LatLngExpression[], ntpSer
     }
     window.addEventListener('resize', handleWindowResize)
     return () => {window.removeEventListener('resize', handleWindowResize)}
-  }, [map, probes, ntpServer])
+  }, [map, probes, ripeNtpServer, measurementNtpServer])
 
   return null
 }
@@ -131,15 +133,17 @@ const FitMapBounds = ({probes, ntpServer}: {probes: L.LatLngExpression[], ntpSer
  * @param probes the geolocation of all the probes to the shown on the map
  * @param probes the geolocation of the NTP server that the measurement was performed on
  */
-const DrawConnectingLines = ({probes, ntpServer}: {probes: L.LatLngExpression[], ntpServer: L.LatLngExpression | null}) => {
+const DrawConnectingLines = ({probes, ripeNtpServer, measurementNtpServer, vantagePoint}: {probes: L.LatLngExpression[], 
+  ripeNtpServer: L.LatLngExpression | null, measurementNtpServer: L.LatLngExpression | null, vantagePoint: L.LatLngExpression | null}) => {
   const map = useMap()
 
   useEffect(() => {
-    if (!ntpServer) return
+    if (!ripeNtpServer || !measurementNtpServer || !vantagePoint) return
     probes.map(x => {
-      L.polyline([x,ntpServer], {color: 'blue', opacity: 0.8, weight: 1}).addTo(map)
+      L.polyline([x,ripeNtpServer], {color: 'blue', opacity: 0.8, weight: 1}).addTo(map)
     })
-  },[map, probes, ntpServer])
+    L.polyline([vantagePoint, measurementNtpServer], {color: 'blue', opacity: 0.8, weight: 1}).addTo(map)
+  },[map, probes, ripeNtpServer, measurementNtpServer, vantagePoint])
 
   return null
 }
@@ -191,10 +195,11 @@ const stringifyRTTAndOffset = (value: number): string => {
  * @param status the current status of the polling of the RIPE measurements 
  * @returns a WorldMap component showing all probes, the NTP server and relevant values for all of them
  */
-export default function WorldMap ({probes, ntpServer, status}: MapComponentProps) {
+export default function WorldMap ({probes, ntpServer, vantagePointIp, status}: MapComponentProps) {
   const [statusMessage, setStatusMessage] = useState<string>("")
-  const [ripeNtpServer, setRipeNtpServer] = useState<L.LatLngExpression | null>(null)
-  const [measurementNtpServer, setMeasurementNtpServer] = useState<L.LatLngExpression | null>(null)
+  const [ripeNtpServerLoc, setRipeNtpServerLoc] = useState<L.LatLngExpression | null>(null)
+  const [measurementNtpServerLoc, setMeasurementNtpServerLoc] = useState<L.LatLngExpression | null>(null)
+  const [vantagePointLoc, setVantagePointLoc] = useState<L.LatLngExpression | null>(null)
   const { fetchIPInfo } = useIPInfo()
   useEffect(() => {
     if (status === "pending" || status === "partial_results"){
@@ -211,17 +216,20 @@ export default function WorldMap ({probes, ntpServer, status}: MapComponentProps
       const ripe_ip = probes?.[0].measurementData.ip
       const measurement_ip = ntpServer.ip
 
-      if (ripe_ip && measurement_ip && !ntpServer && !ripeNtpServer) {
+      if (ripe_ip && measurement_ip && ntpServer && vantagePointIp) {
         const ripeIpInfo = await fetchIPInfo(ripe_ip)
         const measurementIpInfo = await fetchIPInfo(measurement_ip)
+        const vantagePointIpInfo = await fetchIPInfo(vantagePointIp)
         if (ripeIpInfo)
-          setRipeNtpServer(ripeIpInfo.coordinates)
+          setRipeNtpServerLoc(ripeIpInfo.coordinates)
         if(measurementIpInfo)
-          setMeasurementNtpServer(measurementIpInfo.coordinates)
+          setMeasurementNtpServerLoc(measurementIpInfo.coordinates)
+        if(vantagePointIpInfo)
+          setVantagePointLoc(vantagePointIpInfo.coordinates)
       }
     };
     fetchLocation()
-  }, [probes])
+  }, [probes, ntpServer, vantagePointIp])
 
   const probe_locations = probes?.map(x => x.probe_location) ?? []
   const icons = probes?.map(x => getIconByRTT(x.measurementData.RTT, x.got_results)) ?? []
@@ -247,23 +255,30 @@ export default function WorldMap ({probes, ntpServer, status}: MapComponentProps
                 </Popup>
               </Marker>))}
 
-              <Marker position = {ripeNtpServer ?? [0,0]}>
+              <Marker position = {ripeNtpServerLoc ?? [0,0]}>
                   <Popup>
-                    NTP Server<br/>
+                    NTP Server (RIPE)<br/>
                     IP: {probes[0].measurementData.ip}<br/>
                     Name: {probes[0].measurementData.server_name}
                   </Popup>
               </Marker>
 
-              <Marker position = {measurementNtpServer ?? [0,0]}>
+              <Marker position = {measurementNtpServerLoc ?? [0,0]}>
                   <Popup>
-                    NTP Server<br/>
-                    IP: {ntpServer?.ip}<br/>
-                    Name: {probes[0].measurementData.server_name}
+                    NTP Server (Vantage Point)<br/>
+                    IP: {ntpServer.ip}<br/>
+                    Name: {ntpServer.server_name}
                   </Popup>
               </Marker>
-              <FitMapBounds probes={probe_locations} ripeNtpServer={ripeNtpServer} measurementNtpServer = {measurementNtpServer}/>
-              <DrawConnectingLines probes={probe_locations} ripeNtpServer={ripeNtpServer} measurementNtpServer = {measurementNtpServer}/>
+
+              <Marker position = {vantagePointLoc ?? [0,0]}>
+                  <Popup>
+                    Vantage Point<br/>
+                    IP: {vantagePointIp}<br/>
+                  </Popup>
+              </Marker>
+              <FitMapBounds probes={probe_locations} ripeNtpServer={ripeNtpServerLoc} measurementNtpServer = {measurementNtpServerLoc} vantagePoint = {vantagePointLoc}/>
+              <DrawConnectingLines probes={probe_locations} ripeNtpServer={ripeNtpServerLoc} measurementNtpServer = {measurementNtpServerLoc} vantagePoint = {vantagePointLoc}/>
             </>)}
         </MapContainer>
         {(probes !== null) && (<div style={{display: "flex", gap: "10px"}}>
