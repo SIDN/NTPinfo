@@ -5,10 +5,28 @@ from server.app.utils.load_config_data import get_max_mind_path
 
 
 def get_client_location(client_ip: str) -> tuple[float, float]:
+    """
+    Retrieves the geographical location (latitude and longitude) of a given IP address
+    using the MaxMind GeoLite2-City database.
+
+    If the location cannot be determined due to missing data, database issues, or
+    the IP not being found, it returns the coordinates of an (almost) randomly chosen location as a fallback.
+
+    Args:
+        client_ip (str): The IP address of the client to geolocate
+
+    Returns:
+        tuple[float, float]: A tuple containing the latitude and longitude. If the location
+        cannot be resolved, returns (25.0, -71.0)
+    """
     try:
         with geoip2.database.Reader(f'{get_max_mind_path()}') as reader:
             response = reader.city(client_ip)
-            return response.location.latitude, response.location.longitude
+            lat = response.location.latitude
+            long = response.location.longitude
+            if lat is None or long is None:
+                raise ValueError("Location data incomplete.")
+            return lat, long
     except (AddressNotFoundError, ValueError, GeoIP2Error, OSError) as e:
         print(e)
         return 25.0, -71.0

@@ -31,6 +31,7 @@ class Measurement(Base):
     __tablename__ = "measurements"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    vantage_point_ip: Mapped[str] = mapped_column(IPAddress, nullable=True)
     ntp_server_ip: Mapped[str] = mapped_column(IPAddress, nullable=True)
     ntp_server_name: Mapped[str] = mapped_column(Text, nullable=True)
     ntp_version: Mapped[int] = mapped_column(SmallInteger, nullable=True)
@@ -45,9 +46,11 @@ class Measurement(Base):
     precision: Mapped[float] = mapped_column(Double, nullable=True)
     reachability: Mapped[str] = mapped_column(Text, nullable=True)
     root_delay: Mapped[int] = mapped_column(BigInteger, nullable=True)
-    ntp_last_sync_time: Mapped[int] = mapped_column(BigInteger, nullable=True)
     root_delay_prec: Mapped[int] = mapped_column(BigInteger, nullable=True)
+    poll: Mapped[int] = mapped_column(BigInteger, nullable=True)
+    root_dispersion: Mapped[int] = mapped_column(BigInteger, nullable=True)
+    root_dispersion_prec: Mapped[int] = mapped_column(BigInteger, nullable=True)
+    ntp_last_sync_time: Mapped[int] = mapped_column(BigInteger, nullable=True)
     ntp_last_sync_time_prec: Mapped[int] = mapped_column(BigInteger, nullable=True)
-    vantage_point_ip: Mapped[str] = mapped_column(IPAddress, nullable=True)
 
     timestamps: Mapped["Time"] = relationship("Time", backref="measurements")

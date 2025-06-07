@@ -174,8 +174,9 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
         extra_details: NtpExtraDetails = NtpExtraDetails(
             root_delay=convert_float_to_precise_time(response.root_delay),
             ntp_last_sync_time=convert_float_to_precise_time(response.ref_timestamp),
-            leap=response.leap
-            #TODO include here poll and root dispersion
+            leap=response.leap,
+            poll=response.poll,
+            root_dispersion=convert_float_to_precise_time(response.root_dispersion)
         )
 
         return NtpMeasurement(vantage_point_ip, server_info, timestamps, main_details, extra_details)

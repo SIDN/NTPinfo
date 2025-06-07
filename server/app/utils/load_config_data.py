@@ -286,6 +286,9 @@ def get_ripe_number_of_probes_per_measurement() -> int:
 
 
 def get_max_mind_path() -> str:
+    """
+    This method returns the path to the max_mind database used for geolocation.
+    """
     # This assumes this file is in server/app/utils/
     server_dir = Path(__file__).resolve().parent.parent.parent
     relative_path = config["max_mind"]["path"]

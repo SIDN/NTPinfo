@@ -185,6 +185,7 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
         measurement_id = perform_ripe_measurement(server, client_ip=client_ip)
         return {
             "measurement_id": measurement_id,
+            "vantage_point_ip": ip_to_str(get_server_ip()),
             "status": "started",
             "message": "You can fetch the result at /measurements/ripe/{measurement_id}",
         }
@@ -254,4 +255,4 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
 
     except Exception as e:
         print(e)
-        raise HTTPException(status_code=500, detail=f"Failed to fetch result: {str(e)}")
+        raise HTTPException(status_code=405, detail=f"Failed to fetch result: {str(e)}. Try again later!")
