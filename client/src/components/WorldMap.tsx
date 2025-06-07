@@ -3,7 +3,7 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
 import { useEffect, useState, useRef } from 'react'
-import { RIPEData } from '../utils/types'
+import { NTPData, RIPEData } from '../utils/types'
 import greenProbeImg from '../assets/green-probe.png'
 import yellowProbeImg from '../assets/yellow-probe.png'
 import redProbeImg from '../assets/red-probe.png'
@@ -65,6 +65,7 @@ const grayIcon = new L.Icon({
  */
 interface MapComponentProps {
   probes: RIPEData[] | null
+  ntpServer: NTPData
   status: string | null
 }
 
@@ -190,9 +191,10 @@ const stringifyRTTAndOffset = (value: number): string => {
  * @param status the current status of the polling of the RIPE measurements 
  * @returns a WorldMap component showing all probes, the NTP server and relevant values for all of them
  */
-export default function WorldMap ({probes, status}: MapComponentProps) {
+export default function WorldMap ({probes, ntpServer, status}: MapComponentProps) {
   const [statusMessage, setStatusMessage] = useState<string>("")
-  const [ntpServer, setNtpServer] = useState<L.LatLngExpression | null>(null)
+  const [ripeNtpServer, setRipeNtpServer] = useState<L.LatLngExpression | null>(null)
+  const [measurementNtpServer, setMeasurementNtpServer] = useState<L.LatLngExpression | null>(null)
   const { fetchIPInfo } = useIPInfo()
   useEffect(() => {
     if (status === "pending" || status === "partial_results"){
@@ -206,12 +208,16 @@ export default function WorldMap ({probes, status}: MapComponentProps) {
 
   useEffect(() => {
     const fetchLocation = async () => {
-      const ip = probes?.[0].measurementData.ip
+      const ripe_ip = probes?.[0].measurementData.ip
+      const measurement_ip = ntpServer.ip
 
-      if (ip && !ntpServer) {
-        const ipInfo = await fetchIPInfo(ip)
-        if (ipInfo)
-          setNtpServer(ipInfo.coordinates)
+      if (ripe_ip && measurement_ip && !ntpServer && !ripeNtpServer) {
+        const ripeIpInfo = await fetchIPInfo(ripe_ip)
+        const measurementIpInfo = await fetchIPInfo(measurement_ip)
+        if (ripeIpInfo)
+          setRipeNtpServer(ripeIpInfo.coordinates)
+        if(measurementIpInfo)
+          setMeasurementNtpServer(measurementIpInfo.coordinates)
       }
     };
     fetchLocation()
@@ -219,9 +225,6 @@ export default function WorldMap ({probes, status}: MapComponentProps) {
 
   const probe_locations = probes?.map(x => x.probe_location) ?? []
   const icons = probes?.map(x => getIconByRTT(x.measurementData.RTT, x.got_results)) ?? []
-
-  console.log(probes)
-  
     return (
       <div style={{height: '500px', width: '100%'}}>
         <h2>{statusMessage}</h2>
@@ -244,15 +247,23 @@ export default function WorldMap ({probes, status}: MapComponentProps) {
                 </Popup>
               </Marker>))}
 
-              ntpServer &&<Marker position = {ntpServer ?? [0,0]}>
+              <Marker position = {ripeNtpServer ?? [0,0]}>
                   <Popup>
                     NTP Server<br/>
                     IP: {probes[0].measurementData.ip}<br/>
                     Name: {probes[0].measurementData.server_name}
                   </Popup>
               </Marker>
-              <FitMapBounds probes={probe_locations} ntpServer={ntpServer}/>
-              <DrawConnectingLines probes={probe_locations} ntpServer={ntpServer}/>
+
+              <Marker position = {measurementNtpServer ?? [0,0]}>
+                  <Popup>
+                    NTP Server<br/>
+                    IP: {ntpServer?.ip}<br/>
+                    Name: {probes[0].measurementData.server_name}
+                  </Popup>
+              </Marker>
+              <FitMapBounds probes={probe_locations} ripeNtpServer={ripeNtpServer} measurementNtpServer = {measurementNtpServer}/>
+              <DrawConnectingLines probes={probe_locations} ripeNtpServer={ripeNtpServer} measurementNtpServer = {measurementNtpServer}/>
             </>)}
         </MapContainer>
         {(probes !== null) && (<div style={{display: "flex", gap: "10px"}}>

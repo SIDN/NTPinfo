@@ -13,7 +13,7 @@ import { transformJSONDataToRIPEData } from "../utils/transformJSONDataToRIPEDat
  * @param intervalMs the interval at which data will be polled from the endpoint
  * @returns the current set of results, the status of the polling, and if an error has occured
  */
-export const useFetchRIPEData = (measurementId: string | null, intervalMs = 500) => {
+export const useFetchRIPEData = (measurementId: string | null, intervalMs = 3000) => {
     const [result, setResult] = useState<RIPEData[] | null>(null)
     const [status, setStatus] = useState<"pending" | "partial_results" | "complete" | "timeout" | "error">("pending")
     const [error, setError] = useState<Error | null>(null)
@@ -71,7 +71,7 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 500)
                     console.warn("Received 405, retrying in 2 seconds...")
                     retryTimeoutRef.current = setTimeout(() => {
                         fetchResult()
-                    }, 2000)
+                    }, 5000)
                 } else {
                     setError(err)
                     setStatus("error")

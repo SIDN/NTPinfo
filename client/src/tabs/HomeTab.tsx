@@ -165,7 +165,7 @@ function HomeTab() {
         </div>
         {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
         <div className='map-box'>
-          <WorldMap probes={ripeMeasurementResp} status = {ripeMeasurementStatus} />
+          <WorldMap probes={ripeMeasurementResp} ntpServer = {ntpData} status = {ripeMeasurementStatus} />
         </div>
         )}
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>)}
