@@ -15,6 +15,3 @@ def get_client_location(client_ip: str) -> tuple[float, float]:
     except Exception as e:
         print(e)
         return 25.0, -71.0
-
-
-print(get_client_location("145.94.210.225"))

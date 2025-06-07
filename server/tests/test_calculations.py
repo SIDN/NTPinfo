@@ -1,3 +1,4 @@
+import math
 from ipaddress import IPv4Address
 from unittest.mock import patch, MagicMock
 
@@ -5,7 +6,7 @@ from server.app.dtos.PreciseTime import PreciseTime
 from server.app.dtos.NtpTimestamps import NtpTimestamps
 from server.app.dtos.NtpMeasurement import NtpMeasurement
 from server.app.services.NtpCalculator import NtpCalculator
-from server.app.utils.calculations import calculate_jitter_from_measurements
+from server.app.utils.calculations import calculate_jitter_from_measurements, calculate_haversine_distance
 from sqlalchemy.orm import Session
 
 
@@ -103,3 +104,7 @@ def test_calculate_jitter_with_identical_offsets(mock_get_measurements):
 
     assert res == 0.0
     assert no_measurement == 5
+
+def test_haversine_distance():
+    assert math.isclose(calculate_haversine_distance(2.3, 5.6, -0.9, 12),795.51579092, rel_tol=1e-9)
+    assert math.isclose(calculate_haversine_distance(-82, -0.006, 45, 77),14755.0306084, rel_tol=1e-9)
