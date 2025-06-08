@@ -194,18 +194,19 @@ function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
             })()}
 
       {/*Buttons to download results in JSON and CSV format as well as open a popup displaying historical data*/}
+      {/*The open popup button is commented out, because it is implemented as a separate tab*/}
       {ntpData && !apiDataLoading && (<div className="download-buttons">
 
         <DownloadButton name="Download JSON" onclick={() => downloadJSON({data : [ntpData]})} />
         <DownloadButton name="Download CSV" onclick={() => downloadCSV({data : [ntpData]})} />
-        <div>
+        {/* <div>
           <button className="open-popup-btn" onClick={() => setPopupOpen(true)}>View Historical Data</button>
           <VisualizationPopup
           isOpen={popupOpen}
           onClose={() => setPopupOpen(false)}
           dropdown={dropdown}
           data = {chartData}/>
-        </div>
+        </div> */}
       </div>)}
     </div>
     </div>
