@@ -88,4 +88,4 @@ const HistoricalDataTab: React.FC<HistoricalDataTabProps> = ({ data }) => {
   );
 };
 
-export default HistoricalDataTab;
+export default HistoricalDataTab
