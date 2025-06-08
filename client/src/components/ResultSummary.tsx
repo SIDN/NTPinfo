@@ -15,12 +15,12 @@ function ResultSummary({data, err, httpStatus} : {data : NTPData | null, err : E
         else if (err)
             setStatusMessage("Unknown error occurred")
         }
-    }, [data, httpStatus, err]) 
+    }, [data, httpStatus, err])
 
-    if (data == null) 
+    if (data == null)
         return <h2 id="not-found">{err ? `Error ${httpStatus}: ${statusMessage}` : `Unknown error occurred`}</h2>
-    
-       
+
+
     const status = calculateStatus(data)
     return (
         <>
@@ -31,7 +31,7 @@ function ResultSummary({data, err, httpStatus} : {data : NTPData | null, err : E
                     <div className="metric"><span title='The variability in delay times between successive NTP messages, calculated as std. dev. of offsets'>Jitter</span><span>{data.jitter ? `${(data.jitter*1000).toFixed(3)} ms` : 'N/A'}</span></div>
                     <div className="metric"><span title='The smallest time unit that the NTP server can measure or represent'>Precision</span><span>2<sup>{data.precision}</sup></span></div>
                     <div className="metric"><span title='A hierarchical level number indicating the distance from the reference clock'>Stratum</span><span>{data.stratum}</span></div>
-                    
+
                     <div className="status-line">
                         <span className="status-label">STATUS:&nbsp;</span>
                         <span className={`status-value ${status.toLowerCase()}`}>{status}</span>
@@ -44,12 +44,12 @@ function ResultSummary({data, err, httpStatus} : {data : NTPData | null, err : E
                     <div className="metric"><span>Root Delay</span><span>{data.root_delay}</span></div>
                 </div>
             </div>
-            
-            
-                
+
+
+
         </>
 
     )
 }
 
-export default ResultSummary;
+export default ResultSummary

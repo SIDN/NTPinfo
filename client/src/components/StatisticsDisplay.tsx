@@ -58,4 +58,4 @@ const StatisticsDisplay: React.FC<StatisticsDisplayProps> = ({
   );
 };
 
-export default StatisticsDisplay;
+export default StatisticsDisplay

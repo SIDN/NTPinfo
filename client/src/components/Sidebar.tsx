@@ -59,4 +59,4 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedTab, setSelectedTab }) => {
   );
 };
 
-export default Sidebar;
+export default Sidebar

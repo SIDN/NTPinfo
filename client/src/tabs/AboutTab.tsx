@@ -33,4 +33,4 @@ const AboutTab: React.FC = () => {
   );
 };
 
-export default AboutTab;
+export default AboutTab
