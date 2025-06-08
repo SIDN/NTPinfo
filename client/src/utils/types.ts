@@ -12,11 +12,11 @@ export type NTPData = {
   status: string
   time: number
   ip: string
-  ip_list: string[]
   server_name: string,
   ref_ip: string,
   ref_name: string,
-  root_delay: number
+  root_delay: number,
+  vantage_point_ip: string
 }
 
 /**
@@ -41,5 +41,5 @@ export type RIPEData = {
  */
 export type RIPEResp = {
   measurementId: number
-  ipList: string[]
+  vantage_point_ip: string
 }

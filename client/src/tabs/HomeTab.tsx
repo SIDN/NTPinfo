@@ -31,6 +31,8 @@ function HomeTab() {
   const [selOption, setOption] = useState("Last Hour")
   const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
   const [measurementId, setMeasurementId] = useState<string | null>(null)
+  const [vantagePointIp, setVantagePointIp] = useState<string | null>(null)
+  const [allNtpMeasurements, setAllNtpMeasurements] = useState<NTPData[] | null>(null)
 
   //Varaibles to log and use API hooks
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
@@ -72,8 +74,7 @@ function HomeTab() {
      * if the jitter should be calculated and the number of measurements to be done.
      */
     const payload = {
-      server: query,
-      random_probes: false
+      server: query.trim()
     }
 
     /**
@@ -94,9 +95,10 @@ function HomeTab() {
      * Update the stored data and show it again
      */
     setMeasured(true)
-    const data = apiMeasurementResp
+    const data = apiMeasurementResp[0]
     const chartData = new Map<string, NTPData[]>()
     chartData.set(payload.server, apiHistoricalResp)
+    setAllNtpMeasurements(apiMeasurementResp ?? null)
     setNtpData(data ?? null)
     setChartData(chartData ?? null)
 
@@ -104,14 +106,14 @@ function HomeTab() {
      * Payload for the RIPE measurement call, containing only the ip of the server to be measured.
      */
     const ripePayload = {
-      server: data === null ? query : data.ip,
-      random_probes: false
+      server: query.trim()
     }
 
     /**
      * Get the data from the RIPE measurement endpoint and update it.
      */
     const ripeTriggerResp = await triggerMeasurement(ripePayload)
+    setVantagePointIp(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.vantage_point_ip)
     setMeasurementId(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.measurementId)
   }
 
@@ -165,14 +167,14 @@ function HomeTab() {
             <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day"/>
           </div>
         </div>
-        {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "polling") && (
+        {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
         <div className='map-box'>
-          <WorldMap probes={ripeMeasurementResp} status = {ripeMeasurementStatus} />
+          <WorldMap probes={ripeMeasurementResp} ntpServers = {allNtpMeasurements} vantagePointIp = {vantagePointIp} status = {ripeMeasurementStatus} />
         </div>
         )}
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>)}
 
-      {/*Only shown when a domain name is queried. Users can download IP addresses corresponding to that domain name*/}
+      {/*Only shown when a domain name is queried. Users can download IP addresses corresponding to that domain name
       {ntpData && !apiDataLoading && ntpData.server_name && ntpData.ip_list.length && (() => {
 
                 const downloadContent = `Server name: ${ntpData.server_name}\n\n${ntpData.ip_list.join('\n')}`
@@ -181,7 +183,7 @@ function HomeTab() {
                return (<p className="ip-list">You can download more IP addresses corresponding to this domain name
                <span> <a href={downloadUrl} download="ip-list.txt">here</a></span>
                 </p>)
-            })()}
+            })()}*/}
 
       {/*Buttons to download results in JSON and CSV format as well as open a popup displaying historical data*/}
       {ntpData && !apiDataLoading && (<div className="download-buttons">
