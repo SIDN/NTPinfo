@@ -307,7 +307,7 @@ def test_fetch_ripe_data(mock_get_data_from_ripe, mock_parse_data_from_ripe):
     assert data["stratum"] == 1
     assert data["poll"] == 1
     assert data["precision"] == 9.53674e-07
-    assert data["root_dispersion"] == PreciseTime(seconds=0, fraction=327679)
+    assert data["root_dispersion"] == NtpCalculator.calculate_float_time(PreciseTime(seconds=0, fraction=327679))
     assert data["ref_id"] == "GPSs"
 
     result_data = data["result"][0]
@@ -333,7 +333,7 @@ def test_get_ripe_format():
     assert data["stratum"] == 1
     assert data["poll"] == 1
     assert data["precision"] == 9.53674e-07
-    assert data["root_dispersion"] == PreciseTime(seconds=0, fraction=327679)
+    assert data["root_dispersion"] == NtpCalculator.calculate_float_time(PreciseTime(seconds=0, fraction=327679))
     assert data["ref_id"] == "GPSs"
 
     result_data = data["result"][0]

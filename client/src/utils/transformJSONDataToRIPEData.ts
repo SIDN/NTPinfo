@@ -26,14 +26,12 @@ export const transformJSONDataToRIPEData = (fetchedData: any): RIPEData | null =
         stratum: fetchedData.stratum,
         jitter: fetchedData.jitter,
         precision: fetchedData.precision,
-        status: "",
         time: (measurement.client_sent_time.seconds - 2208988800) * 1000,
         ip: fetchedData.ntp_server_ip,
         server_name: fetchedData.ntp_server_name,
-        ref_ip: "",
-        ref_name: fetchedData.ref_id,
+        ref_id: fetchedData.ref_id,
         root_dispersion: fetchedData.root_dispersion,
-        root_delay: fetchedData.root_delay.seconds,
+        root_delay: fetchedData.root_delay,
         vantage_point_ip: fetchedData.vantage_point_ip
     }
     return{
@@ -42,6 +40,7 @@ export const transformJSONDataToRIPEData = (fetchedData: any): RIPEData | null =
         probe_country: fetchedData.probe_location.country_code,
         probe_location: [fetchedData.probe_location.coordinates[1], fetchedData.probe_location.coordinates[0]],
         got_results: measurement.rtt !== -1,
+        measurement_id: fetchedData.ripe_measurement_id,
         probe_types: [fetchedData.probe_count_per_type.asn, fetchedData.probe_count_per_type.prefix, fetchedData.probe_count_per_type.country, fetchedData.probe_count_per_type.area, fetchedData.probe_count_per_type.random]
     }
 }

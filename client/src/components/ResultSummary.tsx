@@ -26,14 +26,14 @@ function ResultSummary({data, ripeData, err, httpStatus} : {data : NTPData | nul
         <>
             <div className="results-section">
                 <div className="result-and-title">
-                    <p className="res-label">From Our NTP Client 🇳🇱
+                    <div className="res-label">From Our NTP Client (Netherlands)
                         <div className="tooltip-container">
                         <span className="tooltip-icon">?</span>
                         <div className="tooltip-text">
                            Our NTP Client is based in the Netherlands
                         </div>
                         </div>
-                    </p>
+                    </div>
                     <div className="result-box" id="main-details">
                         <div className="metric"><span title='The difference between the time reported by the like an NTP server and your local clock'>Offset</span><span>{data?.offset ? `${(data.offset*1000).toFixed(3)} ms` : 'N/A'}</span></div>
                         <div className="metric"><span title='The total time taken for a request to travel from the client to the server and back.'>Round-trip time</span><span>{data?.RTT ? `${(data.RTT*1000).toFixed(3)} ms` : 'N/A'}</span></div>
@@ -49,14 +49,14 @@ function ResultSummary({data, ripeData, err, httpStatus} : {data : NTPData | nul
                     </div>
                 </div>
                 <div className="result-and-title">
-                    <p className="res-label">From the RIPE Atlas probe 🇨🇳 
+                    <div className="res-label">From the RIPE Atlas probe (Close to you)
                         <div className="tooltip-container">
     <span className="tooltip-icon">?</span>
     <div className="tooltip-text">
        RIPE Atlas tries to choose a probe near the user to perform more accurate measurements.
     </div>
   </div>
-                    </p>
+                    </div>
                     <div className="result-box" id="ripe-details">
                         <div className="metric"><span title='The difference between the time reported by the like an NTP server and your local clock'>Offset</span><span>{ripeData?.measurementData.offset ? `${(ripeData.measurementData.offset*1000).toFixed(3)} ms` : 'N/A'}</span></div>
                         <div className="metric"><span title='The total time taken for a request to travel from the client to the server and back.'>Round-trip time</span><span>{ripeData?.measurementData.RTT ? `${(ripeData.measurementData.RTT*1000).toFixed(3)} ms` : 'N/A'}</span></div>
@@ -65,7 +65,7 @@ function ResultSummary({data, ripeData, err, httpStatus} : {data : NTPData | nul
                         <div className="metric"><span title='A hierarchical level number indicating the distance from the reference clock'>Stratum</span><span>{ripeData?.measurementData.stratum}</span></div>
                         <div className="metric"><span>IP address</span><span>{ripeData?.measurementData.ip}</span></div>
                         <div className="metric"><span>Vantage point IP</span><span>{ripeData?.measurementData.vantage_point_ip}</span></div>
-
+                        <div className="metric"><span>Measurement ID</span><span>{ripeData?.measurement_id}</span></div>
                     </div>
                 </div>
                 
