@@ -82,6 +82,9 @@ def dict_to_measurement(entry: dict[str, Any]) -> NtpMeasurement:
 
     Returns:
         NtpMeasurement: A fully constructed NtpMeasurement using the provided data
+
+    Raises:
+        InvalidMeasurementDataError: If required keys are missing or construction fails due to invalid types/values
     """
 
     required_keys = [
@@ -147,6 +150,9 @@ def insert_measurement(measurement: NtpMeasurement, session: Session) -> None:
         - Timestamps are stored with both second and fractional parts.
         - A foreign key (`time_id`) is used to link `measurements` to the `times` table.
         - Any failure within the transaction block results in automatic rollback.
+
+    Raises:
+        DatabaseInsertError: If inserting the measurement or timestamps fails
     """
     try:
         time = Time(
@@ -210,6 +216,9 @@ def get_measurements_timestamps_ip(session: Session, ip: IPv4Address | IPv6Addre
         list[dict]: A list of measurement records (as dictionaries), each including:
             - Measurement metadata (IP, version, stratum, etc.)
             - Timing data (client/server send/receive with fractions)
+
+    Raises:
+        MeasurementQueryError: If the database query fails
     """
     try:
         query = (
@@ -244,6 +253,9 @@ def get_measurements_timestamps_dn(session: Session, dn: str, start: PreciseTime
         list[dict]: A list of measurement records (as dictionaries), each including:
             - Measurement metadata (domain name, version, etc.)
             - Timing data (client/server send/receive with precision)
+
+    Raises:
+        MeasurementQueryError: If the database query fails
     """
     try:
         query = (
@@ -277,6 +289,9 @@ def get_measurements_for_jitter_ip(session: Session, ip: IPv4Address | IPv6Addre
         list[dict]: A list of measurement records (as dictionaries), each including
             - Measurement metadata (IP, version, stratum, etc.)
             - Timing data (client/server send/receive with fractions)
+
+    Raises:
+        MeasurementQueryError: If the database query fails
     """
     try:
         query = (

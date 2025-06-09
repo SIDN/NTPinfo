@@ -19,7 +19,7 @@ class NtpMainDetails:
     precision: float
     reachability: str
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not isinstance(self.offset, (float, int)):
             raise TypeError(f"offset must be float or int, got {type(self.offset).__name__}")
         if not isinstance(self.rtt, (float, int)):
