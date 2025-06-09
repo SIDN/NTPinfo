@@ -14,7 +14,6 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 
-
 def create_app(dev: bool = True) -> FastAPI:
     """
     Creates a FastAPI application instance.
@@ -27,7 +26,7 @@ def create_app(dev: bool = True) -> FastAPI:
     Raises:
         Exception: if the server_config file is not correctly set.
     """
-    if dev: # only in this mode verify the config file
+    if dev:  # only in this mode verify the config file
         try:
             verify_if_config_is_set()
         except Exception as e:
@@ -45,7 +44,7 @@ def create_app(dev: bool = True) -> FastAPI:
     app.state.limiter = limiter
     app.include_router(router)
     app.add_middleware(
-     CORSMiddleware,
+        CORSMiddleware,
         allow_origins=["http://localhost:5173"],
         allow_credentials=True,
         allow_methods=["*"],
@@ -81,6 +80,11 @@ def create_app(dev: bool = True) -> FastAPI:
         Returns:
             JSONResponse: A response with the appropriate status code and custom error format.
         """
+        if exc.status_code == 202:
+            return JSONResponse(
+                status_code=202,
+                content={"msg": exc.detail}
+            )
         return JSONResponse(
             status_code=exc.status_code,
             content={"error": exc.detail},
@@ -88,7 +92,9 @@ def create_app(dev: bool = True) -> FastAPI:
 
     return app
 
+
 # app = create_app()
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("server.app.main:create_app", reload=True)

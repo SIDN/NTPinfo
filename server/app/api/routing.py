@@ -163,6 +163,7 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
         HTTPException:
             - 400: If the `server` field is empty
             - 500: If the RIPE measurement could not be initiated
+            - 502: If the RIPE measurement was initiated but failed
             - 503: If we could not get client IP address or our server's IP address
     """
     server = payload.server
@@ -170,17 +171,12 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
 
     client_ip: Optional[str]
-    if request.client is None:
-        client_ip = None
-    else:
-        client_ip = request.headers.get("X-Forwarded-For", request.client.host)
-    # we need an IP. If this is None, just use our server IP.
-    if client_ip is None:
-        try:
+    try:
+        client_ip = request.headers.get("X-Forwarded-For", request.client.host if request.client is None else None)
+        if client_ip is None:
             client_ip = ip_to_str(get_server_ip())
-        except Exception as e:
-            raise HTTPException(status_code=503,
-                                detail="failed to get client IP address or a default IP address to use")
+    except Exception as e:
+        raise HTTPException(status_code=503, detail="Could not resolve client IP or fallback IP.")
     try:
         measurement_id = perform_ripe_measurement(server, client_ip=client_ip)
         return {
@@ -195,7 +191,7 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
                             detail=f"Input parameter is invalid. Failed to initiate measurement: {str(e)}")
     except RipeMeasurementError as e:
         print(e)
-        raise HTTPException(status_code=400, detail=f"Ripe measurement initiated, but it failed: {str(e)}")
+        raise HTTPException(status_code=502, detail=f"Ripe measurement initiated, but it failed: {str(e)}")
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=f"Failed to initiate measurement: {str(e)}")
@@ -224,18 +220,16 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
             - If pending: {"status": "pending", "message": "..."}
             - If partial results received: {"status": "partial_results", "results": <ripe_data>}
     Raises:
-        HTTPException: - 500: If fetching the measurement did not work.
+        HTTPException:
+            - 500: There is an error with processing.
+            - 405: If fetching the measurement did not work.
     Notes:
         - A result is only marked "complete" when all requested probes have been scheduled
     """
     try:
         ripe_measurement_result, status = fetch_ripe_data(measurement_id=measurement_id)
         if not ripe_measurement_result:
-            return {
-                "status": "pending",
-                "message": "Measurement not ready yet. Please try again later."
-            }
-
+            raise HTTPException(status_code=202, detail="Measurement is still being processed.")
         if status == "Complete":
             return {
                 "status": "complete",
@@ -252,7 +246,12 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
             "status": "timeout",
             "message": "RIPE data likely completed but incomplete probe responses."
         }
-
+    except HTTPException as e:
+        print(e)
+        raise e
+    except RipeMeasurementError as e:
+        print(e)
+        raise HTTPException(status_code=405, detail=f"RIPE call failed: {str(e)}. Try again later!")
     except Exception as e:
         print(e)
-        raise HTTPException(status_code=405, detail=f"Failed to fetch result: {str(e)}. Try again later!")
+        raise HTTPException(status_code=500, detail=f"Sever error: {str(e)}.")

@@ -6,6 +6,7 @@ from ipaddress import IPv4Address, ip_address
 from sqlalchemy import create_engine, StaticPool
 from sqlalchemy.orm import Session, sessionmaker
 
+from server.app.models.CustomError import RipeMeasurementError
 from server.app.models.Base import Base
 from server.app.main import create_app
 from server.app.dtos.NtpExtraDetails import NtpExtraDetails
@@ -557,9 +558,9 @@ def test_trigger_ripe_measurement_server_error(mock_perform_ripe_measurement, te
 def test_get_ripe_measurement_result_pending(mock_fetch_ripe_data, test_client):
     mock_fetch_ripe_data.return_value = None, "Timeout"
     response = test_client.get("/measurements/ripe/123456")
-    assert response.status_code == 200
-    assert response.json()["status"] == "pending"
-    assert response.json()["message"] == "Measurement not ready yet. Please try again later."
+    assert response.status_code == 202
+    print(response.json())
+    assert response.json()["msg"] == "Measurement is still being processed."
 
 
 @patch("server.app.api.routing.fetch_ripe_data")
@@ -582,8 +583,9 @@ def test_get_ripe_measurement_result_complete(mock_fetch_ripe_data, test_client)
 
 @patch("server.app.api.routing.fetch_ripe_data")
 def test_get_ripe_measurement_result_error(mock_fetch_ripe_data, test_client):
-    mock_fetch_ripe_data.side_effect = ValueError("RIPE API error: Bad Request - There was a problem with your request")
+    mock_fetch_ripe_data.side_effect = RipeMeasurementError(
+        "RIPE API error: Bad Request - There was a problem with your request")
     response = test_client.get("/measurements/ripe/123456")
     assert response.status_code == 405
     assert response.json()[
-               "error"] == "Failed to fetch result: RIPE API error: Bad Request - There was a problem with your request. Try again later!"
+               "error"] == "RIPE call failed: RIPE API error: Bad Request - There was a problem with your request. Try again later!"
