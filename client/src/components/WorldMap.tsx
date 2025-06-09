@@ -324,13 +324,6 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
               </>}
             </>)}
         </MapContainer>
-        {(probes !== null) && (<div style={{display: "flex", gap: "10px"}}>
-          <div>ASN probes: {probes[0].probe_types[0]}</div>
-          <div>Prefix probes: {probes[0].probe_types[1]}</div>
-          <div>Country probes:  {probes[0].probe_types[2]}</div>
-          <div>Area probes: {probes[0].probe_types[3]}</div>
-          <div>Random probes: {probes[0].probe_types[4]}</div>
-        </div>)}
       </div>
     )
 }

@@ -68,8 +68,7 @@ function HomeTab() {
     setChartData(null)
 
     /**
-     * The payload for the measurement call, containing the server,
-     * if the jitter should be calculated and the number of measurements to be done.
+     * The payload for the measurement call, containing the server
      */
     const payload = {
       server: query.trim()
@@ -185,6 +184,7 @@ function HomeTab() {
           data = {chartData}/>
         </div>
       </div>)}
+      {/*Map compoment that shows the NTP servers, the vantage point, and the RIPE probes*/}
       {/*{(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
         <div className='map-box'>
           <WorldMap probes={ripeMeasurementResp} ntpServers = {allNtpMeasurements} vantagePointIp = {vantagePointIp} status = {ripeMeasurementStatus} />

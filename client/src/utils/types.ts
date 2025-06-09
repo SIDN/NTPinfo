@@ -33,7 +33,6 @@ export type RIPEData = {
   probe_location: LatLngTuple
   got_results: boolean
   measurement_id: number
-  probe_types: number[]
 }
 
 /**
