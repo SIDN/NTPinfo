@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { HomeCacheState } from '../utils/types' // new import for caching result
 import '../styles/HomeTab.css'
 import InputSection from '../components/InputSection.tsx'
@@ -67,7 +67,18 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
   const {fetchData: fetchHistoricalData, loading: apiHistoricalLoading, error: apiHistoricalError} = useFetchHistoricalIPData()
   const {triggerMeasurement, error: triggerRipeError} = triggerRipeMeasurement()
-  const {result: ripeMeasurementResp, status: ripeMeasurementStatus} = useFetchRIPEData(measurementId)
+  const {
+    result: ripeMeasurementResp,
+    status: ripeMeasurementStatus,
+  } = useFetchRIPEData(measurementId)
+
+  useEffect(() => {
+    if (!ripeMeasurementStatus) return;
+    updateCache({
+      ripeMeasurementResp,
+      ripeMeasurementStatus,
+    });
+  }, [ripeMeasurementResp, ripeMeasurementStatus]);
 
   //dropdown format
   const dropdown = {
@@ -141,6 +152,8 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
       ntpData: data ?? null,
       chartData,
       allNtpMeasurements: apiMeasurementResp ?? null,
+      ripeMeasurementResp: null,          // clear old map
+      ripeMeasurementStatus: null,        //  “     ”
     })
 
     /**
@@ -159,6 +172,8 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     updateCache({
       vantagePointIp: ripeTriggerResp?.parsedData.vantage_point_ip ?? null,
       measurementId: ripeTriggerResp?.parsedData.measurementId ?? null,
+      ripeMeasurementResp: null,          // will be filled by hook
+      ripeMeasurementStatus: 'loading',
     })
   }
 
@@ -230,11 +245,16 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         <DownloadButton name="Download JSON" onclick={() => downloadJSON(ripeMeasurementResp ? [ntpData, ripeMeasurementResp[0]] : [ntpData])} />
         <DownloadButton name="Download CSV" onclick={() => downloadCSV(ripeMeasurementResp ? [ntpData, ripeMeasurementResp[0]] : [ntpData])} />
       </div>)}
-      {/* {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
+      {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
         <div className='map-box'>
-          <WorldMap probes={ripeMeasurementResp} ntpServers = {allNtpMeasurements} vantagePointIp = {vantagePointIp} status = {ripeMeasurementStatus} />
+          <WorldMap
+            probes={ripeMeasurementResp}
+            ntpServers={allNtpMeasurements}
+            vantagePointIp={vantagePointIp}
+            status={ripeMeasurementStatus}
+          />
         </div>
-        )} */}
+        )}
     </div>
     </div>
     );

@@ -58,4 +58,6 @@ export interface HomeCacheState {
   measurementId: string | null
   vantagePointIp: string | null
   allNtpMeasurements: NTPData[] | null
+  ripeMeasurementResp: RIPEData[] | null
+  ripeMeasurementStatus: string | null     // 'loading' | 'complete' | ...
 }

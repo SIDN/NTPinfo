@@ -22,6 +22,8 @@ function App() {
     measurementId: null,
     vantagePointIp: null,
     allNtpMeasurements: null,
+    ripeMeasurementResp: null,          // map
+    ripeMeasurementStatus: null,        // map
   };
   const [homeCache, setHomeCache] = useState<HomeCacheState>(initialCache);
 
