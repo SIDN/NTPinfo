@@ -128,7 +128,7 @@ function HomeTab() {
       <div className="input-wrapper">
         <InputSection onClick={handleInput} loading={apiDataLoading} />
       </div>
-      <h3 id="disclaimer">DISCLAIMER: Your IP may be used to get a RIPE probe close to you for the most accurate data.</h3>
+      <h3 id="disclaimer">DISCLAIMER: Your IP may be used to get a RIPE probe close to you for the most accurate data. Your IP will not be stored.</h3>
         <div className="result-text">
           {(!apiDataLoading && measured && (<p>Results</p>)) || 
                     (apiDataLoading && <div className="loading-div">

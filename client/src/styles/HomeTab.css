@@ -64,24 +64,23 @@
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
-  padding: 1rem;
+  padding: 0.5rem;
   align-items: center;
 }
 
-.result-text {
+.result-text p {
   font-size: 1.7rem;
   color: var(--clr-font-white);
   text-align: left;
-  margin-left: 1rem;
-  margin-bottom: 1rem;
-  margin-top: 1rem;
+  font-weight: 500;
+  padding: 0;
 }
 
 .download-buttons {
   display: flex;
   align-items: center;
   /* justify-content: space-evenly; */
-  padding-left: 2rem;
+  padding-left: 1.25rem;
   gap: 1rem;
 }
 
@@ -89,7 +88,8 @@
   display: flex;
   gap: 1rem;
   /* margin-top: 1rem; */
-  flex: 2 1 30%;
+  flex: 1 1 50%;
+  min-width: 50%;
   height: 100%;
 }
 

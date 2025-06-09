@@ -17,8 +17,8 @@ function ResultSummary({data, ripeData, err, httpStatus} : {data : NTPData | nul
         }
     }, [data, httpStatus, err]) 
 
-    //if (data == null) 
-    //    return <h2 id="not-found">{err ? `Error ${httpStatus}: ${statusMessage}` : `Unknown error occurred`}</h2>
+    if (data == null) 
+        return <h2 id="not-found">{err ? `Error ${httpStatus}: ${statusMessage}` : `Unknown error occurred`}</h2>
     
        
     const status = data ? calculateStatus(data) : null

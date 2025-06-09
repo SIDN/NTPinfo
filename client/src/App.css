@@ -3,7 +3,6 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-
   /* max-width: 1280px; */
   margin: 0;
   /* margin: 0; */
@@ -28,7 +27,7 @@ body,
 
 body {
   /* instead of html */
-  padding-top: 160px;
+  padding-top: 8.5rem;
 
   /* global variables */
   --bg-clr-primary: #292f36;
@@ -135,13 +134,6 @@ body {
   gap: 1rem;
 }
 
-.graphs {
-  display: flex;
-  gap: 1rem;
-  /* margin-top: 1rem; */
-  flex: 2 1 50%;
-}
-
 .graph-box {
   /* flex: 1; */
   height: 150px;
@@ -193,4 +185,11 @@ body {
 }
 .ip-list a {
   text-decoration: underline;
+}
+
+@media (max-width: 1599px) {
+  html,
+  body {
+    font-size: 0.95rem;
+  }
 }
