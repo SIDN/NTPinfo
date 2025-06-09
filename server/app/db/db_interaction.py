@@ -12,6 +12,9 @@ from server.app.models.Measurement import Measurement
 from server.app.models.Time import Time
 from server.app.dtos.PreciseTime import PreciseTime
 from server.app.dtos.NtpMeasurement import NtpMeasurement
+from server.app.models.CustomError import InvalidMeasurementDataError
+from server.app.models.CustomError import DatabaseInsertError
+from server.app.models.CustomError import MeasurementQueryError
 from typing import Any
 
 
@@ -80,22 +83,39 @@ def dict_to_measurement(entry: dict[str, Any]) -> NtpMeasurement:
     Returns:
         NtpMeasurement: A fully constructed NtpMeasurement using the provided data
     """
-    vantage_point_ip = entry['vantage_point_ip']
-    server_info = NtpServerInfo(entry['ntp_version'], entry['ntp_server_ip'], entry['ntp_server_name'],
-                                entry['ntp_server_ref_parent_ip'], entry['ref_name'])
-    extra_details = NtpExtraDetails(PreciseTime(entry['root_delay'], entry['root_delay_prec']),
-                                    entry['poll'],
-                                    PreciseTime(entry['root_dispersion'], entry['root_dispersion_prec']),
-                                    PreciseTime(entry['ntp_last_sync_time'], entry['ntp_last_sync_time_prec']),
-                                    0)
-    main_details = NtpMainDetails(entry['offset'], entry['RTT'], entry['stratum'],
-                                  entry['precision'], entry['reachability'])
-    time_stamps = NtpTimestamps(PreciseTime(entry['client_sent'], entry['client_sent_prec']),
-                                PreciseTime(entry['server_recv'], entry['server_recv_prec']),
-                                PreciseTime(entry['server_sent'], entry['server_sent_prec']),
-                                PreciseTime(entry['client_recv'], entry['client_recv_prec']),
-                                )
-    return NtpMeasurement(vantage_point_ip, server_info, time_stamps, main_details, extra_details)
+
+    required_keys = [
+        'vantage_point_ip', 'ntp_server_ip', 'ntp_server_name', 'ntp_version', 'ntp_server_ref_parent_ip',
+        'ref_name', 'offset', 'RTT', 'stratum', 'precision', 'reachability',
+        'root_delay', 'root_delay_prec', 'poll', 'root_dispersion', 'root_dispersion_prec',
+        'ntp_last_sync_time', 'ntp_last_sync_time_prec',
+        'client_sent', 'client_sent_prec', 'server_recv', 'server_recv_prec',
+        'server_sent', 'server_sent_prec', 'client_recv', 'client_recv_prec'
+    ]
+
+    missing = [k for k in required_keys if k not in entry]
+    if missing:
+        raise InvalidMeasurementDataError(f"Missing required keys: {missing}")
+
+    try:
+        vantage_point_ip = entry['vantage_point_ip']
+        server_info = NtpServerInfo(entry['ntp_version'], entry['ntp_server_ip'], entry['ntp_server_name'],
+                                    entry['ntp_server_ref_parent_ip'], entry['ref_name'])
+        extra_details = NtpExtraDetails(PreciseTime(entry['root_delay'], entry['root_delay_prec']),
+                                        entry['poll'],
+                                        PreciseTime(entry['root_dispersion'], entry['root_dispersion_prec']),
+                                        PreciseTime(entry['ntp_last_sync_time'], entry['ntp_last_sync_time_prec']),
+                                        0)
+        main_details = NtpMainDetails(entry['offset'], entry['RTT'], entry['stratum'],
+                                      entry['precision'], entry['reachability'])
+        time_stamps = NtpTimestamps(PreciseTime(entry['client_sent'], entry['client_sent_prec']),
+                                    PreciseTime(entry['server_recv'], entry['server_recv_prec']),
+                                    PreciseTime(entry['server_sent'], entry['server_sent_prec']),
+                                    PreciseTime(entry['client_recv'], entry['client_recv_prec']),
+                                    )
+        return NtpMeasurement(vantage_point_ip, server_info, time_stamps, main_details, extra_details)
+    except Exception as e:
+        raise InvalidMeasurementDataError(f"Failed to build NtpMeasurement: {e}")
 
 
 def rows_to_measurements(rows: list[Row[tuple[Measurement, Time]]]) -> list[NtpMeasurement]:
