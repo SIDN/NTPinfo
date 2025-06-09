@@ -102,12 +102,9 @@ def check_all_measurements_done(measurement_id: str, measurement_req: int) -> st
         raise RipeMeasurementError(
             f"RIPE API error: {json_data['error']['title']} - {json_data['error']['detail']}")
 
-    try:
-        probes_requested: int = json_data.get("probes_requested", -1)
-        status_ripe: str = json_data["status"].get("name", "NO RESPONSE")
-        start_time = int(json_data.get("start_time", 0))
-    except (TypeError, ValueError, Exception):
-        raise RipeMeasurementError("Invalid or missing measurement data in RIPE response.")
+    probes_requested: int = json_data.get("probes_requested", -1)
+    status_ripe: str = json_data["status"].get("name", "NO RESPONSE")
+    start_time = int(json_data.get("start_time", 0))
 
     if probes_requested == measurement_req:
         return "Complete"

@@ -172,7 +172,7 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
 
     client_ip: Optional[str]
     try:
-        client_ip = request.headers.get("X-Forwarded-For", request.client.host if request.client is None else None)
+        client_ip = request.headers.get("X-Forwarded-For", request.client.host if request.client is not None else None)
         if client_ip is None:
             client_ip = ip_to_str(get_server_ip())
     except Exception as e:
