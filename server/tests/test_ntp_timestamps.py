@@ -50,11 +50,13 @@ def test_create_object():
     t2 = PreciseTime(10002, 2 ** 27)
     t3 = PreciseTime(10003, 10000)
     t4 = PreciseTime(10004, 10000)
-    server_details = NtpServerInfo(3, IPv4Address('192.0.2.1'), "local", IPv6Address('2001:db8::1'), "reference", None)
+    server_details = NtpServerInfo(3, IPv4Address('192.0.2.1'), "local", IPv6Address('2001:db8::1'), "reference")
     times = NtpTimestamps(t1, t2, t3, t4)
     maindetails = NtpMainDetails(0.009, 0, 1, 0, "stable")
-    extra = NtpExtraDetails(PreciseTime(100000, 0), PreciseTime(100000, 0), 0)
-    extra_invalid = NtpExtraDetails(PreciseTime(100000, 0), PreciseTime(100000, 0), 3)
+    extra = NtpExtraDetails(PreciseTime(100000, 0), 64, PreciseTime(seconds=0, fraction=327679), PreciseTime(100000, 0),
+                            0)
+    extra_invalid = NtpExtraDetails(PreciseTime(100000, 0), 64, PreciseTime(seconds=0, fraction=327679),
+                                    PreciseTime(100000, 0), 3)
 
     measurements = NtpMeasurement(vantage_point_ip, server_details, times, maindetails, extra)
 

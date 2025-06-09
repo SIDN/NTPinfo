@@ -91,5 +91,5 @@ def test_rows_to_measurements(fake_measurement, fake_time):
     assert len(result) == 2
     assert isinstance(result[0], NtpMeasurement)
     assert isinstance(result[1], NtpMeasurement)
-    assert result[0].main_details.delay == 0.45
+    assert result[0].main_details.rtt == 0.45
     assert result[1].server_info.ntp_server_name == "ntp.example.com"

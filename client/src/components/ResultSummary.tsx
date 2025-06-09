@@ -1,9 +1,9 @@
 
 import '../styles/ResultSummary.css'
-import { NTPData } from '../utils/types.ts'
+import { NTPData, RIPEData } from '../utils/types.ts'
 import { calculateStatus } from '../utils/calculateStatus.ts'
 import { useState, useEffect } from 'react'
-function ResultSummary({data, err, httpStatus} : {data : NTPData | null, err : Error | null, httpStatus: number}) {
+function ResultSummary({data, ripeData, err, httpStatus} : {data : NTPData | null, ripeData: RIPEData | null, err : Error | null, httpStatus: number}) {
 
     const [statusMessage, setStatusMessage] = useState<string>("")
     useEffect(() => {
@@ -21,28 +21,54 @@ function ResultSummary({data, err, httpStatus} : {data : NTPData | null, err : E
         return <h2 id="not-found">{err ? `Error ${httpStatus}: ${statusMessage}` : `Unknown error occurred`}</h2>
 
 
-    const status = calculateStatus(data)
+    const status = data ? calculateStatus(data) : null
     return (
         <>
             <div className="results-section">
-                <div className="result-box" id="main-details">
-                    <div className="metric"><span title='The difference between the time reported by the like an NTP server and your local clock'>Offset</span><span>{data.offset ? `${(data.offset*1000).toFixed(3)} ms` : 'N/A'}</span></div>
-                    <div className="metric"><span title='The total time taken for a request to travel from the client to the server and back.'>Round-trip time</span><span>{data.RTT ? `${(data.RTT*1000).toFixed(3)} ms` : 'N/A'}</span></div>
-                    <div className="metric"><span title='The variability in delay times between successive NTP messages, calculated as std. dev. of offsets'>Jitter</span><span>{data.jitter ? `${(data.jitter*1000).toFixed(3)} ms` : 'N/A'}</span></div>
-                    <div className="metric"><span title='The smallest time unit that the NTP server can measure or represent'>Precision</span><span>2<sup>{data.precision}</sup></span></div>
-                    <div className="metric"><span title='A hierarchical level number indicating the distance from the reference clock'>Stratum</span><span>{data.stratum}</span></div>
-
-                    <div className="status-line">
-                        <span className="status-label">STATUS:&nbsp;</span>
-                        <span className={`status-value ${status.toLowerCase()}`}>{status}</span>
+                <div className="result-and-title">
+                    <div className="res-label">From Our NTP Client (Netherlands)
+                        <div className="tooltip-container">
+                        <span className="tooltip-icon">?</span>
+                        <div className="tooltip-text">
+                           Our NTP Client is based in the Netherlands
+                        </div>
+                        </div>
+                    </div>
+                    <div className="result-box" id="main-details">
+                        <div className="metric"><span title='The difference between the time reported by the like an NTP server and your local clock'>Offset</span><span>{data?.offset ? `${(data.offset*1000).toFixed(3)} ms` : 'N/A'}</span></div>
+                        <div className="metric"><span title='The total time taken for a request to travel from the client to the server and back.'>Round-trip time</span><span>{data?.RTT ? `${(data.RTT*1000).toFixed(3)} ms` : 'N/A'}</span></div>
+                        <div className="metric"><span title='The variability in delay times between successive NTP messages, calculated as std. dev. of offsets'>Jitter</span><span>{data?.jitter ? `${(data.jitter*1000).toFixed(3)} ms` : 'N/A'}</span></div>
+                        <div className="metric"><span title='The smallest time unit that the NTP server can measure or represent'>Precision</span><span>2<sup>{data?.precision}</sup></span></div>
+                        <div className="metric"><span title='A hierarchical level number indicating the distance from the reference clock'>Stratum</span><span>{data?.stratum}</span></div>
+                        <div className="metric"><span>IP address</span><span>{data?.ip}</span></div>
+                        <div className="metric"><span>Vantage point IP</span><span>{data?.vantage_point_ip}</span></div>
+                        <div className="status-line">
+                            <span className="status-label">STATUS:&nbsp;</span>
+                            <span className={`status-value ${status?.toLowerCase()}`}>{status}</span>
+                        </div>
                     </div>
                 </div>
-                <div className="result-box" id="extra-details">
-                    <div className="metric"><span>IP address</span><span>{data.ip}</span></div>
-                    <div className="metric"><span>Server name</span><span>{data.server_name ?? "Unknown"}</span></div>
-                    <div className="metric"><span>Reference ID</span><span>{data.ref_ip ?? (data.ref_name ?? "Unknown")}</span></div>
-                    <div className="metric"><span>Root Delay</span><span>{data.root_delay}</span></div>
+                <div className="result-and-title">
+                    <div className="res-label">From the RIPE Atlas probe (Close to you)
+                        <div className="tooltip-container">
+    <span className="tooltip-icon">?</span>
+    <div className="tooltip-text">
+       RIPE Atlas tries to choose a probe near the user to perform more accurate measurements.
+    </div>
+  </div>
+                    </div>
+                    <div className="result-box" id="ripe-details">
+                        <div className="metric"><span title='The difference between the time reported by the like an NTP server and your local clock'>Offset</span><span>{ripeData?.measurementData.offset ? `${(ripeData.measurementData.offset*1000).toFixed(3)} ms` : 'N/A'}</span></div>
+                        <div className="metric"><span title='The total time taken for a request to travel from the client to the server and back.'>Round-trip time</span><span>{ripeData?.measurementData.RTT ? `${(ripeData.measurementData.RTT*1000).toFixed(3)} ms` : 'N/A'}</span></div>
+                        <div className="metric"><span title='The variability in delay times between successive NTP messages, calculated as std. dev. of offsets'>Jitter</span><span>{ripeData?.measurementData.jitter ? `${(ripeData.measurementData.jitter*1000).toFixed(3)} ms` : 'N/A'}</span></div>
+                        <div className="metric"><span title='The smallest time unit that the NTP server can measure or represent'>Precision</span><span>2<sup>{ripeData?.measurementData.precision}</sup></span></div>
+                        <div className="metric"><span title='A hierarchical level number indicating the distance from the reference clock'>Stratum</span><span>{ripeData?.measurementData.stratum}</span></div>
+                        <div className="metric"><span>IP address</span><span>{ripeData?.measurementData.ip}</span></div>
+                        <div className="metric"><span>Vantage point IP</span><span>{ripeData?.measurementData.vantage_point_ip}</span></div>
+                        <div className="metric"><span>Measurement ID</span><span>{ripeData?.measurement_id}</span></div>
+                    </div>
                 </div>
+
             </div>
 
 
@@ -52,4 +78,4 @@ function ResultSummary({data, err, httpStatus} : {data : NTPData | null, err : E
     )
 }
 
-export default ResultSummary
+export default ResultSummary;

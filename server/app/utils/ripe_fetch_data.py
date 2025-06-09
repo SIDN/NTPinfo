@@ -209,12 +209,17 @@ def parse_probe_data(probe_response: dict) -> ProbeData:
     # print(probe_response.get('address_v6'))
     v4 = probe_response.get('address_v4')
     v6 = probe_response.get('address_v6')
-
-    ipv4 = ip_address(v4) if v4 is not None else None
-    if ipv4 is not None and not isinstance(ipv4, IPv4Address):
+    try:
+        ipv4 = ip_address(v4) if v4 is not None else None
+        if ipv4 is not None and not isinstance(ipv4, IPv4Address):
+            ipv4 = None
+    except Exception as e:
         ipv4 = None
-    ipv6 = ip_address(v6) if v6 is not None else None
-    if ipv6 is not None and not isinstance(ipv6, IPv6Address):
+    try:
+        ipv6 = ip_address(v6) if v6 is not None else None
+        if ipv6 is not None and not isinstance(ipv6, IPv6Address):
+            ipv6 = None
+    except Exception as e:
         ipv6 = None
     probe_addr: tuple[IPv4Address | None, IPv6Address | None] = (ipv4, ipv6)
 
@@ -305,18 +310,24 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
         idx = successful_measurement(measurement) if not failed else None
 
         from_ip = measurement.get('from')
-        vantage_point_ip = ip_address(from_ip) if from_ip is not None else None
+        try:
+            vantage_point_ip = ip_address(from_ip) if from_ip is not None else None
+        except Exception as e:
+            vantage_point_ip = None
         version = measurement.get('version', -1)
         dst_addr = measurement.get('dst_addr')
+        try:
+            dst_addr_ip = ip_address(dst_addr) if dst_addr is not None else None
+        except Exception as e:
+            dst_addr_ip = None
         dst_name = measurement.get('dst_name')
 
         server_info = NtpServerInfo(
             ntp_version=version,
-            ntp_server_ip=ip_address(dst_addr) if dst_addr is not None else None,
+            ntp_server_ip=dst_addr_ip,
             ntp_server_name=dst_name,
             ntp_server_ref_parent_ip=None,
             ref_name=None,
-            other_server_ips=None
         )
 
         if not failed and idx is not None:
@@ -328,23 +339,28 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
                 client_recv_time=convert_float_to_precise_time(result.get('final-ts', -1.0))
             )
             offset = result.get('offset', -1.0)
-            delay = result.get('rtt', -1.0)
+            rtt = result.get('rtt', -1.0)
         else:
             timestamps = NtpTimestamps(*(PreciseTime(-1, 0) for _ in range(4)))
-            offset = delay = -1
+            offset = rtt = -1
 
         stratum = measurement.get('stratum', -1)
         precision = measurement.get('precision', -1)
 
         main_details = NtpMainDetails(offset=offset,
-                                      delay=delay,
+                                      rtt=rtt,
                                       stratum=stratum,
                                       precision=precision,
                                       reachability="")
 
         root_delay = measurement.get('root-delay', -1.0)
 
+        poll = measurement.get('poll', -1)
+
+        root_dispersion = measurement.get('root-dispersion', -1.0)
+
         extra_details = NtpExtraDetails(root_delay=convert_float_to_precise_time(root_delay),
+                                        poll=poll, root_dispersion=convert_float_to_precise_time(root_dispersion),
                                         ntp_last_sync_time=convert_float_to_precise_time(-1.0),
                                         leap=0)
         ntp_measurement = NtpMeasurement(vantage_point_ip=vantage_point_ip, server_info=server_info,
@@ -352,9 +368,6 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
                                          extra_details=extra_details)
 
         time_to_result = measurement.get('ttr', -1.0)
-        poll = measurement.get('poll', -1)
-
-        root_dispersion = measurement.get('root-dispersion', -1.0)
         ref_id = measurement.get('ref-id', 'NO REFERENCE')
         measurement_id = measurement.get('msm_id', -1)
         msm_id = measurement_id
@@ -363,17 +376,16 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
             measurement_id=measurement_id,
             ntp_measurement=ntp_measurement,
             probe_data=parse_probe_data(get_probe_data_from_ripe_by_id(measurement['prb_id'])),
-            time_to_result=time_to_result, poll=poll,
-            root_dispersion=root_dispersion,
+            time_to_result=time_to_result,
             ref_id=ref_id
         )
         ripe_measurements.append(ripe_measurement)
-    #     print(ripe_measurement)
+        # print(ripe_measurement)
     # print(len(ripe_measurements))
     return ripe_measurements, check_all_measurements_done(str(msm_id), len(ripe_measurements))
 
 # print(len(parse_data_from_ripe_measurement(get_data_from_ripe_measurement("105960562"))))
 # print(parse_data_from_ripe_measurement(get_data_from_ripe_measurement("106323686")))
-# parse_data_from_ripe_measurement(get_data_from_ripe_measurement("106125660"))
+# parse_data_from_ripe_measurement(get_data_from_ripe_measurement("107961234"))
 # print(parse_probe_data(get_probe_data_from_ripe_by_id("7304")))
 # print(check_all_measurements_scheduled("107134561"))

@@ -36,6 +36,8 @@ function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
   const [selOption, setOption] = useState("Last Hour")
   const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
   const [measurementId, setMeasurementId] = useState<string | null>(null)
+  const [vantagePointIp, setVantagePointIp] = useState<string | null>(null)
+  const [allNtpMeasurements, setAllNtpMeasurements] = useState<NTPData[] | null>(null)
 
   //Varaibles to log and use API hooks
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
@@ -59,8 +61,6 @@ function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
    * Function called on the press of the search button.
    * Performs a normal measurement call, a historical measurement call for the graph, and a RIPE measurement call for the map.
    * @param query The input given by the user
-   * @param jitter_flag flag indicating whether jitter should be measured for normal measurement calls
-   * @param measurements_no How many measurements should be done for the jitter calculation
    */
   const handleInput = async (query: string) => {
     if (query.length == 0)
@@ -77,8 +77,8 @@ function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
      * if the jitter should be calculated and the number of measurements to be done.
      */
     const payload = {
-      server: query,
-      random_probes: false
+      server: query.trim()
+
     }
 
     /**
@@ -99,25 +99,26 @@ function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
      * Update the stored data and show it again
      */
     setMeasured(true)
-    const data = apiMeasurementResp
-    const newChartData = new Map<string, NTPData[]>()
-    newChartData.set(payload.server, apiHistoricalResp)
+    const data = apiMeasurementResp[0]
+    const chartData = new Map<string, NTPData[]>()
+    chartData.set(payload.server, apiHistoricalResp)
+    setAllNtpMeasurements(apiMeasurementResp ?? null)
     setNtpData(data ?? null)
-    setChartData(newChartData ?? null)
-    onVisualizationDataChange(newChartData)
+    setChartData(chartData)
+    onVisualizationDataChange(chartData)
 
     /**
      * Payload for the RIPE measurement call, containing only the ip of the server to be measured.
      */
     const ripePayload = {
-      server: data === null ? query : data.ip,
-      random_probes: false
+      server: query.trim()
     }
 
     /**
      * Get the data from the RIPE measurement endpoint and update it.
      */
     const ripeTriggerResp = await triggerMeasurement(ripePayload)
+    setVantagePointIp(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.vantage_point_ip)
     setMeasurementId(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.measurementId)
   }
 
@@ -137,6 +138,7 @@ function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
       <div className="input-wrapper">
         <InputSection onClick={handleInput} loading={apiDataLoading} />
       </div>
+      <h3 id="disclaimer">DISCLAIMER: Your IP may be used to get a RIPE probe close to you for the most accurate data. Your IP will not be stored.</h3>
         <div className="result-text">
           {(!apiDataLoading && measured && (<p>Results</p>)) ||
                     (apiDataLoading && <div className="loading-div">
@@ -147,12 +149,13 @@ function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
         </div>
         {/* The main page shown after the main measurement is done */}
       {(ntpData && !apiDataLoading && (<div className="results-and-graph">
-        <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>
+        <ResultSummary data={ntpData} ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null} err={apiErrorLoading} httpStatus={respStatus}/>
 
         {/* Div for the visualization graph, and the radios for setting the what measurement to show */}
         <div className="graphs">
           <div className='graph-box'>
-            <label>
+            <div className="radio-group-home">
+                <label>
               <input
                 type="radio"
                 name="measurement"
@@ -172,45 +175,26 @@ function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
               />
               Round-trip time
             </label>
+            </div>
             <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day"/>
           </div>
         </div>
-        {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "polling") && (
-        <div className='map-box'>
-          <WorldMap probes={ripeMeasurementResp} status = {ripeMeasurementStatus} />
-        </div>
-        )}
-      </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}/>)}
-
-      {/*Only shown when a domain name is queried. Users can download IP addresses corresponding to that domain name*/}
-      {ntpData && !apiDataLoading && ntpData.server_name && ntpData.ip_list.length && (() => {
-
-                const downloadContent = `Server name: ${ntpData.server_name}\n\n${ntpData.ip_list.join('\n')}`
-                const blob = new Blob([downloadContent], { type: 'text/plain' })
-                const downloadUrl = URL.createObjectURL(blob)
-               return (<p className="ip-list">You can download more IP addresses corresponding to this domain name
-               <span> <a href={downloadUrl} download="ip-list.txt">here</a></span>
-                </p>)
-            })()}
+      </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus} ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null}/>)}
 
       {/*Buttons to download results in JSON and CSV format as well as open a popup displaying historical data*/}
       {/*The open popup button is commented out, because it is implemented as a separate tab*/}
       {ntpData && !apiDataLoading && (<div className="download-buttons">
 
-        <DownloadButton name="Download JSON" onclick={() => downloadJSON({data : [ntpData]})} />
-        <DownloadButton name="Download CSV" onclick={() => downloadCSV({data : [ntpData]})} />
-        {/* <div>
-          <button className="open-popup-btn" onClick={() => setPopupOpen(true)}>View Historical Data</button>
-          <VisualizationPopup
-          isOpen={popupOpen}
-          onClose={() => setPopupOpen(false)}
-          dropdown={dropdown}
-          data = {chartData}/>
-        </div> */}
+        <DownloadButton name="Download JSON" onclick={() => downloadJSON(ripeMeasurementResp ? [ntpData, ripeMeasurementResp[0]] : [ntpData])} />
+        <DownloadButton name="Download CSV" onclick={() => downloadCSV(ripeMeasurementResp ? [ntpData, ripeMeasurementResp[0]] : [ntpData])} />
       </div>)}
+      {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
+        <div className='map-box'>
+          <WorldMap probes={ripeMeasurementResp} ntpServers = {allNtpMeasurements} vantagePointIp = {vantagePointIp} status = {ripeMeasurementStatus} />
+        </div>
+        )}
     </div>
     </div>
-     )
-}
+    )}
 
 export default HomeTab

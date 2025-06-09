@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 import ntplib
 from datetime import datetime, timezone
 from server.app.dtos.PreciseTime import PreciseTime
+from math import radians, cos, sin, sqrt, atan2
 
 
 def calculate_jitter_from_measurements(session: Session, initial_measurement: NtpMeasurement,
@@ -96,3 +97,25 @@ def human_date_to_ntp_precise_time(dt: datetime) -> PreciseTime:
     ntp_fraction = int((ntp_timestamp - ntp_seconds) * (2 ** 32))
 
     return PreciseTime(ntp_seconds, ntp_fraction)
+
+def calculate_haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """
+    It calculates the haversine distance between two points using this formula:
+    d = 2 * R * asin(sqrt(a)) where R is Earth's radius in kilometers
+    and 'a' is a value calculated using the latitude and longitude difference of the two points.
+
+    Args:
+        lat1 (float): The latitude of the first point.
+        lon1 (float): The longitude of the first point.
+        lat2 (float): The latitude of the second point.
+        lon2 (float): The longitude of the second point.
+
+    Returns:
+        float: The haversine distance between the two points. (in kilometers)
+    """
+    r = 6371.0
+    dlat = radians(lat2 - lat1)
+    dlon = radians(lon2 - lon1)
+    a = sin(dlat / 2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2)**2
+    d = 2.0 * r * atan2(sqrt(a), sqrt(1 - a))
+    return d

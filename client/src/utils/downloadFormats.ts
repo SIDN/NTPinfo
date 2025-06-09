@@ -1,7 +1,6 @@
-import { NTPData } from '../utils/types.ts'
-type InputData = {
-  data: NTPData[]
-}
+import { NTPData, RIPEData } from '../utils/types.ts'
+type InputData = (NTPData | RIPEData)[]
+
 
 /**
  * Downloads the measurement data in a JSON format.
@@ -9,7 +8,11 @@ type InputData = {
  */
 export function downloadJSON(data : InputData) {
     //parse to json string and make an object with the corresponding data
-  const json = JSON.stringify(data);
+    const labeledData = data.map((entry) => ({
+    type: 'probe_id' in entry ? 'RIPE Data' : 'NTP Data',
+      ...entry
+    }));
+  const json = JSON.stringify(labeledData, null, 2);
   const blob = new Blob([json], {type: 'application/json'});
   //create a temporary download link for the data
   const downloadLink = document.createElement('a');
@@ -25,11 +28,22 @@ export function downloadJSON(data : InputData) {
  */
 export function downloadCSV(data : InputData) {
 
-  const json = JSON.parse(JSON.stringify(data));
+  const labeledData = data.map((entry) => ({
+    type: 'probe_id' in entry ? 'RIPE Data' : 'NTP Data',
+    ...entry
+  }));
+
+  // Collect all unique headers across all entries (including type)
+  const headersSet = new Set<string>();
+  labeledData.forEach((entry) => {
+    Object.keys(entry).forEach((key) => headersSet.add(key));
+  });
   //get headers of csv
-  const headers = Object.keys(json.data[0])
-  const values = json.data.map((row : NTPData) =>
-      headers.map((key) => JSON.stringify((row as any)[key])).join(','))
+  const headers = Array.from(headersSet)
+  const values = labeledData.map((entry) =>
+    headers.map((key) => JSON.stringify((entry as any)[key] ?? '')).join(',')
+  );
+
 
   const csvData = [headers.join(','), ...values].join('\n')
   const blob = new Blob([csvData], {type: 'text/csv'});
