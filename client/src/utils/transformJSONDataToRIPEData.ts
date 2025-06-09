@@ -9,7 +9,7 @@ import { RIPEData } from "./types.ts"
  * offset and RTT are multiplied by 1000 since they are sent in seconds instead of ms.
  * got_results is filled as a boolean to indicate whether the probe sucessfully finished its measurement, as we could receive probes with no measurement values.
  * By our set convention, -1 is the default value in the measurement fields, and it indicates that the measurement was not completed by the probe.
- * The probe_types field is there to show the types of probes that were chosen for the measurement.
+ * The measurement ID is stored here as well as in the trigger for showing it together will all the other results.
  * @param fetchedData the JSON which will be received from the RIPE measurement endpoint.
  * @returns A single RIPEData datapoint filled with information extracted from the JSON, or null if there is no JSON
  */
