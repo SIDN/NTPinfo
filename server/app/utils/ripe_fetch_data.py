@@ -75,14 +75,12 @@ def check_all_measurements_done(measurement_id: str, measurement_req: int) -> st
             - "Timeout": The measurement did not complete within the allowed time window
 
     Raises:
-        ValueError: If the RIPE API returns an error response
+        - RipeMeasurementError: If there are errors with the response from ripe, either not received or malformed
 
     Notes:
         - If the difference between the current time and the measurement's start time exceeds the configured time in seconds,
           and the measurement is not yet complete, it is considered "Timeout"
         - This function assumes a successful HTTP response from the RIPE API; if not, it will raise an exception
-    Raises:
-        - RipeMeasurementError: If there are errors with the response from ripe, either not received or malformed
     """
     url = f"https://atlas.ripe.net/api/v2/measurements/{measurement_id}/"
 
@@ -140,8 +138,8 @@ def get_data_from_ripe_measurement(measurement_id: str) -> list[dict[str, Any]]:
         list[dict[str, Any]]: A list of measurement result entries as dictionaries
 
     Raises:
-        requests.RequestException: If the HTTP request fails.
-        ValueError: If the response cannot be parsed as JSON.
+        RipeMeasurementError: If the HTTP request fails or the response cannot be parsed as JSON
+        or the answer is not a list of dicts
 
     Notes:
         - Requires the `RIPE_KEY` environment variable to be set with a valid API key.
@@ -152,12 +150,21 @@ def get_data_from_ripe_measurement(measurement_id: str) -> list[dict[str, Any]]:
         "Authorization": f"Key {get_ripe_api_token()}",
         "Content-Type": "application/json"
     }
-    response = requests.get(url, headers=headers)
-    json_data = response.json()
-    if isinstance(json_data, dict) and 'error' in json_data:
-        raise ValueError(
-            f"RIPE API error: {json_data['error']['title']} - {json_data['error']['detail']}")
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        json_data = response.json()
+    except requests.RequestException as e:
+        raise RipeMeasurementError(f"Network error while fetching measurement data: {str(e)}")
+    except ValueError:
+        raise RipeMeasurementError("Invalid JSON response from RIPE API.")
 
+    if isinstance(json_data, dict) and 'error' in json_data:
+        raise RipeMeasurementError(
+            f"RIPE API error: {json_data['error'].get('title')} - {json_data['error'].get('detail')}")
+
+    if not isinstance(json_data, list):
+        raise RipeMeasurementError("Unexpected format: Expected list of results from RIPE API.")
     # print("Status Code:", response.status_code)
     # print("Response JSON:", response.json())
     return cast(list[dict[str, Any]], response.json())
@@ -178,8 +185,7 @@ def get_probe_data_from_ripe_by_id(probe_id: str) -> dict[str, Any]:
         dict[str, Any]: A dictionary containing metadata about the probe
 
     Raises:
-        requests.RequestException: If the HTTP request fails
-        ValueError: If the response is not valid JSON or is unexpected
+        RipeMeasurementError: If the HTTP request fails or the response is not valid JSON
 
     Notes:
         - Requires the `RIPE_KEY` environment variable to be set with a valid API key.
@@ -190,11 +196,17 @@ def get_probe_data_from_ripe_by_id(probe_id: str) -> dict[str, Any]:
         "Authorization": f"Key {get_ripe_api_token()}",
         "Content-Type": "application/json"
     }
-    response = requests.get(url, headers=headers)
-
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        json_data = response.json()
+    except requests.RequestException as e:
+        raise RipeMeasurementError(f"Network error while fetching probe data for {probe_id}: {str(e)}")
+    except ValueError:
+        raise RipeMeasurementError("Invalid JSON response from RIPE API.")
     # print("Status Code:", response.status_code)
     # print("Response JSON:", response.json())
-    return cast(dict[str, Any], response.json())
+    return cast(dict[str, Any], json_data)
 
 
 def parse_probe_data(probe_response: dict) -> ProbeData:

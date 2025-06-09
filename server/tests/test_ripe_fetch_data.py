@@ -392,7 +392,7 @@ def test_get_data_from_ripe_measurement_raises_on_error_response(mock_get, mock_
         }
     }
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(RipeMeasurementError) as exc_info:
         get_data_from_ripe_measurement("invalid_id")
 
     assert "RIPE API error: Bad Request - Invalid measurement ID." in str(exc_info.value)
