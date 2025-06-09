@@ -3,6 +3,7 @@ from ipaddress import ip_address, IPv4Address, IPv6Address
 
 import requests
 
+from server.app.models.CustomError import RipeMeasurementError
 from server.app.utils.load_config_data import get_ripe_api_token
 from server.app.dtos.PreciseTime import PreciseTime
 from server.app.dtos.NtpExtraDetails import NtpExtraDetails
@@ -80,6 +81,8 @@ def check_all_measurements_done(measurement_id: str, measurement_req: int) -> st
         - If the difference between the current time and the measurement's start time exceeds the configured time in seconds,
           and the measurement is not yet complete, it is considered "Timeout"
         - This function assumes a successful HTTP response from the RIPE API; if not, it will raise an exception
+    Raises:
+        - RipeMeasurementError: If there are errors with the response from ripe, either not received or malformed
     """
     url = f"https://atlas.ripe.net/api/v2/measurements/{measurement_id}/"
 
@@ -87,28 +90,39 @@ def check_all_measurements_done(measurement_id: str, measurement_req: int) -> st
         "Authorization": f"Key {get_ripe_api_token()}",
         "Content-Type": "application/json"
     }
-    response = requests.get(url, headers=headers)
-    json_data = response.json()
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        json_data = response.json()
+    except requests.RequestException as e:
+        raise RipeMeasurementError(f"Network error while checking measurement status: {str(e)}")
+    except ValueError:
+        raise RipeMeasurementError("Invalid JSON response from RIPE API.")
+
     if isinstance(json_data, dict) and 'error' in json_data:
-        raise ValueError(
+        raise RipeMeasurementError(
             f"RIPE API error: {json_data['error']['title']} - {json_data['error']['detail']}")
-    probes_requested: int = json_data.get("probes_requested", -1)
-    status_ripe: str = json_data["status"].get("name", "NO RESPONSE")
+
+    try:
+        probes_requested: int = json_data.get("probes_requested", -1)
+        status_ripe: str = json_data["status"].get("name", "NO RESPONSE")
+        start_time = int(json_data.get("start_time", 0))
+    except (TypeError, ValueError, Exception):
+        raise RipeMeasurementError("Invalid or missing measurement data in RIPE response.")
 
     if probes_requested == measurement_req:
         return "Complete"
+    elif status_ripe == "Stopped":
+        return "Complete"
+    elif status_ripe == "NO RESPONSE":
+        return "Timeout"
     else:
-        if status_ripe == "Stopped":
-            return "Complete"
+        current_time = int(time.time())
+        if (current_time - start_time) > 60:
+            return "Timeout"
         else:
-            if status_ripe == "NO RESPONSE":
-                return "Timeout"
-            start_time = int(json_data.get("start_time", 0))
-            current_time = int(time.time())
-            if (current_time - start_time) > 60:
-                return "Timeout"
-            else:
-                return "Ongoing"
+            return "Ongoing"
 
 
 def get_data_from_ripe_measurement(measurement_id: str) -> list[dict[str, Any]]:
@@ -388,4 +402,4 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
 # print(parse_data_from_ripe_measurement(get_data_from_ripe_measurement("106323686")))
 # parse_data_from_ripe_measurement(get_data_from_ripe_measurement("107961234"))
 # print(parse_probe_data(get_probe_data_from_ripe_by_id("7304")))
-# print(check_all_measurements_scheduled("107134561"))
+# print(check_all_measurements_done("105960562", 12))

@@ -3,6 +3,7 @@ from ipaddress import ip_address
 import pytest
 from unittest.mock import Mock, patch
 
+from server.app.models.CustomError import RipeMeasurementError
 from server.app.dtos.PreciseTime import PreciseTime
 from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.dtos.ProbeData import ProbeData
@@ -651,6 +652,9 @@ def test_check_all_measurement_done_error_get(mock_get, mock_get_token):
     mock_get.return_value = Mock(status_code=200)
     mock_get.return_value.json.return_value = MOCK_MEASUREMENT_ERROR
 
-    with pytest.raises(ValueError,
+    with pytest.raises(RipeMeasurementError,
                        match=r'RIPE API error: Method Not Allowed - Method "GET" not allowed\.'):
         check_all_measurements_done("123456", 1)
+
+    mock_get.assert_called_once()
+    mock_get_token.assert_called_once()
