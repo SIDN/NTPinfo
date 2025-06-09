@@ -1,4 +1,4 @@
-@import '../index.css';
+@import "../index.css";
 
 h2#not-found {
   font-weight: 400;
@@ -10,13 +10,13 @@ h2#not-found {
 .results-section {
   display: flex;
   gap: 1rem;
+  padding-inline: 1rem;
   flex-wrap: wrap;
 }
 .result-box {
   /* top: 1rem;
   left: 1rem;
   margin-bottom: 150px; */
-
 
   /* margin-left: 1rem;
   grid-area: summary;
@@ -28,10 +28,9 @@ h2#not-found {
   border-radius: 8px;
   padding: 1rem; */
 
-  margin-left: 1rem;
   grid-area: summary;
-  height: 310px;
-  width: 350px;
+  height: fit-content;
+  width: 20rem;
   background-color: var(--bg-clr-secondary);
   color: var(--clr-font-white);
   font-weight: bold;
@@ -39,7 +38,7 @@ h2#not-found {
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 0.75rem;
 }
 
 .metric {
@@ -54,14 +53,25 @@ h2#not-found {
   align-items: center;
   margin-top: auto;
 }
-
+.res-label {
+  color: var(--clr-font-white);
+  font-weight: 600;
+  padding-inline: 0.25rem;
+}
+.result-and-title {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 1rem;
+}
 .tooltip-label {
   cursor: help;
   display: inline-block;
   padding-right: 6px;
 }
 
-.result-text { /* now used in App.css */
+.result-text {
+  /* now used in App.css */
   font-size: 1.7rem;
   color: var(--clr-font-white);
   text-align: left;
@@ -79,4 +89,49 @@ h2#not-found {
 
 .status-value.unstable {
   color: var(--clr-yellow);
+}
+
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+  cursor: help;
+  padding-inline: 5px;
+}
+
+.tooltip-icon {
+  color: var(--clr-input-placeholder);
+  border-radius: 50%;
+  border: 3px solid var(--clr-input-placeholder);
+  width: 20px;
+
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  width: 200px;
+  background-color: var(--bg-clr-secondary);
+  color: var(--clr-font-white);
+  text-align: left;
+  padding: 8px;
+  border-radius: 6px;
+
+  position: absolute;
+  z-index: 1;
+  bottom: 125%; /* position above the icon */
+  left: 50%;
+  transform: translateX(-50%);
+
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip-container:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
 }

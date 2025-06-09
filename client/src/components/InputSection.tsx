@@ -2,21 +2,18 @@ import '../styles/InputSection.css'
 import React, { useState } from 'react';
 
 interface InputProps {
-    onClick: (query: string, jitterFlag: boolean, measurementsNo: number) => void;
+    onClick: (query: string) => void;
     loading: boolean;
 }
 
 const InputSection: React.FC<InputProps> = ({ onClick, loading }) => {
     const [query, setQuery] = useState('');
-    const [jitterFlag, setJitterFlag] = useState(false);
-    const [measurementsNo, setMeasurementsNo] = useState(1);
-
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setQuery(event.target.value);
     };
 
     const handleClick = () => {
-        onClick(query.trim(), jitterFlag, measurementsNo);
+        onClick(query.trim());
     };
 
     return (
@@ -40,27 +37,7 @@ const InputSection: React.FC<InputProps> = ({ onClick, loading }) => {
                     Measure
                 </button>
             </div>
-            <form className="jitter-options" onSubmit={(e) => e.preventDefault()}>
-                <label className="custom-checkbox">
-                    <input type="checkbox"
-                           id="jitter-check"
-                           checked={jitterFlag}
-                           onChange={(e) => setJitterFlag(e.target.checked)}
-                />
-                <span className="checkmark"></span>
-                    Perform extra measurements to calculate jitter
-                </label>
 
-                 {jitterFlag && (<input
-                    id="measurements-no-box"
-                    type="number"
-                    min={1}
-                    max={10}
-                    value={measurementsNo}
-                    onChange={(e) => setMeasurementsNo(Math.min(10, Number(e.target.value.replace(/^0+/, ''))))}
-                    className="jitter-count-input"
-                />)}
-            </form>
         </div>
     );
 
