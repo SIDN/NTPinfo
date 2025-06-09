@@ -32,7 +32,7 @@ export const transformJSONDataToRIPEData = (fetchedData: any): RIPEData | null =
         ref_id: fetchedData.ref_id,
         root_dispersion: fetchedData.root_dispersion,
         root_delay: fetchedData.root_delay,
-        vantage_point_ip: fetchedData.vantage_point_ip
+        vantage_point_ip: fetchedData.probe_addr.ipv4
     }
     return{
         measurementData: measurementData,
