@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { HomeCacheState } from '../utils/types' // new import for caching result
 import '../styles/HomeTab.css'
 import InputSection from '../components/InputSection.tsx'
 import ResultSummary from '../components/ResultSummary'
@@ -21,23 +22,46 @@ import { LatLngTuple } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { triggerRipeMeasurement } from '../hooks/triggerRipeMeasurement.ts'
 
+// interface HomeTabProps {
+//     onVisualizationDataChange: (data: Map<string, NTPData[]> | null) => void;
+// }
 interface HomeTabProps {
-    onVisualizationDataChange: (data: Map<string, NTPData[]> | null) => void;
+  cache: HomeCacheState;
+  setCache: React.Dispatch<React.SetStateAction<HomeCacheState>>;
+  onVisualizationDataChange: (data: Map<string, NTPData[]> | null) => void;
 }
 
-function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
+// function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
+function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
+
+  const {
+    ntpData,
+    chartData,
+    measured,
+    selMeasurement,
+    measurementId,
+    vantagePointIp,
+    allNtpMeasurements,
+  } = cache;
+
+  // still local UI state
+  const [selOption, setOption] = useState("Last Hour")
+
+  // helper to update only the fields we touch
+  const updateCache = (partial: Partial<HomeCacheState>) =>
+    setCache(prev => ({ ...prev, ...partial }))
   //
   // states we need to define
   //
-  const [ntpData, setNtpData] = useState<NTPData | null>(null)
-  const [chartData, setChartData] = useState<Map<string, NTPData[]> | null>(null)
-  const [measured, setMeasured] = useState(false)
-  const [popupOpen, setPopupOpen] = useState(false)
-  const [selOption, setOption] = useState("Last Hour")
-  const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
-  const [measurementId, setMeasurementId] = useState<string | null>(null)
-  const [vantagePointIp, setVantagePointIp] = useState<string | null>(null)
-  const [allNtpMeasurements, setAllNtpMeasurements] = useState<NTPData[] | null>(null)
+  // const [ntpData, setNtpData] = useState<NTPData | null>(null)
+  // const [chartData, setChartData] = useState<Map<string, NTPData[]> | null>(null)
+  // const [measured, setMeasured] = useState(false)
+  // const [popupOpen, setPopupOpen] = useState(false)
+  // const [selOption, setOption] = useState("Last Hour")
+  // const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
+  // const [measurementId, setMeasurementId] = useState<string | null>(null)
+  // const [vantagePointIp, setVantagePointIp] = useState<string | null>(null)
+  // const [allNtpMeasurements, setAllNtpMeasurements] = useState<NTPData[] | null>(null)
 
   //Varaibles to log and use API hooks
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
@@ -47,12 +71,10 @@ function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
 
   //dropdown format
   const dropdown = {
-      options: ["Last Hour", "Last Day", "Last Week", "Custom"],
-      selectedValue: selOption,
-      onSelect: setOption,
-    }
-
-
+    options: ["Last Hour", "Last Day", "Last Week", "Custom"],
+    selectedValue: selOption,
+    onSelect: setOption,
+  }
   //
   //functions for handling state changes
   //
@@ -67,10 +89,18 @@ function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
       return
 
     //Reset the hook
-    setMeasurementId(null)
-    setMeasured(false)
-    setNtpData(null)
-    setChartData(null)
+    // setMeasurementId(null)
+    // setMeasured(false)
+    // setNtpData(null)
+    // setChartData(null)
+
+    // Reset cached values for a fresh run
+    updateCache({
+      measurementId: null,
+      measured: false,
+      ntpData: null,
+      chartData: null,
+    })
 
     /**
      * The payload for the measurement call, containing the server,
@@ -98,14 +128,20 @@ function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
     /**
      * Update the stored data and show it again
      */
-    setMeasured(true)
+    // setMeasured(true)
     const data = apiMeasurementResp[0]
     const chartData = new Map<string, NTPData[]>()
     chartData.set(payload.server, apiHistoricalResp)
-    setAllNtpMeasurements(apiMeasurementResp ?? null)
-    setNtpData(data ?? null)
-    setChartData(chartData)
+    // setAllNtpMeasurements(apiMeasurementResp ?? null)
+    // setNtpData(data ?? null)
+    // setChartData(chartData)
     onVisualizationDataChange(chartData)
+    updateCache({
+      measured: true,
+      ntpData: data ?? null,
+      chartData,
+      allNtpMeasurements: apiMeasurementResp ?? null,
+    })
 
     /**
      * Payload for the RIPE measurement call, containing only the ip of the server to be measured.
@@ -118,16 +154,22 @@ function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
      * Get the data from the RIPE measurement endpoint and update it.
      */
     const ripeTriggerResp = await triggerMeasurement(ripePayload)
-    setVantagePointIp(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.vantage_point_ip)
-    setMeasurementId(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.measurementId)
+    // setVantagePointIp(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.vantage_point_ip)
+    // setMeasurementId(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.measurementId)
+    updateCache({
+      vantagePointIp: ripeTriggerResp?.parsedData.vantage_point_ip ?? null,
+      measurementId: ripeTriggerResp?.parsedData.measurementId ?? null,
+    })
   }
 
   /**
    * Function to determine what value of Measreuemnt to use on the y axis of the visualization graph
    */
-  const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelMeasurement(event.target.value as Measurement);
-  }
+  // const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   setSelMeasurement(event.target.value as Measurement);
+  // }
+  const handleMeasurementChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    updateCache({ selMeasurement: e.target.value as Measurement })
 
   return (
     <div>
@@ -188,13 +230,14 @@ function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
         <DownloadButton name="Download JSON" onclick={() => downloadJSON(ripeMeasurementResp ? [ntpData, ripeMeasurementResp[0]] : [ntpData])} />
         <DownloadButton name="Download CSV" onclick={() => downloadCSV(ripeMeasurementResp ? [ntpData, ripeMeasurementResp[0]] : [ntpData])} />
       </div>)}
-      {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
+      {/* {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
         <div className='map-box'>
           <WorldMap probes={ripeMeasurementResp} ntpServers = {allNtpMeasurements} vantagePointIp = {vantagePointIp} status = {ripeMeasurementStatus} />
         </div>
-        )}
+        )} */}
     </div>
     </div>
-    )}
+    );
+}
 
-export default HomeTab
+export default HomeTab;

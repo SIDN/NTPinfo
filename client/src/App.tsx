@@ -5,19 +5,39 @@ import HomeTab from './tabs/HomeTab';
 import CompareTab from './tabs/CompareTab';
 import HistoricalDataTab from './tabs/HistoricalDataTab';
 import AboutTab from './tabs/AboutTab';
-import { NTPData } from './utils/types';
+// import { NTPData } from './utils/types';
+import { NTPData, HomeCacheState } from './utils/types';
 import './App.css';
 
 function App() {
   const [selectedTab, setSelectedTab] = useState(1);
   const [visualizationData, setVisualizationData] = useState<Map<string, NTPData[]> | null>(null);
 
+  /* ------------------   NEW: cache that outlives HomeTab   ------------------ */
+  const initialCache: HomeCacheState = {
+    ntpData: null,
+    chartData: null,
+    measured: false,
+    selMeasurement: 'offset',
+    measurementId: null,
+    vantagePointIp: null,
+    allNtpMeasurements: null,
+  };
+  const [homeCache, setHomeCache] = useState<HomeCacheState>(initialCache);
+
   return (
     <div className="app-layout">
       <Sidebar selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
       <main className="app-content">
         {/* <Hero /> */}
-        {selectedTab === 1 && <HomeTab onVisualizationDataChange={setVisualizationData} />}
+        {/* {selectedTab === 1 && <HomeTab onVisualizationDataChange={setVisualizationData} />} */}
+        {selectedTab === 1 && (
+          <HomeTab
+            cache={homeCache}
+            setCache={setHomeCache}
+            onVisualizationDataChange={setVisualizationData}
+          />
+        )}
         {selectedTab === 2 && <HistoricalDataTab data={visualizationData} />}
         {selectedTab === 3 && <CompareTab />}
         {selectedTab === 4 && <AboutTab />}
