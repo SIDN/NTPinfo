@@ -311,7 +311,7 @@ def test_fetch_ripe_data(mock_get_data_from_ripe, mock_parse_data_from_ripe):
     assert data["ref_id"] == "GPSs"
 
     result_data = data["result"][0]
-    assert result_data["client_sent_time"].seconds == 3957337543
+    assert result_data["client_sent_time"].get("seconds") == 3957337543
     assert result_data["rtt"] == 0.027344
     assert result_data["offset"] == 0.065274
 
@@ -337,7 +337,7 @@ def test_get_ripe_format():
     assert data["ref_id"] == "GPSs"
 
     result_data = data["result"][0]
-    assert result_data["client_sent_time"].seconds == 3957337543
+    assert result_data["client_sent_time"].get("seconds") == 3957337543
     assert result_data["rtt"] == 0.027344
     assert result_data["offset"] == 0.065274
 

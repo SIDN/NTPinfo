@@ -32,7 +32,7 @@ def calculate_jitter_from_measurements(session: Session, initial_measurement: Nt
     offsets = [NtpCalculator.calculate_offset(initial_measurement.timestamps)]
     last_measurements = get_measurements_for_jitter_ip(session=session,
                                                        ip=initial_measurement.server_info.ntp_server_ip,
-                                                       number=(no_measurements - 1))
+                                                       number=no_measurements)
     nr_m = 0
     for m in last_measurements:
         if m is not None:
@@ -98,6 +98,7 @@ def human_date_to_ntp_precise_time(dt: datetime) -> PreciseTime:
 
     return PreciseTime(ntp_seconds, ntp_fraction)
 
+
 def calculate_haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """
     It calculates the haversine distance between two points using this formula:
@@ -116,6 +117,6 @@ def calculate_haversine_distance(lat1: float, lon1: float, lat2: float, lon2: fl
     r = 6371.0
     dlat = radians(lat2 - lat1)
     dlon = radians(lon2 - lon1)
-    a = sin(dlat / 2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2)**2
+    a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
     d = 2.0 * r * atan2(sqrt(a), sqrt(1 - a))
     return d

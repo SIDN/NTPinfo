@@ -14,7 +14,6 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 
-
 def create_app(dev: bool = True) -> FastAPI:
     """
     Creates a FastAPI application instance.
@@ -27,7 +26,7 @@ def create_app(dev: bool = True) -> FastAPI:
     Raises:
         Exception: if the server_config file is not correctly set.
     """
-    if dev: # only in this mode verify the config file
+    if dev:  # only in this mode verify the config file
         try:
             verify_if_config_is_set()
         except Exception as e:
@@ -45,7 +44,7 @@ def create_app(dev: bool = True) -> FastAPI:
     app.state.limiter = limiter
     app.include_router(router)
     app.add_middleware(
-     CORSMiddleware,
+        CORSMiddleware,
         allow_origins=["http://localhost:5173"],
         allow_credentials=True,
         allow_methods=["*"],
@@ -66,29 +65,36 @@ def create_app(dev: bool = True) -> FastAPI:
         """
         return _rate_limit_exceeded_handler(request, exc)
 
-    @app.exception_handler(HTTPException)
-    async def custom_http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
-        """
-        Handle generic HTTPException errors and return a custom error structure.
-
-        Overrides FastAPI's default error response by returning an object with an "error" key
-        instead of the default "detail" key for better frontend compatibility or customization.
-
-        Args:
-            request (Request): The incoming HTTP request that caused the error.
-            exc (HTTPException): The raised HTTPException.
-
-        Returns:
-            JSONResponse: A response with the appropriate status code and custom error format.
-        """
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={"error": exc.detail},
-        )
+    # @app.exception_handler(HTTPException)
+    # async def custom_http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    #     """
+    #     Handle generic HTTPException errors and return a custom error structure.
+    #
+    #     Overrides FastAPI's default error response by returning an object with an "error" key
+    #     instead of the default "detail" key for better frontend compatibility or customization.
+    #
+    #     Args:
+    #         request (Request): The incoming HTTP request that caused the error.
+    #         exc (HTTPException): The raised HTTPException.
+    #
+    #     Returns:
+    #         JSONResponse: A response with the appropriate status code and custom error format.
+    #     """
+    #     if exc.status_code == 200 or exc.status_code == 202 or exc.status_code == 206:
+    #         return JSONResponse(
+    #             status_code=exc.status_code,
+    #             content={"response": exc.detail}
+    #         )
+    #     return JSONResponse(
+    #         status_code=exc.status_code,
+    #         content={"error": exc.detail},
+    #     )
 
     return app
+
 
 # app = create_app()
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("server.app.main:create_app", reload=True)
