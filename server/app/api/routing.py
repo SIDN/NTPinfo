@@ -36,7 +36,7 @@ def read_root() -> dict[str, str]:
 @router.post("/measurements/")
 @limiter.limit("5/second")
 async def read_data_measurement(payload: MeasurementRequest, request: Request,
-                                session: Session = Depends(get_db)) -> dict[str, Any]:
+                                session: Session = Depends(get_db)) -> JSONResponse:
     """
     Compute a live NTP measurement for a given server (IP or domain).
 
@@ -74,9 +74,12 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
             for r in response:
                 result, jitter, nr_jitter_measurements = r
                 new_format.append(get_format(result, jitter, nr_jitter_measurements))
-            return {
-                "measurement": new_format
-            }
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "measurement": new_format
+                }
+            )
         else:
             raise HTTPException(status_code=400, detail="Sever is not reachable.")
     except HTTPException as e:
@@ -112,7 +115,7 @@ async def read_historic_data_time(server: str,
         session (Session): The currently active database session.
 
     Returns:
-        dict: A dictionary containing a list of formatted measurements under "measurements".
+        JSONResponse: A json response containing a list of formatted measurements under "measurements".
 
     Raises:
         HTTPException:
@@ -152,7 +155,7 @@ async def read_historic_data_time(server: str,
 
 @router.post("/measurements/ripe/trigger/")
 @limiter.limit("5/second")
-async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request) -> dict[str, Any]:
+async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request) -> JSONResponse:
     """
     Trigger a RIPE Atlas NTP measurement for a specified server.
 
@@ -171,7 +174,7 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
         request (Request): The FastAPI request object, used to extract the client IP address
 
     Returns:
-        dict[str, Any]: A dictionary containing:
+        JSONResponse: A json response containing:
             - measurement_id (str): The ID of the triggered RIPE measurement
             - status (str): Status message ("started")
             - message (str): Instructions on how to retrieve the result
@@ -191,12 +194,15 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
     client_ip: Optional[str] = client_ip_fetch(request=request)
     try:
         measurement_id = perform_ripe_measurement(server, client_ip=client_ip)
-        return {
-            "measurement_id": measurement_id,
-            "vantage_point_ip": ip_to_str(get_server_ip()),
-            "status": "started",
-            "message": "You can fetch the result at /measurements/ripe/{measurement_id}",
-        }
+        return JSONResponse(
+            status_code=200,
+            content={
+                "measurement_id": measurement_id,
+                "vantage_point_ip": ip_to_str(get_server_ip()),
+                "status": "started",
+                "message": "You can fetch the result at /measurements/ripe/{measurement_id}",
+            }
+        )
     except InputError as e:
         print(e)
         raise HTTPException(status_code=400,
