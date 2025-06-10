@@ -96,7 +96,7 @@ def test_perform_multiple_measurement_rate_limiting(client):
     for _ in range(5):
         response = client.post("/measurements/", json={"server": "91.210.128.220"},
                                headers=headers)
-        assert response.status_code == 200 or response.status_code == 404
+        assert response.status_code == 200 or response.status_code == 400
         if response.status_code == 200:
             cnt += 1
         assert "measurement" in response.json()
