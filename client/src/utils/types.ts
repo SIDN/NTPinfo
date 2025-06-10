@@ -33,7 +33,6 @@ export type RIPEData = {
   probe_location: LatLngTuple
   got_results: boolean
   measurement_id: number
-  probe_types: number[]
 }
 
 /**
@@ -42,4 +41,22 @@ export type RIPEData = {
 export type RIPEResp = {
   measurementId: number
   vantage_point_ip: string
+}
+
+/**
+ * A single place to remember everything we want to preserve
+ * when the user leaves and re-enters the Home tab.
+ * (Feel free to add more fields later – e.g. `selOption` –
+ * just keep the shape in sync everywhere you use it.)
+ */
+export interface HomeCacheState {
+  ntpData: NTPData | null
+  chartData: Map<string, NTPData[]> | null
+  measured: boolean
+  selMeasurement: Measurement          // 'offset' | 'RTT'
+  measurementId: string | null
+  vantagePointIp: string | null
+  allNtpMeasurements: NTPData[] | null
+  ripeMeasurementResp: RIPEData[] | null
+  ripeMeasurementStatus: string | null     // 'loading' | 'complete' | ...
 }

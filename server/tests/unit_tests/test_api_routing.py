@@ -3,7 +3,7 @@ import pytest
 from fastapi.testclient import TestClient
 from ipaddress import IPv4Address, ip_address
 
-from sqlalchemy import create_engine, StaticPool
+from sqlalchemy import create_engine, StaticPool, Engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from server.app.models.CustomError import RipeMeasurementError
@@ -18,8 +18,8 @@ from server.app.dtos.PreciseTime import PreciseTime
 from datetime import datetime, timezone, timedelta
 from server.app.api.routing import get_db
 
-TEST_DB_URL = "sqlite:///:memory:"
-engine = create_engine(TEST_DB_URL, connect_args={"check_same_thread": False}, poolclass=StaticPool)
+
+engine = MagicMock(spec=Engine)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 

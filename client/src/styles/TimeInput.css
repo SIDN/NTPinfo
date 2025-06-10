@@ -4,10 +4,13 @@
     flex-direction: row;
     gap: 3em;
     justify-content: start;
+    align-items: flex-end;
 }
 .custom-time-amount {
     display: flex;
     flex-direction: row;
+    gap: 2em;
+    align-items: flex-end;
 }
 .compare-tab .dropdown-select:hover,
 .compare-tab .dt-input:hover,
@@ -41,9 +44,8 @@
 
 .custom-time-amount{
     display: flex;
-    align-items: end;
-    flex-wrap: wrap;
-    gap: 1em;
+    align-items: flex-end;
+    gap: 2em;
 }
 
 .custom-duration-input{
@@ -83,6 +85,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  white-space: nowrap;
 }
 
 .custom-time-amount .dt-input {
@@ -111,9 +114,8 @@
 
 .dropdown-select,
 .dt-input {
-  /* core look (mirrors .open-popup-btn) */
   display: flex;
-  align-items: center;      /* keeps text vertically centred */
+  align-items: center;
   padding: .5rem .75rem;
   font-size: 1em;
   font-weight: 600;
@@ -126,17 +128,16 @@
   cursor: pointer;
   transition: background 160ms ease, border-color 160ms ease;
 }
-/* remove the default grey arrow on Chrome / Edge */
+
 .dropdown-select {
   appearance: none;
   background-image: url("data:image/svg+xml;utf8,<svg fill='white' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
   background-repeat: no-repeat;
   background-position: right .65rem center;
   background-size: .8rem;
-  padding-right: 2.1rem;   /* room for the arrow */
+  padding-right: 2.1rem;
 }
 
-/* make the calendar icon white so it blends in */
 .dt-input::-webkit-calendar-picker-indicator {
   filter: invert(100%);
 }

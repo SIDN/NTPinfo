@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { HomeCacheState } from '../utils/types' // new import for caching result
 import '../styles/HomeTab.css'
 import InputSection from '../components/InputSection.tsx'
 import ResultSummary from '../components/ResultSummary'
@@ -12,6 +13,7 @@ import { useFetchRIPEData } from '../hooks/useFetchRipeData.ts'
 import { dateFormatConversion } from '../utils/dateFormatConversion.ts'
 import {downloadJSON, downloadCSV} from '../utils/downloadFormats.ts'
 import WorldMap from '../components/WorldMap.tsx'
+import Hero from '../components/Hero';
 
 import { NTPData, RIPEData } from '../utils/types.ts'
 import { Measurement } from '../utils/types.ts'
@@ -20,34 +22,70 @@ import { LatLngTuple } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { triggerRipeMeasurement } from '../hooks/triggerRipeMeasurement.ts'
 
-function HomeTab() {
+// interface HomeTabProps {
+//     onVisualizationDataChange: (data: Map<string, NTPData[]> | null) => void;
+// }
+interface HomeTabProps {
+  cache: HomeCacheState;
+  setCache: React.Dispatch<React.SetStateAction<HomeCacheState>>;
+  onVisualizationDataChange: (data: Map<string, NTPData[]> | null) => void;
+}
+
+// function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
+function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
+
+  const {
+    ntpData,
+    chartData,
+    measured,
+    selMeasurement,
+    measurementId,
+    vantagePointIp,
+    allNtpMeasurements,
+  } = cache;
+
+  // still local UI state
+  const [selOption, setOption] = useState("Last Hour")
+
+  // helper to update only the fields we touch
+  const updateCache = (partial: Partial<HomeCacheState>) =>
+    setCache(prev => ({ ...prev, ...partial }))
   //
   // states we need to define
   //
-  const [ntpData, setNtpData] = useState<NTPData | null>(null)
-  const [chartData, setChartData] = useState<Map<string, NTPData[]> | null>(null)
-  const [measured, setMeasured] = useState(false)
-  const [popupOpen, setPopupOpen] = useState(false)
-  const [selOption, setOption] = useState("Last Hour")
-  const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
-  const [measurementId, setMeasurementId] = useState<string | null>(null)
-  const [vantagePointIp, setVantagePointIp] = useState<string | null>(null)
-  const [allNtpMeasurements, setAllNtpMeasurements] = useState<NTPData[] | null>(null)
+  // const [ntpData, setNtpData] = useState<NTPData | null>(null)
+  // const [chartData, setChartData] = useState<Map<string, NTPData[]> | null>(null)
+  // const [measured, setMeasured] = useState(false)
+  // const [popupOpen, setPopupOpen] = useState(false)
+  // const [selOption, setOption] = useState("Last Hour")
+  // const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
+  // const [measurementId, setMeasurementId] = useState<string | null>(null)
+  // const [vantagePointIp, setVantagePointIp] = useState<string | null>(null)
+  // const [allNtpMeasurements, setAllNtpMeasurements] = useState<NTPData[] | null>(null)
 
   //Varaibles to log and use API hooks
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
   const {fetchData: fetchHistoricalData, loading: apiHistoricalLoading, error: apiHistoricalError} = useFetchHistoricalIPData()
   const {triggerMeasurement, error: triggerRipeError} = triggerRipeMeasurement()
-  const {result: ripeMeasurementResp, status: ripeMeasurementStatus} = useFetchRIPEData(measurementId)
+  const {
+    result: ripeMeasurementResp,
+    status: ripeMeasurementStatus,
+  } = useFetchRIPEData(measurementId)
+
+  useEffect(() => {
+    if (!ripeMeasurementStatus) return;
+    updateCache({
+      ripeMeasurementResp,
+      ripeMeasurementStatus,
+    });
+  }, [ripeMeasurementResp, ripeMeasurementStatus]);
 
   //dropdown format
   const dropdown = {
-      options: ["Last Hour", "Last Day", "Last Week", "Custom"],
-      selectedValue: selOption,
-      onSelect: setOption,
-    }
-  
-
+    options: ["Last Hour", "Last Day", "Last Week", "Custom"],
+    selectedValue: selOption,
+    onSelect: setOption,
+  }
   //
   //functions for handling state changes
   //
@@ -62,14 +100,21 @@ function HomeTab() {
       return
 
     //Reset the hook
-    setMeasurementId(null)
-    setMeasured(false)
-    setNtpData(null)
-    setChartData(null)
+    // setMeasurementId(null)
+    // setMeasured(false)
+    // setNtpData(null)
+    // setChartData(null)
+
+    // Reset cached values for a fresh run
+    updateCache({
+      measurementId: null,
+      measured: false,
+      ntpData: null,
+      chartData: null,
+    })
 
     /**
-     * The payload for the measurement call, containing the server,
-     * if the jitter should be calculated and the number of measurements to be done.
+     * The payload for the measurement call, containing the server
      */
     const payload = {
       server: query.trim()
@@ -93,13 +138,22 @@ function HomeTab() {
     /**
      * Update the stored data and show it again
      */
-    setMeasured(true)
+    // setMeasured(true)
     const data = apiMeasurementResp[0]
     const chartData = new Map<string, NTPData[]>()
     chartData.set(payload.server, apiHistoricalResp)
-    setAllNtpMeasurements(apiMeasurementResp ?? null)
-    setNtpData(data ?? null)
-    setChartData(chartData ?? null)
+    // setAllNtpMeasurements(apiMeasurementResp ?? null)
+    // setNtpData(data ?? null)
+    // setChartData(chartData)
+    onVisualizationDataChange(chartData)
+    updateCache({
+      measured: true,
+      ntpData: data ?? null,
+      chartData,
+      allNtpMeasurements: apiMeasurementResp ?? null,
+      ripeMeasurementResp: null,          // clear old map
+      ripeMeasurementStatus: null,        //  “     ”
+    })
 
     /**
      * Payload for the RIPE measurement call, containing only the ip of the server to be measured.
@@ -112,29 +166,41 @@ function HomeTab() {
      * Get the data from the RIPE measurement endpoint and update it.
      */
     const ripeTriggerResp = await triggerMeasurement(ripePayload)
-    setVantagePointIp(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.vantage_point_ip)
-    setMeasurementId(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.measurementId)
+    // setVantagePointIp(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.vantage_point_ip)
+    // setMeasurementId(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.measurementId)
+    updateCache({
+      vantagePointIp: ripeTriggerResp?.parsedData.vantage_point_ip ?? null,
+      measurementId: ripeTriggerResp?.parsedData.measurementId ?? null,
+      ripeMeasurementResp: null,          // will be filled by hook
+      ripeMeasurementStatus: 'loading',
+    })
   }
 
   /**
    * Function to determine what value of Measreuemnt to use on the y axis of the visualization graph
    */
-  const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelMeasurement(event.target.value as Measurement);
-  }
+  // const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   setSelMeasurement(event.target.value as Measurement);
+  // }
+  const handleMeasurementChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    updateCache({ selMeasurement: e.target.value as Measurement })
 
   return (
+    <div>
+    {/* <Hero /> */}
+    {/* The main container for the app, containing the input section, results and graph, and the map */}
     <div className="app-container">
+      <Hero />
       <div className="input-wrapper">
         <InputSection onClick={handleInput} loading={apiDataLoading} />
       </div>
       <h3 id="disclaimer">DISCLAIMER: Your IP may be used to get a RIPE probe close to you for the most accurate data. Your IP will not be stored.</h3>
         <div className="result-text">
-          {(!apiDataLoading && measured && (<p>Results</p>)) || 
+          {(!apiDataLoading && measured && (<p>Results</p>)) ||
                     (apiDataLoading && <div className="loading-div">
                         <p>Loading...</p>
                         <LoadingSpinner size="small"/>
-                    </div>  
+                    </div>
                         )}
         </div>
         {/* The main page shown after the main measurement is done */}
@@ -172,26 +238,26 @@ function HomeTab() {
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus} ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null}/>)}
 
       {/*Buttons to download results in JSON and CSV format as well as open a popup displaying historical data*/}
+      {/*The open popup button is commented out, because it is implemented as a separate tab*/}
       {ntpData && !apiDataLoading && (<div className="download-buttons">
 
         <DownloadButton name="Download JSON" onclick={() => downloadJSON(ripeMeasurementResp ? [ntpData, ripeMeasurementResp[0]] : [ntpData])} />
         <DownloadButton name="Download CSV" onclick={() => downloadCSV(ripeMeasurementResp ? [ntpData, ripeMeasurementResp[0]] : [ntpData])} />
-        <div>
-          <button className="open-popup-btn" onClick={() => setPopupOpen(true)}>View Historical Data</button>
-          <VisualizationPopup
-          isOpen={popupOpen}
-          onClose={() => setPopupOpen(false)}
-          dropdown={dropdown}
-          data = {chartData}/>
-        </div>
       </div>)}
-      {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
+      {/*Map compoment that shows the NTP servers, the vantage point, and the RIPE probes*/}
+      {/*{(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
         <div className='map-box'>
-          <WorldMap probes={ripeMeasurementResp} ntpServers = {allNtpMeasurements} vantagePointIp = {vantagePointIp} status = {ripeMeasurementStatus} />
+          <WorldMap
+            probes={ripeMeasurementResp}
+            ntpServers={allNtpMeasurements}
+            vantagePointIp={vantagePointIp}
+            status={ripeMeasurementStatus}
+          />
         </div>
-        )}
+        )}*/}
     </div>
-     )
+    </div>
+    );
 }
 
-export default HomeTab
+export default HomeTab;

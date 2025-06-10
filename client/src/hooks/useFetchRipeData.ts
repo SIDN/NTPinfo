@@ -5,10 +5,11 @@ import { transformJSONDataToRIPEData } from "../utils/transformJSONDataToRIPEDat
 
 /**
  * The endpoint to poll RIPE measurements from the backend
- * When a new measurement is started, it resets the state of teh measurement to not show old data
+ * When a new measurement is started, it resets the state of the measurement to not show old data
  * It then performs a GET request every interval and updates the data that was fetched
- * When the status becomes "complete" or "error", the call ends
+ * When the status becomes "complete", "timeout" or "error", the call ends
  * If a new measurement is started, the old one gets cancelled and the new one begins
+ * Due to the polling possibly starting before RIPE begins, in case a 405 HTTP error is reived, the polling will be retried after a few seconds
  * @param measurementId the ID of the RIPE measurement to be polled
  * @param intervalMs the interval at which data will be polled from the endpoint
  * @returns the current set of results, the status of the polling, and if an error has occured
