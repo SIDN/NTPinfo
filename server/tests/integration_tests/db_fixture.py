@@ -17,15 +17,14 @@ DB_CONFIG = {
     "port": os.environ.get("DB_PORT", 5432),
     "user": os.environ.get("DB_USER", "postgres"),
     "password": os.environ.get("DB_PASSWORD", ""),
-    "dbname": os.environ.get("DB_NAME", "postgres"),
+    "dbname": "postgres",
 }
-DATABASE_URL = os.environ.get("DATABASE_URL")
 TEST_DB_CONFIG = {
     "host": DB_CONFIG["host"],
     "port": DB_CONFIG["port"],
     "user": os.environ.get("DB_USER", DB_CONFIG["user"]),
     "password": os.environ.get("DB_PASSWORD", DB_CONFIG["password"]),
-    "dbname": os.environ.get("DB_NAME", "test_db"),
+    "dbname": "test_db",
 }
 
 def get_connection():
@@ -84,16 +83,6 @@ def setup_database(engine):
     yield
     Base.metadata.drop_all(bind=engine)
 
-# Clean DB between tests
-@pytest.fixture(autouse=True)
-def clean_tables(engine):
-    # Truncate all tables between tests
-    conn = engine.connect()
-    trans = conn.begin()
-    for table in reversed(Base.metadata.sorted_tables):
-        conn.execute(table.delete())
-    trans.commit()
-    conn.close()
 
 @pytest.fixture(scope="function")
 def db_session(engine):
