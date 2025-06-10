@@ -76,6 +76,7 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
         for r in response:
             result, jitter, nr_jitter_measurements = r
             new_format.append(get_format(result, jitter, nr_jitter_measurements))
+        print(new_format)
         return {
             "measurement": new_format
         }
