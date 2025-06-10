@@ -9,10 +9,12 @@ export const useFetchIPData = () => {
     const [error, setError] = useState<Error | null>(null)
     const [httpStatus, setHttpStatus] = useState<number>(200)
     /**
-     * send a post request to the back-end
+     * send a post request to the back-end for receiving data from the NTP server
+     * It receives an array of results, which is used to compare with the server used by RIPE
+     * The measurement for each of them is converted to an NTPData point
      * @param endpoint the endpoint to make the post call to
-     * @param payload the server that will be measured, as well as the choice of the user whether to calculate the jitter
-     * @returns the data received from the measurement as NTPData, or null
+     * @param payload the server that will be measured
+     * @returns the data received from the measurement as NTPData, or null, the loading, error and HTTP status of the call, and a function to initiate the measurement
      */
     const fetchData = async (endpoint: string, payload: {server: string}) => {
         setLoading(true);
