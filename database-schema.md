@@ -4,10 +4,10 @@ The design for the two tables used to store data are as follows:
 > * **measurements**  
 >
 >    * id -                      `bigint`, **Non-nullable**, ***primary key***, key to identify each measurement
->    * ntp_server_ip -           `inet`, the IP adress of the NTP server that was measured. Supports IPv4 or IPv6.
+>    * ntp_server_ip -           `inet`, the IP address of the NTP server that was measured. Supports IPv4 or IPv6.
 >    * ntp_server_name -         `text`, the name of the NTP server that was measured.
 >    * ntp_version -             `smallint`, the version of NTP used for the measurement.
->    * ntp_server_ref_parent -   `inet`, the IPv4 or IPv6 adress of the parent of the NTP server.
+>    * ntp_server_ref_parent -   `inet`, the IPv4 or IPv6 address of the parent of the NTP server.
 >    * ref_name -                `text`, the name of the server the measured NTP server references.
 >    * time_id -                 `bigint`,
 >    * time_offset -             `double precision`,
