@@ -1,6 +1,6 @@
 from datetime import datetime, timezone, timedelta
 
-from integration_tests.db_fixture import *
+from server.tests.integration_tests.db_fixture import *
 
 def test_perform_measurement(client):
     headers = {"X-Forwarded-For": "83.25.24.10"}
