@@ -11,6 +11,15 @@ const transformIpData = (input: any): IPInfoData => ({
     country_code: input.countryCode
 })
 
+/**
+ * An API hook used for getting IP data
+ * It is mainly used for receiving geolocation data.
+ * It makes use of the ip-api endpoint for getting the longitude and latitude of the IP given.
+ * It is used on only the NTP server(s) used, as well as the vantage point, so there is no client privacy violated
+ * It does not work for private IPs, so depening on where it is hosted, it might have some issues with getting the vantage point's location
+ * @param ip The IP to be queried for data fetching
+ * @returns the info itself, the function to fetch the info, a function to clear the state of the ip, loading status and an error status
+ */
 export const useIPInfo = () => {
     const [ipInfo,setIPInfo] = useState<IPInfoData | null>(null)
     const [loading, setLoading] = useState(false)

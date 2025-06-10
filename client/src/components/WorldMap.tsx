@@ -74,8 +74,11 @@ interface MapComponentProps {
  * A function that sets the zoom of the map to an appropiate value depeding on how spread out all the geolocations are
  * Depends on the size of the map component on the page
  * Made to change the zoom in a responsive way with the change of the map size
+ * It changes zoom when the probes update, until the user interact with the map
  * @param probes the geolocation of all the probes to the shown on the map
- * @param probes the geolocation of the NTP server that the measurement was performed on
+ * @param ripeNtpServer the geolocation of the NTP server that the RIPE measurement was performed on
+ * @param measurementNtpServer the geolocation of the NTP server that the vantage point measured on
+ * @param vantagePoint the geolocation of the vantage point that the measurement was taken from
  */
 const FitMapBounds = ({probes, ripeNtpServer, measurementNtpServer, vantagePoint}: {probes: L.LatLngExpression[], 
   ripeNtpServer: L.LatLngExpression | null, measurementNtpServer: L.LatLngExpression | null, vantagePoint: L.LatLngExpression | null}) => {
@@ -130,8 +133,11 @@ const FitMapBounds = ({probes, ripeNtpServer, measurementNtpServer, vantagePoint
 
 /**
  * A function to draw connecting lines from each probe to the NTP server on the map
+ * It also draws a line from the vantage point to the NTP server it measured
  * @param probes the geolocation of all the probes to the shown on the map
- * @param probes the geolocation of the NTP server that the measurement was performed on
+ * @param ripeNtpServer the geolocation of the NTP server that the RIPE measurement was performed on
+ * @param measurementNtpServer the geolocation of the NTP server that the vantage point measured on
+ * @param vantagePoint the geolocation of the vantage point that the measurement was taken from
  */
 const DrawConnectingLines = ({probes, ripeNtpServer, measurementNtpServer, vantagePoint}: {probes: L.LatLngExpression[], 
   ripeNtpServer: L.LatLngExpression | null, measurementNtpServer: L.LatLngExpression | null, vantagePoint: L.LatLngExpression | null}) => {
@@ -174,6 +180,12 @@ const stringifyRTTAndOffset = (value: number): string => {
   else return value.toString()
 }
 
+/**
+ * A function to compare if two LatLngExpressions are equal to each other
+ * @param a the first LatLngExpression to be checked
+ * @param b the second LatLngExpression to be checked
+ * @returns if the two LatLngExpressions are both equal
+ */
 const equalCoords = (a: L.LatLngExpression | null, b: L.LatLngExpression | null): boolean => {
   if (a === null && b === null) return true
   if (a === null) return false
@@ -188,17 +200,24 @@ const equalCoords = (a: L.LatLngExpression | null, b: L.LatLngExpression | null)
  * Shows error text in case that an error occurs in fetching RIPE Data
  * Used a base tile map offered by Carto, specifically the Dark Matter basemap
  * Shows the status of the map(loading, finished, error)
- * Shows the number of probes chosen and the number of probes in each category
  * Each probe is shown on the map with an icon of a different color depending on the RTT measured by it
+ * Besides this, the vantage point and the NTP server(s) are also shown 
+ * The NTP server that the RIPE probes measured on is compared with the whole list of NTP servers measured by the vantage point
+ * If one of the NTP servers measured by the vantage point is the same as the one used for the RIPE measurement, only one NTP server will appear on the map
  * Each probe has a popup which shows the following:
  *  The RIPE probe ID, with a link to its page on the RIPE Atlas website
  *  The RTT measured
  *  The offset measured
  *  The location of the probe
- * The NTP server has a popup showing the following:
+ * The NTP server(s) has a popup showing the following:
+ *  Possibly, if the probes or the vantage point did measurements on the server
  *  The name of the NTP server
  *  The IP of the specifc NTP server which was used
+ * The vantage point has a popup that shows:
+ *  The IP of the vantage point
+ *  The location of the vantage point
  * The map has lines drawn in between each probe and the NTP server for better visualization
+ * It also has a line between the vantage point and the NTP server it measured on
  * The map's zoom get automatically readjusted depending on the size of the map on the page
  * @param probes Data of all the measured probes, as an array of RIPEData values
  * @param status the current status of the polling of the RIPE measurements 
@@ -211,6 +230,10 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
   const [vantagePointLoc, setVantagePointLoc] = useState<L.LatLngExpression | null>(null)
   const [chosenNtpServer, setChosenNtpServer] = useState<NTPData | null>(null)
   const { fetchIPInfo } = useIPInfo()
+
+  /**
+   * Effect to dynamically update the status shown depening on the progress of the RIPE measurement
+   */
   useEffect(() => {
     if (status === "pending"){
       setRipeNtpServerLoc(null)
@@ -226,6 +249,11 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
     }
     }, [probes, status])
   
+  /**
+   * Effect used for detecting if the list of NTP servers measured by the vantage point contains the same server as the one used by the RIPE measurement
+   * If it finds that the list contains it, sets the chosen NTP server to the one used by RIPE
+   * If not it uses one from the list
+   */
   useEffect(() => {
     if (!probes || !ntpServers) return
     const ripe_ip = probes[0].measurementData.ip
@@ -234,6 +262,14 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
   }, [probes, ntpServers])
 
 
+  /**
+   * Effect for updating and getting the location of the NTP servers and vantage point
+   * @param ripeIpInfo.coords is the geolocation of the NTP server used by the RIPE measurement
+   * @param measurementIpInfo.coords is the geolocation of the NTP server used by the measurement from the vantage point
+   * @param vantagePointIpInfo.coords is the geolocation of the vantage point
+   * The vantage point needs to have a public IP address in order for the location to be fetched
+   * In the case that the IP is not public, the map component will fail to load due to the data being undefined
+   */
   useEffect(() => {
     const fetchLocation = async () => {
       const ripe_ip = probes?.[0].measurementData.ip
@@ -255,9 +291,6 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
 
   const probe_locations = probes?.map(x => x.probe_location) ?? []
   const icons = probes?.map(x => getIconByRTT(x.measurementData.RTT, x.got_results)) ?? []
-  console.log(ntpServers)
-  console.log(ripeNtpServerLoc)
-  console.log(measurementNtpServerLoc)
     return (
       <div style={{height: '500px', width: '100%'}}>
         <h2>{statusMessage}</h2>
@@ -324,13 +357,6 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
               </>}
             </>)}
         </MapContainer>
-        {(probes !== null) && (<div style={{display: "flex", gap: "10px"}}>
-          <div>ASN probes: {probes[0].probe_types[0]}</div>
-          <div>Prefix probes: {probes[0].probe_types[1]}</div>
-          <div>Country probes:  {probes[0].probe_types[2]}</div>
-          <div>Area probes: {probes[0].probe_types[3]}</div>
-          <div>Random probes: {probes[0].probe_types[4]}</div>
-        </div>)}
       </div>
     )
 }

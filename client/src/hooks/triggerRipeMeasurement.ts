@@ -2,16 +2,17 @@ import { useState } from "react"
 import axios from "axios"
 import { RIPEResp } from "../utils/types"
 
+    /**
+     * trigger the RIPE measurement for the backend by using a POST request
+     * @param payload the same payload as the measurement API
+     * @returns the data returned by the call as RIPEResp, which contains the measurement id and vantage point ip
+     * the loading status of the trigger call, the error that was caught in case of a bug, and a function to call the trigger function directly
+     */
 export const triggerRipeMeasurement = () => {
     const [data, setData] = useState<RIPEResp | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<Error | null>(null)
-    /**
-     * trigger the RIPE measurement for the backend
-     * @param payload the same payload as the measurement API
-     * @returns the data returned by the call as RIPEResp, which contains the measurement id and the list of IPs that could be chosen
-     * the loading status of the trigger call, the error that was caught in case of a bug, and a function to call the trigger function directly
-     */
+    
     const triggerMeasurement = async (payload: {server: string}) => {
         setLoading(true)
         setError(null)

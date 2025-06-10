@@ -65,7 +65,7 @@ def get_format(measurement: NtpMeasurement, jitter: Optional[float] = None,
 
         "root_delay": NtpCalculator.calculate_float_time(measurement.extra_details.root_delay),
         "poll": measurement.extra_details.poll,
-        "root_dispersion": measurement.extra_details.root_dispersion,
+        "root_dispersion": NtpCalculator.calculate_float_time(measurement.extra_details.root_dispersion),
         "ntp_last_sync_time": measurement.extra_details.ntp_last_sync_time,
         # if it has value = 3 => invalid
         "leap": measurement.extra_details.leap,
@@ -113,8 +113,8 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
         "stratum": measurement.ntp_measurement.main_details.stratum,
         "poll": measurement.ntp_measurement.extra_details.poll,
         "precision": measurement.ntp_measurement.main_details.precision,
-        "root_delay": measurement.ntp_measurement.extra_details.root_delay,
-        "root_dispersion": measurement.ntp_measurement.extra_details.root_dispersion,
+        "root_delay": NtpCalculator.calculate_float_time(measurement.ntp_measurement.extra_details.root_delay),
+        "root_dispersion": NtpCalculator.calculate_float_time(measurement.ntp_measurement.extra_details.root_dispersion),
         "ref_id": measurement.ref_id,
         "probe_count_per_type": {
             'asn': 9,
