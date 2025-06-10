@@ -40,7 +40,7 @@ function ResultSummary({data, ripeData, err, httpStatus} : {data : NTPData | nul
                         <div className="metric"><span title='The variability in delay times between successive NTP messages, calculated as std. dev. of offsets'>Jitter</span><span>{data?.jitter ? `${(data.jitter*1000).toFixed(3)} ms` : 'N/A'}</span></div>
                         <div className="metric"><span title='The smallest time unit that the NTP server can measure or represent'>Precision</span><span>2<sup>{data?.precision}</sup></span></div>
                         <div className="metric"><span title='A hierarchical level number indicating the distance from the reference clock'>Stratum</span><span>{data?.stratum}</span></div>
-                        <div className="metric"><span title='The IP adress of the NTP server'>IP address</span><span>{data?.ip}</span></div>
+                        <div className="metric"><span title='The IP address of the NTP server'>IP address</span><span>{data?.ip}</span></div>
                         <div className="metric"><span>Vantage point IP</span><span>{data?.vantage_point_ip}</span></div>
                         <div className="status-line">
                             <span className="status-label">STATUS:&nbsp;</span>
@@ -63,7 +63,7 @@ function ResultSummary({data, ripeData, err, httpStatus} : {data : NTPData | nul
                         <div className="metric"><span title='The variability in delay times between successive NTP messages, calculated as std. dev. of offsets'>Jitter</span><span>{ripeData?.measurementData.jitter ? `${(ripeData.measurementData.jitter*1000).toFixed(3)} ms` : 'N/A'}</span></div>
                         <div className="metric"><span title='The smallest time unit that the NTP server can measure or represent'>Precision</span><span>{ripeData?.measurementData.precision}</span></div>
                         <div className="metric"><span title='A hierarchical level number indicating the distance from the reference clock'>Stratum</span><span>{ripeData?.measurementData.stratum}</span></div>
-                        <div className="metric"><span title='The IP adress of the NTP server'>IP address</span><span>{ripeData?.measurementData.ip}</span></div>
+                        <div className="metric"><span title='The IP address of the NTP server'>IP address</span><span>{ripeData?.measurementData.ip}</span></div>
                         <div className="metric"><span>Vantage point IP</span><span>{ripeData?.measurementData.vantage_point_ip}</span></div>
                         <div className="metric"><span>Measurement ID</span><span>{ripeData?.measurement_id}</span></div>
                     </div>
