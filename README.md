@@ -11,42 +11,25 @@ an API to send data to the front end and client side. The second part is the cli
 which contains all of the front-end of the application. It uses `React` with `Vite`, base
 `CSS` for styling, `ChartJS` for data visualization, and `axios` for API interaction.
 
+## Table of Contents
+
+- [Server](#server)
+  - [Database design](#database-design)
+  - [Server Setup and Running](#server-setup-and-running)
+- [Client](#client)
+  - [Client Setup and Running](#client-setup-and-running)
+  - [Global Types](#global-types)
+  - [API Usage](#api-usage)
+  - [API Hooks](#api-hooks)
+  - [TypeScript Components](#typescript-components)
+
 ### Server
 
 #### Database design
 
 The database used to store measurements uses `PostgreSQL` for its persistance.
 
-The design for the two tables used to store data are as follows:
-> * **measurements**
-    >
-* id -                      `bigint`, **Non-nullable**, ***primary key***, key to identify each measurement
->    * ntp_server_ip -           `inet`, the IP adress of the NTP server that was measured. Supports IPv4 or IPv6.
->    * ntp_server_name -         `text`, the name of the NTP server that was measured.
->    * ntp_version -             `smallint`, the version of NTP used for the measurement.
->    * ntp_server_ref_parent -   `inet`, the IPv4 or IPv6 adress of the parent of the NTP server.
->    * ref_name -                `text`, the name of the server the measured NTP server references.
->    * time_id -                 `bigint`,
->    * time_offset -             `double precision`,
->    * delay -                   `double precistion`, the delay of the NTP server.
->    * stratum -                 `integer`, the stratum the NTP server operates on.
->    * precision -               `double precision`, the precistion of the NTP server.
->    * reachability -            `text`, the status of the NTP server, made in accordance to the RCF8663 standard.
->    * root_delay -              `bigint`,
->    * ntp_last_sync_time -      `bigint`,
->    * root_delay_prec -         `bigint`,
->    * ntp_last_sync_time -      `bigint`,
->* **times**
-   >
-* id -         `bigint`, **Non-nullable**, ***primary key***, key to identify each measurement
->  * client_sent -             `bigint`, the time the request was sent by the client in Epoch time.
->  * client_sent_prec -        `bigint`, the 32 bits of accuracy for the client sent time.
->  * server_recv -             `bigint`, the time the request was received by the server in Epoch time.
->  * server_recv_prec -        `bigint`, the 32 bits of accuracy for the server receive time.
->  * server_sent -             `bigint`, the time when the request was sent back by the server in Epoch time.
->  * server_sent_prec -        `bigint`, the 32 bits of accuracy for the server send back time.
->  * client_recv -             `bigint`, the time when the request was received back by the client in Epoch time.
->  * client_recv_prec -        `bigint`, the 32 bits of accuracy for the client receive back time.
+The design for the two tables used to store data are shown in `database-schema.md`
 
 #### Server Setup and Running
 
@@ -138,60 +121,178 @@ To set up and run the backend server, follow these steps:
 
 ### Client
 
-#### Running the client
+#### Client Setup and Running
 
-To start and run the client, input the command ```npm run dev``` in the terminal.
+To set up and run the client, follow these steps:
 
-##### Global types
+1. **Ensure you have the prerequisites installed**
 
-The global types that are used across multiple components are stored in ```client\src\types.ts```.
+  - [Node.js](https://nodejs.org/)
+  - npm (comes bundled with Node.js)
+
+    ```bash
+    node -v
+    npm -v
+    ```
+
+  If not, install from https://nodejs.org/
+
+2. **Install the dependencies**
+
+    ```bash
+    cd ./client
+    npm install
+    ```
+
+    Ensure you are in the client folder
+
+3. **Running the client**
+
+    ```bash
+    npm run dev
+    ```
+
+#### Global types
+
+The global types that are used across multiple components are stored in ```client\src\utils\types.ts```.
 
 * **NTPData**
     * This data type is used for storing the relevant variables of the measurements that displayed on the website and
       used for the visualisation of data. It stores the following:
-        * offset
-        * delay
-        * stratum
-        * jitter
-        * reachability
-        * passing
-        * time
+>        * Offset
+>        * Round-trip time
+>        * Stratum of the NTP server
+>        * Jitter
+>        * Precision of the NTP server
+>        * Time at which the measurement taken as UNIX time
+>        * IP address of the NTP server
+>        * Name of the NTP server
+>        * Reference ID of the reference of the NTP server
+>        * Root dispersion of the NTP server
+>        * Root delay of the NTP server
+>        * The IP address of the vantage point
+* **RIPEData**
+    * This data type is used for storing the relevant variables received and displayed from the measurements taken from the
+      measurents taken by RIPE Atlas. it stores the following:
+>        * An NTPData variable with all its data
+>        * The ID of the probe that perfomed the measurement
+>        * The country the probe is stored in
+>        * The geolocation of the probe
+>        * If the ripe measurement results were actually received
+>        * The measurement ID of the measurement the probe was a part of
+* **RIPEResp**
+    * This data type is used for the response of the trigger call for the RIPE measurement. It stores the following:
+>      * The measurement ID of the measurement that is going to start
+>      * the IP of the vantage point that initiated the RIPE measurement
+* **Measurement**
+    * This data type is used for determining what measurement should be shown on the graphs.
+>      It consists of a composite type of the form: ```"RTT" | "offset"```
 
 #### API Usage
 
-There are currently `4` different API endpoints used by the front-end of the application
+There are currently `5` different API endpoints used by the front-end of the application,
 These can all be found in ```client\src\hooks```.
 
-They modify the JSON send by the back-end into `NTPData` type by calling the **transformJSONData** function located
-at ```client\src\transformJSONData.ts```.
+They all use ```axios``` for the requests, and each have a different function they implement.
+The helper functions for transforming data and  the global types used can all be found in ```client\utils```
 
-The values represent the same things as what is in the JSON, with the exception of **time** which is the process value
-of `"client_sent_time"` to know when the measurement was taken.
+##### **API Hooks**
 
-##### **APIs**
+1. **useFetchIPData**
 
-All of the APIs converts the JSON received from the back-end to the desired type by using the **transformJSONData**
-function.
-The format for the API link is `url/user_input/client_ip` for fetching measurement data, and
-`url/historical/user_input/client_ip`
-for fetching historical data. The IP is be transmitted to the back-end for both rate limiting and for using NTP
-measurements from
-the NTP servers that the client IP would access for those that support it, such as Apple, Microsoft, AWS and pool.ntp.
+    This hook provides the query of the user as a payload to backend. It can be either an IP or a domain name.
 
-* **useFetchIPData**
-    * uses the IP address provided by the user to send a request for a time measurement on the NTP server with the given
-      IP.
-    * returns 4-tuple consisting of the received data as an `NTPValue` variable: ```data```, if the measurement is
-      currently still ongoing as a `boolean`: ```loading```
-      if an error occurred as an `Error`: ```error```, and the function for fecthing data from an API endpoint as a
-      `string`: ```fetchData```.
-* **useFetchHistoricalIPData**
-    * uses the IP address provided by the user to send a request for the retreival of historical data over the period
-      of time specified by the user from the NTP server with the given IP adress.
-    * returns 4-tuple consisting of the received data as an array of `NTPValue` variables: ```data```, if the
-      measurement is currently still ongoing as a `boolean`: ```loading```
-      if an error occurred as an `Error`: ```error```, and the function for fecthing data from an API endpoint as a
-      `string`: ```fetchData```.
+    It performs a **POST** request to the backend to measure the given NTP server.
+    If the query is a domain name, the result consists of all NTP servers that it measures from the domain name, if it's an IP, only the NTP
+    server corresponding to that specific IP.
+    It parses the JSON received from the backend my using the method ```transformJSONDataToNTPData```.
+
+    It returns a **5-tuple**:
+    | Return value     | Description                                                  |
+    |------------------|--------------------------------------------------------------|
+    | ```data```       | An array of NTP results                                      |
+    | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
+    | ```error```      | Error object if one occured                                  |
+    | ```httpStatus``` | The HTTP status of the request                               |
+    | ```fetchData```  | A function for initiating the POST request                   |
+
+2. **useFetchHistoricalIPData**
+
+    This hook provides the data over a specific period of time for the server queried by the user.
+
+    It performs a **GET** request to the backend to fetch historical data.
+    The server can, similarly to the previous hook, be either an IP or a domain name.
+    The start time and end times are used in the ISO8601 format.
+    It parses the JSON received from the backend my using the method ```transformJSONDataToNTPData```.
+
+    It returns a **4-tuple**:
+    | Return value     | Description                                                  |
+    |------------------|--------------------------------------------------------------|
+    | ```data```       | An array of NTP results                                      |
+    | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
+    | ```error```      | Error object if one occured                                  |
+    | ```fetchData```  | A function for initiating the GET request                    |
+
+
+3. **triggerRipeMeasurement**
+
+    This hook is what send the trigger for the RIPE measurement to be started.
+
+    It performs a **POST** requst to the backend with the queried server as a payload to trigger the measurement.
+    As a result it gets a confirmation that the measurement started, as well as the measurement ID of the measurement started, and the IP of the
+    vantage point that started the RIPE measurement.
+    It parses the JSON received in place, since it a simple response.
+
+    It returns a **4-tuple**:
+    | Return value     | Description                                                  |
+    |------------------|--------------------------------------------------------------|
+    | ```data```       | The response of the trigger as ```RIPERest```                |
+    | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
+    | ```error```      | Error object if one occured                                  |
+    | ```fetchData```  | A function for initiating the POST request                   |
+
+4. **useFetchRipeData**
+
+    This hook is what is used to receive the actual RIPE measurement data from the backend.
+
+    It perfoms **polling** on the backend's endpoint to regularly update the data it receives.
+    This is beacuse RIPE doesn't offer all the data at once, instead slowly sending the measurements from the probes its done.
+    It has an adjustable polling rate from the method signature. 
+    Since the polling may begin before the RIPE measurement is ready, in the case it receives HTTP 405 from the backend (Method not allowed),
+    it has a separate timer to retry after.
+    The polling continues until there is an error, the measurement is complete, the measurement times out, or until a new one begins.
+    In the case of the new measurement beggining, the previous polling call is cancelled in order to prevent interleaving and other issues.
+
+    It returns a **3-tuple** consisting of:
+    | Return value     | Description                                                  |
+    |------------------|--------------------------------------------------------------|
+    | ```result```     | An array of RIPE results                                     |
+    | ```status```     | compound type indicating the current state of the measurement|
+    | ```error```      | Error object if one occured                                  |
+    - The compound type used for indicating the status is:  ```"pending" | "partial_results" | "complete" | "timeout" | "error"```
+
+5. **useIpInfo**
+
+    This hook is for fetching the geolocation of IPs in a way that does not require data communication with the backend
+
+    It makes used of ```ip-api``` for the retreival of geolocation data from IPs via a **GET**.
+    It saves both the coordinates retrieved and the country code.
+    It is only used for getting the location of the NTP servers queried, as well as the vantage point.
+    It saves the result as a ```IpInfoData``` data variable which consists of:
+      - a ```[number,number]``` type: ```coordinates```
+      - a `string` type: ```country_code```
+    This type is not saved in ```client\utils``` since it is not widely used like the other types there
+
+    It returns a **5-tuple**:
+    | Return value     | Description                                                  |
+    |------------------|--------------------------------------------------------------|
+    | ```data```       | Geolocation data fetched as ```IpInfoData```                 |
+    | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
+    | ```error```      | Error object if one occured                                  |
+    | ```fetchData```  | A function for initiating the GET request                    |
+    | ```clearIP```    | A function for resetting the state of ```data```             |
+
+    It is important to note that if the IP address provided is private, then the ```coordinates``` field of the result will have the following format: ```[undefined, undefined]```
 
 #### TypeScript Components
 
@@ -199,15 +300,8 @@ For the better running, understanding and modularity of the code, several sectio
 different components.
 
 * **DownloadButton**
-* **Dropdown**
-    * Allows the user to easily build and define the elements within the dropdown menu, as defined by `DropdownProps`:
-        * `label`: The name of the dropdown menu that will be displayed on the page.
-        * `options`: The options that will be available from within the dropdown menu.
-        * `selectedValue`: The current value picked on the dropdown menu. Has the default value of the first option
-          given.
-        * `onSelect`: The function that dictated what will change when the target option of the dropdown is selected.
-        * `className`: The desired class name of the dropdown menu for CSS styling.
 * **Hero**
+* **InputSection**
 * **LineGraph**
     * A component that uses ChartJS to create line graph for the data provided. Uses the `Measurement` type to make the
       graph show either delay or offset
@@ -216,6 +310,9 @@ different components.
       measure will be indicated.
     * On the x-axis is shows the time of measurement, as a string of a `Date` object, taken from the `time` field of
       `NTPData`.
+* **LoadingSpinner**
+* **ResultSummary**
+* **TimeInput**
 * **Visualization**
     * The popup that appears when pressing the "View Historical Data" button. It contains all the possible options for
       choosing which data to visualize
@@ -223,3 +320,13 @@ different components.
     * The `Custom` button allows the user to input a time period of their choice using the new fields that appear.
     * The `Delay` and `Offset` radios are used to pick the option of which measurement to be shown.
     * The **DownloadButtons** allow the user to download the data for the data during the selected time period.
+* **WorldMap**
+    * This component renders a map for all the geolocation data to be visualized
+    * Makes use of `Leaflet` for rendering the map
+    * The base tile used is ***Dark Matter*** offered by [CARTO](https://carto.com/)
+    * It shows the location of the probes, NTP server(s) and vantage point
+    * The icons used can be found in `src\assets`
+    * Each point on the map show some information related to it, such as:
+      - RTT, Offset and probe ID for the RIPE probes
+      - IP and name for the NTP server(s)
+      - IP and location for the vantage point
