@@ -13,19 +13,19 @@ import time
 
 load_dotenv()
 DB_CONFIG = {
-    "host": os.getenv("DB_HOST", "localhost"),
-    "port": os.getenv("DB_PORT", 5432),
-    "user": os.getenv("DB_USER", "postgres"),
-    "password": os.getenv("DB_PASSWORD", ""),
-    "dbname": os.getenv("DB_NAME", "postgres"),
+    "host": os.environ.get("DB_HOST", "localhost"),
+    "port": os.environ.get("DB_PORT", 5432),
+    "user": os.environ.get("DB_USER", "postgres"),
+    "password": os.environ.get("DB_PASSWORD", ""),
+    "dbname": os.environ.get("DB_NAME", "postgres"),
 }
-
+DATABASE_URL = os.environ.get("DATABASE_URL")
 TEST_DB_CONFIG = {
     "host": DB_CONFIG["host"],
     "port": DB_CONFIG["port"],
-    "user": os.getenv("DB_USER", DB_CONFIG["user"]),
-    "password": os.getenv("DB_PASSWORD", DB_CONFIG["password"]),
-    "dbname": os.getenv("DB_NAME", "test_db"),
+    "user": os.environ.get("DB_USER", DB_CONFIG["user"]),
+    "password": os.environ.get("DB_PASSWORD", DB_CONFIG["password"]),
+    "dbname": os.environ.get("DB_NAME", "test_db"),
 }
 
 def get_connection():

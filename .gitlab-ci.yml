@@ -8,6 +8,10 @@ image: python:3.13.3
 variables:
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   PYTHONPATH: "$CI_PROJECT_DIR"
+  DB_NAME: myapp_test
+  DB_USER: test_user
+  DB_PASSWORD: test_password
+  DATABASE_URL: postgresql://test_user:test_password@postgres:5432/myapp_test
 
 cache:
   key:
@@ -43,10 +47,17 @@ lint:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
+services:
+  - name: postgres:15
+    alias: postgres
+
 server_tests:
   stage: test
   script:
     - source venv/bin/activate
+    - apt-get update && apt-get install -y postgresql-client
+    - until pg_isready -h postgres -p 5432; do echo "Waiting for postgres..."; sleep 1; done
+    - PGPASSWORD=test_password psql -h postgres -U test_user -d myapp_test -c "CREATE DATABASE postgres;" || true
     - pytest --cov=server --cov-report=term-missing server/tests/
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+(\d+%)$/'
   rules:
