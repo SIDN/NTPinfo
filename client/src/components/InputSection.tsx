@@ -43,4 +43,4 @@ const InputSection: React.FC<InputProps> = ({ onClick, loading }) => {
 
 };
 
-export default InputSection;
+export default InputSection

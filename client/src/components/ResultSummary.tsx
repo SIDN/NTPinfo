@@ -15,12 +15,12 @@ function ResultSummary({data, ripeData, err, httpStatus} : {data : NTPData | nul
         else if (err)
             setStatusMessage("Unknown error occurred")
         }
-    }, [data, httpStatus, err]) 
+    }, [data, httpStatus, err])
 
-    if (data == null) 
+    if (data == null)
         return <h2 id="not-found">{err ? `Error ${httpStatus}: ${statusMessage}` : `Unknown error occurred`}</h2>
-    
-       
+
+
     const status = data ? calculateStatus(data) : null
     return (
         <>
@@ -68,11 +68,11 @@ function ResultSummary({data, ripeData, err, httpStatus} : {data : NTPData | nul
                         <div className="metric"><span>Measurement ID</span><span>{ripeData?.measurement_id}</span></div>
                     </div>
                 </div>
-                
+
             </div>
-            
-            
-                
+
+
+
         </>
 
     )

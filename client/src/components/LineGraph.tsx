@@ -66,7 +66,7 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
   if (data == null)
     return null
 
-   
+
   const now = new Date()
   const graphColors: string[] = ['rgb(53, 126, 235)', 'rgb(208, 120, 12)']
   //
@@ -110,7 +110,7 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
   const SAMPLE_DENSITY = 100;  // data points reduction factor
 
   const axisMs = endPoint.getTime() - startingPoint.getTime();
-  
+
   const datasets: any[] = [];
   const thresholdMs =
         SAMPLE_DENSITY > 0 && axisMs > 0
@@ -136,7 +136,7 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
       borderColor: graphColors[clrIndex++],
       backgroundColor: 'rgba(236, 240, 243, 0.3)',
       tension: 0,
-      pointRadius: 5,
+      pointRadius: 2,
     });
   }
 
@@ -203,7 +203,7 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
 
 
   const chartData = { datasets };
-  
+
 
   return <Line options={options} data={chartData} />
 }

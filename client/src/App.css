@@ -27,7 +27,6 @@ body,
 
 body {
   /* instead of html */
-  padding-top: 8.5rem;
 
   /* global variables */
   --bg-clr-primary: #292f36;
@@ -60,7 +59,6 @@ body {
   display: flex;
   border-radius: 15px;
   border: 5px solid;
-  /* padding: 0.6em 0.6em; */
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
@@ -106,7 +104,6 @@ body {
 .input-wrapper {
   margin-top: 0;
   margin-left: 1rem;
-  /* max-width: 600px; */
   width: 60%;
 }
 
@@ -129,16 +126,20 @@ body {
 .download-buttons {
   display: flex;
   align-items: center;
-  /* justify-content: space-evenly; */
   padding-left: 2rem;
   gap: 1rem;
+}
+
+.graphs {
+  display: flex;
+  gap: 1rem;
+  flex: 2 1 50%;
 }
 
 .graph-box {
   /* flex: 1; */
   height: 150px;
   background-color: #2a2a3c;
-  /* border-radius: 8px; */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -158,10 +159,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
-
-  /* max-width: 600px;
-  height: auto;
-  padding: 1rem; */
 }
 
 .map-box {
@@ -185,6 +182,29 @@ body {
 }
 .ip-list a {
   text-decoration: underline;
+}
+
+/* App.css */
+.app-layout {
+  display: flex;
+  height: 100vh;
+}
+
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+.app-content {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto;
 }
 
 @media (max-width: 1599px) {
