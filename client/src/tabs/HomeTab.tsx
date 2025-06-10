@@ -232,7 +232,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
               Round-trip time
             </label>
             </div>
-            <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day"/>
+            <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day" legendDisplay={false}/>
           </div>
         </div>
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus} ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null}/>)}
@@ -245,7 +245,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         <DownloadButton name="Download CSV" onclick={() => downloadCSV(ripeMeasurementResp ? [ntpData, ripeMeasurementResp[0]] : [ntpData])} />
       </div>)}
       {/*Map compoment that shows the NTP servers, the vantage point, and the RIPE probes*/}
-      {/*{(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
+      {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
         <div className='map-box'>
           <WorldMap
             probes={ripeMeasurementResp}
@@ -254,7 +254,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
             status={ripeMeasurementStatus}
           />
         </div>
-        )}*/}
+        )}
     </div>
     </div>
     );

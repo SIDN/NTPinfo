@@ -80,6 +80,7 @@ const HistoricalDataTab: React.FC<HistoricalDataTabProps> = ({ data }) => {
                 selectedMeasurement={selMeasurement}
                 selectedOption={selOption}
                 customRange={{ from: customFrom, to: customTo }}
+                legendDisplay={false}
             />
             </div>
         </div>

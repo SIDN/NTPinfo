@@ -21,6 +21,7 @@ type ChartInputData = {
     selectedMeasurement: Measurement
     selectedOption: string
     customRange?: { from: string; to: string }
+    legendDisplay?: boolean
 }
 
 ChartJS.register(CategoryScale, LinearScale, TimeScale, PointElement, LineElement, Title, Tooltip, Legend)
@@ -58,7 +59,7 @@ function unitForSpan(spanMs: number): { unit: 'second'|'minute'|'hour'|'day'|'mo
   return                        { unit: 'year',   fmt: 'yyyy' };             // above 2 years → years
 }
 
-export default function LineChart({data, selectedMeasurement, selectedOption, customRange}: ChartInputData) {
+export default function LineChart({data, selectedMeasurement, selectedOption, customRange, legendDisplay}: ChartInputData) {
   const measurementMap = {
       RTT: 'Round-trip time (s)',
       offset: 'Offset (s)'
@@ -161,6 +162,7 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
     plugins: {
       legend: {
         position: 'top' as const,
+        display: legendDisplay,
       },
       title: {
         display: false,

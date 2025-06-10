@@ -156,7 +156,7 @@ function CompareTab() {
 
 
                  <div className="chart-wrapper">
-                <LineChart data = {data} selectedMeasurement={selMeasurement} selectedOption={selOption}/>
+                <LineChart data = {data} selectedMeasurement={selMeasurement} selectedOption={selOption} legendDisplay={true}/>
                 </div>
 
             </div>)) ||
