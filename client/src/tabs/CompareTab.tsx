@@ -6,6 +6,7 @@ import { TimeInput } from '../components/TimeInput'
 import LoadingSpinner from '../components/LoadingSpinner'
 import { NTPData, Measurement } from '../utils/types'
 import LineChart from '../components/LineGraph'
+import Hero from '../components/Hero';
 function CompareTab() {
 
     const [first, setFirst] = useState<string>('')
@@ -32,7 +33,7 @@ function CompareTab() {
             setErrMessage("Please fill in both servers")
             return
         }
-          
+
 
         if (first === second) {
             setErrMessage("The servers must be different")
@@ -63,7 +64,7 @@ function CompareTab() {
         setData(map)
         setShowData(true)
         setLoading(false)
-        
+
     }
 
     const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,7 +78,10 @@ function CompareTab() {
                 setSecond(event.target.value)
     };
     return (
+        <div>
+            <Hero />
         <div className="compare-tab">
+            {/* <Hero /> */}
             <div className="compare-input">
                 <p>Enter the domain names or IP adresses of the servers </p>
             <form className="compare-form" onSubmit={(e) => {
@@ -104,7 +108,7 @@ function CompareTab() {
                     onFocus={() => setSelectedInput(2)}
                     onChange={handleInputChange}
                     placeholder="Server 2 (ex. time.google.com)"
-                /> 
+                />
             </div>
             <TimeInput
                 options={["Last Hour", "Last Day", "Last Week", "Custom"]}
@@ -116,14 +120,14 @@ function CompareTab() {
                 onToChange={setCustomTo}
             />
             {errMessage && (<p className='error'>{errMessage}</p>)}
-            <button type="submit" 
+            <button type="submit"
                     className='submit-btn'
                     disabled={!first.trim() || !second.trim() || loading}>
                         {loading ? "Comparing..." : "Compare"}
             </button>
            </form>
            </div>
-            {(!loading && showData && 
+            {(!loading && showData &&
            (<div className='graph-container'>
                         <div className="radio-group">
                         {/*Radio for showing offset data*/}
@@ -149,12 +153,12 @@ function CompareTab() {
                             Round-trip time
                         </label>
                     </div>
-                    
-                       
+
+
                  <div className="chart-wrapper">
                 <LineChart data = {data} selectedMeasurement={selMeasurement} selectedOption={selOption}/>
-                </div>            
-                        
+                </div>
+
             </div>)) ||
             (loading && (<div className="loading-div">
                             <p>Loading...</p>
@@ -167,12 +171,13 @@ function CompareTab() {
                     <p className="text-compare">Compare the accuracy of two NTP servers.</p>
                     <p className="text-compare">Their historical data will be shown here as a graph.</p>
                     </div>
-                   
+
                 </div>
             )}
-           
-            
-          
+
+
+
+        </div>
         </div>
     )
 }
