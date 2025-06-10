@@ -6,7 +6,7 @@ from ipaddress import IPv4Address, ip_address
 from sqlalchemy import create_engine, StaticPool, Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from server.app.models.CustomError import RipeMeasurementError
+from server.app.models.CustomError import RipeMeasurementError, DNSError, MeasurementQueryError
 from server.app.models.Base import Base
 from server.app.main import create_app
 from server.app.dtos.NtpExtraDetails import NtpExtraDetails
@@ -17,7 +17,6 @@ from server.app.dtos.NtpTimestamps import NtpTimestamps
 from server.app.dtos.PreciseTime import PreciseTime
 from datetime import datetime, timezone, timedelta
 from server.app.api.routing import get_db
-
 
 engine = MagicMock(spec=Engine)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
