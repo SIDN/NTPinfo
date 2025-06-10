@@ -1,6 +1,8 @@
 import socket
 from unittest.mock import patch, MagicMock
-from server.app.utils.domain_name_to_ip import domain_name_to_ip_default, domain_name_to_ip_close_to_client
+import pytest
+from server.app.utils.domain_name_to_ip import domain_name_to_ip_default, domain_name_to_ip_close_to_client, \
+    edns_response_to_ips
 import dns.rdatatype
 
 
@@ -55,10 +57,14 @@ def test_domain_name_to_ip_default_more_ips(mock_getaddrinfo):
     assert result == mock_ans
 
 
-def test_domain_name_to_ip_close_to_client_invalid_domain_name():
-    result = domain_name_to_ip_close_to_client(domain_name="intp.org....",client_ip="83.25.24.10")
-
+def test_domain_name_to_ip_close_to_client_invalid_input():
+    # invalid domain name
+    result = domain_name_to_ip_close_to_client(domain_name="intp.org....", client_ip="83.25.24.10")
     assert result is None
+
+    # invalid IP address
+    with pytest.raises(Exception):
+        domain_name_to_ip_close_to_client("time.google.com", "not an IP")
 
 
 @patch('dns.query.udp')
@@ -133,3 +139,105 @@ def test_domain_name_to_ip_close_to_client_udp_and_tcp_fail(mock_udp,mock_tcp):
 
     result = domain_name_to_ip_close_to_client(domain_name="pool.ntp.org",client_ip="83.25.24.10")
     assert set(result) == set(mock_ans)
+
+
+
+@patch("server.app.utils.domain_name_to_ip.domain_name_to_ip_close_to_client")
+def test_edns_response_to_ips_only_ips(mock_domain_name):
+    # answers with IPv4 (A)
+    a_rrset = MagicMock()
+    a_rrset.rdtype = dns.rdatatype.A
+    a_rrset.items = [MagicMock(address="123.43.12.9"), MagicMock(address="124.11.13.19")]
+    # answers with IPv4 (A)
+    a_rrset2 = MagicMock()
+    a_rrset2.rdtype = dns.rdatatype.A
+    a_rrset2.items = [MagicMock(address="11.43.12.9")]
+
+    # answers with IPv6 (AAAA)
+    aaaa_rrset = MagicMock()
+    aaaa_rrset.rdtype = dns.rdatatype.A
+    aaaa_rrset.items = [MagicMock(address="123.143.10.9"), MagicMock(address="124.111.10.19")]
+    # response
+    mock_response = MagicMock()
+    mock_response.answer = [a_rrset, aaaa_rrset, a_rrset2]
+
+    result = edns_response_to_ips(mock_response, client_ip="83.25.24.10", resolvers=["8.8.8.8"])
+
+    assert set(result) == {"123.43.12.9",
+                      "124.11.13.19",
+                      "123.143.10.9",
+                      "124.111.10.19",
+                      "11.43.12.9"}
+
+@patch("server.app.utils.domain_name_to_ip.domain_name_to_ip_close_to_client")
+def test_edns_response_to_ips_cname(mock_domain_name):
+    mock_domain_name.return_value = ["33.44.56.78", "44.44.55.75", "2.2.2.2"]
+    # answers with IPv4 (A)
+    a_rrset = MagicMock()
+    a_rrset.rdtype = dns.rdatatype.A
+    a_rrset.items = [MagicMock(address="123.43.12.9"), MagicMock(address="124.11.13.19")]
+    # answers with CNAME
+    cname_rrset = MagicMock()
+    cname_rrset.rdtype = dns.rdatatype.CNAME
+    cname_item = MagicMock()
+    cname_item.__str__.return_value = "redirected.example.com."
+    cname_rrset.items = [cname_item]
+
+    # response
+    mock_response = MagicMock()
+    mock_response.answer = [a_rrset, cname_rrset]
+
+    result = edns_response_to_ips(mock_response, client_ip="83.25.24.10", resolvers=["8.8.8.8"])
+    mock_domain_name.assert_called_with("redirected.example.com", "83.25.24.10",
+                                        ["8.8.8.8"], 1, 2)
+    assert set(result) == {"123.43.12.9",
+                      "124.11.13.19",
+                      "33.44.56.78",
+                      "44.44.55.75",
+                      "2.2.2.2"}
+
+@patch("server.app.utils.domain_name_to_ip.domain_name_to_ip_close_to_client")
+def test_edns_response_to_ips_cname_none(mock_domain_name):
+    mock_domain_name.return_value = None
+    # answers with IPv4 (A)
+    a_rrset = MagicMock()
+    a_rrset.rdtype = dns.rdatatype.A
+    a_rrset.items = [MagicMock(address="123.43.12.9"), MagicMock(address="124.11.13.19")]
+    # answers with CNAME
+    cname_rrset = MagicMock()
+    cname_rrset.rdtype = dns.rdatatype.CNAME
+    cname_item = MagicMock()
+    cname_item.__str__.return_value = "redirected.example.com."
+    cname_rrset.items = [cname_item]
+
+    # response
+    mock_response = MagicMock()
+    mock_response.answer = [a_rrset, cname_rrset]
+
+    result = edns_response_to_ips(mock_response, client_ip="83.25.24.10", resolvers=["8.8.8.8"])
+    mock_domain_name.assert_called_with("redirected.example.com", "83.25.24.10",
+                                        ["8.8.8.8"], 1, 2)
+    assert set(result) == {"123.43.12.9",
+                      "124.11.13.19"}
+
+@patch("server.app.utils.domain_name_to_ip.domain_name_to_ip_close_to_client")
+def test_edns_response_to_ips_cname_too_large_depth(mock_domain_name):
+    mock_domain_name.return_value = ["33.44.56.78", "44.44.55.75", "2.2.2.2"] # it should not arrive there because depth is max_depth
+    # answers with IPv4 (A)
+    a_rrset = MagicMock()
+    a_rrset.rdtype = dns.rdatatype.A
+    a_rrset.items = [MagicMock(address="123.43.12.9"), MagicMock(address="124.11.13.19")]
+    # answers with CNAME
+    cname_rrset = MagicMock()
+    cname_rrset.rdtype = dns.rdatatype.CNAME
+    cname_item = MagicMock()
+    cname_item.__str__.return_value = "redirected.example.com."
+    cname_rrset.items = [cname_item]
+
+    # response
+    mock_response = MagicMock()
+    mock_response.answer = [a_rrset, cname_rrset]
+
+    result = edns_response_to_ips(mock_response, client_ip="83.25.24.10", resolvers=["8.8.8.8"], depth=2, max_depth=2)
+    mock_domain_name.assert_not_called()
+    assert set(result) == {"123.43.12.9", "124.11.13.19"}
