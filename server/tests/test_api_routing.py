@@ -257,8 +257,8 @@ def test_read_data_measurement_missing_measurement_no(mock_is_ip, mock_insert, m
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = test_client.post("/measurements/", json={"server": "pool.ntp.org"},
                                 headers=headers)
-    assert response.status_code == 404
-    assert '{"error":"Your search does not seem to match any server"}' in response.text
+    assert response.status_code == 400
+    assert '{"detail":"Sever is not reachable."}' in response.text
 
 
 @patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
@@ -288,7 +288,7 @@ def test_read_data_measurement_missing_server(test_client):
 
     response = test_client.post("/measurements/", json={"server": ""}, headers=headers)
     assert response.status_code == 400
-    assert response.json() == {"error": "Either 'ip' or 'dn' must be provided"}
+    assert response.json() == {"detail": "Either 'ip' or 'dn' must be provided."}
 
 
 def test_read_data_measurement_wrong_server(test_client):
@@ -296,8 +296,8 @@ def test_read_data_measurement_wrong_server(test_client):
 
     response = test_client.post("/measurements/", json={"server": "random-server-name.org", },
                                 headers=headers)
-    assert response.status_code == 404
-    assert response.json() == {"error": "Your search does not seem to match any server"}
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Sever is not reachable."}
 
 
 @patch("server.app.services.api_services.get_measurements_timestamps_dn")
@@ -365,7 +365,7 @@ def test_read_historic_data_missing_server(test_client):
         "end": end.isoformat()
     })
     assert response.status_code == 400
-    assert response.json() == {'error': "Either 'ip' or 'domain name' must be provided"}
+    assert response.json() == {"detail": "Either 'ip' or 'domain name' must be provided"}
 
 
 def test_read_historic_data_wrong_start(test_client):
@@ -377,7 +377,7 @@ def test_read_historic_data_wrong_start(test_client):
         "end": end.isoformat()
     })
     assert response.status_code == 400
-    assert response.json() == {"error": "'start' must be earlier than 'end'"}
+    assert response.json() == {"detail": "'start' must be earlier than 'end'"}
 
 
 def test_read_historic_data_wrong_end(test_client):
@@ -389,7 +389,7 @@ def test_read_historic_data_wrong_end(test_client):
         "end": (end + timedelta(minutes=10)).isoformat()
     })
     assert response.status_code == 400
-    assert response.json() == {"error": "'end' cannot be in the future"}
+    assert response.json() == {"detail": "'end' cannot be in the future"}
 
 
 @patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
@@ -511,7 +511,7 @@ def test_trigger_ripe_measurement_server_not_present(test_client):
                                 json={"server": ""},
                                 headers=headers)
     assert response.status_code == 400
-    assert response.json() == {"error": "Either 'ip' or 'dn' must be provided"}
+    assert response.json() == {"detail": "Either 'ip' or 'dn' must be provided"}
 
 
 @patch("server.app.api.routing.perform_ripe_measurement")
@@ -551,7 +551,7 @@ def test_trigger_ripe_measurement_server_error(mock_perform_ripe_measurement, te
 
     assert response.status_code == 500
     assert response.json()[
-               "error"] == "Failed to initiate measurement: Could not find any IP address for time.server_some.com."
+               "detail"] == "Failed to initiate measurement: Could not find any IP address for time.server_some.com."
 
 
 @patch("server.app.api.routing.fetch_ripe_data")
@@ -560,14 +560,14 @@ def test_get_ripe_measurement_result_pending(mock_fetch_ripe_data, test_client):
     response = test_client.get("/measurements/ripe/123456")
     assert response.status_code == 202
     print(response.json())
-    assert response.json()["msg"] == "Measurement is still being processed."
+    assert response.json() == "Measurement is still being processed."
 
 
 @patch("server.app.api.routing.fetch_ripe_data")
 def test_get_ripe_measurement_result_partial(mock_fetch_ripe_data, test_client):
     mock_fetch_ripe_data.return_value = mock_fetch_ripe_data_result(), "Ongoing"
     response = test_client.get("/measurements/ripe/123456")
-    assert response.status_code == 200
+    assert response.status_code == 206
     assert response.json()["status"] == "partial_results"
     assert response.json()["results"] == mock_fetch_ripe_data_result()
 
@@ -588,4 +588,4 @@ def test_get_ripe_measurement_result_error(mock_fetch_ripe_data, test_client):
     response = test_client.get("/measurements/ripe/123456")
     assert response.status_code == 405
     assert response.json()[
-               "error"] == "RIPE call failed: RIPE API error: Bad Request - There was a problem with your request. Try again later!"
+               "detail"] == "RIPE call failed: RIPE API error: Bad Request - There was a problem with your request. Try again later!"

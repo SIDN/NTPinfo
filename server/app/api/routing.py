@@ -2,9 +2,12 @@ from fastapi import HTTPException, APIRouter, Request, Depends
 
 from datetime import datetime, timezone
 from typing import Any, Optional, Generator
+from fastapi.responses import JSONResponse
 
 from sqlalchemy.orm import Session
 
+from server.app.utils.ip_utils import client_ip_fetch
+from server.app.models.CustomError import DNSError, MeasurementQueryError
 from server.app.utils.ip_utils import ip_to_str
 from server.app.models.CustomError import InputError, RipeMeasurementError
 from server.app.utils.ip_utils import get_server_ip
@@ -54,40 +57,44 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
               On failure, returns {"Error": "Could not perform measurement, DNS or IP not reachable."}
 
     Raises:
-        HTTPException: 400 error if the `server` field is empty.
+        HTTPException:
+            - 400 If the `server` field is empty or no response
+            - 503 If we could not get client IP address or our server's IP address.
+
     """
     server = payload.server
     if len(server) == 0:
-        raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
-
-    # get the client IP from the request
-    client_ip: Optional[str]
-    if request.client is None:
-        client_ip = None
-    else:
-        try:
-            client_ip = request.headers.get("X-Forwarded-For", request.client.host)
-        except Exception as e:
-            client_ip = None
-    response = measure(server, session, client_ip)
-    # print(response)
-    if response is not None:
-        new_format = []
-        for r in response:
-            result, jitter, nr_jitter_measurements = r
-            new_format.append(get_format(result, jitter, nr_jitter_measurements))
-        return {
-            "measurement": new_format
-        }
-    else:
-        raise HTTPException(status_code=404, detail="Your search does not seem to match any server")
+        raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided.")
+    client_ip: Optional[str] = client_ip_fetch(request=request)
+    try:
+        response = measure(server, session, client_ip)
+        # print(response)
+        if response is not None:
+            new_format = []
+            for r in response:
+                result, jitter, nr_jitter_measurements = r
+                new_format.append(get_format(result, jitter, nr_jitter_measurements))
+            return {
+                "measurement": new_format
+            }
+        else:
+            raise HTTPException(status_code=400, detail="Sever is not reachable.")
+    except HTTPException as e:
+        print(e)
+        raise e
+    except DNSError as e:
+        print(e)
+        raise HTTPException(status_code=422, detail="Domain name cannot be resolved.")
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=f"Sever error: {str(e)}.")
 
 
 @router.get("/measurements/history/")
 @limiter.limit("5/second")
 async def read_historic_data_time(server: str,
                                   start: datetime, end: datetime, request: Request,
-                                  session: Session = Depends(get_db)) -> dict[str, list[dict[str, Any]]]:
+                                  session: Session = Depends(get_db)) -> JSONResponse:
     """
     Retrieve historic NTP measurements for a given server and optional time range.
 
@@ -108,8 +115,11 @@ async def read_historic_data_time(server: str,
         dict: A dictionary containing a list of formatted measurements under "measurements".
 
     Raises:
-        HTTPException: 400 error if `server` parameter is empty.
-        HTTPException: 404 error if `server` parameter is not found.
+        HTTPException:
+            Raises:
+        HTTPException:
+            - 400: If `server` parameter is empty, or the start and end dates are badly formatted (e.g., `start >= end`, `end` in future).
+            - 500: If there's an internal server error, such as a database access issue (`MeasurementQueryError`) or any other unexpected server-side exception.
     """
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'domain name' must be provided")
@@ -125,11 +135,19 @@ async def read_historic_data_time(server: str,
     #
     # start_test = utc_time_from_9am
     # end_test = current_utc_time
-    result = fetch_historic_data_with_timestamps(server, start, end, session)
-    formatted_results = [get_format(entry, nr_jitter_measurements=0) for entry in result]
-    return {
-        "measurements": formatted_results
-    }
+    try:
+        result = fetch_historic_data_with_timestamps(server, start, end, session)
+        formatted_results = [get_format(entry, nr_jitter_measurements=0) for entry in result]
+        return JSONResponse(
+            status_code=200,
+            content={
+                "measurements": formatted_results
+            }
+        )
+    except MeasurementQueryError as e:
+        raise HTTPException(status_code=500, detail=f"There was an error with accessing the database: {str(e)}.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Sever error: {str(e)}.")
 
 
 @router.post("/measurements/ripe/trigger/")
@@ -170,13 +188,7 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
 
-    client_ip: Optional[str]
-    try:
-        client_ip = request.headers.get("X-Forwarded-For", request.client.host if request.client is not None else None)
-        if client_ip is None:
-            client_ip = ip_to_str(get_server_ip())
-    except Exception as e:
-        raise HTTPException(status_code=503, detail="Could not resolve client IP or fallback IP.")
+    client_ip: Optional[str] = client_ip_fetch(request=request)
     try:
         measurement_id = perform_ripe_measurement(server, client_ip=client_ip)
         return {
@@ -199,7 +211,7 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
 
 @router.get("/measurements/ripe/{measurement_id}")
 @limiter.limit("5/second")
-async def get_ripe_measurement_result(measurement_id: str, request: Request) -> dict[str, Any]:
+async def get_ripe_measurement_result(measurement_id: str, request: Request) -> JSONResponse:
     """
     Retrieve the results of a previously triggered RIPE Atlas measurement.
 
@@ -229,11 +241,11 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
     try:
         ripe_measurement_result, status = fetch_ripe_data(measurement_id=measurement_id)
         if not ripe_measurement_result:
-            raise HTTPException(status_code=202, detail="Measurement is still being processed.")
+            return JSONResponse(status_code=202, content="Measurement is still being processed.")
         if status == "Complete":
-            raise HTTPException(
+            return JSONResponse(
                 status_code=200,
-                detail={
+                content={
                     "status": "complete",
                     "message": "Measurement has been completed.",
                     "results": ripe_measurement_result
@@ -241,23 +253,21 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
             )
 
         if status == "Ongoing":
-            raise HTTPException(
+            return JSONResponse(
                 status_code=206,
-                detail={
+                content={
                     "status": "partial_results",
                     "message": "Measurement is still in progress. These are partial results.",
                     "results": ripe_measurement_result
                 }
             )
-        raise HTTPException(
-            status_code=408,
-            detail={
+        return JSONResponse(
+            status_code=504,
+            content={
                 "status": "timeout",
                 "message": "RIPE data likely completed but incomplete probe responses."
             }
         )
-    except HTTPException as e:
-        raise e
     except RipeMeasurementError as e:
         print(e)
         raise HTTPException(status_code=405, detail=f"RIPE call failed: {str(e)}. Try again later!")
