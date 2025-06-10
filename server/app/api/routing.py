@@ -231,23 +231,32 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
         if not ripe_measurement_result:
             raise HTTPException(status_code=202, detail="Measurement is still being processed.")
         if status == "Complete":
-            return {
-                "status": "complete",
-                "results": ripe_measurement_result
-            }
+            raise HTTPException(
+                status_code=200,
+                detail={
+                    "status": "complete",
+                    "message": "Measurement has been completed.",
+                    "results": ripe_measurement_result
+                }
+            )
 
         if status == "Ongoing":
-            return {
-                "status": "partial_results",
-                "results": ripe_measurement_result
+            raise HTTPException(
+                status_code=206,
+                detail={
+                    "status": "partial_results",
+                    "message": "Measurement is still in progress. These are partial results.",
+                    "results": ripe_measurement_result
+                }
+            )
+        raise HTTPException(
+            status_code=408,
+            detail={
+                "status": "timeout",
+                "message": "RIPE data likely completed but incomplete probe responses."
             }
-
-        return {
-            "status": "timeout",
-            "message": "RIPE data likely completed but incomplete probe responses."
-        }
+        )
     except HTTPException as e:
-        print(e)
         raise e
     except RipeMeasurementError as e:
         print(e)

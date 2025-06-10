@@ -52,10 +52,22 @@ def get_format(measurement: NtpMeasurement, jitter: Optional[float] = None,
         "ntp_server_ref_parent_ip": ip_to_str(measurement.server_info.ntp_server_ref_parent_ip),
         "ref_name": measurement.server_info.ref_name,
 
-        "client_sent_time": measurement.timestamps.server_sent_time,
-        "server_recv_time": measurement.timestamps.server_recv_time,
-        "server_sent_time": measurement.timestamps.server_sent_time,
-        "client_recv_time": measurement.timestamps.client_recv_time,
+        "client_sent_time": {
+            "seconds": measurement.timestamps.client_sent_time.seconds,
+            "fraction": measurement.timestamps.client_sent_time.fraction
+        },
+        "server_recv_time": {
+            "seconds": measurement.timestamps.server_recv_time.seconds,
+            "fraction": measurement.timestamps.server_recv_time.fraction
+        },
+        "server_sent_time": {
+            "seconds": measurement.timestamps.server_sent_time.seconds,
+            "fraction": measurement.timestamps.server_sent_time.fraction
+        },
+        "client_recv_time": {
+            "seconds": measurement.timestamps.client_recv_time.seconds,
+            "fraction": measurement.timestamps.client_recv_time.fraction
+        },
 
         "offset": measurement.main_details.offset,
         "rtt": measurement.main_details.rtt,
@@ -65,7 +77,7 @@ def get_format(measurement: NtpMeasurement, jitter: Optional[float] = None,
 
         "root_delay": NtpCalculator.calculate_float_time(measurement.extra_details.root_delay),
         "poll": measurement.extra_details.poll,
-        "root_dispersion": measurement.extra_details.root_dispersion,
+        "root_dispersion": NtpCalculator.calculate_float_time(measurement.extra_details.root_dispersion),
         "ntp_last_sync_time": measurement.extra_details.ntp_last_sync_time,
         # if it has value = 3 => invalid
         "leap": measurement.extra_details.leap,
@@ -113,8 +125,9 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
         "stratum": measurement.ntp_measurement.main_details.stratum,
         "poll": measurement.ntp_measurement.extra_details.poll,
         "precision": measurement.ntp_measurement.main_details.precision,
-        "root_delay": measurement.ntp_measurement.extra_details.root_delay,
-        "root_dispersion": measurement.ntp_measurement.extra_details.root_dispersion,
+        "root_delay": NtpCalculator.calculate_float_time(measurement.ntp_measurement.extra_details.root_delay),
+        "root_dispersion": NtpCalculator.calculate_float_time(
+            measurement.ntp_measurement.extra_details.root_dispersion),
         "ref_id": measurement.ref_id,
         "probe_count_per_type": {
             'asn': 9,
@@ -125,10 +138,22 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
         },
         "result": [
             {
-                "client_sent_time": measurement.ntp_measurement.timestamps.client_sent_time,
-                "server_recv_time": measurement.ntp_measurement.timestamps.server_recv_time,
-                "server_sent_time": measurement.ntp_measurement.timestamps.server_sent_time,
-                "client_recv_time": measurement.ntp_measurement.timestamps.client_recv_time,
+                "client_sent_time": {
+                    "seconds": measurement.ntp_measurement.timestamps.client_sent_time.seconds,
+                    "fraction": measurement.ntp_measurement.timestamps.client_sent_time.fraction
+                },
+                "server_recv_time": {
+                    "seconds": measurement.ntp_measurement.timestamps.server_recv_time.seconds,
+                    "fraction": measurement.ntp_measurement.timestamps.server_recv_time.fraction
+                },
+                "server_sent_time": {
+                    "seconds": measurement.ntp_measurement.timestamps.server_sent_time.seconds,
+                    "fraction": measurement.ntp_measurement.timestamps.server_sent_time.fraction
+                },
+                "client_recv_time": {
+                    "seconds": measurement.ntp_measurement.timestamps.client_recv_time.seconds,
+                    "fraction": measurement.ntp_measurement.timestamps.client_recv_time.fraction
+                },
                 "rtt": measurement.ntp_measurement.main_details.rtt,
                 "offset": measurement.ntp_measurement.main_details.offset
             }

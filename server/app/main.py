@@ -65,30 +65,30 @@ def create_app(dev: bool = True) -> FastAPI:
         """
         return _rate_limit_exceeded_handler(request, exc)
 
-    @app.exception_handler(HTTPException)
-    async def custom_http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
-        """
-        Handle generic HTTPException errors and return a custom error structure.
-
-        Overrides FastAPI's default error response by returning an object with an "error" key
-        instead of the default "detail" key for better frontend compatibility or customization.
-
-        Args:
-            request (Request): The incoming HTTP request that caused the error.
-            exc (HTTPException): The raised HTTPException.
-
-        Returns:
-            JSONResponse: A response with the appropriate status code and custom error format.
-        """
-        if exc.status_code == 202:
-            return JSONResponse(
-                status_code=202,
-                content={"msg": exc.detail}
-            )
-        return JSONResponse(
-            status_code=exc.status_code,
-            content={"error": exc.detail},
-        )
+    # @app.exception_handler(HTTPException)
+    # async def custom_http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+    #     """
+    #     Handle generic HTTPException errors and return a custom error structure.
+    #
+    #     Overrides FastAPI's default error response by returning an object with an "error" key
+    #     instead of the default "detail" key for better frontend compatibility or customization.
+    #
+    #     Args:
+    #         request (Request): The incoming HTTP request that caused the error.
+    #         exc (HTTPException): The raised HTTPException.
+    #
+    #     Returns:
+    #         JSONResponse: A response with the appropriate status code and custom error format.
+    #     """
+    #     if exc.status_code == 200 or exc.status_code == 202 or exc.status_code == 206:
+    #         return JSONResponse(
+    #             status_code=exc.status_code,
+    #             content={"response": exc.detail}
+    #         )
+    #     return JSONResponse(
+    #         status_code=exc.status_code,
+    #         content={"error": exc.detail},
+    #     )
 
     return app
 
