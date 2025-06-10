@@ -1,6 +1,8 @@
 import socket
 from unittest.mock import patch, MagicMock
 import pytest
+
+from server.app.models.CustomError import DNSError
 from server.app.utils.domain_name_to_ip import domain_name_to_ip_default, domain_name_to_ip_close_to_client, \
     edns_response_to_ips, perform_edns_query, domain_name_to_ip_list
 import dns.rdatatype
@@ -38,7 +40,7 @@ def test_domain_name_to_ip_list_empty(mock_dn_default, mock_dn_close):
     #None
     mock_dn_default.reset_mock()
     mock_dn_close.reset_mock()
-    with pytest.raises(Exception):
+    with pytest.raises(DNSError):
         domain_name_to_ip_list("nl.pool.ntp.org", "74.22.34.47")
     mock_dn_default.assert_not_called()
     mock_dn_close.assert_called_once()

@@ -132,7 +132,6 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
         response (ntplib.NTPStats): the NTP response to convert
         server_ip_str (str): the ip address of the ntp server in string format
         server_name (Optional[str]): the name of the ntp server
-        other_server_ips (Optional[list[str]]): an optional list of IP addresses if the measurement is performed on a domain name
         ntp_version (int): the version of the ntp that you want to use.
 
     Returns:
@@ -346,8 +345,7 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
 
     Raises:
         InputError: If the input is invalid.
-        RipeMeasurementError: If the ripe measurement could not be performed.
-        Exception: If something else failed. TODO
+        ValueError: If some variable in env is not correctly set.
     """
     headers = {
         "Authorization": f"Key {get_ripe_api_token()}",

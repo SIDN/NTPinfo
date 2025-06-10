@@ -1,5 +1,7 @@
 from ipaddress import IPv4Address
 
+import pytest
+
 from server.app.utils.perform_measurements import *
 from unittest.mock import patch, MagicMock
 from server.app.utils.calculations import ntp_precise_time_to_human_date
@@ -133,3 +135,88 @@ def test_perform_ntp_measurement_ip(mock_request):
 
     assert print_ntp_measurement(result) == True
     assert print_ntp_measurement(23) == False
+
+
+
+@patch("server.app.utils.perform_measurements.requests.post")
+@patch("server.app.utils.perform_measurements.get_request_settings")
+def test_perform_ripe_measurement_ip_exceptions(mock_settings, mock_post):
+    # invalid "probes requested"
+    with pytest.raises(InputError):
+        perform_ripe_measurement_ip("123.45.67.89", "2.3.4.5", -1)
+    with pytest.raises(InputError):
+        perform_ripe_measurement_ip("123.45.67.89", "2.3.4.5", 0)
+    # invalid client ip
+    with pytest.raises(InputError):
+        perform_ripe_measurement_ip("123.45.67.89", "blabla", 3)
+
+
+@patch("server.app.utils.perform_measurements.get_probes")
+@patch("server.app.utils.perform_measurements.get_ripe_account_email")
+@patch("server.app.utils.perform_measurements.get_ripe_timeout_per_probe_ms")
+@patch("server.app.utils.perform_measurements.get_ripe_packets_per_probe")
+@patch("server.app.utils.perform_measurements.get_ripe_api_token")
+def test_get_request_settings_ok(mock_ripe_api_token, mock_packets, mock_timeout, mock_email, mock_probes):
+    mock_ripe_api_token.return_value = "token"
+    mock_packets.return_value = 4
+    mock_timeout.return_value = 3400
+    mock_email.return_value = "email@email.com"
+    mock_probes.return_value = [{
+        "type": "probes",
+        "value": "234,12,865",
+        "requested": 3
+    },
+    {
+        "type": "asn",
+        "value": "9009",
+        "requested": 4
+    }]
+
+    (h, c) = get_request_settings(4, "ntp.server.com", "74.22.34.47",28)
+    assert h == {
+        "Authorization": "Key token",
+        "Content-Type": "application/json"
+    }
+    assert c == {"definitions": [
+        {
+            "type": "ntp",
+            "af": 4,
+            "resolve_on_probe": True,
+            "description": "NTP measurement to ntp.server.com",
+            "packets": 4,
+            "timeout": 3400,
+            "skip_dns_check": False,
+            "target": "ntp.server.com"
+        }
+    ],
+        "is_oneoff": True,
+        "bill_to": "email@email.com",
+        "probes": [{
+            "type": "probes",
+            "value": "234,12,865",
+            "requested": 3
+        },
+            {
+                "type": "asn",
+                "value": "9009",
+                "requested": 4
+            }]
+    }
+@patch("server.app.utils.perform_measurements.get_probes")
+@patch("server.app.utils.perform_measurements.get_ripe_account_email")
+@patch("server.app.utils.perform_measurements.get_ripe_timeout_per_probe_ms")
+@patch("server.app.utils.perform_measurements.get_ripe_packets_per_probe")
+@patch("server.app.utils.perform_measurements.get_ripe_api_token")
+def test_get_request_settings_exception(mock_ripe_api_token, mock_packets, mock_timeout, mock_email, mock_probes):
+    mock_ripe_api_token.return_value = "token"
+    mock_packets.return_value = 4
+    mock_timeout.return_value = 3400
+    mock_email.return_value = "email@email.com"
+    mock_probes.side_effect = InputError("exc")
+    with pytest.raises(Exception):
+        get_request_settings(4, "ntp.server.com", "74.22.34.47", 28)
+
+    mock_timeout.reset_mock()
+    mock_timeout.side_effect = ValueError("env problem")
+    with pytest.raises(ValueError):
+        get_request_settings(4, "ntp.server.com", "74.22.34.47", 28)
