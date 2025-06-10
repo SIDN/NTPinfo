@@ -1,5 +1,12 @@
 @import "../index.css";
 
+.app-container {
+  /* background-color: var(--bg-clr-primary); */
+  /* background: linear-gradient(to bottom, var(--bg-primary), var(--bg-secondary)); */
+}
+
+
+
 .open-popup-btn {
   display: flex;
   border-radius: 15px;
