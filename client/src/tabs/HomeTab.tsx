@@ -114,8 +114,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     })
 
     /**
-     * The payload for the measurement call, containing the server,
-     * if the jitter should be calculated and the number of measurements to be done.
+     * The payload for the measurement call, containing the server
      */
     const payload = {
       server: query.trim()
@@ -245,7 +244,8 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         <DownloadButton name="Download JSON" onclick={() => downloadJSON(ripeMeasurementResp ? [ntpData, ripeMeasurementResp[0]] : [ntpData])} />
         <DownloadButton name="Download CSV" onclick={() => downloadCSV(ripeMeasurementResp ? [ntpData, ripeMeasurementResp[0]] : [ntpData])} />
       </div>)}
-      {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
+      {/*Map compoment that shows the NTP servers, the vantage point, and the RIPE probes*/}
+      {/*{(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
         <div className='map-box'>
           <WorldMap
             probes={ripeMeasurementResp}
@@ -254,7 +254,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
             status={ripeMeasurementStatus}
           />
         </div>
-        )}
+        )}*/}
     </div>
     </div>
     );
