@@ -59,7 +59,7 @@ def domain_name_to_ip_default(domain_name: str) -> Optional[list[str]]:
 
 def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str,
                                                     resolvers: list[str] = get_edns_default_servers(),
-                                                    depth: int = 0, max_depth: int = 2) -> list[str] | None:
+                                                    depth: int = 0, max_depth: int = 2) -> Optional[list[str]]:
     """
     This method tries to obtain the ip addresses of the domain name from some popular DNS servers (resolvers)
     that have (or may have) the ability to get an IP close to the client. It uses EDNS queries to get the IPs
@@ -82,7 +82,7 @@ def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str,
         max_depth(int): The maximum depth of the EDNS query. (It is recommended to set this to 2 or 3 to prevent long delay.)
 
     Returns:
-        list(str) | None: A list of IPs of the domain name or None if the domain name is not valid.
+        Optional[list[str]]: A list of IPs of the domain name or None if the domain name is not valid.
 
     Raises:
         Exception: If the client IP is invalid

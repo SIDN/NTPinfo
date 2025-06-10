@@ -308,7 +308,6 @@ def get_available_probes_asn_and_prefix(client_ip: str, ip_asn: str, ip_prefix: 
 
     Args:
         client_ip (str): The IP address of the client.
-        client_ip (str): The IP address of the client.
         ip_asn (str): the ASN of the searched network
         ip_prefix(str): the prefix of the respective IP
         ip_type (str): the IP type (ipv4 or ipv6). (not case-sensitive)
