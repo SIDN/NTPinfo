@@ -9,12 +9,11 @@ export type NTPData = {
   stratum: number
   jitter: number | null
   precision: number
-  status: string
   time: number
   ip: string
   server_name: string,
-  ref_ip: string,
-  ref_name: string,
+  ref_id: string,
+  root_dispersion: number,
   root_delay: number,
   vantage_point_ip: string
 }
@@ -33,6 +32,7 @@ export type RIPEData = {
   probe_country: string
   probe_location: LatLngTuple
   got_results: boolean
+  measurement_id: number
   probe_types: number[]
 }
 

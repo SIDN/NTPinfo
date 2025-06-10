@@ -126,8 +126,7 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
         "poll": measurement.ntp_measurement.extra_details.poll,
         "precision": measurement.ntp_measurement.main_details.precision,
         "root_delay": NtpCalculator.calculate_float_time(measurement.ntp_measurement.extra_details.root_delay),
-        "root_dispersion": NtpCalculator.calculate_float_time(
-            measurement.ntp_measurement.extra_details.root_dispersion),
+        "root_dispersion": NtpCalculator.calculate_float_time(measurement.ntp_measurement.extra_details.root_dispersion),
         "ref_id": measurement.ref_id,
         "probe_count_per_type": {
             'asn': 9,
