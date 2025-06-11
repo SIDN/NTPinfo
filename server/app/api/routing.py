@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 
 from sqlalchemy.orm import Session
 
+from server.app.utils.location_resolver import get_country_for_ip, get_coordinates_for_ip
 from server.app.utils.ip_utils import client_ip_fetch
 from server.app.models.CustomError import DNSError, MeasurementQueryError
 from server.app.utils.ip_utils import ip_to_str
@@ -193,12 +194,17 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
 
     client_ip: Optional[str] = client_ip_fetch(request=request)
     try:
+        client_ip = "46.97.171.106"
         measurement_id = perform_ripe_measurement(server, client_ip=client_ip)
         return JSONResponse(
             status_code=200,
             content={
                 "measurement_id": measurement_id,
                 "vantage_point_ip": ip_to_str(get_server_ip()),
+                "vantage_point_location": {
+                    "country_code": get_country_for_ip(client_ip),
+                    "coordinates": get_coordinates_for_ip(client_ip)
+                },
                 "status": "started",
                 "message": "You can fetch the result at /measurements/ripe/{measurement_id}",
             }

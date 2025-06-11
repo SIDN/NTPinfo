@@ -3,6 +3,7 @@ from ipaddress import ip_address, IPv4Address, IPv6Address
 
 import requests
 
+from server.app.utils.location_resolver import get_country_for_ip, get_coordinates_for_ip
 from server.app.models.CustomError import RipeMeasurementError
 from server.app.utils.load_config_data import get_ripe_api_token
 from server.app.dtos.PreciseTime import PreciseTime
@@ -11,7 +12,7 @@ from server.app.dtos.NtpMainDetails import NtpMainDetails
 from server.app.dtos.NtpMeasurement import NtpMeasurement
 from server.app.dtos.NtpServerInfo import NtpServerInfo
 from server.app.dtos.NtpTimestamps import NtpTimestamps
-from server.app.dtos.ProbeData import ProbeLocation, ProbeData
+from server.app.dtos.ProbeData import ServerLocation, ProbeData
 from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.utils.perform_measurements import convert_float_to_precise_time
 from typing import Any, cast
@@ -251,8 +252,8 @@ def parse_probe_data(probe_response: dict) -> ProbeData:
     geometry = probe_response.get('geometry')
     coordinates = geometry.get('coordinates', [0.0, 0.0]) if geometry else [0.0, 0.0]
 
-    probe_location = ProbeLocation(country_code=country_code,
-                                   coordinates=coordinates)
+    probe_location = ServerLocation(country_code=country_code,
+                                    coordinates=coordinates)
     return ProbeData(probe_id=probe_id, probe_addr=probe_addr, probe_location=probe_location)
 
 
@@ -351,6 +352,8 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
             ntp_server_name=dst_name,
             ntp_server_ref_parent_ip=None,
             ref_name=None,
+            ntp_server_location=ServerLocation(country_code=get_country_for_ip(str(dst_addr_ip)),
+                                               coordinates=get_coordinates_for_ip(str(dst_addr_ip)))
         )
 
         if not failed and idx is not None:

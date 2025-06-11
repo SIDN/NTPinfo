@@ -25,6 +25,7 @@ MOCK_NTP_MEASUREMENT = NtpMeasurement(
         ntp_server_name="pool.ntp.org",
         ntp_server_ref_parent_ip=None,
         ref_name=None,
+        ntp_server_location=ServerLocation(country_code="RO", coordinates=(25.0, -71.0))
     ),
     timestamps=NtpTimestamps(
         client_sent_time=mock_precise(1),

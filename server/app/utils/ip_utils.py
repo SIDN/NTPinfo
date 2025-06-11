@@ -91,7 +91,7 @@ def get_ip_network_details(ip_str: str) -> tuple[Optional[str], Optional[str], O
         return None, None, None
 
 
-def get_area_of_ip(ip_country: str, ip_continent: Optional[str]) -> str:
+def get_area_of_ip(ip_country: Optional[str], ip_continent: Optional[str]) -> str:
     """
     This method tries to get the area of an IP address based on its country and continent.
 
@@ -103,7 +103,7 @@ def get_area_of_ip(ip_country: str, ip_continent: Optional[str]) -> str:
         str: The area of an IP address
     """
     # default is WW (world wide)
-    if ip_continent is None:
+    if ip_continent is None or ip_country is None:
         return "WW"
     area_map = {
         "EU": "North-Central",
