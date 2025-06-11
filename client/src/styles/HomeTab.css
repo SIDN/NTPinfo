@@ -3,6 +3,9 @@
 .app-container {
   /* background-color: var(--bg-clr-primary); */
   /* background: linear-gradient(to bottom, var(--bg-primary), var(--bg-secondary)); */
+  width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 
@@ -44,10 +47,6 @@
   padding: 2em;
 }
 
-.app-container {
-  width: 100%;
-}
-
 .main-content {
   max-width: 600px;
   box-sizing: border-box;
@@ -63,8 +62,9 @@
 .input-wrapper {
   margin-top: 0;
   margin-left: 1rem;
-  /* max-width: 600px; */
   width: 60%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .results-and-graph {
@@ -73,6 +73,8 @@
   flex-wrap: wrap;
   padding: 0.5rem;
   align-items: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .result-text p {
@@ -94,10 +96,10 @@
 .graphs {
   display: flex;
   gap: 1rem;
-  /* margin-top: 1rem; */
   flex: 1 1 50%;
-  min-width: 50%;
+  min-width: 0;
   height: 100%;
+  box-sizing: border-box;
 }
 
 .graph-box {
@@ -109,9 +111,9 @@
   justify-content: center;
   font-weight: bold;
   color: white;
-  width: 90%;
-
-  margin-left: 1rem;
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
   grid-area: summary;
   background-color: var(--bg-clr-secondary);
   color: var(--clr-font-white);
