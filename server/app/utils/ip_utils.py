@@ -4,6 +4,7 @@ from typing import Optional
 import ntplib
 import requests
 
+from server.app.utils.location_resolver import get_asn_for_ip, get_country_for_ip, get_continent_for_ip
 from server.app.models.CustomError import InputError
 from server.app.utils.load_config_data import get_ipinfo_lite_api_token, get_edns_default_servers
 from server.app.utils.validate import is_ip_address
@@ -63,6 +64,7 @@ def get_ip_family(ip_str: str) -> int:
     return 6
 
 
+# TODO
 def get_ip_network_details(ip_str: str) -> tuple[Optional[str], Optional[str], Optional[str]]:
     """
     This method gets the ASN, the country code and the continent code of an IP address.
@@ -75,12 +77,15 @@ def get_ip_network_details(ip_str: str) -> tuple[Optional[str], Optional[str], O
         of an IP address if they can be taken.
     """
     try:
-        token: str = get_ipinfo_lite_api_token()
-        response = requests.get(f"https://api.ipinfo.io/lite/{ip_str}?token={token}")
-        data = response.json()
-        asn: str = data.get("asn", None)
-        country: str = data.get("country_code", None)
-        continent: str = data.get("continent_code", None)
+        # token: str = get_ipinfo_lite_api_token()
+        # response = requests.get(f"https://api.ipinfo.io/lite/{ip_str}?token={token}")
+        # data = response.json()
+        # asn: str = data.get("asn", None)
+        # country: str = data.get("country_code", None)
+        # continent: str = data.get("continent_code", None)
+        asn: Optional[str] = get_asn_for_ip(ip_str)
+        country: Optional[str] = get_country_for_ip(ip_str)
+        continent: Optional[str] = get_continent_for_ip(ip_str)
         return asn, country, get_area_of_ip(country, continent)
     except Exception as e:
         print(e)

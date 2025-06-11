@@ -1,7 +1,10 @@
+from typing import Optional
+
 import geoip2.database
 from geoip2.errors import AddressNotFoundError, GeoIP2Error
 
-from server.app.utils.load_config_data import get_max_mind_path
+from server.app.utils.load_config_data import get_max_mind_path_asn
+from server.app.utils.load_config_data import get_max_mind_path_country, get_max_mind_path_city
 
 
 def get_client_coordinates(client_ip: str) -> tuple[float, float]:
@@ -20,7 +23,7 @@ def get_client_coordinates(client_ip: str) -> tuple[float, float]:
         cannot be resolved, returns (25.0, -71.0)
     """
     try:
-        with geoip2.database.Reader(f'{get_max_mind_path()}') as reader:
+        with geoip2.database.Reader(f'{get_max_mind_path_city()}') as reader:
             response = reader.city(client_ip)
             lat = response.location.latitude
             long = response.location.longitude
@@ -33,3 +36,42 @@ def get_client_coordinates(client_ip: str) -> tuple[float, float]:
     except Exception as e:
         print(e)
         return 25.0, -71.0
+
+
+def get_country_for_ip(client_ip: str) -> Optional[str]:
+    try:
+        with geoip2.database.Reader(f'{get_max_mind_path_country()}') as reader:
+            response = reader.country(client_ip).country.iso_code
+            return response
+    except (AddressNotFoundError, ValueError, GeoIP2Error, OSError) as e:
+        print(e)
+        return None
+    except Exception as e:
+        print(e)
+        return None
+
+
+def get_continent_for_ip(client_ip: str) -> Optional[str]:
+    try:
+        with geoip2.database.Reader(f'{get_max_mind_path_country()}') as reader:
+            response = reader.country(client_ip).continent.code
+            return response
+    except (AddressNotFoundError, ValueError, GeoIP2Error, OSError) as e:
+        print(e)
+        return None
+    except Exception as e:
+        print(e)
+        return None
+
+
+def get_asn_for_ip(client_ip: str) -> Optional[str]:
+    try:
+        with geoip2.database.Reader(f'{get_max_mind_path_asn()}') as reader:
+            response = reader.asn(client_ip).autonomous_system_number
+            return str(response)
+    except (AddressNotFoundError, ValueError, GeoIP2Error, OSError) as e:
+        print(e)
+        return None
+    except Exception as e:
+        print(e)
+        return None
