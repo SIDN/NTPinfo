@@ -1,140 +1,115 @@
 from ipaddress import IPv4Address
-
 import pytest
-
 from server.app.utils.perform_measurements import *
 from unittest.mock import patch, MagicMock
-from server.app.utils.calculations import ntp_precise_time_to_human_date
 from server.app.dtos.PreciseTime import PreciseTime
 
 
-def make_mock_measurement(seconds_offset: int) -> NtpMeasurement:
-    fake_measurement = MagicMock(spec=NtpMeasurement)
+@patch("server.app.utils.perform_measurements.domain_name_to_ip_list")
+@patch("server.app.utils.perform_measurements.get_timeout_measurement_s")
+@patch("server.app.utils.perform_measurements.ntplib.NTPClient")
+@patch("server.app.utils.perform_measurements.convert_ntp_response_to_measurement")
+def test_perform_ntp_measurement_domain_name_list(mock_convert, mock_ntpclient_class,
+                                                  mock_timeout, mock_domain_names):
+    mock_domain_names.return_value = ["3.4.5.6", "12.34.123.90", "102.34.123.90"]
+    mock_timeout.return_value = 3.5
+    mock_measurement1 = MagicMock(spec=NtpMeasurement)
+    mock_measurement2 = None
+    mock_measurement3 = MagicMock(spec=NtpMeasurement)
+    mock_convert.side_effect  = [mock_measurement1, mock_measurement2, mock_measurement3]
+    # mock responses from ntplib
+    mock_client = MagicMock()
+    mock_ntpclient_class.return_value = mock_client
+    mock_ntp_response = MagicMock()
+    mock_client.request.return_value = mock_ntp_response
 
-    timestamps = NtpTimestamps(
-        PreciseTime(0, 0),
-        PreciseTime(seconds_offset // 4, 0),
-        PreciseTime(seconds_offset // 2, 0),
-        PreciseTime(seconds_offset, 0)
-    )
-    fake_server_info = MagicMock()
-    fake_server_info.ntp_server_ip = IPv4Address("1.2.3.4")
-    fake_server_info.ntp_version = 4
-    fake_measurement.timestamps = timestamps
-    fake_measurement.server_info = fake_server_info
+    result = perform_ntp_measurement_domain_name_list("time.server.nl", "123.45.67.89", 4)
+    assert result == [mock_measurement1, mock_measurement3]
+    assert mock_convert.call_count == 3
+    assert mock_client.request.call_count == 3
 
-    return fake_measurement
+@patch("server.app.utils.perform_measurements.domain_name_to_ip_list")
+@patch("server.app.utils.perform_measurements.get_timeout_measurement_s")
+@patch("server.app.utils.perform_measurements.ntplib.NTPClient")
+@patch("server.app.utils.perform_measurements.convert_ntp_response_to_measurement")
+def test_perform_ntp_measurement_domain_name_list_none(mock_convert, mock_ntpclient_class,
+                                                       mock_timeout, mock_domain_names):
+    mock_domain_names.return_value = ["3.4.5.6", "12.34.123.90", "102.34.123.90"]
+    mock_timeout.return_value = 3.5
+    mock_convert.side_effect  = [None, None, None]
+    # mock responses from ntplib
+    mock_client = MagicMock()
+    mock_ntpclient_class.return_value = mock_client
+    mock_ntp_response = MagicMock()
+    mock_client.request.return_value = mock_ntp_response
 
+    result = perform_ntp_measurement_domain_name_list("time.server.nl", "123.45.67.89", 4)
+    assert result is None
+    assert mock_convert.call_count == 3
+    assert mock_client.request.call_count == 3
 
-def test_ntp_precise_time_to_human_date():
-    t = PreciseTime(None, 12345)
-    assert ntp_precise_time_to_human_date(t) == ""
-    t2 = PreciseTime(3955513183, 623996928)
-    assert ntp_precise_time_to_human_date(t2) == "2025-05-06 09:39:43.145286 UTC"
+@patch("server.app.utils.perform_measurements.domain_name_to_ip_list")
+@patch("server.app.utils.perform_measurements.get_timeout_measurement_s")
+@patch("server.app.utils.perform_measurements.ntplib.NTPClient")
+@patch("server.app.utils.perform_measurements.convert_ntp_response_to_measurement")
+def test_perform_ntp_measurement_domain_name_list_exception(mock_convert, mock_ntpclient_class,
+                                                            mock_timeout, mock_domain_names):
+    mock_domain_names.return_value = ["3.4.5.6", "12.34.123.90", "102.34.123.90"]
+    mock_timeout.return_value = 3.5
+    mock_measurement3 = MagicMock(spec=NtpMeasurement)
+    mock_convert.side_effect  = [Exception("some message"), mock_measurement3] # 2 instead of 3 because the first time it
+    # won't be called as we will throw an error in client.request()
 
+    # mock responses from ntplib
+    mock_client = MagicMock()
+    mock_ntpclient_class.return_value = mock_client
+    mock_ntp_response = MagicMock()
+    mock_client.request.side_effect = [Exception("other message"), mock_ntp_response, mock_ntp_response]
 
-@patch("server.app.utils.domain_name_to_ip.socket.getaddrinfo")
-@patch("server.app.utils.perform_measurements.ntplib.NTPClient.request")
-def test_perform_ntp_measurement_domain_name(mock_request, mock_getaddrinfo):
-    # Mock socket.getaddrinfo
-    mock_getaddrinfo.return_value = [(None, None, None, None, ("123.45.67.89", 0))]
+    result = perform_ntp_measurement_domain_name_list("time.server.nl", "123.45.67.89", 4)
+    assert result == [mock_measurement3]
+    assert mock_convert.call_count == 2
+    assert mock_client.request.call_count == 3
 
-    # Create a fake ntplib response
-    mock_response = MagicMock()
-    mock_response.ref_id = 1590075150
+@patch("server.app.utils.perform_measurements.get_timeout_measurement_s")
+@patch("server.app.utils.perform_measurements.ntplib.NTPClient")
+@patch("server.app.utils.perform_measurements.convert_ntp_response_to_measurement")
+def test_perform_ntp_measurement_ip(mock_convert, mock_ntpclient_class, mock_timeout):
+    mock_timeout.return_value = 3.5
+    mock_measurement = MagicMock(spec=NtpMeasurement)
+    mock_convert.return_value = mock_measurement
+    # mock responses from ntplib
+    mock_client = MagicMock()
+    mock_ntpclient_class.return_value = mock_client
+    mock_ntp_response = MagicMock()
+    mock_client.request.return_value = mock_ntp_response
 
-    mock_response.ref_timestamp = 3948758383.2
-    mock_response.orig_timestamp = 3948758384.0
-    mock_response.recv_timestamp = 3948758385.0
-    mock_response.tx_timestamp = 3948758386.0
-    mock_response.dest_timestamp = 3948758389.2
+    result = perform_ntp_measurement_ip("123.45.67.89", 4)
+    assert result == mock_measurement
 
-    mock_response.offset = 0.001
-    mock_response.delay = 0.002
-    mock_response.stratum = 2
-    mock_response.precision = -20
+    mock_client.request.assert_called_once_with("123.45.67.89", 4, timeout=3.5)
+    mock_convert.assert_called_once_with(response=mock_ntp_response,
+                                         server_ip_str="123.45.67.89",
+                                         server_name=None,
+                                         ntp_version=4)
 
-    mock_response.root_delay = 0.025
-    mock_response.leap = 0
-    mock_request.return_value = mock_response
+@patch("server.app.utils.perform_measurements.get_timeout_measurement_s")
+@patch("server.app.utils.perform_measurements.ntplib.NTPClient")
+@patch("server.app.utils.perform_measurements.convert_ntp_response_to_measurement")
+def test_perform_ntp_measurement_ip_exception(mock_convert, mock_ntpclient_class, mock_timeout):
 
-    result_tuples = perform_ntp_measurement_domain_name_list("mock.ntp.server", None)
+    assert perform_ntp_measurement_ip("something67.89", 4) is None
+    mock_timeout.return_value = 3.5
+    mock_measurement = MagicMock(spec=NtpMeasurement)
+    mock_convert.return_value = mock_measurement
+    # mock responses from ntplib
+    mock_client = MagicMock()
+    mock_ntpclient_class.return_value = mock_client
+    mock_client.request.side_effect = Exception("invalid")
 
-    assert result_tuples is not None
-    assert isinstance(result_tuples, list)
-    assert len(result_tuples) == 1
-    result = result_tuples[0]
+    result = perform_ntp_measurement_ip("123.45.67.89", 4)
+    assert result is None
 
-    assert result.server_info.ntp_version == 4
-    assert result.server_info.ntp_server_ip == IPv4Address("123.45.67.89")
-    assert result.server_info.ntp_server_name == "mock.ntp.server"
-    assert result.server_info.ntp_server_ref_parent_ip == IPv4Address("94.198.159.14")
-    assert result.server_info.ref_name is None
-
-    assert result.timestamps.client_sent_time == PreciseTime(seconds=3948758389, fraction=858992640)
-    assert result.timestamps.server_recv_time == PreciseTime(seconds=3948758384, fraction=0)
-    assert result.timestamps.server_sent_time == PreciseTime(seconds=3948758385, fraction=0)
-    assert result.timestamps.client_recv_time == PreciseTime(seconds=3948758386, fraction=0)
-
-    assert result.main_details.offset == 0.001
-    assert result.main_details.rtt == 0.002
-    assert result.main_details.stratum == 2
-    assert result.main_details.precision == -20
-    assert result.main_details.reachability == ""
-
-    assert result.extra_details.root_delay == PreciseTime(seconds=0, fraction=107374182)
-    assert result.extra_details.ntp_last_sync_time == PreciseTime(seconds=3948758383, fraction=858992640)
-    assert result.extra_details.leap == 0
-
-
-@patch("server.app.utils.perform_measurements.ntplib.NTPClient.request")
-def test_perform_ntp_measurement_ip(mock_request):
-    # Create a fake ntplib response
-    mock_response = MagicMock()
-    mock_response.ref_id = 1590075150
-
-    mock_response.ref_timestamp = 3948758383.2
-    mock_response.orig_timestamp = 3948758384.0
-    mock_response.recv_timestamp = 3948758385.0
-    mock_response.tx_timestamp = 3948758386.0
-    mock_response.dest_timestamp = 3948758389.2
-
-    mock_response.offset = 0.001
-    mock_response.delay = 0.002
-    mock_response.stratum = 2
-    mock_response.precision = -20
-
-    mock_response.root_delay = 0.025
-    mock_response.leap = 0
-    mock_request.return_value = mock_response
-
-    result = perform_ntp_measurement_ip("123.45.67.89", 3)
-
-    assert result is not None
-
-    assert result.server_info.ntp_version == 3
-    assert result.server_info.ntp_server_ip == IPv4Address("123.45.67.89")
-    assert result.server_info.ntp_server_name is None
-    assert result.server_info.ntp_server_ref_parent_ip == IPv4Address("94.198.159.14")
-    assert result.server_info.ref_name is None
-
-    assert result.timestamps.client_sent_time == PreciseTime(seconds=3948758389, fraction=858992640)
-    assert result.timestamps.server_recv_time == PreciseTime(seconds=3948758384, fraction=0)
-    assert result.timestamps.server_sent_time == PreciseTime(seconds=3948758385, fraction=0)
-    assert result.timestamps.client_recv_time == PreciseTime(seconds=3948758386, fraction=0)
-
-    assert result.main_details.offset == 0.001
-    assert result.main_details.rtt == 0.002
-    assert result.main_details.stratum == 2
-    assert result.main_details.precision == -20
-    assert result.main_details.reachability == ""
-
-    assert result.extra_details.root_delay == PreciseTime(seconds=0, fraction=107374182)
-    assert result.extra_details.ntp_last_sync_time == PreciseTime(seconds=3948758383, fraction=858992640)
-    assert result.extra_details.leap == 0
-
-    assert print_ntp_measurement(result) == True
-    assert print_ntp_measurement(23) == False
 
 @patch("server.app.utils.perform_measurements.get_server_ip")
 def test_convert_ntp_response_to_measurement(mock_server_ip):
@@ -185,6 +160,8 @@ def test_convert_ntp_response_to_measurement(mock_server_ip):
     assert result.extra_details.root_dispersion == PreciseTime(seconds=4000, fraction=0)
 
     assert result.vantage_point_ip == IPv4Address("2.4.5.6")
+    assert print_ntp_measurement(result) == True
+    assert print_ntp_measurement(23) == False
 
 @patch("server.app.utils.perform_measurements.get_server_ip")
 def test_convert_ntp_response_to_measurement_exception(mock_server_ip):

@@ -1,3 +1,4 @@
+from server.app.models.CustomError import DNSError
 from server.app.dtos.NtpExtraDetails import NtpExtraDetails
 from server.app.dtos.NtpMainDetails import NtpMainDetails
 from server.app.dtos.NtpServerInfo import NtpServerInfo
@@ -70,7 +71,7 @@ def test_get_format():
 
 @patch("server.app.services.api_services.calculate_jitter_from_measurements")
 @patch("server.app.services.api_services.insert_measurement")
-@patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
+@patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
 @patch("server.app.services.api_services.perform_ntp_measurement_ip")
 def test_measure_with_ip(mock_measure_ip, mock_measure_domain, mock_insert, mock_jitter):
     fake_measurement = MagicMock(spec=NtpMeasurement)
@@ -135,7 +136,7 @@ def test_measure_with_unresolvable_input(mock_measure_ip, mock_measure_domain, m
 
 
 @patch("server.app.services.api_services.insert_measurement")
-@patch("server.app.services.api_services.perform_ntp_measurement_domain_name")
+@patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
 @patch("server.app.services.api_services.perform_ntp_measurement_ip")
 @patch("server.app.services.api_services.calculate_jitter_from_measurements")
 def test_measure_with_jitter(mock_jitter, mock_measure_ip, mock_measure_domain, mock_insert):
@@ -167,7 +168,7 @@ def test_measure_with_jitter(mock_jitter, mock_measure_ip, mock_measure_domain, 
 @patch("server.app.services.api_services.perform_ntp_measurement_ip")
 def test_measure_with_exception(mock_measure_ip, mock_measure_domain, mock_insert):
     mock_measure_ip.return_value = None
-    mock_measure_domain.side_effect = Exception("DNS failure")
+    mock_measure_domain.side_effect = DNSError("DNS failure")
     fake_session = MagicMock(spec=Session)
     result = measure("invalid.server", fake_session)
 
