@@ -13,6 +13,8 @@ import ntpServerImg from '../assets/ntp-server-icon.png'
 import vantagePointImg from '../assets/vantage-point-logo.png'
 import { useIPInfo } from '../hooks/useIPInfo'
 
+import '../styles/WorldMap.css'
+
 /**
  * Standard code added for the proper functioning of the default icon when using Leaflet with Vite
  */
@@ -389,6 +391,15 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
               </>}
             </>)}
         </MapContainer>
+          <div style={{display: "flex", gap: "10px", alignItems: "center"}}>
+            <div><img src = {ntpServerImg} className="logo"/>: NTP Servers</div>
+            <div><img src = {vantagePointImg} className="logo"/>: Vantage Point</div>
+            <div><img src = {greenProbeImg} className="logo"/>: &lt; 15 ms RTT</div>
+            <div><img src = {yellowProbeImg} className="logo"/>: &lt; 40 ms RTT</div>
+            <div><img src = {redProbeImg} className="logo"/>: &lt; 150 ms RTT</div>
+            <div><img src = {darkRedProbeImg} className="logo"/>: &gt; 150 ms RTT</div>
+            <div><img src = {grayProbeImg} className="logo"/>: No response</div>
+          </div>
       </div>
     )
 }
