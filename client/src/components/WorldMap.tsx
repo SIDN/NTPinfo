@@ -66,14 +66,16 @@ const ntpServerIcon = new L.Icon({
   iconUrl: ntpServerImg,
   iconSize: [30, 30],
   iconAnchor: [10, 10],
-  popupAnchor: [0, -8]
+  popupAnchor: [0, -8],
+  zIndexOffset: 1000
 })
 
 const vantagePointIcon = new L.Icon({
   iconUrl: vantagePointImg,
   iconSize: [30, 30],
   iconAnchor: [15, 30],
-  popupAnchor: [0, -28]
+  popupAnchor: [0, -28],
+  zIndexOffset: 500
 })
 
 /**
