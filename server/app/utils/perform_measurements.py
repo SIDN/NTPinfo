@@ -5,6 +5,7 @@ import json
 from typing import Optional
 import requests
 
+from app.services.NtpCalculator import NtpCalculator
 from server.app.models.CustomError import InputError, RipeMeasurementError
 from server.app.utils.calculations import ntp_precise_time_to_human_date, convert_float_to_precise_time
 from server.app.utils.ip_utils import get_ip_family, ref_id_to_ip_or_name, get_server_ip
@@ -138,6 +139,7 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
         Optional[NtpMeasurement]: it returns a NTP measurement object if converting was successful.
     """
     try:
+        vantage_point_ip = None
         vantage_point_ip_temp = get_server_ip()
         if vantage_point_ip_temp is not None:
             vantage_point_ip = vantage_point_ip_temp
@@ -153,15 +155,15 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
         )
 
         timestamps: NtpTimestamps = NtpTimestamps(
-            client_sent_time=PreciseTime(ntplib._to_int(response.dest_timestamp),
-                                         ntplib._to_frac(response.dest_timestamp)),
-            server_recv_time=PreciseTime(ntplib._to_int(response.orig_timestamp),
+            client_sent_time=PreciseTime(ntplib._to_int(response.orig_timestamp),
                                          ntplib._to_frac(response.orig_timestamp)),
-            server_sent_time=PreciseTime(ntplib._to_int(response.recv_timestamp),
+            server_recv_time=PreciseTime(ntplib._to_int(response.recv_timestamp),
                                          ntplib._to_frac(response.recv_timestamp)),
-            client_recv_time=PreciseTime(ntplib._to_int(response.tx_timestamp), ntplib._to_frac(response.tx_timestamp))
+            server_sent_time=PreciseTime(ntplib._to_int(response.tx_timestamp),
+                                         ntplib._to_frac(response.tx_timestamp)),
+            client_recv_time=PreciseTime(ntplib._to_int(response.dest_timestamp),
+                                         ntplib._to_frac(response.dest_timestamp))
         )
-
         main_details: NtpMainDetails = NtpMainDetails(
             offset=response.offset,
             rtt=response.delay,
@@ -273,7 +275,7 @@ def perform_ripe_measurement_domain_name(server_name: str, client_ip: str,
 
     data = response.json()
     # the answer has a list of measurements, but we only did one measurement so we send one.
-    pprint.pprint(data)
+    # pprint.pprint(data)
     try:
         ans: int = data["measurements"][0]
     except Exception as e:
@@ -369,7 +371,7 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
     }
     return headers, request_content
 # m=perform_ntp_measurement_domain_name("time.google.com")
-# m=perform_ntp_measurement_domain_name("ro.pool.ntp.org","83.25.24.10")
+# m=perform_ntp_measurement_domain_name("pool.ntp.org","83.25.24.10")
 # print_ntp_measurement(m)
 # import time
 #

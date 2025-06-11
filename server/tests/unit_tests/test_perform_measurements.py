@@ -136,6 +136,156 @@ def test_perform_ntp_measurement_ip(mock_request):
     assert print_ntp_measurement(result) == True
     assert print_ntp_measurement(23) == False
 
+@patch("server.app.utils.perform_measurements.get_server_ip")
+def test_convert_ntp_response_to_measurement(mock_server_ip):
+    mock_server_ip.return_value = IPv4Address("2.4.5.6")
+    mock_response = MagicMock()
+    mock_response.ref_id = 23467
+    mock_response.stratum = 1
+    mock_response.orig_timestamp = 3000.23
+    mock_response.recv_timestamp = 3001.56
+    mock_response.tx_timestamp = 3002.78
+    mock_response.dest_timestamp = 3003.97
+    mock_response.ref_timestamp = 2999.123
+    mock_response.offset = 0.001
+    mock_response.delay = 0.002
+    mock_response.stratum = 2
+    mock_response.precision = -20
+
+    mock_response.root_delay = 0.025
+    mock_response.leap = 0
+    mock_response.poll = 0.02
+    mock_response.root_dispersion = 4000
+
+    result = convert_ntp_response_to_measurement(mock_response, "32.34.35.36", "ntp server", 4)
+
+    assert result is not None
+
+    assert result.server_info.ntp_version == 4
+    assert result.server_info.ntp_server_ip == IPv4Address("32.34.35.36")
+    assert result.server_info.ntp_server_name == "ntp server"
+    assert result.server_info.ntp_server_ref_parent_ip == IPv4Address('0.0.91.171')
+    assert result.server_info.ref_name is None
+
+    assert result.timestamps.client_sent_time == PreciseTime(seconds=3000, fraction=987842478)
+    assert result.timestamps.server_recv_time == PreciseTime(seconds=3001, fraction=2405181685)
+    assert result.timestamps.server_sent_time == PreciseTime(seconds=3002, fraction=3350074490)
+    assert result.timestamps.client_recv_time == PreciseTime(seconds=3003, fraction=4166118277)
+
+    assert result.main_details.offset == 0.001
+    assert result.main_details.rtt == 0.002
+    assert result.main_details.stratum == 2
+    assert result.main_details.precision == -20
+    assert result.main_details.reachability == ""
+
+    assert result.extra_details.root_delay == PreciseTime(seconds=0, fraction=107374182)
+    assert result.extra_details.ntp_last_sync_time == PreciseTime(seconds=2999, fraction=528280977)
+    assert result.extra_details.leap == 0
+    assert result.extra_details.poll == 0.02
+    assert result.extra_details.root_dispersion == PreciseTime(seconds=4000, fraction=0)
+
+    assert result.vantage_point_ip == IPv4Address("2.4.5.6")
+
+@patch("server.app.utils.perform_measurements.get_server_ip")
+def test_convert_ntp_response_to_measurement_exception(mock_server_ip):
+    mock_server_ip.return_value = None
+    mock_response = MagicMock()
+    mock_response.ref_id = 23467
+    mock_response.stratum = 1
+    mock_response.orig_timestamp = 3000.23
+    mock_response.recv_timestamp = 3001.56
+    mock_response.tx_timestamp = 3002.78
+    mock_response.dest_timestamp = 3003.97
+    mock_response.ref_timestamp = 2999.123
+    mock_response.offset = 0.001
+    mock_response.delay = 0.002
+    mock_response.stratum = 2
+    mock_response.precision = -20
+
+    mock_response.root_delay = 0.025
+    mock_response.leap = 0
+    mock_response.poll = 0.02
+    mock_response.root_dispersion = 4000
+
+    result = convert_ntp_response_to_measurement(mock_response, "32.34.35.36", "ntp server", 4)
+
+    assert result is not None
+    assert result.server_info.ntp_version == 4
+    assert result.vantage_point_ip is None
+
+    assert convert_ntp_response_to_measurement(mock_response, "something else", "ntp server", 4) is None
+
+
+@patch("server.app.utils.perform_measurements.requests.post")
+@patch("server.app.utils.perform_measurements.get_request_settings")
+def test_perform_ripe_measurement_domain_name_normal(mock_settings, mock_post):
+    mock_settings.return_value = ({"Authorization": "Key"}, {"some": 36, "other": "other"})
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"measurements": [85439]}
+    mock_post.return_value = mock_response
+
+    result = perform_ripe_measurement_domain_name("time.apple.com", "2.3.4.5", 10)
+
+    assert result == 85439
+
+@patch("server.app.utils.perform_measurements.requests.post")
+@patch("server.app.utils.perform_measurements.get_request_settings")
+def test_perform_ripe_measurement_domain_name_try_catch(mock_settings, mock_post):
+    mock_settings.return_value = ({"Authorization": "Key"}, {"somefield": 3, "other": "no"})
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"error": "not found"}
+    mock_post.return_value = mock_response
+
+    with pytest.raises(RipeMeasurementError, match="not found"):
+        perform_ripe_measurement_domain_name("time.apple.com", "2.3.4.5", 10)
+
+    mock_response2 = MagicMock()
+    mock_response2.json.return_value = {"something": "error, not found"}
+    mock_post.return_value = mock_response2
+    with pytest.raises(RipeMeasurementError, match=r"Ripe measurement failed:.*"):
+        perform_ripe_measurement_domain_name("time.apple.com", "2.3.4.5", 10)
+
+@patch("server.app.utils.perform_measurements.requests.post")
+@patch("server.app.utils.perform_measurements.get_request_settings")
+def test_perform_ripe_measurement_domain_name_exceptions(mock_settings, mock_post):
+    # invalid "probes requested"
+    with pytest.raises(InputError):
+        perform_ripe_measurement_domain_name("ntp.pool.org", "2.3.4.5", -1)
+    with pytest.raises(InputError):
+        perform_ripe_measurement_domain_name("ntp.pool.org", "2.3.4.5", 0)
+    # invalid client ip
+    with pytest.raises(InputError):
+        perform_ripe_measurement_domain_name("ntp.pool.org", "blabla", 3)
+
+
+@patch("server.app.utils.perform_measurements.requests.post")
+@patch("server.app.utils.perform_measurements.get_request_settings")
+def test_perform_ripe_measurement_ip_normal(mock_settings, mock_post):
+    mock_settings.return_value = ({"Authorization": "Key"}, {"somefield": 3, "other": "no"})
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"measurements": [12412]}
+    mock_post.return_value = mock_response
+
+    result = perform_ripe_measurement_ip("123.45.67.89", "2.3.4.5", 10)
+
+    assert result == 12412
+
+@patch("server.app.utils.perform_measurements.requests.post")
+@patch("server.app.utils.perform_measurements.get_request_settings")
+def test_perform_ripe_measurement_ip_try_catch(mock_settings, mock_post):
+    mock_settings.return_value = ({"Authorization": "Key"}, {"somefield": 3, "other": "no"})
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"error": "not found"}
+    mock_post.return_value = mock_response
+
+    with pytest.raises(RipeMeasurementError, match="not found"):
+        perform_ripe_measurement_ip("123.45.67.89", "2.3.4.5", 10)
+
+    mock_response2 = MagicMock()
+    mock_response2.json.return_value = {"something": "error, not found"}
+    mock_post.return_value = mock_response2
+    with pytest.raises(RipeMeasurementError, match=r"Ripe measurement failed:.*"):
+        perform_ripe_measurement_ip("123.45.67.89", "2.3.4.5", 10)
 
 
 @patch("server.app.utils.perform_measurements.requests.post")
@@ -149,6 +299,9 @@ def test_perform_ripe_measurement_ip_exceptions(mock_settings, mock_post):
     # invalid client ip
     with pytest.raises(InputError):
         perform_ripe_measurement_ip("123.45.67.89", "blabla", 3)
+    # invalid ntp server IP
+    with pytest.raises(InputError):
+        perform_ripe_measurement_ip("123.45aso.67.89", "2.3.4.5", 0)
 
 
 @patch("server.app.utils.perform_measurements.get_probes")
