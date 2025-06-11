@@ -30,6 +30,12 @@
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
   --text-white: #f8fafc;
+
+  --border-color: #475569;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 *,
 *::before,

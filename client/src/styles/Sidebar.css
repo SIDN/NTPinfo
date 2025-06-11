@@ -9,10 +9,12 @@
   transition: width 0.2s ease;
   height: 100vh;
   overflow: hidden;
+  /* border-right: 1px solid var(--border-color); */
+  box-shadow: var(--shadow);
 }
 
 .sidebar.open {
-  width: 240px;
+  width: 180px;
 }
 
 .sidebar.closed {
@@ -25,7 +27,7 @@
   font-size: 1.5rem;
   cursor: pointer;
   padding: 0.5rem 1rem;
-   display: flex;
+  display: flex;
   align-items: center;
   justify-content: left;
 }

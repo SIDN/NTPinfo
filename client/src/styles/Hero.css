@@ -26,6 +26,15 @@ a {
     position: sticky;
     top: 0;
     z-index: 3;
+    border-bottom: 1px solid var(--border-color);
+    /* border-radius: 0 0 var(--radius) var(--radius); */
+    box-shadow: var(--shadow);
+}
+
+.text-hero {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
 .text-hero > h1 {
@@ -73,6 +82,13 @@ a {
     align-self: center;
 }
 
+.ntpinfo-logo {
+    height: 5rem;
+    width: auto;
+    object-fit: contain;
+    /* margin-right: 0.2rem; */
+}
+
 /* Media Queries */
 @media screen and (max-width: 768px) {
     .hero {
@@ -107,5 +123,13 @@ a {
 
     .navbar {
         gap: 1rem;
+    }
+
+    .ntpinfo-logo {
+        height: 2.5rem;
+    }
+
+    .text-hero {
+        gap: 0.5rem;
     }
 }
