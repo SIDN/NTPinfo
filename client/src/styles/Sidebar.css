@@ -84,7 +84,9 @@
   max-width: 160px;
 }
 
-.sidebar__toggle {  }
+.sidebar__toggle {
+  padding-top: 1rem;
+}
 
 .sidebar.closed .sidebar__label {
   opacity: 0;

@@ -4,6 +4,7 @@ import houseIcon from '../assets/house-svgrepo-com.png';
 import compareIcon from '../assets/scale-unbalanced-svgrepo-com.png';
 import graphIcon from '../assets/graph-svgrepo-com.png';
 import aboutIcon from '../assets/info-square-svgrepo-com.png';
+import hamburgerIcon from '../assets/hamburger-md-svgrepo-com.png';
 
 interface SidebarProps {
   selectedTab: number;
@@ -43,7 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedTab, setSelectedTab }) => {
         onClick={() => setOpen(!open)}
         aria-label="Toggle sidebar"
       >
-        ☰
+        <img src={hamburgerIcon} alt="Menu" className="sidebar__icon" />
       </button>
 
       <nav className="sidebar__nav">
