@@ -30,9 +30,6 @@ def get_coordinates_for_ip(client_ip: str) -> tuple[float, float]:
             if lat is None or long is None:
                 raise ValueError("Location data incomplete.")
             return lat, long
-    except (AddressNotFoundError, ValueError, GeoIP2Error, OSError) as e:
-        print(e)
-        return 25.0, -71.0
     except Exception as e:
         print(e)
         return 25.0, -71.0
@@ -54,9 +51,6 @@ def get_country_for_ip(client_ip: str) -> Optional[str]:
         with geoip2.database.Reader(f'{get_max_mind_path_country()}') as reader:
             response = reader.country(client_ip).country.iso_code
             return response
-    except (AddressNotFoundError, ValueError, GeoIP2Error, OSError) as e:
-        print(e)
-        return None
     except Exception as e:
         print(e)
         return None
@@ -78,9 +72,6 @@ def get_continent_for_ip(client_ip: str) -> Optional[str]:
         with geoip2.database.Reader(f'{get_max_mind_path_country()}') as reader:
             response = reader.country(client_ip).continent.code
             return response
-    except (AddressNotFoundError, ValueError, GeoIP2Error, OSError) as e:
-        print(e)
-        return None
     except Exception as e:
         print(e)
         return None
@@ -102,9 +93,6 @@ def get_asn_for_ip(client_ip: str) -> Optional[str]:
         with geoip2.database.Reader(f'{get_max_mind_path_asn()}') as reader:
             response = reader.asn(client_ip).autonomous_system_number
             return str(response)
-    except (AddressNotFoundError, ValueError, GeoIP2Error, OSError) as e:
-        print(e)
-        return None
     except Exception as e:
         print(e)
         return None

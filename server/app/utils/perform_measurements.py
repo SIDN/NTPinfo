@@ -8,7 +8,8 @@ import requests
 from server.app.dtos.ProbeData import ServerLocation
 from server.app.utils.location_resolver import get_country_for_ip, get_coordinates_for_ip
 from server.app.models.CustomError import InputError, RipeMeasurementError
-from server.app.utils.calculations import ntp_precise_time_to_human_date, convert_float_to_precise_time
+from server.app.utils.calculations import ntp_precise_time_to_human_date, convert_float_to_precise_time, \
+    get_non_responding_ntp_measurement
 from server.app.utils.ip_utils import get_ip_family, ref_id_to_ip_or_name, get_server_ip, ip_to_str
 from server.app.utils.load_config_data import get_ripe_account_email, get_ripe_api_token, get_ntp_version, \
     get_timeout_measurement_s, get_ripe_number_of_probes_per_measurement, \
@@ -23,69 +24,6 @@ from server.app.dtos.NtpTimestamps import NtpTimestamps
 from server.app.dtos.PreciseTime import PreciseTime
 from server.app.utils.validate import is_ip_address
 
-
-def get_non_responding_ntp_measurement(server_ip_str: str, server_name: Optional[str],
-                                       ntp_version: int = get_ntp_version()) -> NtpMeasurement:
-    """
-    Construct a default NTP measurement result representing a non-responding NTP server.
-
-    This function is used when an NTP server fails to respond. It returns a synthetic `NtpMeasurement` object
-    with placeholder values (e.g., -1) to indicate that no real measurement was completed. This is used to mark the server
-    as non-responding on the map.
-
-    Args:
-        server_ip_str (str): The IP address of the NTP server that failed to respond.
-        server_name (Optional[str]): The hostname of the NTP server, if available.
-        ntp_version (int): The version of the NTP protocol to report (default is based on system config).
-
-    Returns:
-        NtpMeasurement: An `NtpMeasurement` object filled with placeholder values indicating failure.
-
-    Notes:
-        - The `offset`, `rtt`, `stratum`, and other time-related fields are set to -1 or equivalent.
-        - The `vantage_point_ip` is determined from the local server. If not resolvable, it defaults to 0.0.0.0.
-        - The location and reference information is generated using available utility functions based on IP.
-    """
-    vantage_point_ip_temp = get_server_ip()
-    if vantage_point_ip_temp is not None:
-        vantage_point_ip = vantage_point_ip_temp
-    else:
-        vantage_point_ip = ip_address("0.0.0.0")
-    server_ip = ip_address(server_ip_str)
-    server_info: NtpServerInfo = NtpServerInfo(
-        ntp_version=ntp_version,
-        ntp_server_ip=server_ip,
-        ntp_server_name=server_name,
-        ntp_server_ref_parent_ip=ip_address("0.0.0.0"),
-        ref_name="",
-        ntp_server_location=ServerLocation(country_code=get_country_for_ip(str(server_ip)),
-                                           coordinates=get_coordinates_for_ip(str(server_ip)))
-    )
-
-    timestamps: NtpTimestamps = NtpTimestamps(
-        client_sent_time=PreciseTime(-1, 0),
-        server_recv_time=PreciseTime(-1, 0),
-        server_sent_time=PreciseTime(-1, 0),
-        client_recv_time=PreciseTime(-1, 0),
-    )
-
-    main_details: NtpMainDetails = NtpMainDetails(
-        offset=-1.0,
-        rtt=-1.0,
-        stratum=-1,
-        precision=-1.0,
-        reachability=""
-    )
-
-    extra_details: NtpExtraDetails = NtpExtraDetails(
-        root_delay=PreciseTime(-1, 0),
-        ntp_last_sync_time=PreciseTime(-1, 0),
-        leap=0,
-        poll=-1,
-        root_dispersion=PreciseTime(-1, 0)
-    )
-
-    return NtpMeasurement(vantage_point_ip, server_info, timestamps, main_details, extra_details)
 
 
 def perform_ntp_measurement_domain_name_list(server_name: str = "pool.ntp.org", client_ip: Optional[str] = None,

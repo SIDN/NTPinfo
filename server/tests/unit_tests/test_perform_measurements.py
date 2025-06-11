@@ -67,7 +67,8 @@ def test_perform_ntp_measurement_domain_name_list_exception(mock_convert, mock_n
     mock_client.request.side_effect = [Exception("other message"), mock_ntp_response, mock_ntp_response]
 
     result = perform_ntp_measurement_domain_name_list("time.server.nl", "123.45.67.89", 4)
-    assert result == [mock_measurement3]
+    assert result == [get_non_responding_ntp_measurement("3.4.5.6", "time.server.nl", 4),
+                      get_non_responding_ntp_measurement("12.34.123.90", "time.server.nl", 4), mock_measurement3]
     assert mock_convert.call_count == 2
     assert mock_client.request.call_count == 3
 
