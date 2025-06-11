@@ -14,7 +14,7 @@ a {
 
 .hero {
     width: 100%;
-    height: max(4.5rem, 5vw);
+    height: max(3.5rem, 4vw);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -22,7 +22,7 @@ a {
     /* background: var(--bg-clr-hero); */
     -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
-    padding: 1rem 2rem;
+    padding: 0.75rem 2rem;
     position: sticky;
     top: 0;
     z-index: 3;
@@ -40,7 +40,8 @@ a {
 .text-hero > h1 {
     /* color: var(--clr-font-dark); */
     color: var(--text-white);
-    font-size: clamp(1.5rem, 2.3vw, 2.5rem);
+    font-size: clamp(1.5rem, 2.3vw, 2.0rem);
+    /* font-size: 2.5rem; */
     line-height: 1.2;
 }
 
