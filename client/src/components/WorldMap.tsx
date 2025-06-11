@@ -10,6 +10,7 @@ import redProbeImg from '../assets/red-probe.png'
 import darkRedProbeImg from '../assets/dark-red-probe.png'
 import grayProbeImg from '../assets/gray-probe.png'
 import ntpServerImg from '../assets/ntp-server-icon.png'
+import vantagePointImg from '../assets/vantage-point-logo.png'
 import { useIPInfo } from '../hooks/useIPInfo'
 
 /**
@@ -63,9 +64,16 @@ const grayIcon = new L.Icon({
 
 const ntpServerIcon = new L.Icon({
   iconUrl: ntpServerImg,
-  iconSize: [20, 20],
+  iconSize: [30, 30],
   iconAnchor: [10, 10],
   popupAnchor: [0, -8]
+})
+
+const vantagePointIcon = new L.Icon({
+  iconUrl: vantagePointImg,
+  iconSize: [30, 30],
+  iconAnchor: [15, 30],
+  popupAnchor: [0, -28]
 })
 
 /**
@@ -328,7 +336,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
 
               {!equalCoords(ripeNtpServerLoc, measurementNtpServerLoc) && 
                 <>
-                <Marker position = {ripeNtpServerLoc ?? [0,0]}>
+                <Marker position = {ripeNtpServerLoc ?? [0,0]} icon = {ntpServerIcon}>
                     <Popup>
                       NTP Server (RIPE)<br/>
                       IP: {probes[0].measurementData.ip}<br/>
@@ -336,7 +344,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
                     </Popup>
                 </Marker>
 
-                <Marker position = {measurementNtpServerLoc ?? [0,0]}>
+                <Marker position = {measurementNtpServerLoc ?? [0,0]} icon = {ntpServerIcon}>
                     <Popup>
                       NTP Server (Vantage Point)<br/>
                       IP: {chosenNtpServer.ip}<br/>
@@ -347,7 +355,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
               }
 
               {equalCoords(ripeNtpServerLoc, measurementNtpServerLoc) &&
-                <Marker position = {ripeNtpServerLoc ?? [0,0]}>
+                <Marker position = {ripeNtpServerLoc ?? [0,0]} icon = {ntpServerIcon}>
                     <Popup>
                       NTP Server<br/>
                       IP: {probes[0].measurementData.ip}<br/>
@@ -357,7 +365,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
               }
 
               {restNtpServers && restNtpServers.map((x,index) => (
-                <Marker key={index} position={[0,0]}>
+                <Marker key={index} position={[0,0]} icon = {ntpServerIcon}>
                   <Popup>
                     NTP Server (Vantage Point)<br/>
                     IP: {x.ip}<br/>
@@ -368,7 +376,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
 
               {ripeNtpServerLoc && measurementNtpServerLoc && vantagePointLoc &&
               <>
-                <Marker position = {vantagePointLoc ?? [0,0]}>
+                <Marker position = {vantagePointLoc ?? [0,0]} icon = {vantagePointIcon}>
                     <Popup>
                       Vantage Point<br/>
                       IP: {vantagePointIp}<br/>
