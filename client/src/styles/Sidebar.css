@@ -85,7 +85,7 @@
 }
 
 .sidebar__toggle {
-  padding-top: 1rem;
+  padding-top: 1vw;
 }
 
 .sidebar.closed .sidebar__label {
