@@ -28,7 +28,7 @@ export function downloadJSON(data : InputData) {
  */
 export function downloadCSV(data : InputData) {
 
-  const labeledData = data.map((entry) => ({
+  const labeledData: Record<string, unknown>[] = data.map((entry) => ({
     type: 'probe_id' in entry ? 'RIPE Data' : 'NTP Data',
     ...entry
   }));
@@ -41,7 +41,7 @@ export function downloadCSV(data : InputData) {
   //get headers of csv
   const headers = Array.from(headersSet)
   const values = labeledData.map((entry) =>
-    headers.map((key) => JSON.stringify((entry as any)[key] ?? '')).join(',')
+    headers.map((key) => JSON.stringify((entry)[key] ?? '')).join(',')
   );
 
 
