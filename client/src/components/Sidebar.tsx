@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
 import '../styles/Sidebar.css';
+import houseIcon from '../assets/house-svgrepo-com.png';
+import compareIcon from '../assets/scale-unbalanced-svgrepo-com.png';
+import graphIcon from '../assets/graph-svgrepo-com.png';
+import aboutIcon from '../assets/info-square-svgrepo-com.png';
 
 interface SidebarProps {
   selectedTab: number;
@@ -13,22 +17,22 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedTab, setSelectedTab }) => {
     {
       id: 1,
       label: 'Home',
-      icon: <span className="sidebar__icon">🏠</span>,
+      icon: <img src={houseIcon} alt="Home" className="sidebar__icon" />,
     },
     {
       id: 2,
       label: 'Historical Data',
-      icon: <span className="sidebar__icon">📈</span>,
+      icon: <img src={graphIcon} alt="Graph" className="sidebar__icon" />,
     },
     {
       id: 3,
       label: 'Compare',
-      icon: <span className="sidebar__icon">📊</span>,
+      icon: <img src={compareIcon} alt="Compare" className="sidebar__icon" />,
     },
     {
       id: 4,
       label: 'About',
-      icon: <span className="sidebar__icon">ℹ️</span>,
+      icon: <img src={aboutIcon} alt="About" className="sidebar__icon" />,
     },
   ];
 
