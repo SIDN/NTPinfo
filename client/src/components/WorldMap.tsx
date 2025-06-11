@@ -9,6 +9,7 @@ import yellowProbeImg from '../assets/yellow-probe.png'
 import redProbeImg from '../assets/red-probe.png'
 import darkRedProbeImg from '../assets/dark-red-probe.png'
 import grayProbeImg from '../assets/gray-probe.png'
+import ntpServerImg from '../assets/ntp-server-icon.png'
 import { useIPInfo } from '../hooks/useIPInfo'
 
 /**
@@ -55,6 +56,13 @@ const darkRedIcon = new L.Icon({
 
 const grayIcon = new L.Icon({
   iconUrl: grayProbeImg,
+  iconSize: [20, 20],
+  iconAnchor: [10, 10],
+  popupAnchor: [0, -8]
+})
+
+const ntpServerIcon = new L.Icon({
+  iconUrl: ntpServerImg,
   iconSize: [20, 20],
   iconAnchor: [10, 10],
   popupAnchor: [0, -8]
@@ -229,6 +237,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
   const [measurementNtpServerLoc, setMeasurementNtpServerLoc] = useState<L.LatLngExpression | null>(null)
   const [vantagePointLoc, setVantagePointLoc] = useState<L.LatLngExpression | null>(null)
   const [chosenNtpServer, setChosenNtpServer] = useState<NTPData | null>(null)
+  const [restNtpServers, setRestNtpServers] = useState<NTPData[] | null>(null)
   const { fetchIPInfo } = useIPInfo()
 
   /**
@@ -258,7 +267,9 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
     if (!probes || !ntpServers) return
     const ripe_ip = probes[0].measurementData.ip
     const chosen = ntpServers.find(x => x.ip === ripe_ip) || ntpServers[0]
+    const rest = ntpServers.filter(x => x !== chosen) || ntpServers.slice(1)
     setChosenNtpServer(chosen)
+    setRestNtpServers(rest)
   }, [probes, ntpServers])
 
 
@@ -291,6 +302,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
 
   const probe_locations = probes?.map(x => x.probe_location) ?? []
   const icons = probes?.map(x => getIconByRTT(x.measurementData.RTT, x.got_results)) ?? []
+  console.log(restNtpServers)
     return (
       <div style={{height: '500px', width: '100%'}}>
         <h2>{statusMessage}</h2>
@@ -343,6 +355,16 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
                     </Popup>
                 </Marker>
               }
+
+              {restNtpServers && restNtpServers.map((x,index) => (
+                <Marker key={index} position={[0,0]}>
+                  <Popup>
+                    NTP Server (Vantage Point)<br/>
+                    IP: {x.ip}<br/>
+                    Name: {x.server_name}
+                  </Popup>
+                </Marker>
+              ))}
 
               {ripeNtpServerLoc && measurementNtpServerLoc && vantagePointLoc &&
               <>
