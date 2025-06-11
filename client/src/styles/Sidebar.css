@@ -1,5 +1,7 @@
+@import '../index.css';
+
 .sidebar {
-  background-color: var(--bg-clr-secondary);
+  background: linear-gradient(to bottom, var(--bg-primary), var(--bg-secondary));
   color: var(--clr-font-white);
   display: flex;
   flex-direction: column;

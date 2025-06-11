@@ -1,5 +1,5 @@
 import '../styles/Hero.css'
-import github from '../assets/github-mark-high-res-blue.png'
+import github from '../assets/github-logo-high-res-white.png'
 
 function Hero() {
     return (

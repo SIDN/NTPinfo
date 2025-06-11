@@ -18,7 +18,10 @@ a {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--bg-clr-hero);
+    background-color: rgba(15, 23, 42, 0.8); /* var(--bg-primary) with 80% opacity */
+    /* background: var(--bg-clr-hero); */
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
     padding: 1rem 2rem;
     position: sticky;
     top: 0;
@@ -26,13 +29,15 @@ a {
 }
 
 .text-hero > h1 {
-    color: var(--clr-font-dark);
+    /* color: var(--clr-font-dark); */
+    color: var(--text-white);
     font-size: clamp(1.5rem, 2.3vw, 2.5rem);
     line-height: 1.2;
 }
 
 .text-hero > p {
-    color: var(--clr-font-dark);
+    /* color: var(--clr-font-dark); */
+    color: var(--text-white);
     font-weight: 200;
     font-size: clamp(0.8rem, 1.2vw, 1.2rem);
     text-align: left;
@@ -47,7 +52,8 @@ a {
 .navbar a {
     font-size: clamp(0.9rem, 1.5vw, 1.2rem);
     font-weight: bold;
-    color: var(--clr-font-dark);
+    /* color: var(--clr-font-dark); */
+    color: var(--text-white);
     display: flex;
     align-items: center;
 }
