@@ -187,10 +187,9 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
 
   return (
     <div>
-    {/* <Hero /> */}
+    <Hero />
     {/* The main container for the app, containing the input section, results and graph, and the map */}
     <div className="app-container">
-      <Hero />
       <div className="input-wrapper">
         <InputSection onClick={handleInput} loading={apiDataLoading} />
       </div>
