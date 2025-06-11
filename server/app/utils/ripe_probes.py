@@ -1,7 +1,7 @@
 from typing import TypeVar
 from typing import Optional
 
-from server.app.utils.location_resolver import get_client_location
+from server.app.utils.location_resolver import get_client_coordinates
 from server.app.utils.calculations import calculate_haversine_distance
 from server.app.models.CustomError import InputError
 from server.app.utils.load_config_data import get_ripe_number_of_probes_per_measurement
@@ -374,7 +374,7 @@ def get_available_probes_asn_and_country(client_ip: str, ip_asn: str, ip_country
         page_size=300,
         **filters,
     )
-    lat_client, lon_client = get_client_location(client_ip)
+    lat_client, lon_client = get_client_coordinates(client_ip)
     probe_ids_dist_list: list[tuple[int, float]] = []
     for p in probes:
         try:
@@ -504,7 +504,7 @@ def get_available_probes_country(client_ip: str, country_code: str, ip_type: str
         page_size=600,
         **filters,
     )
-    lat_client, lon_client = get_client_location(client_ip)
+    lat_client, lon_client = get_client_coordinates(client_ip)
     probe_ids_dist_list: list[tuple[int, float]] = []
     for p in probes:
         try:

@@ -4,7 +4,7 @@ from geoip2.errors import AddressNotFoundError, GeoIP2Error
 from server.app.utils.load_config_data import get_max_mind_path
 
 
-def get_client_location(client_ip: str) -> tuple[float, float]:
+def get_client_coordinates(client_ip: str) -> tuple[float, float]:
     """
     Retrieves the geographical location (latitude and longitude) of a given IP address
     using the MaxMind GeoLite2-City database.
