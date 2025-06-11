@@ -225,7 +225,7 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
             - If pending: {"status": "pending", "message": "..."}
             - If partial results received: {"status": "partial_results", "results": <ripe_data>}
     Raises:
-        HTTPException: - 500: If fetching the measurement did not work.
+        HTTPException: - 405: If fetching the measurement did not work.
     Notes:
         - A result is only marked "complete" when all requested probes have been scheduled
     """
