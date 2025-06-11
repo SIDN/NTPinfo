@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
 
+from server.app.models.CustomError import InvalidMeasurementDataError
 from server.app.db.db_interaction import row_to_dict, rows_to_dicts, dict_to_measurement, rows_to_measurements
 from server.app.models.Measurement import Measurement
 from server.app.models.Time import Time
@@ -21,7 +22,7 @@ def fake_measurement():
     m.rtt = 0.45
     m.stratum = 2
     m.precision = -20
-    m.reachability = 255
+    m.reachability = ""
     m.root_delay = 12.5
     m.root_delay_prec = 0.01
     m.ntp_last_sync_time = 1650000000.0
@@ -77,6 +78,50 @@ def test_dict_to_measurement(fake_measurement, fake_time):
     assert ntp_measurement.server_info.ntp_server_name == "ntp.example.com"
     assert ntp_measurement.timestamps.client_sent_time.seconds == 1650000001
     assert ntp_measurement.timestamps.client_sent_time.fraction == 0
+
+
+def test_dict_to_measurement_missing_keys():
+    incomplete_entry = {
+        "vantage_point_ip": "1.2.3.4"
+    }
+    with pytest.raises(InvalidMeasurementDataError) as exc_info:
+        dict_to_measurement(incomplete_entry)
+    assert "Missing required keys" in str(exc_info.value)
+
+
+def test_dict_to_measurement_malformed_values():
+    malformed_entry = {
+        'vantage_point_ip': "1.2.3.4",
+        'ntp_server_ip': "5.6.7.8",
+        'ntp_server_name': "ntp.example.com",
+        'ntp_version': 4,
+        'ntp_server_ref_parent_ip': "9.9.9.9",
+        'ref_name': "ref",
+        'offset': "should_be_float",  # wrong type
+        'RTT': 0.1,
+        'stratum': 2,
+        'precision': -20,
+        'reachability': 255,
+        'root_delay': 0,
+        'root_delay_prec': 0,
+        'poll': 6,
+        'root_dispersion': 0,
+        'root_dispersion_prec': 0,
+        'ntp_last_sync_time': 1000,
+        'ntp_last_sync_time_prec': 0,
+        'client_sent': 1650000001,
+        'client_sent_prec': 0,
+        'server_recv': 1650000002,
+        'server_recv_prec': 0,
+        'server_sent': 1650000003,
+        'server_sent_prec': 0,
+        'client_recv': 1650000004,
+        'client_recv_prec': 0,
+    }
+
+    with pytest.raises(InvalidMeasurementDataError) as exc_info:
+        dict_to_measurement(malformed_entry)
+    assert "Failed to build NtpMeasurement" in str(exc_info.value)
 
 
 def test_rows_to_measurements(fake_measurement, fake_time):

@@ -7,6 +7,7 @@ import requests
 from server.app.models.CustomError import InputError
 from server.app.utils.load_config_data import get_ipinfo_lite_api_token, get_edns_default_servers
 from server.app.utils.validate import is_ip_address
+from fastapi import HTTPException, Request
 
 
 def ref_id_to_ip_or_name(ref_id: int, stratum: int) \
@@ -208,3 +209,29 @@ def get_server_ip() -> IPv4Address | IPv6Address | None:
         return ip_address(ip)
     except ValueError:
         return None
+
+
+def client_ip_fetch(request: Request) -> str | None:
+    """
+    Attempts to determine the client's IP address from the request.
+
+    Args:
+        request (Request): The FastAPI Request object, containing information
+                           about the incoming client request
+
+    Returns:
+        str: The determined IP address of the client (or a fallback server IP)
+             as a string.
+
+    Raises:
+         HTTPException:
+            - 503: If neither the client's IP from headers/request nor the fallback server IP can be successfully resolved.
+    """
+    try:
+        client_ip = request.headers.get("X-Forwarded-For", request.client.host if request.client is not None else None)
+        if client_ip is None:
+            client_ip = ip_to_str(get_server_ip())
+
+        return client_ip
+    except Exception as e:
+        raise HTTPException(status_code=503, detail="Could not resolve client IP or fallback IP.")
