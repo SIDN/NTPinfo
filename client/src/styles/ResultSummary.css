@@ -46,9 +46,13 @@ h2#not-found {
   color: var(--clr-font-white);
   font-weight: 600;
   padding-inline: 0.25rem;
+  /* white-space: nowrap; */
+  /* overflow: hidden; */
+  /* text-overflow: ellipsis; */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .result-and-title {
   display: flex;
@@ -57,8 +61,11 @@ h2#not-found {
   gap: 1rem;
   flex: 1;
   min-width: 20rem;
+  /* max-width: 100%; */
+  width: max-content;
 
 }
+
 .tooltip-label {
   cursor: help;
   display: inline-block;
