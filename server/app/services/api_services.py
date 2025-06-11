@@ -219,7 +219,7 @@ def measure(server: str, session: Session, client_ip: Optional[str] = None,
                 m_results = []
                 for m in measurements:
                     if str(m.server_info.ntp_server_ref_parent_ip) == "0.0.0.0":
-                        m_results.append((m, 0.0, 0))
+                        m_results.append((m, 0.0, 1))
                         continue
                     jitter = 0.0
                     nr_jitter_measurements = 0

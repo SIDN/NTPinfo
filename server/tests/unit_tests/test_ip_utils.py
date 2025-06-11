@@ -43,28 +43,31 @@ def test_get_area_of_ip():
     assert get_area_of_ip("CN", "AS") == "South-East"
 
 
-@patch("server.app.utils.ip_utils.get_ipinfo_lite_api_token")
-@patch("server.app.utils.ip_utils.requests.get")
-def test_get_ip_network_details_success(mock_get, mock_token):
-    mock_get.return_value = MagicMock()
-    mock_token.return_value = "dummy_token"
-    mock_get.return_value.json.return_value = {
-        "asn": "AS12345",
-        "country_code": "NL",
-        "continent_code": "EU"
-    }
+@patch("server.app.utils.ip_utils.get_continent_for_ip")
+@patch("server.app.utils.ip_utils.get_country_for_ip")
+@patch("server.app.utils.ip_utils.get_asn_for_ip")
+def test_get_ip_network_details_success(mock_get_asn, mock_get_country, mock_get_continent):
+    mock_get_asn.return_value = "12345"
+    mock_get_country.return_value = "NL"
+    mock_get_continent.return_value = "EU"
+
     asn, country, area = get_ip_network_details("1.1.1.1")
-    assert asn == "AS12345"
+
+    assert asn == "12345"
     assert country == "NL"
     assert area == "North-Central"
 
 
-@patch("server.app.utils.ip_utils.get_ipinfo_lite_api_token")
-@patch("server.app.utils.ip_utils.requests.get")
-def test_get_ip_network_details_exception(mock_get, mock_token):
-    mock_get.side_effect = Exception("fail")
-    mock_token.return_value = "dummy_token"
+@patch("server.app.utils.ip_utils.get_continent_for_ip")
+@patch("server.app.utils.ip_utils.get_country_for_ip")
+@patch("server.app.utils.ip_utils.get_asn_for_ip")
+def test_get_ip_network_details_exception(mock_get_asn, mock_get_country, mock_get_continent):
+    mock_get_asn.side_effect = Exception("fail")
+    mock_get_country.side_effect = Exception("fail")
+    mock_get_continent.side_effect = Exception("fail")
+
     asn, country, area = get_ip_network_details("1.1.1.1")
+
     assert asn is None
     assert country is None
     assert area is None

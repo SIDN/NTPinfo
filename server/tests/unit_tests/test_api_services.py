@@ -92,6 +92,8 @@ def test_measure_with_ip(mock_measure_ip, mock_measure_domain, mock_insert, mock
 @patch("server.app.services.api_services.perform_ntp_measurement_ip")
 def test_measure_with_domain(mock_measure_ip, mock_measure_domain, mock_insert, mock_jitter):
     fake_measurement = MagicMock(spec=NtpMeasurement)
+    fake_measurement.server_info = MagicMock()
+    fake_measurement.server_info.ntp_server_ref_parent_ip = ip_address("1.2.3.4")
     mock_measure_domain.return_value = [fake_measurement]
     mock_measure_ip.return_value = None
     mock_jitter.return_value = (0, 1)
@@ -117,7 +119,7 @@ def test_measure_with_invalid_ip(mock_measure_ip, mock_measure_domain, mock_inse
     assert result is None
     mock_measure_ip.assert_not_called()
     mock_measure_domain.assert_called_once_with("not.an.ip", None)
-    mock_insert.assert_called_once_with(fake_measurement, mock_insert.call_args[0][1])
+    mock_insert.assert_not_called()
 
 
 @patch("server.app.services.api_services.insert_measurement")
@@ -247,6 +249,7 @@ def mock_ripe_parse_result():
                 ntp_server_name='time.some_server.com',
                 ntp_server_ref_parent_ip=None,
                 ref_name=None,
+                ntp_server_location=ServerLocation(country_code="GL", coordinates=(25.2132, -71.4343))
             ),
             timestamps=NtpTimestamps(
                 client_sent_time=mock_precise(3957337543, 1845620736),
@@ -272,7 +275,7 @@ def mock_ripe_parse_result():
         probe_data=ProbeData(
             probe_id="9999",
             probe_addr=(IPv4Address('83.231.3.54'), None),
-            probe_location=ProbeLocation(
+            probe_location=ServerLocation(
                 country_code='CZ',
                 coordinates=(16.5995, 49.1605)
             )
