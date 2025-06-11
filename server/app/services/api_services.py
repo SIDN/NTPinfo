@@ -18,7 +18,7 @@ from server.app.services.NtpCalculator import NtpCalculator
 from server.app.utils.perform_measurements import perform_ntp_measurement_ip, \
     perform_ripe_measurement_ip
 from datetime import datetime
-from server.app.dtos.ProbeData import ProbeLocation
+from server.app.dtos.ProbeData import ServerLocation
 from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.utils.ripe_fetch_data import parse_data_from_ripe_measurement, get_data_from_ripe_measurement
 from server.app.db.db_interaction import insert_measurement
@@ -49,6 +49,10 @@ def get_format(measurement: NtpMeasurement, jitter: Optional[float] = None,
         "vantage_point_ip": ip_to_str(measurement.vantage_point_ip),
         "ntp_server_ip": ip_to_str(measurement.server_info.ntp_server_ip),
         "ntp_server_name": measurement.server_info.ntp_server_name,
+        "nrp_server_location": {
+            "country_code": measurement.server_info.ntp_server_location.country_code,
+            "coordinates": measurement.server_info.ntp_server_location.coordinates
+        },
         "ntp_server_ref_parent_ip": ip_to_str(measurement.server_info.ntp_server_ref_parent_ip),
         "ref_name": measurement.server_info.ref_name,
 
@@ -109,12 +113,17 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
                 - Measurement metrics (stratum, poll, precision, root delay, root dispersion, reachability)
                 - NTP measurement data (rtt, offset, timestamps)
     """
-    probe_location: Optional[ProbeLocation] = measurement.probe_data.probe_location
+    probe_location: Optional[ServerLocation] = measurement.probe_data.probe_location
     return {
         "ntp_version": measurement.ntp_measurement.server_info.ntp_version,
         "ripe_measurement_id": measurement.measurement_id,
         "ntp_server_ip": ip_to_str(measurement.ntp_measurement.server_info.ntp_server_ip),
+        "ntp_server_location": {
+            "country_code": measurement.ntp_measurement.server_info.ntp_server_location.country_code,
+            "coordinates": measurement.ntp_measurement.server_info.ntp_server_location.coordinates
+        },
         "ntp_server_name": measurement.ntp_measurement.server_info.ntp_server_name,
+        "vantage_point_ip": ip_to_str(measurement.ntp_measurement.vantage_point_ip),
         "probe_addr": {
             "ipv4": ip_to_str(measurement.probe_data.probe_addr[0]),
             "ipv6": ip_to_str(measurement.probe_data.probe_addr[1])
@@ -209,6 +218,9 @@ def measure(server: str, session: Session, client_ip: Optional[str] = None,
             if measurements is not None:
                 m_results = []
                 for m in measurements:
+                    if str(m.server_info.ntp_server_ref_parent_ip) == "0.0.0.0":
+                        m_results.append((m, 0.0, 1))
+                        continue
                     jitter = 0.0
                     nr_jitter_measurements = 0
                     insert_measurement(m, session)
