@@ -42,6 +42,8 @@ describe('Test Download Formats', () => {
     root_dispersion: 1,
     root_delay: 1,
     vantage_point_ip: '1.1.1.1',
+    coordinates: [50.262, 4.333],
+    country_code: "DE"
   }
 
   const ripeData: RIPEData = {
