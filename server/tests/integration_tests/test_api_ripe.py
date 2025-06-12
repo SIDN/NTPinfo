@@ -24,11 +24,11 @@ def test_creating_ripe_measurement_unsuccessful(client):
     assert response.status_code == 400
 
 def test_creating_ripe_measurement_successful(client):
-    try:
-        get_ripe_api_token()
-    except Exception:
-        print("could not perform this test: creating_ripe_measurement_successful")
-        return
+    # try:
+    #     get_ripe_api_token()
+    # except Exception:
+    #     print("could not perform this test: creating_ripe_measurement_successful")
+    #     return
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = client.post("/measurements/ripe/trigger/", json={"server": "pool.ntp.org"},
                            headers=headers)
@@ -49,22 +49,22 @@ def test_get_ripe_measurement_result_unsuccessful(client):
     assert response.status_code == 405 or response.status_code == 500
 
 def test_get_ripe_measurement_result_successful(client):
-    try:
-        get_ripe_api_token()
-    except Exception:
-        print("could not perform this test: get_ripe_measurement_result_successful")
-        return
+    # try:
+    #     get_ripe_api_token()
+    # except Exception:
+    #     print("could not perform this test: get_ripe_measurement_result_successful")
+    #     return
     response = client.get("/measurements/ripe/107704481")
     assert response.status_code == 200
     assert "status" in response.json()
     assert response.json()["status"] == "complete"
 
 def test_fetching_details_about_measurement():
-    try:
-        get_ripe_api_token()
-    except Exception:
-        print("could not perform this test: fetching details")
-        return
+    # try:
+    #     get_ripe_api_token()
+    # except Exception:
+    #     print("could not perform this test: fetching details")
+    #     return
     # this m_id needs to be a measurement that is available on RIPE Atlas
     m_id = "107704481" # a measurement done on 2025-06-04 to 216.239.35.4 with 35 probes
     assert check_all_measurements_scheduled(m_id) is True
