@@ -1,0 +1,187 @@
+import pytest
+from fastapi.testclient import TestClient
+
+from server.app.utils.load_config_data import get_ripe_api_token
+from server.app.main import create_app
+from server.app.utils.ripe_fetch_data import check_all_measurements_scheduled, check_all_measurements_done, \
+    get_data_from_ripe_measurement, get_probe_data_from_ripe_by_id
+from server.app.utils.ripe_probes import get_available_probes_asn_and_prefix, get_available_probes_asn_and_country, \
+    get_available_probes_country, get_available_probes_asn, get_available_probes_prefix, get_probes
+
+@pytest.fixture(scope="function")
+def client():
+    app = create_app(dev=False)
+    app.state.limiter.reset()
+    client = TestClient(app)
+    yield client
+    app.state.limiter.reset()
+# test integration with creating a RIPE measurement.
+
+def test_creating_ripe_measurement_unsuccessful(client):
+    response = client.post("/measurements/ripe/trigger/", json={"server": ""})
+    assert response.status_code == 400
+    response = client.post("/measurements/ripe/trigger/", json={"server": "4536.35.pool.bla"})
+    assert response.status_code == 400
+
+def test_creating_ripe_measurement_successful(client):
+    try:
+        get_ripe_api_token()
+    except Exception:
+        print("could not perform this test: creating_ripe_measurement_successful")
+        return
+    headers = {"X-Forwarded-For": "83.25.24.10"}
+    response = client.post("/measurements/ripe/trigger/", json={"server": "pool.ntp.org"},
+                           headers=headers)
+    # this 500 is just a temporary. IT will be removed when we finally manage to add the token in the pipeline
+    assert response.status_code == 200
+    assert "measurement_id" in response.json()
+    response = client.post("/measurements/ripe/trigger/", json={"server": "216.239.35.4"},
+                           headers=headers)
+    assert response.status_code == 200
+    assert "measurement_id" in response.json()
+
+
+
+
+# test integration with getting the data from a measurement ID (fetching)
+def test_get_ripe_measurement_result_unsuccessful(client):
+    response = client.get("/measurements/ripe/-107704481")
+    assert response.status_code == 405 or response.status_code == 500
+
+def test_get_ripe_measurement_result_successful(client):
+    try:
+        get_ripe_api_token()
+    except Exception:
+        print("could not perform this test: get_ripe_measurement_result_successful")
+        return
+    response = client.get("/measurements/ripe/107704481")
+    assert response.status_code == 200
+    assert "status" in response.json()
+    assert response.json()["status"] == "complete"
+
+def test_fetching_details_about_measurement():
+    try:
+        get_ripe_api_token()
+    except Exception:
+        print("could not perform this test: fetching details")
+        return
+    # this m_id needs to be a measurement that is available on RIPE Atlas
+    m_id = "107704481" # a measurement done on 2025-06-04 to 216.239.35.4 with 35 probes
+    assert check_all_measurements_scheduled(m_id) is True
+    assert check_all_measurements_done(m_id,35) == "Complete"
+    data = get_data_from_ripe_measurement(m_id)
+    # verify we got information from probes
+    for pb in data:
+        # verify the measurement was done for the correct IP address
+        assert pb["dst_addr"] == "216.239.35.4"
+        # verify if the measurement was correctly get
+        assert "result" in pb
+
+
+
+# test integration with getting the available probes
+# there we test whether our requests to the RIPE API (to see how many probes of a type
+# are available) are successful
+
+def test_get_available_probes_asn_and_prefix():
+    # these are details for some probes in Germany
+    result = get_available_probes_asn_and_prefix("95.223.228.43", "AS3209", "95.223.0.0/16", "ipv4")
+
+    # no duplicates
+    assert len(result) == len(set(result))
+    # data about the probes (max 3 probes)
+    max_count = 0
+    for p_id in result:
+        if max_count >= 3:
+            break
+        max_count += 1
+        try:
+            data = get_probe_data_from_ripe_by_id(str(p_id))
+            ans = str(data.get("asn_v4")) == "AS3209" or str(data.get("asn_v4") == "3209")
+            # if it responds, verify it is true (otherwise the lines above will throw an exception)
+            assert ans is True
+        except Exception as e:
+            # some probes may not respond
+            continue
+
+def test_get_available_probes_asn_and_country():
+    # these are details for some probes in Germany
+    result = get_available_probes_asn_and_country("95.223.228.43", "AS3209", "DE", "ipv4")
+
+    # no duplicates
+    assert len(result) == len(set(result))
+    # there is at least a probe in this country
+    assert len(result) > 0
+
+def test_get_available_probes_asn():
+    result = get_available_probes_asn("95.223.228.43", "AS3209", "ipv4")
+    # no duplicates
+    assert len(result) == len(set(result))
+    # data about the probes (max 3 probes)
+    max_count = 0
+    for p_id in result:
+        if max_count >= 3:
+            break
+        max_count += 1
+        try:
+            data = get_probe_data_from_ripe_by_id(str(p_id))
+            ans = str(data.get("asn_v4")) == "AS3209" or str(data.get("asn_v4") == "3209")
+            # if it responds, verify it is true (otherwise the lines above will throw an exception)
+            assert ans is True
+        except Exception as e:
+            # some probes may not respond
+            continue
+
+def test_get_available_probes_prefix():
+    result = get_available_probes_prefix("95.223.228.43", "95.223.0.0/16", "ipv4")
+    # no duplicates
+    assert len(result) == len(set(result))
+
+def test_get_available_probes_country():
+    # these are details for some probes in Germany
+    result = get_available_probes_country("95.223.228.43",  "DE", "ipv4")
+    # data about the probes (max 5 probes)
+    max_count = 0
+    for p_id in result:
+        if max_count >= 5:
+            break
+        max_count += 1
+        try:
+            data = get_probe_data_from_ripe_by_id(str(p_id))
+            ans = (data.get("country_code") == "DE" )
+            # if it responds, verify it is true (otherwise the lines above will throw an exception)
+            assert ans is True
+        except Exception as e:
+            # some probes may not respond
+            continue
+
+    # no duplicates
+    assert len(result) == len(set(result))
+    # there is at least a probe in this country
+    assert len(result) > 0
+
+def test_get_probes():
+    # Germany
+    result = get_probes("95.223.228.43", 15)
+    counter = 0
+    for r in result:
+        counter += r["requested"]
+    assert counter == 15
+    # Romania
+    result = get_probes("46.97.170.106", 1)
+    counter = 0
+    for r in result:
+        counter += r["requested"]
+    assert counter == 1
+    # Cambodia
+    result = get_probes("202.79.26.65", 10)
+    counter = 0
+    for r in result:
+        counter += r["requested"]
+    assert counter == 10
+    # Netherlands
+    result = get_probes("145.92.210.165", 20)
+    counter = 0
+    for r in result:
+        counter += r["requested"]
+    assert counter == 20

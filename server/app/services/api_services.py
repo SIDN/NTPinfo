@@ -15,7 +15,7 @@ from server.app.utils.ripe_fetch_data import check_all_measurements_scheduled
 from server.app.utils.perform_measurements import perform_ripe_measurement_domain_name
 from server.app.utils.validate import ensure_utc, is_ip_address, parse_ip
 from server.app.services.NtpCalculator import NtpCalculator
-from server.app.utils.perform_measurements import perform_ntp_measurement_ip, perform_ntp_measurement_domain_name, \
+from server.app.utils.perform_measurements import perform_ntp_measurement_ip, \
     perform_ripe_measurement_ip
 from datetime import datetime
 from server.app.dtos.ProbeData import ServerLocation
