@@ -58,7 +58,7 @@ export interface HomeCacheState {
   measured: boolean
   selMeasurement: Measurement          // 'offset' | 'RTT'
   measurementId: string | null
-  vantagePointIp: string | null
+  vantagePointInfo: [LatLngTuple,string] | null
   allNtpMeasurements: NTPData[] | null
   ripeMeasurementResp: RIPEData[] | null
   ripeMeasurementStatus: string | null     // 'loading' | 'complete' | ...

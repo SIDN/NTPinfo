@@ -1,4 +1,4 @@
-import L from 'leaflet'
+import L, { LatLngTuple } from 'leaflet'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import { MapContainer, Marker, Popup, TileLayer, useMap } from 'react-leaflet'
@@ -11,9 +11,10 @@ import darkRedProbeImg from '../assets/dark-red-probe.png'
 import grayProbeImg from '../assets/gray-probe.png'
 import ntpServerImg from '../assets/ntp-server-icon.png'
 import vantagePointImg from '../assets/vantage-point-logo.png'
-import { useIPInfo } from '../hooks/useIPInfo'
+import unavailableNtpImg from '../assets/unavailable-ntp-server-icon.png'
 
 import '../styles/WorldMap.css'
+import { C } from 'vitest/dist/chunks/reporters.d.DL9pg5DB.js'
 
 /**
  * Standard code added for the proper functioning of the default icon when using Leaflet with Vite
@@ -72,6 +73,14 @@ const ntpServerIcon = new L.Icon({
   zIndexOffset: 1000
 })
 
+const unavailableNtpServerIcon = new L.Icon({
+  iconUrl: unavailableNtpImg,
+  iconSize: [30, 30],
+  iconAnchor: [12, 15],
+  popupAnchor: [0, -8],
+  zIndexOffset: 1000
+})
+
 const vantagePointIcon = new L.Icon({
   iconUrl: vantagePointImg,
   iconSize: [30, 30],
@@ -86,7 +95,7 @@ const vantagePointIcon = new L.Icon({
 interface MapComponentProps {
   probes: RIPEData[] | null
   ntpServers: NTPData[] | null
-  vantagePointIp: string | null
+  vantagePointInfo: [LatLngTuple,string] | null
   status: string | null
 }
 
@@ -100,8 +109,8 @@ interface MapComponentProps {
  * @param measurementNtpServer the geolocation of the NTP server that the vantage point measured on
  * @param vantagePoint the geolocation of the vantage point that the measurement was taken from
  */
-const FitMapBounds = ({probes, ripeNtpServer, measurementNtpServer, vantagePoint}: {probes: L.LatLngExpression[], 
-  ripeNtpServer: L.LatLngExpression | null, measurementNtpServer: L.LatLngExpression | null, vantagePoint: L.LatLngExpression | null}) => {
+const FitMapBounds = ({probes, ripeNtpServers, measurementNtpServers, intersectionNtpServers, unavailableNtpServers, vantagePoint}: {probes: LatLngTuple[], 
+  ripeNtpServers: LatLngTuple[], measurementNtpServers: LatLngTuple[], intersectionNtpServers: LatLngTuple[], unavailableNtpServers: LatLngTuple[], vantagePoint: LatLngTuple}) => {
   const map = useMap()
   const userInteracted = useRef(false)
   const ignoreEvents = useRef(false)
@@ -123,12 +132,12 @@ const FitMapBounds = ({probes, ripeNtpServer, measurementNtpServer, vantagePoint
   }, [map])
 
   useEffect(() => {
-    if (probes.length === 0 || !ripeNtpServer || !measurementNtpServer || !vantagePoint) return
+    if (probes.length === 0 || !vantagePoint) return
     
     if (userInteracted.current) return
 
     const fitBounds = () => {
-      const allPoints = [...probes, ripeNtpServer, measurementNtpServer, vantagePoint]
+      const allPoints = [...probes, ...ripeNtpServers, ...measurementNtpServers, ...intersectionNtpServers, ...unavailableNtpServers, vantagePoint]
       const bounds = L.latLngBounds(allPoints)
       ignoreEvents.current = true
       map.fitBounds(bounds, { padding: [15, 15] })
@@ -146,7 +155,7 @@ const FitMapBounds = ({probes, ripeNtpServer, measurementNtpServer, vantagePoint
     }
     window.addEventListener('resize', handleWindowResize)
     return () => {window.removeEventListener('resize', handleWindowResize)}
-  }, [map, probes, ripeNtpServer, measurementNtpServer])
+  }, [map, probes, ripeNtpServers, measurementNtpServers, intersectionNtpServers, unavailableNtpServers])
 
   return null
 }
@@ -159,17 +168,25 @@ const FitMapBounds = ({probes, ripeNtpServer, measurementNtpServer, vantagePoint
  * @param measurementNtpServer the geolocation of the NTP server that the vantage point measured on
  * @param vantagePoint the geolocation of the vantage point that the measurement was taken from
  */
-const DrawConnectingLines = ({probes, ripeNtpServer, measurementNtpServer, vantagePoint}: {probes: L.LatLngExpression[], 
-  ripeNtpServer: L.LatLngExpression | null, measurementNtpServer: L.LatLngExpression | null, vantagePoint: L.LatLngExpression | null}) => {
+const DrawConnectingLines = ({probes, measurementNtpServers, intersectionNtpServers, unavailableNtpServers, vantagePoint}: {probes: RIPEData[], 
+  measurementNtpServers: LatLngTuple[], intersectionNtpServers: LatLngTuple[], unavailableNtpServers: LatLngTuple[], vantagePoint: LatLngTuple}) => {
   const map = useMap()
 
   useEffect(() => {
-    if (!ripeNtpServer || !measurementNtpServer || !vantagePoint) return
+    if (!vantagePoint || probes.length === 0) return
     probes.map(x => {
-      L.polyline([x,ripeNtpServer], {color: 'blue', opacity: 0.8, weight: 1}).addTo(map)
+      L.polyline([x.probe_location,x.measurementData.coordinates], {color: 'blue', opacity: 0.8, weight: 1}).addTo(map)
     })
-    L.polyline([vantagePoint, measurementNtpServer], {color: 'blue', opacity: 0.8, weight: 1}).addTo(map)
-  },[map, probes, ripeNtpServer, measurementNtpServer, vantagePoint])
+    measurementNtpServers.map(x => {
+      L.polyline([x,vantagePoint], {color:'blue', opacity: 0.8, weight: 1}).addTo(map)
+    })
+    intersectionNtpServers.map(x => {
+      L.polyline([x,vantagePoint], {color:'blue', opacity: 0.8, weight: 1}).addTo(map)
+    })
+    unavailableNtpServers.map(x => {
+      L.polyline([x,vantagePoint], {color:'gray', opacity: 0.8, weight: 1}).addTo(map)
+    })
+  },[map, probes, measurementNtpServers, intersectionNtpServers, unavailableNtpServers])
 
   return null
 }
@@ -201,21 +218,6 @@ const stringifyRTTAndOffset = (value: number): string => {
 }
 
 /**
- * A function to compare if two LatLngExpressions are equal to each other
- * @param a the first LatLngExpression to be checked
- * @param b the second LatLngExpression to be checked
- * @returns if the two LatLngExpressions are both equal
- */
-const equalCoords = (a: L.LatLngExpression | null, b: L.LatLngExpression | null): boolean => {
-  if (a === null && b === null) return true
-  if (a === null) return false
-  if (b === null) return false
-  const exprA = L.latLng(a)
-  const exprB = L.latLng(b)
-  return exprA.lat === exprB.lat && exprA.lng === exprB.lng
-}
-
-/**
  * The function for creating the WorldMap Component
  * Shows error text in case that an error occurs in fetching RIPE Data
  * Used a base tile map offered by Carto, specifically the Dark Matter basemap
@@ -243,23 +245,52 @@ const equalCoords = (a: L.LatLngExpression | null, b: L.LatLngExpression | null)
  * @param status the current status of the polling of the RIPE measurements 
  * @returns a WorldMap component showing all probes, the NTP server and relevant values for all of them
  */
-export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: MapComponentProps) {
+export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}: MapComponentProps) {
   const [statusMessage, setStatusMessage] = useState<string>("")
-  const [ripeNtpServerLoc, setRipeNtpServerLoc] = useState<L.LatLngExpression | null>(null)
-  const [measurementNtpServerLoc, setMeasurementNtpServerLoc] = useState<L.LatLngExpression | null>(null)
-  const [vantagePointLoc, setVantagePointLoc] = useState<L.LatLngExpression | null>(null)
-  const [chosenNtpServer, setChosenNtpServer] = useState<NTPData | null>(null)
-  const [restNtpServers, setRestNtpServers] = useState<NTPData[] | null>(null)
-  const { fetchIPInfo } = useIPInfo()
+  const [ripeNtpServers, setRipeNtpServers] = useState<RIPEData[]>([])
+  const [measurementNtpServers, setMeasurementNtpServers] = useState<NTPData[]>([])
+  const [intersectionNtpServers, setIntersectionNtpServers] = useState<RIPEData[]>([])
+  const [unavailableNtpServers, setUnavailableNtpServers] = useState<NTPData[]>([])
+
+  useEffect(() => {
+    if (!probes || !ntpServers) return
+    
+    const serverIPs = new Set(ntpServers.map((x => x.ip)))
+    const probeIPMap = new Map<String, RIPEData>()
+
+    const inRipe = []
+    const inRipeAndMeasurement = []
+
+    for (const probe of probes) {
+      const ip = probe.measurementData.ip
+      probeIPMap.set(ip,probe)
+      if(serverIPs.has(ip)){
+        inRipeAndMeasurement.push(probe)
+      } else {
+        inRipe.push(probe)
+      }
+    }
+    
+    const probeIps = new Set(probeIPMap.keys())
+    const inMeasurements = ntpServers.filter(x => !probeIps.has(x.ip))
+    const unavailable = inMeasurements.filter(x => x.RTT === -1)
+    const available = inMeasurements.filter(x => x.RTT !== -1)
+
+    setRipeNtpServers(inRipe)
+    setMeasurementNtpServers(available)
+    setIntersectionNtpServers(inRipeAndMeasurement)
+    setUnavailableNtpServers(unavailable)
+  }, [probes,ntpServers])
 
   /**
    * Effect to dynamically update the status shown depening on the progress of the RIPE measurement
    */
   useEffect(() => {
     if (status === "pending"){
-      setRipeNtpServerLoc(null)
-      setMeasurementNtpServerLoc(null)
-      setVantagePointLoc(null)
+      setRipeNtpServers([])
+      setMeasurementNtpServers([])
+      setIntersectionNtpServers([])
+      setUnavailableNtpServers([])
       return 
     } else if (status === "partial_results"){
       setStatusMessage("Map Loading...")
@@ -269,52 +300,9 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
       setStatusMessage("Error loading RIPE data")
     }
     }, [probes, status])
-  
-  /**
-   * Effect used for detecting if the list of NTP servers measured by the vantage point contains the same server as the one used by the RIPE measurement
-   * If it finds that the list contains it, sets the chosen NTP server to the one used by RIPE
-   * If not it uses one from the list
-   */
-  useEffect(() => {
-    if (!probes || !ntpServers) return
-    const ripe_ip = probes[0].measurementData.ip
-    const chosen = ntpServers.find(x => x.ip === ripe_ip) || ntpServers[0]
-    const rest = ntpServers.filter(x => x !== chosen) || ntpServers.slice(1)
-    setChosenNtpServer(chosen)
-    setRestNtpServers(rest)
-  }, [probes, ntpServers])
-
-
-  /**
-   * Effect for updating and getting the location of the NTP servers and vantage point
-   * @param ripeIpInfo.coords is the geolocation of the NTP server used by the RIPE measurement
-   * @param measurementIpInfo.coords is the geolocation of the NTP server used by the measurement from the vantage point
-   * @param vantagePointIpInfo.coords is the geolocation of the vantage point
-   * The vantage point needs to have a public IP address in order for the location to be fetched
-   * In the case that the IP is not public, the map component will fail to load due to the data being undefined
-   */
-  useEffect(() => {
-    const fetchLocation = async () => {
-      const ripe_ip = probes?.[0].measurementData.ip
-
-      if (ripe_ip && chosenNtpServer && chosenNtpServer && vantagePointIp) {
-        const ripeIpInfo = await fetchIPInfo(ripe_ip)
-        const measurementIpInfo = await fetchIPInfo(chosenNtpServer.ip)
-        const vantagePointIpInfo = await fetchIPInfo(vantagePointIp)
-        if (ripeIpInfo)
-          setRipeNtpServerLoc(ripeIpInfo.coordinates)
-        if(measurementIpInfo)
-          setMeasurementNtpServerLoc(measurementIpInfo.coordinates)
-        if(vantagePointIpInfo)
-          setVantagePointLoc(vantagePointIpInfo.coordinates)
-      }
-    };
-    fetchLocation()
-  }, [probes, ntpServers, vantagePointIp, chosenNtpServer])
 
   const probe_locations = probes?.map(x => x.probe_location) ?? []
   const icons = probes?.map(x => getIconByRTT(x.measurementData.RTT, x.got_results)) ?? []
-  console.log(restNtpServers)
     return (
       <div style={{height: '500px', width: '100%'}}>
         <h2>{statusMessage}</h2>
@@ -326,7 +314,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
                 maxZoom={19}
             />
             
-            {probe_locations && icons && probes && chosenNtpServer && (
+            {probe_locations && icons && probes && (
             <>
               {probe_locations.map((pos, index) => (<Marker key = {index} position = {pos} icon = {icons[index]}>
                 <Popup>
@@ -337,39 +325,18 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
                 </Popup>
               </Marker>))}
 
-
-              {!equalCoords(ripeNtpServerLoc, measurementNtpServerLoc) && 
-                <>
-                <Marker position = {ripeNtpServerLoc ?? [0,0]} icon = {ntpServerIcon}>
-                    <Popup>
-                      NTP Server (RIPE)<br/>
-                      IP: {probes[0].measurementData.ip}<br/>
-                      Name: {probes[0].measurementData.server_name}
-                    </Popup>
+              {ripeNtpServers.map((x,index) => (
+                <Marker key={index} position={x.measurementData.coordinates} icon={ntpServerIcon}>
+                  <Popup>
+                    NTP Server (RIPE)<br/>
+                    IP: {x.measurementData.ip}<br/>
+                    Name: {x.measurementData.server_name}
+                  </Popup>
                 </Marker>
+              ))}
 
-                <Marker position = {measurementNtpServerLoc ?? [0,0]} icon = {ntpServerIcon}>
-                    <Popup>
-                      NTP Server (Vantage Point)<br/>
-                      IP: {chosenNtpServer.ip}<br/>
-                      Name: {chosenNtpServer.server_name}
-                    </Popup>
-                </Marker>
-                </>
-              }
-
-              {equalCoords(ripeNtpServerLoc, measurementNtpServerLoc) &&
-                <Marker position = {ripeNtpServerLoc ?? [0,0]} icon = {ntpServerIcon}>
-                    <Popup>
-                      NTP Server<br/>
-                      IP: {probes[0].measurementData.ip}<br/>
-                      Name: {probes[0].measurementData.server_name}
-                    </Popup>
-                </Marker>
-              }
-
-              {restNtpServers && restNtpServers.map((x,index) => (
-                <Marker key={index} position={[0,0]} icon = {ntpServerIcon}>
+              {measurementNtpServers.map((x,index) => (
+                <Marker key={index} position={x.coordinates} icon={ntpServerIcon}>
                   <Popup>
                     NTP Server (Vantage Point)<br/>
                     IP: {x.ip}<br/>
@@ -378,21 +345,46 @@ export default function WorldMap ({probes, ntpServers, vantagePointIp, status}: 
                 </Marker>
               ))}
 
-              {ripeNtpServerLoc && measurementNtpServerLoc && vantagePointLoc &&
+              {intersectionNtpServers.map((x,index) => (
+                <Marker key={index} position={x.measurementData.coordinates} icon={ntpServerIcon}>
+                  <Popup>
+                    NTP Server<br/>
+                    IP: {x.measurementData.ip}<br/>
+                    Name: {x.measurementData.server_name}
+                  </Popup>
+                </Marker>
+              ))}
+
+              {unavailableNtpServers.map((x,index) => (
+                <Marker key={index} position={x.coordinates} icon={unavailableNtpServerIcon}>
+                  <Popup>
+                    NTP Server (Unavailable)<br/>
+                    IP: {x.ip}<br/>
+                    Name: {x.server_name}
+                  </Popup>
+                </Marker>
+              ))}
+
+              {vantagePointInfo &&
               <>
-                <Marker position = {vantagePointLoc ?? [0,0]} icon = {vantagePointIcon}>
+                <Marker position = {vantagePointInfo[0]} icon = {vantagePointIcon}>
                     <Popup>
                       Vantage Point<br/>
-                      IP: {vantagePointIp}<br/>
+                      IP: {vantagePointInfo[1]}<br/>
                     </Popup>
                 </Marker>
-                <FitMapBounds probes={probe_locations} ripeNtpServer={ripeNtpServerLoc} measurementNtpServer = {measurementNtpServerLoc} vantagePoint = {vantagePointLoc}/>
-                <DrawConnectingLines probes={probe_locations} ripeNtpServer={ripeNtpServerLoc} measurementNtpServer = {measurementNtpServerLoc} vantagePoint = {vantagePointLoc}/>
+                <FitMapBounds probes={probe_locations} ripeNtpServers={ripeNtpServers.map(x=>x.measurementData.coordinates)} measurementNtpServers = {measurementNtpServers.map(x=>x.coordinates)}
+                  intersectionNtpServers={intersectionNtpServers.map(x=>x.measurementData.coordinates)} unavailableNtpServers={unavailableNtpServers.map(x=>x.coordinates)}
+                  vantagePoint={vantagePointInfo[0]}/>
+                <DrawConnectingLines probes={probes} measurementNtpServers = {measurementNtpServers.map(x=>x.coordinates)}
+                  intersectionNtpServers={intersectionNtpServers.map(x=>x.measurementData.coordinates)} unavailableNtpServers={unavailableNtpServers.map(x=>x.coordinates)}
+                  vantagePoint={vantagePointInfo[0]}/>
               </>}
             </>)}
         </MapContainer>
           <div style={{display: "flex", gap: "10px", alignItems: "center"}}>
             <div><img src = {ntpServerImg} className="logo"/>: NTP Servers</div>
+            <div><img src = {unavailableNtpImg} className="logo"/>: Failing NTP Servers</div>
             <div><img src = {vantagePointImg} className="logo"/>: Vantage Point</div>
             <div><img src = {greenProbeImg} className="logo"/>: &lt; 15 ms RTT</div>
             <div><img src = {yellowProbeImg} className="logo"/>: &lt; 40 ms RTT</div>
