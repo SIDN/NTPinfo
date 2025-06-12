@@ -67,7 +67,7 @@ const grayIcon = new L.Icon({
 const ntpServerIcon = new L.Icon({
   iconUrl: ntpServerImg,
   iconSize: [30, 30],
-  iconAnchor: [10, 10],
+  iconAnchor: [12, 15],
   popupAnchor: [0, -8],
   zIndexOffset: 1000
 })
