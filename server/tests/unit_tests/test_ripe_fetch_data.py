@@ -205,7 +205,7 @@ MOCK_MEASUREMENT_RESPONSE = [
             }
         ],
         "msm_id": 123,
-        "prb_id": 9999,
+        "prb_id": "9999",
         "timestamp": 1748348739,
         "msm_name": "Ntp",
         "from": "83.231.3.54",
@@ -262,7 +262,7 @@ MOCK_PROBE_RESPONSE = {
             14.14
         ]
     },
-    "id": 9999,
+    "id": "9999",
     "is_anchor": "true",
     "is_public": "true",
     "last_connected": 1748537238,
@@ -359,7 +359,7 @@ MOCK_PROBE_RESPONSE_NO_ADDR = {
             14.14
         ]
     },
-    "id": 9999,
+    "id": "9999",
 }
 
 MOCK_UNEXPECTED_DICT_RESPONSE = {
@@ -387,7 +387,7 @@ def test_get_data_from_ripe_measurement(mock_get, mock_get_token):
     assert data[0]["dst_name"] == "time.some_server.com"
     assert data[0]["dst_addr"] == "18.252.12.124"
     assert data[0]["from"] == "83.231.3.54"
-    assert data[0]["prb_id"] == 9999
+    assert data[0]["prb_id"] == "9999"
 
 
 @patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
@@ -417,7 +417,7 @@ def test_get_probe_data_from_ripe_by_id(mock_get, mock_get_token):
 
     data = get_probe_data_from_ripe_by_id("9999")
     assert isinstance(data, dict)
-    assert data["id"] == 9999
+    assert data["id"] == "9999"
     assert data["address_v4"] == "83.231.3.54"
     assert data["country_code"] == "RO"
     assert data["geometry"]["coordinates"] == [12.12, 14.14]
@@ -426,7 +426,7 @@ def test_get_probe_data_from_ripe_by_id(mock_get, mock_get_token):
 def test_parse_probe_data():
     parsed = parse_probe_data(MOCK_PROBE_RESPONSE)
     assert isinstance(parsed, ProbeData)
-    assert parsed.probe_id == 9999
+    assert parsed.probe_id == str(9999)
     assert parsed.probe_addr[0] == ip_address("83.231.3.54")
     assert parsed.probe_addr[1] == ip_address("2a04:4c39:1:ca::a")
     assert parsed.probe_location.country_code == "RO"
@@ -444,7 +444,7 @@ def test_parse_probe_data_with_error():
 def test_parse_probe_data_with_no_probe_addr():
     parsed = parse_probe_data(MOCK_PROBE_RESPONSE_NO_ADDR)
     assert isinstance(parsed, ProbeData)
-    assert parsed.probe_id == 9999
+    assert parsed.probe_id == "9999"
     assert parsed.probe_addr == (None, None)
     assert parsed.probe_location.country_code == "RO"
     assert parsed.probe_location.coordinates == [12.12, 14.14]
@@ -505,7 +505,7 @@ def test_parse_data_from_ripe_measurement(mock_get_probe, mock_check_done):
     assert results[0].ntp_measurement.extra_details.root_dispersion == PreciseTime(seconds=0, fraction=851966)
     assert results[0].ref_id == "GPSs"
     assert results[0].ntp_measurement.extra_details.poll == 64
-    assert results[0].probe_data.probe_id == 9999
+    assert results[0].probe_data.probe_id == "9999"
 
     assert results[0].ntp_measurement.timestamps.client_sent_time.seconds != 0
     assert results[0].ntp_measurement.timestamps.client_sent_time.fraction != 0
@@ -535,7 +535,7 @@ def test_parse_data_from_ripe_measurement_with_no_response(mock_get_probe, mock_
     assert results[0].ntp_measurement.extra_details.root_dispersion == PreciseTime(seconds=-1, fraction=0)
     assert results[0].ref_id == "NO REFERENCE"
     assert results[0].ntp_measurement.extra_details.poll == -1
-    assert results[0].probe_data.probe_id == 9999
+    assert results[0].probe_data.probe_id == str(9999)
 
     assert results[0].ntp_measurement.timestamps.client_sent_time.seconds == -1
     assert results[0].ntp_measurement.timestamps.client_sent_time.fraction == 0
