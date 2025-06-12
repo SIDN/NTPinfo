@@ -183,3 +183,38 @@ a {
     background-color: var(--clr-btn-selected-purple);
     outline: none;
 }
+
+@media screen and (max-width: 1250px) {
+    .data-display-container {
+        flex-direction: column;
+    }
+
+    .statistics-container {
+        width: 100%;
+        max-width: none;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding: 0.5em;
+    }
+
+    .server-stats {
+        flex: 1;
+        min-width: 200px;
+        margin: 0.5em;
+    }
+
+    .stats-grid {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 1em;
+    }
+
+    .stat-item {
+        min-width: 150px;
+    }
+
+    .chart-box {
+        width: 100%;
+    }
+}
