@@ -26,7 +26,7 @@ class NtpMeasurement:
     extra_details: NtpExtraDetails
 
     def __post_init__(self) -> None:
-        if not isinstance(self.vantage_point_ip, (IPv4Address, IPv6Address, None)):
+        if not isinstance(self.vantage_point_ip, IPv4Address | IPv6Address | None):
             raise TypeError(f"vantage_point_ip must be IPv4, IPv6 or None, got {type(self.vantage_point_ip).__name__}")
         if not isinstance(self.server_info, NtpServerInfo):
             raise TypeError(f"server_info must be NtpServerInfo, got {type(self.server_info).__name__}")
