@@ -1,3 +1,5 @@
+from ipaddress import ip_address
+
 import pytest
 from unittest.mock import MagicMock
 
@@ -13,7 +15,7 @@ def fake_measurement():
     m = MagicMock(spec=Measurement)
     m.id = 1
     m.vantage_point_ip = "1.2.3.4"
-    m.ntp_server_ip = "5.6.7.8"
+    m.ntp_server_ip = ip_address("5.6.7.8")
     m.ntp_server_name = "ntp.example.com"
     m.ntp_version = 4
     m.ntp_server_ref_parent = "9.9.9.9"
@@ -23,10 +25,10 @@ def fake_measurement():
     m.stratum = 2
     m.precision = -20
     m.reachability = ""
-    m.root_delay = 12.5
-    m.root_delay_prec = 0.01
-    m.ntp_last_sync_time = 1650000000.0
-    m.ntp_last_sync_time_prec = 0.001
+    m.root_delay = 12
+    m.root_delay_prec = 5
+    m.ntp_last_sync_time = 1650000000
+    m.ntp_last_sync_time_prec = 1
     return m
 
 
@@ -48,7 +50,7 @@ def test_row_to_dict(fake_measurement, fake_time):
     result = row_to_dict(fake_measurement, fake_time)
 
     assert result["vantage_point_ip"] == "1.2.3.4"
-    assert result["ntp_server_ip"] == "5.6.7.8"
+    assert result["ntp_server_ip"] == ip_address("5.6.7.8")
     assert result["offset"] == 1.23
     assert result["client_sent"] == 1650000001
     assert result["client_recv_prec"] == 0
@@ -65,7 +67,7 @@ def test_rows_to_dicts(fake_measurement, fake_time):
     assert isinstance(result, list)
     assert len(result) == 2
     assert result[0]["ntp_server_name"] == "ntp.example.com"
-    assert result[1]["ntp_server_ip"] == "5.6.7.8"
+    assert result[1]["ntp_server_ip"] == ip_address("5.6.7.8")
 
 
 def test_dict_to_measurement(fake_measurement, fake_time):
@@ -73,7 +75,7 @@ def test_dict_to_measurement(fake_measurement, fake_time):
     ntp_measurement = dict_to_measurement(entry)
 
     assert isinstance(ntp_measurement, NtpMeasurement)
-    assert ntp_measurement.vantage_point_ip == "1.2.3.4"
+    assert ntp_measurement.vantage_point_ip == ip_address("1.2.3.4")
     assert ntp_measurement.main_details.offset == 1.23
     assert ntp_measurement.server_info.ntp_server_name == "ntp.example.com"
     assert ntp_measurement.timestamps.client_sent_time.seconds == 1650000001
@@ -82,7 +84,7 @@ def test_dict_to_measurement(fake_measurement, fake_time):
 
 def test_dict_to_measurement_missing_keys():
     incomplete_entry = {
-        "vantage_point_ip": "1.2.3.4"
+        "vantage_point_ip": ip_address("1.2.3.4")
     }
     with pytest.raises(InvalidMeasurementDataError) as exc_info:
         dict_to_measurement(incomplete_entry)

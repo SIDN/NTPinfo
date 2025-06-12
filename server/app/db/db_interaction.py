@@ -1,4 +1,4 @@
-from ipaddress import IPv4Address, IPv6Address
+from ipaddress import IPv4Address, IPv6Address, ip_address
 
 from sqlalchemy import Row
 from sqlalchemy.orm import Session
@@ -103,13 +103,13 @@ def dict_to_measurement(entry: dict[str, Any]) -> NtpMeasurement:
         raise InvalidMeasurementDataError(f"Missing required keys: {missing}")
 
     try:
-        vantage_point_ip = entry['vantage_point_ip']
-        ntp_server_ip = entry['ntp_server_ip']
+        vantage_point_ip = ip_address(entry['vantage_point_ip'])
+        ntp_server_ip = ip_address(entry['ntp_server_ip'])
         ntp_server_country_code = get_country_for_ip(entry['ntp_server_ip'])
         ntp_server_coordinates = get_coordinates_for_ip(entry['ntp_server_ip'])
-        server_info = NtpServerInfo(entry['ntp_version'], ntp_server_ip, entry['ntp_server_name'],
-                                    ServerLocation(ntp_server_country_code, ntp_server_coordinates),
-                                    entry['ntp_server_ref_parent_ip'], entry['ref_name'])
+        server_info = NtpServerInfo(ntp_version=entry['ntp_version'], ntp_server_ip=ntp_server_ip, ntp_server_name=entry['ntp_server_name'],
+                                    ntp_server_location=ServerLocation(ntp_server_country_code, ntp_server_coordinates),
+                                    ntp_server_ref_parent_ip=ip_address(entry['ntp_server_ref_parent_ip']), ref_name=entry['ref_name'])
         extra_details = NtpExtraDetails(PreciseTime(entry['root_delay'], entry['root_delay_prec']),
                                         entry['poll'],
                                         PreciseTime(entry['root_dispersion'], entry['root_dispersion_prec']),

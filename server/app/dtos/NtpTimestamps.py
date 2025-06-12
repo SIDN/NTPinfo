@@ -14,10 +14,10 @@ class NtpTimestamps:
         server_sent_time (PreciseTime): Time when the response was sent by the server (t3)
         client_recv_time (PreciseTime): Time when the response was received by the client (t4)
     """
-    client_sent_time: PreciseTime  # t1
-    server_recv_time: PreciseTime  # t2
-    server_sent_time: PreciseTime  # t3
-    client_recv_time: PreciseTime  # t4
+    client_sent_time: PreciseTime  # t1 Time at the client when the request departed for the server.
+    server_recv_time: PreciseTime  # t2 Time at the server when the request arrived from the client.
+    server_sent_time: PreciseTime  # t3 Time at the server when the response was transmitted to the client.
+    client_recv_time: PreciseTime  # t4 Time at the client when the reply arrived from the server.
 
     def __post_init__(self) -> None:
         if not isinstance(self.client_sent_time, PreciseTime):

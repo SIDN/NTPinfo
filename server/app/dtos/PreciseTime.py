@@ -13,9 +13,9 @@ class PreciseTime:
     fraction: int
 
     def __post_init__(self) -> None:
-        if self.seconds < 0 or self.fraction < 0:
-            raise ValueError("seconds and fraction must be positive")
-        if not isinstance(self.seconds, int):
+        if int(self.seconds) != self.seconds or int(self.fraction) != self.fraction:
+            raise ValueError("Invalid seconds and fraction values")
+        if not isinstance(self.seconds, int | float):
             raise TypeError(f"seconds must be an integer, got {type(self.seconds).__name__}")
-        if not isinstance(self.fraction, int):
+        if not isinstance(self.fraction, int | float):
             raise TypeError(f"fraction must be an integer, got {type(self.fraction).__name__}")
