@@ -66,6 +66,8 @@ To set up and run the backend server, follow these steps:
     IPINFO_LITE_API_TOKEN={API}
     ripe_api_token={ripe API with persmission to perform measurments}
     ripe_account_email={email of your ripe account}
+    ACCOUNT_ID={geolite account id}
+    LICENSE_KEY={geolite key}
     ```
    Besides, the config file for the server is `server/server_config.yaml` and it contains the following variables:
 
@@ -93,10 +95,21 @@ To set up and run the backend server, follow these steps:
           max_probes_per_measurement: 100
           probes_wanted_percentages: [0.33, 0.30, 0.27, 0.10, 0.0] # exactly 5 values and their sum must be 1 (100%)
         
+        bgp_tools:
+          anycast_prefixes_v4_url: "https://raw.githubusercontent.com/bgptools/anycast-prefixes/master/anycatch-v4-prefixes.txt"
+          anycast_prefixes_v6_url: "https://raw.githubusercontent.com/bgptools/anycast-prefixes/master/anycatch-v6-prefixes.txt"
+        
         max_mind:
-          path: "../../GeoLite2-City.mmdb"
+          path_city: "GeoLite2-City.mmdb"
+          path_country: "GeoLite2-Country.mmdb"
+          path_asn: "GeoLite2-ASN.mmdb"
       ```
+    After this, you would need to run `update_geolite_and_bgptools_dbs.sh` to initialise the local dbs for geolocation and detecting anycast.
 
+    **Common errors**: 
+    - If you run `update_geolite_and_bgptools_dbs.sh` from Linux or WSL, the file `.env` may contain invisible Windows carriage return characters and this may make the `.sh` script to fail. You can see them using `cat -A .env`. Look for any "^M"
+   at the end of lines. You can remove them by running this command: `dos2unix .env`. This should solve the problem.
+   
    **Note**:
     - Ensure PostgreSQL is running and accessible with the credentials provided in the `.env` file.
     - You can edit the config variables, but if there are any variables that are missing or have invalid data, the
