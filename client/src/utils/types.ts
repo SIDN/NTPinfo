@@ -16,6 +16,8 @@ export type NTPData = {
   root_dispersion: number,
   root_delay: number,
   vantage_point_ip: string
+  country_code: string
+  coordinates: LatLngTuple
 }
 
 /**
@@ -41,6 +43,7 @@ export type RIPEData = {
 export type RIPEResp = {
   measurementId: number
   vantage_point_ip: string
+  coordinates: LatLngTuple
 }
 
 /**
@@ -55,7 +58,7 @@ export interface HomeCacheState {
   measured: boolean
   selMeasurement: Measurement          // 'offset' | 'RTT'
   measurementId: string | null
-  vantagePointIp: string | null
+  vantagePointInfo: [LatLngTuple,string] | null
   allNtpMeasurements: NTPData[] | null
   ripeMeasurementResp: RIPEData[] | null
   ripeMeasurementStatus: string | null     // 'loading' | 'complete' | ...

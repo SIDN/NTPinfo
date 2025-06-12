@@ -40,7 +40,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     measured,
     selMeasurement,
     measurementId,
-    vantagePointIp,
+    vantagePointInfo,
     allNtpMeasurements,
   } = cache;
 
@@ -169,7 +169,8 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     // setVantagePointIp(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.vantage_point_ip)
     // setMeasurementId(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.measurementId)
     updateCache({
-      vantagePointIp: ripeTriggerResp?.parsedData.vantage_point_ip ?? null,
+      //vantagePointInfo: ripeTriggerResp?.parsedData.coordinates && ripeTriggerResp?.parsedData.vantage_point_ip ? [ripeTriggerResp.parsedData.coordinates, ripeTriggerResp.parsedData.vantage_point_ip] : null,
+      vantagePointInfo: [ripeTriggerResp?.parsedData.coordinates, ripeTriggerResp?.parsedData.vantage_point_ip],
       measurementId: ripeTriggerResp?.parsedData.measurementId ?? null,
       ripeMeasurementResp: null,          // will be filled by hook
       ripeMeasurementStatus: 'loading',
@@ -245,16 +246,16 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         <DownloadButton name="Download CSV" onclick={() => downloadCSV(ripeMeasurementResp ? [ntpData, ripeMeasurementResp[0]] : [ntpData])} />
       </div>)}
       {/*Map compoment that shows the NTP servers, the vantage point, and the RIPE probes*/}
-      {/*{(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
+      {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
         <div className='map-box'>
           <WorldMap
             probes={ripeMeasurementResp}
             ntpServers={allNtpMeasurements}
-            vantagePointIp={vantagePointIp}
+            vantagePointInfo={vantagePointInfo}
             status={ripeMeasurementStatus}
           />
         </div>
-        )}*/}
+        )}
     </div>
     </div>
     );
