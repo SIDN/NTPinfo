@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from ipaddress import IPv4Address, IPv6Address
 
+from server.app.dtos.ProbeData import ServerLocation
+
 
 @dataclass
 class NtpServerInfo:
@@ -16,6 +18,7 @@ class NtpServerInfo:
     """
     ntp_version: int
     ntp_server_ip: IPv4Address | IPv6Address | None
+    ntp_server_location: ServerLocation
     ntp_server_name: str | None
     ntp_server_ref_parent_ip: IPv4Address | IPv6Address | None
     ref_name: None | str

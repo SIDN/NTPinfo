@@ -4,6 +4,7 @@ from typing import Optional
 import ntplib
 import requests
 
+from server.app.utils.location_resolver import get_asn_for_ip, get_country_for_ip, get_continent_for_ip
 from server.app.models.CustomError import InputError
 from server.app.utils.load_config_data import get_ipinfo_lite_api_token, get_edns_default_servers
 from server.app.utils.validate import is_ip_address
@@ -75,19 +76,22 @@ def get_ip_network_details(ip_str: str) -> tuple[Optional[str], Optional[str], O
         of an IP address if they can be taken.
     """
     try:
-        token: str = get_ipinfo_lite_api_token()
-        response = requests.get(f"https://api.ipinfo.io/lite/{ip_str}?token={token}")
-        data = response.json()
-        asn: str = data.get("asn", None)
-        country: str = data.get("country_code", None)
-        continent: str = data.get("continent_code", None)
+        # token: str = get_ipinfo_lite_api_token()
+        # response = requests.get(f"https://api.ipinfo.io/lite/{ip_str}?token={token}")
+        # data = response.json()
+        # asn: str = data.get("asn", None)
+        # country: str = data.get("country_code", None)
+        # continent: str = data.get("continent_code", None)
+        asn: Optional[str] = get_asn_for_ip(ip_str)
+        country: Optional[str] = get_country_for_ip(ip_str)
+        continent: Optional[str] = get_continent_for_ip(ip_str)
         return asn, country, get_area_of_ip(country, continent)
     except Exception as e:
         print(e)
         return None, None, None
 
 
-def get_area_of_ip(ip_country: str, ip_continent: Optional[str]) -> str:
+def get_area_of_ip(ip_country: Optional[str], ip_continent: Optional[str]) -> str:
     """
     This method tries to get the area of an IP address based on its country and continent.
 
@@ -99,7 +103,7 @@ def get_area_of_ip(ip_country: str, ip_continent: Optional[str]) -> str:
         str: The area of an IP address
     """
     # default is WW (world wide)
-    if ip_continent is None:
+    if ip_continent is None or ip_country is None:
         return "WW"
     area_map = {
         "EU": "North-Central",

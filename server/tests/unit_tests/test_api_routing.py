@@ -6,6 +6,7 @@ from ipaddress import IPv4Address, ip_address
 from sqlalchemy import create_engine, StaticPool, Engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from server.app.dtos.ProbeData import ServerLocation
 from server.app.models.CustomError import RipeMeasurementError, DNSError, MeasurementQueryError
 from server.app.models.Base import Base
 from server.app.main import create_app
@@ -65,6 +66,7 @@ def mock_measurement() -> NtpMeasurement:
             ntp_server_name="pool.ntp.org",
             ntp_server_ref_parent_ip=None,
             ref_name=None,
+            ntp_server_location=ServerLocation(country_code="RO", coordinates=(25.0, -71.0))
         ),
         timestamps=NtpTimestamps(
             client_sent_time=mock_precise(1),
@@ -99,6 +101,7 @@ def get_mock_data():
                 ntp_server_name="pool.ntp.org",
                 ntp_server_ref_parent_ip=IPv4Address("192.168.1.2"),
                 ref_name="pool.ntp.org",
+                ntp_server_location=ServerLocation(country_code="RO", coordinates=(25.0, -71.0))
             ),
             timestamps=NtpTimestamps(
                 client_sent_time=mock_precise(1609459200),
@@ -129,6 +132,7 @@ def get_mock_data():
                 ntp_server_name="pool.ntp.org",
                 ntp_server_ref_parent_ip=IPv4Address("192.168.1.3"),
                 ref_name="pool.ntp.org",
+                ntp_server_location=ServerLocation(country_code="GL", coordinates=(25.2132, -71.4343))
             ),
             timestamps=NtpTimestamps(
                 client_sent_time=mock_precise(1609459201),
