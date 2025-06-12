@@ -23,6 +23,8 @@ export const transformJSONDataToNTPData = (fetchedData: any): NTPData | null => 
         ref_id: fetchedData.ntp_server_ref_parent_ip ?? fetchedData.ref_name,
         root_dispersion: fetchedData.root_dispersion,
         root_delay: fetchedData.root_delay,
-        vantage_point_ip: fetchedData.vantage_point_ip
+        vantage_point_ip: fetchedData.vantage_point_ip,
+        country_code: fetchedData.ntp_server_location.country_code,
+        coordinates: [fetchedData.ntp_server_location.coordinates[0],fetchedData.ntp_server_location.coordinates[1]]
     }
 };

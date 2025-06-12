@@ -1,7 +1,7 @@
 from typing import TypeVar
 from typing import Optional
 
-from server.app.utils.location_resolver import get_client_location
+from server.app.utils.location_resolver import get_coordinates_for_ip
 from server.app.utils.calculations import calculate_haversine_distance
 from server.app.models.CustomError import InputError
 from server.app.utils.load_config_data import get_ripe_number_of_probes_per_measurement
@@ -308,7 +308,6 @@ def get_available_probes_asn_and_prefix(client_ip: str, ip_asn: str, ip_prefix: 
 
     Args:
         client_ip (str): The IP address of the client.
-        client_ip (str): The IP address of the client.
         ip_asn (str): the ASN of the searched network
         ip_prefix(str): the prefix of the respective IP
         ip_type (str): the IP type (ipv4 or ipv6). (not case-sensitive)
@@ -319,7 +318,10 @@ def get_available_probes_asn_and_prefix(client_ip: str, ip_asn: str, ip_prefix: 
     Raises:
         Exception: If the input is invalid
     """
-    ip_asn_number = int(ip_asn[2:])
+    try:
+        ip_asn_number = int(ip_asn.lstrip("AS").lstrip("as"))
+    except ValueError as e:
+        raise InputError(f"{ip_asn} is not a valid ASN")
     prefix_type: str = "prefix_v4" if ip_type == "ipv4" else "prefix_v6"
     filters = {
         "asn": ip_asn_number,
@@ -361,7 +363,10 @@ def get_available_probes_asn_and_country(client_ip: str, ip_asn: str, ip_country
     Raises:
         Exception: If the input is invalid
     """
-    ip_asn_number = int(ip_asn[2:])
+    try:
+        ip_asn_number = int(ip_asn.lstrip("AS").lstrip("as"))
+    except ValueError as e:
+        raise InputError(f"{ip_asn} is not a valid ASN")
     filters = {
         "asn": ip_asn_number,
         "country_code": ip_country_code,
@@ -374,7 +379,7 @@ def get_available_probes_asn_and_country(client_ip: str, ip_asn: str, ip_country
         page_size=300,
         **filters,
     )
-    lat_client, lon_client = get_client_location(client_ip)
+    lat_client, lon_client = get_coordinates_for_ip(client_ip)
     probe_ids_dist_list: list[tuple[int, float]] = []
     for p in probes:
         try:
@@ -504,7 +509,7 @@ def get_available_probes_country(client_ip: str, country_code: str, ip_type: str
         page_size=600,
         **filters,
     )
-    lat_client, lon_client = get_client_location(client_ip)
+    lat_client, lon_client = get_coordinates_for_ip(client_ip)
     probe_ids_dist_list: list[tuple[int, float]] = []
     for p in probes:
         try:

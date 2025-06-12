@@ -1,4 +1,14 @@
-from server.app.utils.load_config_data import get_nr_of_measurements_for_jitter
+from ipaddress import ip_address
+from typing import Optional
+
+from server.app.dtos.NtpExtraDetails import NtpExtraDetails
+from server.app.dtos.NtpMainDetails import NtpMainDetails
+from server.app.dtos.NtpServerInfo import NtpServerInfo
+from server.app.dtos.NtpTimestamps import NtpTimestamps
+from server.app.dtos.ProbeData import ServerLocation
+from server.app.utils.ip_utils import get_server_ip, ip_to_str
+from server.app.utils.location_resolver import get_country_for_ip, get_coordinates_for_ip
+from server.app.utils.load_config_data import get_nr_of_measurements_for_jitter, get_ntp_version
 from server.app.db.db_interaction import get_measurements_for_jitter_ip
 from server.app.dtos.NtpMeasurement import NtpMeasurement
 from server.app.services.NtpCalculator import NtpCalculator
@@ -32,7 +42,7 @@ def calculate_jitter_from_measurements(session: Session, initial_measurement: Nt
     offsets = [NtpCalculator.calculate_offset(initial_measurement.timestamps)]
     last_measurements = get_measurements_for_jitter_ip(session=session,
                                                        ip=initial_measurement.server_info.ntp_server_ip,
-                                                       number=(no_measurements - 1))
+                                                       number=no_measurements)
     nr_m = 0
     for m in last_measurements:
         if m is not None:
@@ -98,6 +108,69 @@ def human_date_to_ntp_precise_time(dt: datetime) -> PreciseTime:
 
     return PreciseTime(ntp_seconds, ntp_fraction)
 
+
+def get_non_responding_ntp_measurement(server_ip_str: str, server_name: Optional[str],
+                                       ntp_version: int = get_ntp_version()) -> NtpMeasurement:
+    """
+    Construct a default NTP measurement result representing a non-responding NTP server.
+    This function is used when an NTP server fails to respond. It returns a synthetic `NtpMeasurement` object
+    with placeholder values (e.g., -1) to indicate that no real measurement was completed. This is used to mark the server
+    as non-responding on the map.
+
+    Args:
+        server_ip_str (str): The IP address of the NTP server that failed to respond.
+        server_name (Optional[str]): The hostname of the NTP server, if available.
+        ntp_version (int): The version of the NTP protocol to report (default is based on system config).
+
+    Returns:
+        NtpMeasurement: An `NtpMeasurement` object filled with placeholder values indicating failure.
+
+    Notes:
+        - The `offset`, `rtt`, `stratum`, and other time-related fields are set to -1 or equivalent.
+        - The `vantage_point_ip` is determined from the local server. If not resolvable, it defaults to 0.0.0.0.
+        - The location and reference information is generated using available utility functions based on IP.
+    """
+    vantage_point_ip = None
+    vantage_point_ip_temp = get_server_ip()
+    if vantage_point_ip_temp is not None:
+        vantage_point_ip = vantage_point_ip_temp
+    server_ip = ip_address(server_ip_str)
+    server_info: NtpServerInfo = NtpServerInfo(
+        ntp_version=ntp_version,
+        ntp_server_ip=server_ip,
+        ntp_server_name=server_name,
+        ntp_server_ref_parent_ip=ip_address("0.0.0.0"),
+        ref_name="",
+        ntp_server_location=ServerLocation(country_code=get_country_for_ip(ip_to_str(server_ip)),
+                                           coordinates=get_coordinates_for_ip(ip_to_str(server_ip)))
+    )
+
+    timestamps: NtpTimestamps = NtpTimestamps(
+        client_sent_time=PreciseTime(-1, 0),
+        server_recv_time=PreciseTime(-1, 0),
+        server_sent_time=PreciseTime(-1, 0),
+        client_recv_time=PreciseTime(-1, 0),
+    )
+
+    main_details: NtpMainDetails = NtpMainDetails(
+        offset=-1.0,
+        rtt=-1.0,
+        stratum=-1,
+        precision=-1.0,
+        reachability=""
+    )
+
+    extra_details: NtpExtraDetails = NtpExtraDetails(
+        root_delay=PreciseTime(-1, 0),
+        ntp_last_sync_time=PreciseTime(-1, 0),
+        leap=0,
+        poll=-1,
+        root_dispersion=PreciseTime(-1, 0)
+    )
+
+    return NtpMeasurement(vantage_point_ip, server_info, timestamps, main_details, extra_details)
+
+
 def calculate_haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """
     It calculates the haversine distance between two points using this formula:
@@ -116,6 +189,6 @@ def calculate_haversine_distance(lat1: float, lon1: float, lat2: float, lon2: fl
     r = 6371.0
     dlat = radians(lat2 - lat1)
     dlon = radians(lon2 - lon1)
-    a = sin(dlat / 2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2)**2
+    a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
     d = 2.0 * r * atan2(sqrt(a), sqrt(1 - a))
     return d

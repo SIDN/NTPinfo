@@ -285,13 +285,36 @@ def get_ripe_number_of_probes_per_measurement() -> int:
     return ripe_atlas["number_of_probes_per_measurement"]
 
 
-def get_max_mind_path() -> str:
+def get_max_mind_path_city() -> str:
     """
-    This method returns the path to the max_mind database used for geolocation.
+    This method returns the path to the max_mind city database used for geolocation.
     """
     # This assumes this file is in server/app/utils/
     server_dir = Path(__file__).resolve().parent.parent.parent
-    relative_path = config["max_mind"]["path"]
+    relative_path = config["max_mind"]["path_city"]
     absolute_path = (server_dir / relative_path).resolve()
     return str(absolute_path)
+
+
 # verify_if_config_is_set()
+
+def get_max_mind_path_country() -> str:
+    """
+    This method returns the path to the max_mind country database used for geolocation.
+    """
+    # This assumes this file is in server/app/utils/
+    server_dir = Path(__file__).resolve().parent.parent.parent
+    relative_path = config["max_mind"]["path_country"]
+    absolute_path = (server_dir / relative_path).resolve()
+    return str(absolute_path)
+
+
+def get_max_mind_path_asn() -> str:
+    """
+    This method returns the path to the max_mind ASN database used for geolocation.
+    """
+    # This assumes this file is in server/app/utils/
+    server_dir = Path(__file__).resolve().parent.parent.parent
+    relative_path = config["max_mind"]["path_asn"]
+    absolute_path = (server_dir / relative_path).resolve()
+    return str(absolute_path)

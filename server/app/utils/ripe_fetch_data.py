@@ -3,6 +3,8 @@ from ipaddress import ip_address, IPv4Address, IPv6Address
 
 import requests
 
+from server.app.utils.location_resolver import get_country_for_ip, get_coordinates_for_ip
+from server.app.models.CustomError import RipeMeasurementError
 from server.app.utils.load_config_data import get_ripe_api_token
 from server.app.dtos.PreciseTime import PreciseTime
 from server.app.dtos.NtpExtraDetails import NtpExtraDetails
@@ -10,7 +12,7 @@ from server.app.dtos.NtpMainDetails import NtpMainDetails
 from server.app.dtos.NtpMeasurement import NtpMeasurement
 from server.app.dtos.NtpServerInfo import NtpServerInfo
 from server.app.dtos.NtpTimestamps import NtpTimestamps
-from server.app.dtos.ProbeData import ProbeLocation, ProbeData
+from server.app.dtos.ProbeData import ServerLocation, ProbeData
 from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.utils.perform_measurements import convert_float_to_precise_time
 from typing import Any, cast
@@ -74,7 +76,7 @@ def check_all_measurements_done(measurement_id: str, measurement_req: int) -> st
             - "Timeout": The measurement did not complete within the allowed time window
 
     Raises:
-        ValueError: If the RIPE API returns an error response
+        - RipeMeasurementError: If there are errors with the response from ripe, either not received or malformed
 
     Notes:
         - If the difference between the current time and the measurement's start time exceeds the configured time in seconds,
@@ -87,28 +89,36 @@ def check_all_measurements_done(measurement_id: str, measurement_req: int) -> st
         "Authorization": f"Key {get_ripe_api_token()}",
         "Content-Type": "application/json"
     }
-    response = requests.get(url, headers=headers)
-    json_data = response.json()
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        json_data = response.json()
+    except requests.RequestException as e:
+        raise RipeMeasurementError(f"Network error while checking measurement status: {str(e)}")
+    except ValueError:
+        raise RipeMeasurementError("Invalid JSON response from RIPE API.")
+
     if isinstance(json_data, dict) and 'error' in json_data:
-        raise ValueError(
+        raise RipeMeasurementError(
             f"RIPE API error: {json_data['error']['title']} - {json_data['error']['detail']}")
+
     probes_requested: int = json_data.get("probes_requested", -1)
     status_ripe: str = json_data["status"].get("name", "NO RESPONSE")
+    start_time = int(json_data.get("start_time", 0))
 
     if probes_requested == measurement_req:
         return "Complete"
+    elif status_ripe == "Stopped":
+        return "Complete"
+    elif status_ripe == "NO RESPONSE":
+        return "Timeout"
     else:
-        if status_ripe == "Stopped":
-            return "Complete"
+        current_time = int(time.time())
+        if (current_time - start_time) > 60:
+            return "Timeout"
         else:
-            if status_ripe == "NO RESPONSE":
-                return "Timeout"
-            start_time = int(json_data.get("start_time", 0))
-            current_time = int(time.time())
-            if (current_time - start_time) > 60:
-                return "Timeout"
-            else:
-                return "Ongoing"
+            return "Ongoing"
 
 
 def get_data_from_ripe_measurement(measurement_id: str) -> list[dict[str, Any]]:
@@ -126,8 +136,8 @@ def get_data_from_ripe_measurement(measurement_id: str) -> list[dict[str, Any]]:
         list[dict[str, Any]]: A list of measurement result entries as dictionaries
 
     Raises:
-        requests.RequestException: If the HTTP request fails.
-        ValueError: If the response cannot be parsed as JSON.
+        RipeMeasurementError: If the HTTP request fails or the response cannot be parsed as JSON
+        or the answer is not a list of dicts
 
     Notes:
         - Requires the `RIPE_KEY` environment variable to be set with a valid API key.
@@ -138,12 +148,21 @@ def get_data_from_ripe_measurement(measurement_id: str) -> list[dict[str, Any]]:
         "Authorization": f"Key {get_ripe_api_token()}",
         "Content-Type": "application/json"
     }
-    response = requests.get(url, headers=headers)
-    json_data = response.json()
-    if isinstance(json_data, dict) and 'error' in json_data:
-        raise ValueError(
-            f"RIPE API error: {json_data['error']['title']} - {json_data['error']['detail']}")
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        json_data = response.json()
+    except requests.RequestException as e:
+        raise RipeMeasurementError(f"Network error while fetching measurement data: {str(e)}")
+    except ValueError:
+        raise RipeMeasurementError("Invalid JSON response from RIPE API.")
 
+    if isinstance(json_data, dict) and 'error' in json_data:
+        raise RipeMeasurementError(
+            f"RIPE API error: {json_data['error'].get('title')} - {json_data['error'].get('detail')}")
+
+    if not isinstance(json_data, list):
+        raise RipeMeasurementError("Unexpected format: Expected list of results from RIPE API.")
     # print("Status Code:", response.status_code)
     # print("Response JSON:", response.json())
     return cast(list[dict[str, Any]], response.json())
@@ -164,8 +183,7 @@ def get_probe_data_from_ripe_by_id(probe_id: str) -> dict[str, Any]:
         dict[str, Any]: A dictionary containing metadata about the probe
 
     Raises:
-        requests.RequestException: If the HTTP request fails
-        ValueError: If the response is not valid JSON or is unexpected
+        RipeMeasurementError: If the HTTP request fails or the response is not valid JSON
 
     Notes:
         - Requires the `RIPE_KEY` environment variable to be set with a valid API key.
@@ -176,11 +194,17 @@ def get_probe_data_from_ripe_by_id(probe_id: str) -> dict[str, Any]:
         "Authorization": f"Key {get_ripe_api_token()}",
         "Content-Type": "application/json"
     }
-    response = requests.get(url, headers=headers)
-
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        json_data = response.json()
+    except requests.RequestException as e:
+        raise RipeMeasurementError(f"Network error while fetching probe data for {probe_id}: {str(e)}")
+    except ValueError:
+        raise RipeMeasurementError("Invalid JSON response from RIPE API.")
     # print("Status Code:", response.status_code)
     # print("Response JSON:", response.json())
-    return cast(dict[str, Any], response.json())
+    return cast(dict[str, Any], json_data)
 
 
 def parse_probe_data(probe_response: dict) -> ProbeData:
@@ -228,8 +252,8 @@ def parse_probe_data(probe_response: dict) -> ProbeData:
     geometry = probe_response.get('geometry')
     coordinates = geometry.get('coordinates', [0.0, 0.0]) if geometry else [0.0, 0.0]
 
-    probe_location = ProbeLocation(country_code=country_code,
-                                   coordinates=coordinates)
+    probe_location = ServerLocation(country_code=country_code,
+                                    coordinates=coordinates)
     return ProbeData(probe_id=probe_id, probe_addr=probe_addr, probe_location=probe_location)
 
 
@@ -328,6 +352,8 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
             ntp_server_name=dst_name,
             ntp_server_ref_parent_ip=None,
             ref_name=None,
+            ntp_server_location=ServerLocation(country_code=get_country_for_ip(str(dst_addr_ip)),
+                                               coordinates=get_coordinates_for_ip(str(dst_addr_ip)))
         )
 
         if not failed and idx is not None:
@@ -388,4 +414,4 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
 # print(parse_data_from_ripe_measurement(get_data_from_ripe_measurement("106323686")))
 # parse_data_from_ripe_measurement(get_data_from_ripe_measurement("107961234"))
 # print(parse_probe_data(get_probe_data_from_ripe_by_id("7304")))
-# print(check_all_measurements_scheduled("107134561"))
+# print(check_all_measurements_done("105960562", 12))

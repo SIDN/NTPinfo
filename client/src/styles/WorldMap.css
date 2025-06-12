@@ -1,0 +1,14 @@
+@import '../index.css';
+
+body {
+    color: var(--clr-font-white)
+}
+
+.logo {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    vertical-align: middle;
+    margin-right: 6px;
+    display: inline-block;
+}

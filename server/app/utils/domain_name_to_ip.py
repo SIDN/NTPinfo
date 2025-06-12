@@ -4,6 +4,8 @@ import dns.message
 import dns.query
 import dns.edns
 import dns.rdatatype
+
+from server.app.models.CustomError import DNSError
 from server.app.utils.ip_utils import get_ip_family
 from server.app.utils.load_config_data import get_edns_default_servers, get_mask_ipv6, get_mask_ipv4, get_edns_timeout_s
 from server.app.utils.validate import is_valid_domain_name
@@ -22,7 +24,7 @@ def domain_name_to_ip_list(ntp_server_domain_name: str, client_ip: Optional[str]
         list[str]: List of IP addresses that are close to the client or to the server if client IP is None
 
     Raises:
-        Exception: If the domain name is invalid, or it was impossible to find some IP addresses.
+        DNSError: If the domain name is invalid, or it was impossible to find some IP addresses.
     """
     domain_ips: list[str] | None
     if client_ip is None:  # if we do not have the client_ip available, use this server as a "client ip"
@@ -32,10 +34,10 @@ def domain_name_to_ip_list(ntp_server_domain_name: str, client_ip: Optional[str]
 
     # if the domain name is invalid or []
     if domain_ips is None or len(domain_ips) == 0:
-        raise Exception(f"Could not find any IP address for {ntp_server_domain_name}.")
+        raise DNSError(f"Could not find any IP address for {ntp_server_domain_name}.")
     return domain_ips
 
-def domain_name_to_ip_default(domain_name: str) -> list[str] | None:
+def domain_name_to_ip_default(domain_name: str) -> Optional[list[str]]:
     """
     It uses the DNS of this server to obtain the ip addresses of the domain name.
     This method is useful if you want IPs close to this server, or you do not care about the location of the IPs.
@@ -44,7 +46,7 @@ def domain_name_to_ip_default(domain_name: str) -> list[str] | None:
         domain_name(str): The domain name.:
 
     Returns:
-        list(str) | None: A list of IPs of the domain name or None if the domain name is not valid.
+        Optional[list[str]]: A list of IPs of the domain name or None if the domain name is not valid.
     """
     try:
         if not is_valid_domain_name(domain_name):
@@ -59,7 +61,7 @@ def domain_name_to_ip_default(domain_name: str) -> list[str] | None:
 
 def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str,
                                                     resolvers: list[str] = get_edns_default_servers(),
-                                                    depth: int = 0, max_depth: int = 2) -> list[str] | None:
+                                                    depth: int = 0, max_depth: int = 2) -> Optional[list[str]]:
     """
     This method tries to obtain the ip addresses of the domain name from some popular DNS servers (resolvers)
     that have (or may have) the ability to get an IP close to the client. It uses EDNS queries to get the IPs
@@ -82,14 +84,15 @@ def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str,
         max_depth(int): The maximum depth of the EDNS query. (It is recommended to set this to 2 or 3 to prevent long delay.)
 
     Returns:
-        list(str) | None: A list of IPs of the domain name or None if the domain name is not valid.
+        Optional[list[str]]: A list of IPs of the domain name or None if the domain name is not valid.
+
+    Raises:
+        Exception: If the client IP is invalid
     """
     if not is_valid_domain_name(domain_name):
         return None
-    if client_ip is None:
-        return None
 
-    ip_type = get_ip_family(client_ip)
+    ip_type = get_ip_family(client_ip) # may throw an exception if the client IP is invalid
     mask: int # The DNS MASK. (how many bits of the ip)
     if ip_type == 6:
         mask = get_mask_ipv6()
@@ -122,7 +125,7 @@ def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str,
 
 
 def perform_edns_query(domain_name: str, resolver_name: str, ecs: dns.edns.ECSOption,
-                       ip_type: int, timeout: float|int = get_edns_timeout_s()) -> dns.message.Message | None:
+                       ip_type: int, timeout: float|int = get_edns_timeout_s()) -> Optional[dns.message.Message]:
     """
     This method performs a EDNS query against the domain name using the resolver as
     the DNS IP and returns the response.
@@ -135,7 +138,7 @@ def perform_edns_query(domain_name: str, resolver_name: str, ecs: dns.edns.ECSOp
          timeout(float|int): The timeout for the EDNS query.
 
     Returns:
-        dns.message.Message | None: The response from the EDNS query.
+        Optional[dns.message.Message]: The response from the EDNS query.
     """
     # prepare to ask the DNS
     if ip_type == 4:
@@ -190,7 +193,7 @@ def edns_response_to_ips(response: dns.message.Message, client_ip: str,
 #example of usage:
 # dn = "time.apple.com"
 # client = "88.31.57.92"
-# ans = domain_name_to_ip_close_to_client(dn, client, 24)
+# ans = domain_name_to_ip_close_to_client(dn, client )
 # print(ans)
 # print([get_country_from_ip(x) for x in ans])
 #print([get_country_from_ip(x) for x in domain_name_to_ip_close_to_client(dn, client_ip,16)])

@@ -25,7 +25,8 @@ export const triggerRipeMeasurement = () => {
             )
             const measurementId = resp.data?.measurement_id || null
             const vantage_point_ip = resp.data?.vantage_point_ip || null
-            const parsedData = {measurementId, vantage_point_ip}
+            const coordinates = resp.data?.vantage_point_location.coordinates || null
+            const parsedData = {measurementId, vantage_point_ip, coordinates}
             setData(parsedData)
             return {parsedData}
         } catch (err: any) {

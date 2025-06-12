@@ -1,13 +1,16 @@
-import pprint
+
 import ntplib
 from ipaddress import ip_address
 import json
 from typing import Optional
 import requests
 
+from server.app.dtos.ProbeData import ServerLocation
+from server.app.utils.location_resolver import get_country_for_ip, get_coordinates_for_ip
 from server.app.models.CustomError import InputError, RipeMeasurementError
-from server.app.utils.calculations import ntp_precise_time_to_human_date, convert_float_to_precise_time
-from server.app.utils.ip_utils import get_ip_family, ref_id_to_ip_or_name, get_server_ip
+from server.app.utils.calculations import ntp_precise_time_to_human_date, convert_float_to_precise_time, \
+    get_non_responding_ntp_measurement
+from server.app.utils.ip_utils import get_ip_family, ref_id_to_ip_or_name, get_server_ip, ip_to_str
 from server.app.utils.load_config_data import get_ripe_account_email, get_ripe_api_token, get_ntp_version, \
     get_timeout_measurement_s, get_ripe_number_of_probes_per_measurement, \
     get_ripe_timeout_per_probe_ms, get_ripe_packets_per_probe
@@ -22,61 +25,27 @@ from server.app.dtos.PreciseTime import PreciseTime
 from server.app.utils.validate import is_ip_address
 
 
-def perform_ntp_measurement_domain_name(server_name: str = "pool.ntp.org", client_ip: Optional[str] = None,
-                                        ntp_version: int = get_ntp_version()) -> Optional[NtpMeasurement]:
-    """
-    This method performs a NTP measurement on a NTP server from its domain name. The "other IPs list" of the
-    measurement will be an empty list, or it will contain some elements. It would not be None.
-
-    Args:
-        server_name (str): the name of the ntp server
-        client_ip (str|None): the ip address of the client (if given)
-        ntp_version (int): the version of the ntp that you want to use
-
-    Returns:
-        Optional[NtpMeasurement]: it returns the NTP measurement object or None if there is a timeout
-
-    Raises:
-        Exception: If the domain name is invalid or cannot be converted to an IP list
-    """
-    domain_ips: list[str] = domain_name_to_ip_list(server_name, client_ip)
-    # domain_ips contains a list of ips that are good to use. We can simply use the first one
-    ip_str = domain_ips[0]
-    try:
-        client = ntplib.NTPClient()
-        response_from_ntplib = client.request(ip_str, ntp_version, timeout=get_timeout_measurement_s())
-        r = convert_ntp_response_to_measurement(response=response_from_ntplib,
-                                                server_ip_str=ip_str,
-                                                server_name=server_name,
-                                                ntp_version=ntp_version)
-        if r is None:
-            return None
-        else:
-            return r
-    except Exception as e:
-        print("Error in measure from name:", e)
-        return None
-
 
 def perform_ntp_measurement_domain_name_list(server_name: str = "pool.ntp.org", client_ip: Optional[str] = None,
                                              ntp_version: int = get_ntp_version()) -> Optional[list[NtpMeasurement]]:
     """
-    This method performs a NTP measurement on a NTP server from all the ips got back from its domain name.
+    This method performs a NTP measurement on a NTP server from all the IPs got back from its domain name.
 
     Args:
         server_name (str): the name of the ntp server
-        client_ip (str|None): the ip address of the client (if given)
+        client_ip (Optional[str]): the IP address of the client (if given)
         ntp_version (int): the version of the ntp that you want to use
 
     Returns:
         Optional[list[NtpMeasurement]]: it returns a list of NTP measurement objects or None if there is a timeout
 
     Raises:
-        Exception: If the domain name is invalid or cannot be converted to an IP list
+        DNSError: If the domain name is invalid or cannot be converted to an IP list
     """
     domain_ips: list[str] = domain_name_to_ip_list(server_name, client_ip)
     # domain_ips contains a list of ips that are good to use.
     resulted_measurements = []
+    ok = False
     for ip_str in domain_ips:
         try:
             client = ntplib.NTPClient()
@@ -88,11 +57,14 @@ def perform_ntp_measurement_domain_name_list(server_name: str = "pool.ntp.org", 
 
             if r is not None:
                 resulted_measurements.append(r)
+                ok = True
         except Exception as e:
             print("Error in measure from name:", e)
+            empty_measurement = get_non_responding_ntp_measurement(ip_str, server_name, ntp_version)
+            resulted_measurements.append(empty_measurement)
             continue
 
-    return resulted_measurements if resulted_measurements else None
+    return resulted_measurements if ok is True else None
 
 
 def perform_ntp_measurement_ip(server_ip_str: str, ntp_version: int = get_ntp_version()) -> Optional[NtpMeasurement]:
@@ -132,13 +104,13 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
         response (ntplib.NTPStats): the NTP response to convert
         server_ip_str (str): the ip address of the ntp server in string format
         server_name (Optional[str]): the name of the ntp server
-        other_server_ips (Optional[list[str]]): an optional list of IP addresses if the measurement is performed on a domain name
         ntp_version (int): the version of the ntp that you want to use.
 
     Returns:
         Optional[NtpMeasurement]: it returns a NTP measurement object if converting was successful.
     """
     try:
+        vantage_point_ip = None
         vantage_point_ip_temp = get_server_ip()
         if vantage_point_ip_temp is not None:
             vantage_point_ip = vantage_point_ip_temp
@@ -151,18 +123,20 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
             ntp_server_name=server_name,
             ntp_server_ref_parent_ip=ref_ip,
             ref_name=ref_name,
+            ntp_server_location=ServerLocation(country_code=get_country_for_ip(ip_to_str(server_ip)),
+                                               coordinates=get_coordinates_for_ip(ip_to_str(server_ip)))
         )
 
         timestamps: NtpTimestamps = NtpTimestamps(
-            client_sent_time=PreciseTime(ntplib._to_int(response.dest_timestamp),
-                                         ntplib._to_frac(response.dest_timestamp)),
-            server_recv_time=PreciseTime(ntplib._to_int(response.orig_timestamp),
+            client_sent_time=PreciseTime(ntplib._to_int(response.orig_timestamp),
                                          ntplib._to_frac(response.orig_timestamp)),
-            server_sent_time=PreciseTime(ntplib._to_int(response.recv_timestamp),
+            server_recv_time=PreciseTime(ntplib._to_int(response.recv_timestamp),
                                          ntplib._to_frac(response.recv_timestamp)),
-            client_recv_time=PreciseTime(ntplib._to_int(response.tx_timestamp), ntplib._to_frac(response.tx_timestamp))
+            server_sent_time=PreciseTime(ntplib._to_int(response.tx_timestamp),
+                                         ntplib._to_frac(response.tx_timestamp)),
+            client_recv_time=PreciseTime(ntplib._to_int(response.dest_timestamp),
+                                         ntplib._to_frac(response.dest_timestamp))
         )
-
         main_details: NtpMainDetails = NtpMainDetails(
             offset=response.offset,
             rtt=response.delay,
@@ -240,6 +214,8 @@ def perform_ripe_measurement_domain_name(server_name: str, client_ip: str,
                                          get_ripe_number_of_probes_per_measurement()) -> int:
     """
     This method performs a RIPE measurement on a domain name. It lets the RIPE atlas probe to
+    decide which IP of that domain name to use. (You can see this IP from the details of the
+    measurement by looking at the measurement ID)
 
     Args:
         server_name (str): The domain name of the NTP server.
@@ -274,7 +250,6 @@ def perform_ripe_measurement_domain_name(server_name: str, client_ip: str,
 
     data = response.json()
     # the answer has a list of measurements, but we only did one measurement so we send one.
-    pprint.pprint(data)
     try:
         ans: int = data["measurements"][0]
     except Exception as e:
@@ -288,7 +263,7 @@ def perform_ripe_measurement_domain_name(server_name: str, client_ip: str,
 def perform_ripe_measurement_ip(ntp_server_ip: str, client_ip: str,
                                 probes_requested: int = get_ripe_number_of_probes_per_measurement()) -> int:
     """
-    This method performs a RIPE measurement and returns the code of the measurement.
+    This method performs a RIPE measurement and returns the ID of the measurement.
 
     Args:
         ntp_server_ip (str): The NTP server IP.
@@ -347,7 +322,7 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
     Raises:
         InputError: If the input is invalid.
         RipeMeasurementError: If the ripe measurement could not be performed.
-        Exception: If something else failed. TODO
+        ValueError: If some variable in env is not correctly set.
     """
     headers = {
         "Authorization": f"Key {get_ripe_api_token()}",
@@ -371,7 +346,7 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
     }
     return headers, request_content
 # m=perform_ntp_measurement_domain_name("time.google.com")
-# m=perform_ntp_measurement_domain_name("ro.pool.ntp.org","83.25.24.10")
+# m=perform_ntp_measurement_domain_name("pool.ntp.org","83.25.24.10")
 # print_ntp_measurement(m)
 # import time
 #

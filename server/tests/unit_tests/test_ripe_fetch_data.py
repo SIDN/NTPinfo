@@ -2,7 +2,9 @@ from ipaddress import ip_address
 
 import pytest
 from unittest.mock import Mock, patch
+import requests
 
+from server.app.models.CustomError import RipeMeasurementError
 from server.app.dtos.PreciseTime import PreciseTime
 from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.dtos.ProbeData import ProbeData
@@ -203,7 +205,7 @@ MOCK_MEASUREMENT_RESPONSE = [
             }
         ],
         "msm_id": 123,
-        "prb_id": 9999,
+        "prb_id": "9999",
         "timestamp": 1748348739,
         "msm_name": "Ntp",
         "from": "83.231.3.54",
@@ -260,7 +262,7 @@ MOCK_PROBE_RESPONSE = {
             14.14
         ]
     },
-    "id": 9999,
+    "id": "9999",
     "is_anchor": "true",
     "is_public": "true",
     "last_connected": 1748537238,
@@ -357,8 +359,17 @@ MOCK_PROBE_RESPONSE_NO_ADDR = {
             14.14
         ]
     },
-    "id": 9999,
+    "id": "9999",
 }
+
+MOCK_UNEXPECTED_DICT_RESPONSE = {
+    "count": 1,
+    "results": [
+        {"some_key": "some_value"}
+    ]
+}
+
+MOCK_UNEXPECTED_STRING_RESPONSE = "This is not a list or an error dict."
 
 
 @patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
@@ -376,7 +387,7 @@ def test_get_data_from_ripe_measurement(mock_get, mock_get_token):
     assert data[0]["dst_name"] == "time.some_server.com"
     assert data[0]["dst_addr"] == "18.252.12.124"
     assert data[0]["from"] == "83.231.3.54"
-    assert data[0]["prb_id"] == 9999
+    assert data[0]["prb_id"] == "9999"
 
 
 @patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
@@ -391,7 +402,7 @@ def test_get_data_from_ripe_measurement_raises_on_error_response(mock_get, mock_
         }
     }
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(RipeMeasurementError) as exc_info:
         get_data_from_ripe_measurement("invalid_id")
 
     assert "RIPE API error: Bad Request - Invalid measurement ID." in str(exc_info.value)
@@ -406,7 +417,7 @@ def test_get_probe_data_from_ripe_by_id(mock_get, mock_get_token):
 
     data = get_probe_data_from_ripe_by_id("9999")
     assert isinstance(data, dict)
-    assert data["id"] == 9999
+    assert data["id"] == "9999"
     assert data["address_v4"] == "83.231.3.54"
     assert data["country_code"] == "RO"
     assert data["geometry"]["coordinates"] == [12.12, 14.14]
@@ -415,7 +426,7 @@ def test_get_probe_data_from_ripe_by_id(mock_get, mock_get_token):
 def test_parse_probe_data():
     parsed = parse_probe_data(MOCK_PROBE_RESPONSE)
     assert isinstance(parsed, ProbeData)
-    assert parsed.probe_id == 9999
+    assert parsed.probe_id == str(9999)
     assert parsed.probe_addr[0] == ip_address("83.231.3.54")
     assert parsed.probe_addr[1] == ip_address("2a04:4c39:1:ca::a")
     assert parsed.probe_location.country_code == "RO"
@@ -433,7 +444,7 @@ def test_parse_probe_data_with_error():
 def test_parse_probe_data_with_no_probe_addr():
     parsed = parse_probe_data(MOCK_PROBE_RESPONSE_NO_ADDR)
     assert isinstance(parsed, ProbeData)
-    assert parsed.probe_id == 9999
+    assert parsed.probe_id == "9999"
     assert parsed.probe_addr == (None, None)
     assert parsed.probe_location.country_code == "RO"
     assert parsed.probe_location.coordinates == [12.12, 14.14]
@@ -494,7 +505,7 @@ def test_parse_data_from_ripe_measurement(mock_get_probe, mock_check_done):
     assert results[0].ntp_measurement.extra_details.root_dispersion == PreciseTime(seconds=0, fraction=851966)
     assert results[0].ref_id == "GPSs"
     assert results[0].ntp_measurement.extra_details.poll == 64
-    assert results[0].probe_data.probe_id == 9999
+    assert results[0].probe_data.probe_id == "9999"
 
     assert results[0].ntp_measurement.timestamps.client_sent_time.seconds != 0
     assert results[0].ntp_measurement.timestamps.client_sent_time.fraction != 0
@@ -524,7 +535,7 @@ def test_parse_data_from_ripe_measurement_with_no_response(mock_get_probe, mock_
     assert results[0].ntp_measurement.extra_details.root_dispersion == PreciseTime(seconds=-1, fraction=0)
     assert results[0].ref_id == "NO REFERENCE"
     assert results[0].ntp_measurement.extra_details.poll == -1
-    assert results[0].probe_data.probe_id == 9999
+    assert results[0].probe_data.probe_id == str(9999)
 
     assert results[0].ntp_measurement.timestamps.client_sent_time.seconds == -1
     assert results[0].ntp_measurement.timestamps.client_sent_time.fraction == 0
@@ -651,6 +662,181 @@ def test_check_all_measurement_done_error_get(mock_get, mock_get_token):
     mock_get.return_value = Mock(status_code=200)
     mock_get.return_value.json.return_value = MOCK_MEASUREMENT_ERROR
 
-    with pytest.raises(ValueError,
+    with pytest.raises(RipeMeasurementError,
                        match=r'RIPE API error: Method Not Allowed - Method "GET" not allowed\.'):
         check_all_measurements_done("123456", 1)
+
+    mock_get.assert_called_once()
+    mock_get_token.assert_called_once()
+
+
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_check_all_measurement_done_request_exception(mock_get, mock_get_token):
+    mock_get_token.return_value = "token"
+    mock_get.side_effect = requests.exceptions.ConnectionError("Mocked network error")
+    with pytest.raises(RipeMeasurementError,
+                       match="Network error while checking measurement status: Mocked network error"):
+        check_all_measurements_done("123456", 10)
+    mock_get.assert_called_once()
+    mock_get_token.assert_called_once()
+
+
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_check_all_measurement_done_http_error(mock_get, mock_get_token):
+    mock_get_token.return_value = "token"
+    mock_response = Mock()
+    mock_response.status_code = 404
+    mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("404 Not Found")
+    mock_get.return_value = mock_response
+    with pytest.raises(RipeMeasurementError, match="Network error while checking measurement status: 404 Not Found"):
+        check_all_measurements_done("123456", 10)
+    mock_get.assert_called_once()
+    mock_get_token.assert_called_once()
+
+
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_check_all_measurement_done_invalid_json(mock_get, mock_get_token):
+    mock_get_token.return_value = "token"
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status.return_value = None
+    mock_response.json.side_effect = ValueError("Invalid JSON data")
+    mock_get.return_value = mock_response
+    with pytest.raises(RipeMeasurementError, match="Invalid JSON response from RIPE API."):
+        check_all_measurements_done("123456", 10)
+
+    mock_get.assert_called_once()
+    mock_get_token.assert_called_once()
+
+
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_get_data_from_ripe_measurement_network_error(mock_get, mock_get_token):
+    """
+    Tests if RipeMeasurementError is raised when requests.get encounters a network issue.
+    """
+    mock_get_token.return_value = "fake_token"
+    mock_get.side_effect = requests.exceptions.ConnectionError("Connection refused by host")
+
+    with pytest.raises(RipeMeasurementError,
+                       match="Network error while fetching measurement data: Connection refused by host"):
+        get_data_from_ripe_measurement("12345")
+
+    mock_get.assert_called_once()
+    mock_get_token.assert_called_once()
+
+
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_get_data_from_ripe_measurement_http_status_error(mock_get, mock_get_token):
+    mock_get_token.return_value = "fake_token"
+    mock_response = Mock()
+    mock_response.status_code = 500
+    mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("500 Internal Server Error")
+    mock_get.return_value = mock_response
+
+    with pytest.raises(RipeMeasurementError,
+                       match="Network error while fetching measurement data: 500 Internal Server Error"):
+        get_data_from_ripe_measurement("12345")
+
+    mock_get.assert_called_once()
+    mock_get_token.assert_called_once()
+
+
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_get_data_from_ripe_measurement_invalid_json(mock_get, mock_get_token):
+    mock_get_token.return_value = "fake_token"
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status.return_value = None
+    mock_response.json.side_effect = ValueError("No JSON object could be decoded")  # Simulate invalid JSON
+    mock_get.return_value = mock_response
+
+    with pytest.raises(RipeMeasurementError, match="Invalid JSON response from RIPE API."):
+        get_data_from_ripe_measurement("12345")
+
+    mock_get.assert_called_once()
+    mock_get_token.assert_called_once()
+
+
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_get_data_from_ripe_measurement_unexpected_json_format_dict(mock_get, mock_get_token):
+    mock_get_token.return_value = "fake_token"
+    mock_get.return_value = Mock(status_code=200)
+    mock_get.return_value.json.return_value = MOCK_UNEXPECTED_DICT_RESPONSE
+
+    with pytest.raises(RipeMeasurementError, match="Unexpected format: Expected list of results from RIPE API."):
+        get_data_from_ripe_measurement("12345")
+
+    mock_get.assert_called_once()
+    mock_get_token.assert_called_once()
+
+
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_get_data_from_ripe_measurement_unexpected_json_format_string(mock_get, mock_get_token):
+    mock_get_token.return_value = "fake_token"
+    mock_get.return_value = Mock(status_code=200)
+    mock_get.return_value.json.return_value = MOCK_UNEXPECTED_STRING_RESPONSE
+
+    with pytest.raises(RipeMeasurementError, match="Unexpected format: Expected list of results from RIPE API."):
+        get_data_from_ripe_measurement("12345")
+
+    mock_get.assert_called_once()
+    mock_get_token.assert_called_once()
+
+
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_get_probe_data_from_ripe_by_id_network_error(mock_get, mock_get_token):
+    mock_get_token.return_value = "fake_token"
+    mock_get.side_effect = requests.exceptions.ConnectionError("Network is unreachable")
+
+    with pytest.raises(RipeMeasurementError,
+                       match=f"Network error while fetching probe data for 12345: Network is unreachable"):
+        get_probe_data_from_ripe_by_id("12345")
+
+    mock_get.assert_called_once()
+    mock_get_token.assert_called_once()
+
+
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_get_probe_data_from_ripe_by_id_http_status_error(mock_get, mock_get_token):
+    mock_get_token.return_value = "fake_token"
+
+    mock_response = Mock()
+    mock_response.status_code = 404
+    mock_response.raise_for_status.side_effect = requests.exceptions.HTTPError("404 Not Found")
+    mock_get.return_value = mock_response
+
+    probe_id = "non_existent_probe"
+    with pytest.raises(RipeMeasurementError,
+                       match=f"Network error while fetching probe data for {probe_id}: 404 Not Found"):
+        get_probe_data_from_ripe_by_id(probe_id)
+
+    mock_get.assert_called_once()
+    mock_get_token.assert_called_once()
+
+
+@patch("server.app.utils.ripe_fetch_data.get_ripe_api_token")
+@patch("server.app.utils.ripe_fetch_data.requests.get")
+def test_get_probe_data_from_ripe_by_id_invalid_json(mock_get, mock_get_token):
+    mock_get_token.return_value = "fake_token"
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status.return_value = None
+    mock_response.json.side_effect = ValueError("Malformed JSON data")
+    mock_get.return_value = mock_response
+
+    probe_id = "12345"
+    with pytest.raises(RipeMeasurementError, match="Invalid JSON response from RIPE API."):
+        get_probe_data_from_ripe_by_id(probe_id)
+
+    mock_get.assert_called_once()
+    mock_get_token.assert_called_once()

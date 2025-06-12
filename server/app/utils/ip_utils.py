@@ -1,12 +1,16 @@
+import ipaddress
+import os
 import socket
 from ipaddress import ip_address, IPv4Address, IPv6Address
 from typing import Optional
 import ntplib
 import requests
 
+from server.app.utils.location_resolver import get_asn_for_ip, get_country_for_ip, get_continent_for_ip
 from server.app.models.CustomError import InputError
-from server.app.utils.load_config_data import get_ipinfo_lite_api_token, get_edns_default_servers
+from server.app.utils.load_config_data import get_edns_default_servers
 from server.app.utils.validate import is_ip_address
+from fastapi import HTTPException, Request
 
 
 def ref_id_to_ip_or_name(ref_id: int, stratum: int) \
@@ -74,31 +78,34 @@ def get_ip_network_details(ip_str: str) -> tuple[Optional[str], Optional[str], O
         of an IP address if they can be taken.
     """
     try:
-        token: str = get_ipinfo_lite_api_token()
-        response = requests.get(f"https://api.ipinfo.io/lite/{ip_str}?token={token}")
-        data = response.json()
-        asn: str = data.get("asn", None)
-        country: str = data.get("country_code", None)
-        continent: str = data.get("continent_code", None)
+        # token: str = get_ipinfo_lite_api_token()
+        # response = requests.get(f"https://api.ipinfo.io/lite/{ip_str}?token={token}")
+        # data = response.json()
+        # asn: str = data.get("asn", None)
+        # country: str = data.get("country_code", None)
+        # continent: str = data.get("continent_code", None)
+        asn: Optional[str] = get_asn_for_ip(ip_str)
+        country: Optional[str] = get_country_for_ip(ip_str)
+        continent: Optional[str] = get_continent_for_ip(ip_str)
         return asn, country, get_area_of_ip(country, continent)
     except Exception as e:
         print(e)
         return None, None, None
 
 
-def get_area_of_ip(ip_country: str, ip_continent: Optional[str]) -> str:
+def get_area_of_ip(ip_country: Optional[str], ip_continent: Optional[str]) -> str:
     """
     This method tries to get the area of an IP address based on its country and continent.
 
     Args:
-        ip_country (str): The country code of the IP address.
-        ip_continent (str): The continent code of the IP address.
+        ip_country (Optional[str]): The country code of the IP address.
+        ip_continent (Optional[str]): The continent code of the IP address.
 
     Returns:
         str: The area of an IP address
     """
     # default is WW (world wide)
-    if ip_continent is None:
+    if ip_continent is None or ip_country is None:
         return "WW"
     area_map = {
         "EU": "North-Central",
@@ -208,3 +215,74 @@ def get_server_ip() -> IPv4Address | IPv6Address | None:
         return ip_address(ip)
     except ValueError:
         return None
+
+
+def client_ip_fetch(request: Request) -> str | None:
+    """
+    Attempts to determine the client's IP address from the request.
+
+    Args:
+        request (Request): The FastAPI Request object, containing information
+                           about the incoming client request
+
+    Returns:
+        str: The determined IP address of the client (or a fallback server IP)
+             as a string.
+
+    Raises:
+         HTTPException:
+            - 503: If neither the client's IP from headers/request nor the fallback server IP can be successfully resolved.
+    """
+    try:
+        client_ip = request.headers.get("X-Forwarded-For", request.client.host if request.client is not None else None)
+        if client_ip is None:
+            client_ip = ip_to_str(get_server_ip())
+
+        return client_ip
+    except Exception as e:
+        raise HTTPException(status_code=503, detail="Could not resolve client IP or fallback IP.")
+
+
+def is_this_ip_anycast(searched_ip: Optional[str]) -> bool:
+    """
+    This method checks whether an IP address is anycast or not, by searching in the local anycast prefix databases.
+    This method would never throw an exception. (If the databases don't exist, it will return False)
+
+    Args:
+        searched_ip (Optional[str]): The IP address to check.
+
+    Returns:
+        bool: Whether the IP address is anycast or not.
+    """
+    if searched_ip is None:
+        return False
+    try:
+        ip_family = get_ip_family(searched_ip)
+        ip = ip_address(searched_ip)
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        # get the correct database
+        if ip_family == 4:
+            file_path = os.path.abspath(os.path.join(current_dir, "..", "..", "anycast-v4-prefixes.txt"))
+        else:
+            file_path = os.path.abspath(os.path.join(current_dir, "..", "..", "anycast-v6-prefixes.txt"))
+
+        with open(file_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                try:
+                    whole_network: ipaddress._BaseNetwork
+                    if ip_family == 4:
+                        whole_network = ipaddress.IPv4Network(line, strict=False)
+                    else:
+                        whole_network = ipaddress.IPv6Network(line, strict=False)
+                    if ip in whole_network:
+                        print(line)
+                        return True
+                except Exception as e:
+                    continue
+        return False
+    except Exception as e:
+        print(f"Error (safe) in is anycast: {e}")
+        return False
+
+# print(is_this_ip_anycast("2001:4860:4806:c::"))

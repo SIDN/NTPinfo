@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+from server.app.utils.ip_utils import is_this_ip_anycast
 from server.app.utils.perform_measurements import perform_ntp_measurement_domain_name_list
 from server.app.utils.ip_utils import get_server_ip
 from server.app.models.CustomError import InputError, RipeMeasurementError
@@ -15,10 +16,10 @@ from server.app.utils.ripe_fetch_data import check_all_measurements_scheduled
 from server.app.utils.perform_measurements import perform_ripe_measurement_domain_name
 from server.app.utils.validate import ensure_utc, is_ip_address, parse_ip
 from server.app.services.NtpCalculator import NtpCalculator
-from server.app.utils.perform_measurements import perform_ntp_measurement_ip, perform_ntp_measurement_domain_name, \
+from server.app.utils.perform_measurements import perform_ntp_measurement_ip, \
     perform_ripe_measurement_ip
 from datetime import datetime
-from server.app.dtos.ProbeData import ProbeLocation
+from server.app.dtos.ProbeData import ServerLocation
 from server.app.dtos.RipeMeasurement import RipeMeasurement
 from server.app.utils.ripe_fetch_data import parse_data_from_ripe_measurement, get_data_from_ripe_measurement
 from server.app.db.db_interaction import insert_measurement
@@ -49,13 +50,30 @@ def get_format(measurement: NtpMeasurement, jitter: Optional[float] = None,
         "vantage_point_ip": ip_to_str(measurement.vantage_point_ip),
         "ntp_server_ip": ip_to_str(measurement.server_info.ntp_server_ip),
         "ntp_server_name": measurement.server_info.ntp_server_name,
+        "ntp_server_location": {
+            "ip_is_anycast": is_this_ip_anycast(ip_to_str(measurement.server_info.ntp_server_ip)),
+            "country_code": measurement.server_info.ntp_server_location.country_code,
+            "coordinates": measurement.server_info.ntp_server_location.coordinates
+        },
         "ntp_server_ref_parent_ip": ip_to_str(measurement.server_info.ntp_server_ref_parent_ip),
         "ref_name": measurement.server_info.ref_name,
 
-        "client_sent_time": measurement.timestamps.server_sent_time,
-        "server_recv_time": measurement.timestamps.server_recv_time,
-        "server_sent_time": measurement.timestamps.server_sent_time,
-        "client_recv_time": measurement.timestamps.client_recv_time,
+        "client_sent_time": {
+            "seconds": measurement.timestamps.client_sent_time.seconds,
+            "fraction": measurement.timestamps.client_sent_time.fraction
+        },
+        "server_recv_time": {
+            "seconds": measurement.timestamps.server_recv_time.seconds,
+            "fraction": measurement.timestamps.server_recv_time.fraction
+        },
+        "server_sent_time": {
+            "seconds": measurement.timestamps.server_sent_time.seconds,
+            "fraction": measurement.timestamps.server_sent_time.fraction
+        },
+        "client_recv_time": {
+            "seconds": measurement.timestamps.client_recv_time.seconds,
+            "fraction": measurement.timestamps.client_recv_time.fraction
+        },
 
         "offset": measurement.main_details.offset,
         "rtt": measurement.main_details.rtt,
@@ -66,7 +84,10 @@ def get_format(measurement: NtpMeasurement, jitter: Optional[float] = None,
         "root_delay": NtpCalculator.calculate_float_time(measurement.extra_details.root_delay),
         "poll": measurement.extra_details.poll,
         "root_dispersion": NtpCalculator.calculate_float_time(measurement.extra_details.root_dispersion),
-        "ntp_last_sync_time": measurement.extra_details.ntp_last_sync_time,
+        "ntp_last_sync_time": {
+            "seconds": measurement.extra_details.ntp_last_sync_time.seconds,
+            "fraction": measurement.extra_details.ntp_last_sync_time.fraction
+        },
         # if it has value = 3 => invalid
         "leap": measurement.extra_details.leap,
         # if the server has multiple IPs addresses we should show them to the client
@@ -94,17 +115,23 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
                 - Measurement metrics (stratum, poll, precision, root delay, root dispersion, reachability)
                 - NTP measurement data (rtt, offset, timestamps)
     """
-    probe_location: Optional[ProbeLocation] = measurement.probe_data.probe_location
+    probe_location: Optional[ServerLocation] = measurement.probe_data.probe_location
     return {
         "ntp_version": measurement.ntp_measurement.server_info.ntp_version,
         "ripe_measurement_id": measurement.measurement_id,
         "ntp_server_ip": ip_to_str(measurement.ntp_measurement.server_info.ntp_server_ip),
+        "ntp_server_location": {
+            "ip_is_anycast": is_this_ip_anycast(ip_to_str(measurement.ntp_measurement.server_info.ntp_server_ip)),
+            "country_code": measurement.ntp_measurement.server_info.ntp_server_location.country_code,
+            "coordinates": measurement.ntp_measurement.server_info.ntp_server_location.coordinates
+        },
         "ntp_server_name": measurement.ntp_measurement.server_info.ntp_server_name,
+        "vantage_point_ip": ip_to_str(measurement.ntp_measurement.vantage_point_ip),
         "probe_addr": {
             "ipv4": ip_to_str(measurement.probe_data.probe_addr[0]),
             "ipv6": ip_to_str(measurement.probe_data.probe_addr[1])
         },
-        "probe_id": measurement.probe_data.probe_id,
+        "probe_id": str(measurement.probe_data.probe_id),
         "probe_location": {
             "country_code": probe_location.country_code if probe_location else "UNKNOWN",
             "coordinates": probe_location.coordinates if probe_location else (0.0, 0.0)
@@ -114,7 +141,8 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
         "poll": measurement.ntp_measurement.extra_details.poll,
         "precision": measurement.ntp_measurement.main_details.precision,
         "root_delay": NtpCalculator.calculate_float_time(measurement.ntp_measurement.extra_details.root_delay),
-        "root_dispersion": NtpCalculator.calculate_float_time(measurement.ntp_measurement.extra_details.root_dispersion),
+        "root_dispersion": NtpCalculator.calculate_float_time(
+            measurement.ntp_measurement.extra_details.root_dispersion),
         "ref_id": measurement.ref_id,
         "probe_count_per_type": {
             'asn': 9,
@@ -125,10 +153,22 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
         },
         "result": [
             {
-                "client_sent_time": measurement.ntp_measurement.timestamps.client_sent_time,
-                "server_recv_time": measurement.ntp_measurement.timestamps.server_recv_time,
-                "server_sent_time": measurement.ntp_measurement.timestamps.server_sent_time,
-                "client_recv_time": measurement.ntp_measurement.timestamps.client_recv_time,
+                "client_sent_time": {
+                    "seconds": measurement.ntp_measurement.timestamps.client_sent_time.seconds,
+                    "fraction": measurement.ntp_measurement.timestamps.client_sent_time.fraction
+                },
+                "server_recv_time": {
+                    "seconds": measurement.ntp_measurement.timestamps.server_recv_time.seconds,
+                    "fraction": measurement.ntp_measurement.timestamps.server_recv_time.fraction
+                },
+                "server_sent_time": {
+                    "seconds": measurement.ntp_measurement.timestamps.server_sent_time.seconds,
+                    "fraction": measurement.ntp_measurement.timestamps.server_sent_time.fraction
+                },
+                "client_recv_time": {
+                    "seconds": measurement.ntp_measurement.timestamps.client_recv_time.seconds,
+                    "fraction": measurement.ntp_measurement.timestamps.client_recv_time.fraction
+                },
                 "rtt": measurement.ntp_measurement.main_details.rtt,
                 "offset": measurement.ntp_measurement.main_details.offset
             }
@@ -181,6 +221,9 @@ def measure(server: str, session: Session, client_ip: Optional[str] = None,
             if measurements is not None:
                 m_results = []
                 for m in measurements:
+                    if str(m.server_info.ntp_server_ref_parent_ip) == "0.0.0.0":
+                        m_results.append((m, 0.0, 1))
+                        continue
                     jitter = 0.0
                     nr_jitter_measurements = 0
                     insert_measurement(m, session)

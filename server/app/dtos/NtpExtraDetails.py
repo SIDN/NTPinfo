@@ -19,3 +19,15 @@ class NtpExtraDetails:
     root_dispersion: PreciseTime
     ntp_last_sync_time: PreciseTime
     leap: int
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.root_delay, PreciseTime):
+            raise TypeError(f"root_delay must be a PreciseTime, got {type(self.root_delay).__name__}")
+        if not isinstance(self.root_dispersion, PreciseTime):
+            raise TypeError(f"root_dispersion must be a PreciseTime, got {type(self.root_dispersion).__name__}")
+        if not isinstance(self.ntp_last_sync_time, PreciseTime):
+            raise TypeError(f"ntp_last_sync_time must be a PreciseTime, got {type(self.ntp_last_sync_time).__name__}")
+        if not isinstance(self.leap, int | float):
+            raise TypeError(f"leap must be an integer, got {type(self.leap).__name__}")
+        if not isinstance(self.poll, int | float):
+            raise TypeError(f"poll must be an integer, got {type(self.poll).__name__}")

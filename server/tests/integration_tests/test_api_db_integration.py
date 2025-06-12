@@ -2,6 +2,7 @@ from datetime import datetime, timezone, timedelta
 
 from server.tests.integration_tests.db_fixture import *
 
+
 def test_perform_measurement(client):
     headers = {"X-Forwarded-For": "83.25.24.10"}
     end = datetime.now(timezone.utc)
@@ -14,7 +15,7 @@ def test_perform_measurement(client):
     assert len(resp_get_before.json()["measurements"]) == 0
     cnt = 0
     response = client.post("/measurements/", json={"server": "91.210.128.220"},
-                                headers=headers)
+                           headers=headers)
     assert response.status_code == 200 or response.status_code == 404
     if response.status_code == 200:
         assert "measurement" in response.json()
@@ -29,6 +30,7 @@ def test_perform_measurement(client):
     })
     assert len(resp_get_after.json()["measurements"]) == cnt
 
+
 def test_perform_measurement_dn(client):
     headers = {"X-Forwarded-For": "83.25.24.10"}
     end = datetime.now(timezone.utc)
@@ -41,12 +43,13 @@ def test_perform_measurement_dn(client):
     assert len(resp_get_before.json()["measurements"]) == 0
 
     response = client.post("/measurements/", json={"server": "time.apple.com"},
-                                headers=headers)
+                           headers=headers)
     assert response.status_code == 200 or response.status_code == 404
     assert len(response.json()) == 1
     if response.status_code == 200:
         assert "measurement" in response.json()
         assert len(response.json()["measurement"]) >= 1
+
 
 def test_perform_multiple_measurements(client):
     headers = {"X-Forwarded-For": "83.25.24.10"}
@@ -61,7 +64,7 @@ def test_perform_multiple_measurements(client):
     cnt = 0
     for _ in range(3):
         response = client.post("/measurements/", json={"server": "91.210.128.220"},
-                                headers=headers)
+                               headers=headers)
         assert response.status_code == 200 or response.status_code == 404
         if response.status_code == 200:
             cnt += 1
@@ -78,6 +81,7 @@ def test_perform_multiple_measurements(client):
 
     assert len(resp_get_after.json()["measurements"]) == cnt
 
+
 def test_perform_multiple_measurement_rate_limiting(client):
     headers = {"X-Forwarded-For": "83.25.24.10"}
     end = datetime.now(timezone.utc)
@@ -91,8 +95,8 @@ def test_perform_multiple_measurement_rate_limiting(client):
     assert len(resp_get_before.json()["measurements"]) == 0
     for _ in range(5):
         response = client.post("/measurements/", json={"server": "91.210.128.220"},
-                                headers=headers)
-        assert response.status_code == 200 or response.status_code == 404
+                               headers=headers)
+        assert response.status_code == 200 or response.status_code == 400
         if response.status_code == 200:
             cnt += 1
         assert "measurement" in response.json()
@@ -111,13 +115,14 @@ def test_perform_multiple_measurement_rate_limiting(client):
     assert resp_get_after.status_code == 200
     assert len(resp_get_after.json()["measurements"]) == cnt
 
+
 def test_perform_measurement_empty_server(client):
     headers = {"X-Forwarded-For": "83.25.24.10"}
 
     response = client.post("/measurements/", json={"server": ""},
-                                headers=headers)
+                           headers=headers)
     assert response.status_code == 400
-    assert response.json() == {'error': "Either 'ip' or 'dn' must be provided"}
+    assert response.json() == {'detail': "Either 'ip' or 'dn' must be provided."}
 
     end = datetime.now(timezone.utc)
     resp_get_after = client.get("/measurements/history/", params={
@@ -127,12 +132,13 @@ def test_perform_measurement_empty_server(client):
     })
     assert len(resp_get_after.json()["measurements"]) == 0
 
+
 def test_perform_measurement_wrong_server(client):
     headers = {"X-Forwarded-For": "83.25.24.10"}
 
     response = client.post("/measurements/", json={"server": "random-server"},
-                                headers=headers)
-    assert response.status_code == 404
+                           headers=headers)
+    assert response.status_code == 400
     assert "measurement" not in response.json()
 
     end = datetime.now(timezone.utc)
@@ -143,6 +149,7 @@ def test_perform_measurement_wrong_server(client):
     })
     assert len(resp_get_after.json()["measurements"]) == 0
 
+
 def test_read_historic_data_empty(client):
     end = datetime.now(timezone.utc)
     response = client.get("/measurements/history/", params={
@@ -152,7 +159,8 @@ def test_read_historic_data_empty(client):
     })
     assert response.status_code == 400
     assert "measurement" not in response.json()
-    assert response.json() == {'error': "Either 'ip' or 'domain name' must be provided"}
+    assert response.json() == {'detail': "Either 'ip' or 'domain name' must be provided"}
+
 
 def test_read_historic_data_wrong_start(client):
     end = datetime.now(timezone.utc)
@@ -163,7 +171,8 @@ def test_read_historic_data_wrong_start(client):
     })
     assert response.status_code == 400
     assert "measurement" not in response.json()
-    assert response.json() == {'error': "'start' must be earlier than 'end'"}
+    assert response.json() == {'detail': "'start' must be earlier than 'end'"}
+
 
 def test_read_historic_data_wrong_end(client):
     end = datetime.now(timezone.utc) + timedelta(minutes=10)
@@ -174,7 +183,4 @@ def test_read_historic_data_wrong_end(client):
     })
     assert response.status_code == 400
     assert "measurement" not in response.json()
-    assert response.json() == {'error': "'end' cannot be in the future"}
-
-
-
+    assert response.json() == {'detail': "'end' cannot be in the future"}
