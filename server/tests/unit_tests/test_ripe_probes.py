@@ -8,7 +8,7 @@ from server.app.utils.ripe_probes import get_random_probes, get_area_probes, get
 from unittest.mock import patch, MagicMock
 
 
-@patch("server.app.utils.ripe_probes.get_client_location")
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
 @patch("server.app.utils.ripe_probes.get_probes_by_ids")
 @patch("server.app.utils.ripe_probes.get_best_probes_with_multiple_attributes")
 @patch("server.app.utils.ripe_probes.get_best_probes_matched_by_single_attribute")
@@ -35,7 +35,7 @@ def test_get_probes_all_good(mock_get_prefix_from_ip, mock_get_network_details, 
     assert probes_result == answer
 
 
-@patch("server.app.utils.ripe_probes.get_client_location")
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
 @patch("server.app.utils.ripe_probes.get_probes_by_ids")
 @patch("server.app.utils.ripe_probes.get_best_probes_with_multiple_attributes")
 @patch("server.app.utils.ripe_probes.get_best_probes_matched_by_single_attribute")
@@ -62,7 +62,7 @@ def test_get_probes_some_found_from_first_try(mock_get_prefix_from_ip, mock_get_
     assert probes_result == answer
 
 
-@patch("server.app.utils.ripe_probes.get_client_location")
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
 @patch("server.app.utils.ripe_probes.get_probes_by_ids")
 @patch("server.app.utils.ripe_probes.get_best_probes_with_multiple_attributes")
 @patch("server.app.utils.ripe_probes.get_best_probes_matched_by_single_attribute")
@@ -92,7 +92,7 @@ def test_get_probes_area(mock_get_prefix_from_ip, mock_get_network_details, mock
     assert probes_result == answer
 
 
-@patch("server.app.utils.ripe_probes.get_client_location")
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
 @patch("server.app.utils.ripe_probes.get_probes_by_ids")
 @patch("server.app.utils.ripe_probes.get_best_probes_with_multiple_attributes")
 @patch("server.app.utils.ripe_probes.get_best_probes_matched_by_single_attribute")
@@ -122,7 +122,7 @@ def test_get_probes_random(mock_get_prefix_from_ip, mock_get_network_details, mo
     assert probes_result == answer
 
 
-@patch("server.app.utils.ripe_probes.get_client_location")
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
 @patch("server.app.utils.ripe_probes.get_probes_by_ids")
 @patch("server.app.utils.ripe_probes.get_best_probes_with_multiple_attributes")
 @patch("server.app.utils.ripe_probes.get_best_probes_matched_by_single_attribute")
@@ -146,7 +146,7 @@ def test_get_probes_only_area(mock_get_prefix_from_ip, mock_get_network_details,
     assert probes_result == answer
 
 
-@patch("server.app.utils.ripe_probes.get_client_location")
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
 @patch("server.app.utils.ripe_probes.get_available_probes_asn_and_prefix")
 @patch("server.app.utils.ripe_probes.get_available_probes_asn_and_country")
 def test_get_best_probes_with_multiple_attributes(mock_asn_country, mock_asn_prefix, mock_geolocation):
@@ -177,7 +177,7 @@ def test_get_best_probes_with_multiple_attributes(mock_asn_country, mock_asn_pre
                                                     "IT", 4, 20) == (20, {3, 7888})
 
 
-@patch("server.app.utils.ripe_probes.get_client_location")
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
 @patch("server.app.utils.ripe_probes.get_available_probes_country")
 @patch("server.app.utils.ripe_probes.get_available_probes_prefix")
 @patch("server.app.utils.ripe_probes.get_available_probes_asn")
@@ -209,7 +209,7 @@ def test_get_best_probe_types_bad_cases(mock_av_asn, mock_av_prefix, mock_av_cou
         get_best_probes_matched_by_single_attribute("2a06:93c0::24", {23}, "AS15169", "2a06:93c0::/29", "NL", 6, -1)
 
 
-@patch("server.app.utils.ripe_probes.get_client_location")
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
 @patch("server.app.utils.ripe_probes.get_available_probes_country")
 @patch("server.app.utils.ripe_probes.get_available_probes_prefix")
 @patch("server.app.utils.ripe_probes.get_available_probes_asn")
@@ -335,7 +335,7 @@ def test_get_random_probes():
     assert get_random_probes(7) == answer
 
 
-@patch("server.app.utils.ripe_probes.get_client_location")
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
 @patch("server.app.utils.ripe_probes.ProbeRequest")
 def test_get_available_probes_asn_and_prefix(mock_probe_request, mock_geolocation):
     mock_geolocation.return_value = (1.0, 1.0)
@@ -370,7 +370,7 @@ def test_get_available_probes_asn_and_prefix(mock_probe_request, mock_geolocatio
     assert kwargs["status"] == 1
 
 
-@patch("server.app.utils.ripe_probes.get_client_location")
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
 @patch("server.app.utils.ripe_probes.ProbeRequest")
 def test_get_available_probes_asn_and_prefix_stop_iteration(mock_probe_request, mock_geolocation):
     mock_geolocation.return_value = (1.0, 1.0)
@@ -405,7 +405,7 @@ def test_get_available_probes_asn_and_prefix_stop_iteration(mock_probe_request, 
     assert kwargs["status"] == 1
 
 
-@patch("server.app.utils.ripe_probes.get_client_location")
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
 @patch("server.app.utils.ripe_probes.ProbeRequest")
 def test_get_available_probes_asn_and_country(mock_probe_request, mock_geolocation):
     mock_geolocation.return_value = (1.0, 1.0)
@@ -443,7 +443,7 @@ def test_get_available_probes_asn_and_country(mock_probe_request, mock_geolocati
     assert kwargs["status"] == 1
 
 
-@patch("server.app.utils.ripe_probes.get_client_location")
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
 @patch("server.app.utils.ripe_probes.ProbeRequest")
 def test_get_available_probes_asn_and_country_stop_iteration(mock_probe_request, mock_geolocation):
     mock_geolocation.return_value = (1.0, 1.0)
@@ -480,7 +480,7 @@ def test_get_available_probes_asn_and_country_stop_iteration(mock_probe_request,
     assert kwargs["status"] == 1
 
 
-@patch("server.app.utils.ripe_probes.get_client_location")
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
 @patch("server.app.utils.ripe_probes.ProbeRequest")
 def test_get_available_probes_asn(mock_probe_request, mock_geolocation):
     mock_geolocation.return_value = (1.0, 1.0)
@@ -514,7 +514,7 @@ def test_get_available_probes_asn(mock_probe_request, mock_geolocation):
     assert kwargs["status"] == 1
 
 
-@patch("server.app.utils.ripe_probes.get_client_location")
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
 @patch("server.app.utils.ripe_probes.ProbeRequest")
 def test_get_available_probes_asn_stop_iteration(mock_probe_request, mock_geolocation):
     mock_geolocation.return_value = (1.0, 1.0)
@@ -550,7 +550,7 @@ def test_get_available_probes_asn_stop_iteration(mock_probe_request, mock_geoloc
         get_available_probes_asn("2001:db8:3333:4444:5555:6666:7777:8888", "AS_invalid", "ipv6")
 
 
-@patch("server.app.utils.ripe_probes.get_client_location")
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
 @patch("server.app.utils.ripe_probes.ProbeRequest")
 def test_get_available_probes_prefix(mock_probe_request, mock_geolocation):
     mock_geolocation.return_value = (1.0, 1.0)
@@ -584,7 +584,7 @@ def test_get_available_probes_prefix(mock_probe_request, mock_geolocation):
     assert kwargs["status"] == 1
 
 
-@patch("server.app.utils.ripe_probes.get_client_location")
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
 @patch("server.app.utils.ripe_probes.ProbeRequest")
 def test_get_available_probes_prefix_stop_iteration(mock_probe_request, mock_geolocation):
     mock_geolocation.return_value = (1.0, 1.0)
@@ -618,7 +618,7 @@ def test_get_available_probes_prefix_stop_iteration(mock_probe_request, mock_geo
     assert kwargs["status"] == 1
 
 
-@patch("server.app.utils.ripe_probes.get_client_location")
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
 @patch("server.app.utils.ripe_probes.ProbeRequest")
 def test_get_available_probes_country(mock_probe_request, mock_geolocation):
     mock_geolocation.return_value = (1.0, 1.0)
@@ -656,7 +656,7 @@ def test_get_available_probes_country(mock_probe_request, mock_geolocation):
     assert kwargs["status"] == 1
 
 
-@patch("server.app.utils.ripe_probes.get_client_location")
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
 @patch("server.app.utils.ripe_probes.ProbeRequest")
 def test_get_available_probes_country_stop_iteration(mock_probe_request, mock_geolocation):
     mock_geolocation.return_value = (1.0, 1.0)

@@ -4,7 +4,7 @@ from typing import Tuple
 
 
 @dataclass
-class ProbeLocation:
+class ServerLocation:
     """
     Represents the geographical location of a RIPE Atlas probe.
 
@@ -13,8 +13,8 @@ class ProbeLocation:
             the country where the probe is located
         coordinates (Tuple[float, float]): The latitude and longitude of the probe's physical location
     """
-    country_code: str
-    coordinates: Tuple[float, float]
+    country_code: str | None
+    coordinates: Tuple[float, float] | None
 
     def __post_init__(self):
         if not isinstance(self.country_code, str):
@@ -37,7 +37,7 @@ class ProbeData:
     """
     probe_id: str
     probe_addr: Tuple[IPv4Address | None, IPv6Address | None]
-    probe_location: ProbeLocation | None
+    probe_location: ServerLocation | None
 
     def __post_init__(self) -> None:
         if not isinstance(self.probe_id, str):
@@ -46,6 +46,6 @@ class ProbeData:
             raise TypeError(f"probe_addr must be IPv4 or None, got {type(self.probe_addr[1]).__name__}")
         if not isinstance(self.probe_addr[1], (IPv6Address, None)):
             raise TypeError(f"probe_addr must be IPv4 or None, got {type(self.probe_addr[1]).__name__}")
-        if not isinstance(self.probe_location, (ProbeLocation, None)):
+        if not isinstance(self.probe_location, (ServerLocation, None)):
             raise TypeError(f"probe_location must be ProbeLocation, got {type(self.probe_location).__name__}")
 

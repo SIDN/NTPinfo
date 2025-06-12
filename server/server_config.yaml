@@ -20,4 +20,6 @@ ripe_atlas:
   number_of_probes_per_measurement: 3
 
 max_mind:
-  path: "GeoLite2-City.mmdb"
+  path_city: "GeoLite2-City.mmdb"
+  path_country: "GeoLite2-Country.mmdb"
+  path_asn: "GeoLite2-ASN.mmdb"
