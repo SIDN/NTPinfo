@@ -1,9 +1,9 @@
 from ipaddress import IPv4Address, IPv6Address
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, mock_open
 import pytest
 
 from server.app.utils.ip_utils import ref_id_to_ip_or_name, get_ip_family, get_area_of_ip, get_ip_network_details, \
-    ip_to_str
+    ip_to_str, is_this_ip_anycast
 
 
 def test_ip_to_str():
@@ -71,3 +71,58 @@ def test_get_ip_network_details_exception(mock_get_asn, mock_get_country, mock_g
     assert asn is None
     assert country is None
     assert area is None
+
+
+def test_is_this_ip_anycast_input_errors():
+    assert is_this_ip_anycast(None) is False
+    assert is_this_ip_anycast("blabla") is False
+
+@patch("server.app.utils.ip_utils.open", new_callable=mock_open, read_data="1.0.0.0/24\ninvalid\n1.3.1.0/16\n")
+@patch("server.app.utils.ip_utils.os.path.join")
+@patch("server.app.utils.ip_utils.os.path.dirname")
+@patch("server.app.utils.ip_utils.os.path.abspath")
+def test_is_this_ip_anycast_ipv4(mock_abspath, mock_dirname, mock_join, mock_openn):
+    mock_dirname.return_value = "/server/app/utils"
+    mock_abspath.return_value = "/server/app/utils/data/prefix"
+    mock_join.return_value = "/server/app/utils/prefix"
+    # true
+    result = is_this_ip_anycast("1.3.0.0")
+    assert result is True
+    mock_join.assert_called_once_with("/server/app/utils", "..", "..", "anycast-v4-prefixes.txt")
+
+    # false
+    mock_join.reset_mock()
+    result = is_this_ip_anycast("1.7.0.0")
+    assert result is False
+    mock_join.assert_called_once_with("/server/app/utils", "..", "..", "anycast-v4-prefixes.txt")
+
+@patch("server.app.utils.ip_utils.open", new_callable=mock_open, read_data="2001:4998:170::/48\ninvalid\n2400:44a0:1::/48\n")
+@patch("server.app.utils.ip_utils.os.path.join")
+@patch("server.app.utils.ip_utils.os.path.dirname")
+@patch("server.app.utils.ip_utils.os.path.abspath")
+def test_is_this_ip_anycast_ipv6(mock_abspath, mock_dirname, mock_join, mock_openn):
+    mock_dirname.return_value = "/server/app/utils"
+    mock_abspath.return_value = "/server/app/utils/data/prefix"
+    mock_join.return_value = "/server/app/utils/prefix"
+    # true
+    result = is_this_ip_anycast("2400:44a0:1::")
+    assert result is True
+    mock_join.assert_called_once_with("/server/app/utils", "..", "..", "anycast-v6-prefixes.txt")
+
+    # false
+    mock_join.reset_mock()
+    result = is_this_ip_anycast("3001:4998::")
+    assert result is False
+    mock_join.assert_called_once_with("/server/app/utils", "..", "..", "anycast-v6-prefixes.txt")
+
+@patch("server.app.utils.ip_utils.open", new_callable=mock_open, read_data="2001:4998:170::/48\ninvalid\n2400:44a0:1::/48\n")
+@patch("server.app.utils.ip_utils.os.path.join")
+@patch("server.app.utils.ip_utils.os.path.dirname")
+@patch("server.app.utils.ip_utils.os.path.abspath")
+def test_is_this_ip_anycast_exception(mock_abspath, mock_dirname, mock_join, mock_openn):
+    mock_dirname.return_value = "/server/app/utils"
+    mock_abspath.return_value = "/server/app/utils/data/prefix"
+    mock_join.side_effect = Exception("not found")
+    # error loading database
+    result = is_this_ip_anycast("2400:44a0:1::")
+    assert result is False
