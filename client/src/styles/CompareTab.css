@@ -1,63 +1,64 @@
-@import '../index.css';
+@import "../index.css";
 
 .compare-tab {
-    width: 100%;
-    height: calc(100vh - 160px);
-    display: flex;
-    align-items: flex-start;
-    padding: 1rem;
-    gap: 2rem;
-  }
-.compare-tab p, label {
-    color: var(--clr-font-white);
+  width: 100%;
+  height: calc(100vh - 160px);
+  display: flex;
+  align-items: flex-start;
+  padding: 1rem;
+  gap: 2rem;
+}
+.compare-tab p,
+label {
+  color: var(--clr-font-white);
 }
 .compare-input {
   width: 40%;
   flex: 0 1 40%;
   height: 90%;
   display: flex;
-  gap: 2rem;
+  gap: 0.25rem;
   flex-direction: column;
   align-items: flex-start;
 }
-.compare-tab  p {
-    font-size: 1.5rem;
-    font-weight: 600;
-    text-align: left;
-    padding: 1rem;
+.compare-tab p {
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: left;
+  padding: 1rem;
 }
 
 label {
-    font-size: 1.25rem;
-    font-weight: 500;
+  font-size: 1.25rem;
+  font-weight: 500;
 }
 
 .compare-tab form {
-  padding: 1rem;
+  padding: 0.5rem;
   display: flex;
   width: 100%;
   flex-direction: column;
   align-items: flex-start;
   justify-content: space-evenly;
-  gap: 2rem;
+  gap: 1.5rem;
   padding-left: 2rem;
 }
 
 .compare-tab input {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    background-color: var(--clr-font-white);
-    border-radius: 5px;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  background-color: var(--clr-font-white);
+  border-radius: 5px;
 
-    flex-grow: 1;
-    border: none;
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-  
-    color: var(--clr-font-dark);
-    outline: none;
-  }
+  flex-grow: 1;
+  border: none;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+
+  color: var(--clr-font-dark);
+  outline: none;
+}
 .compare-tab select {
   display: flex;
   align-items: center;
@@ -68,104 +69,108 @@ label {
   border: none;
   padding: 0.75rem 1rem;
   font-size: 1rem;
-  
+
   color: var(--clr-font-dark);
   outline: none;
 }
 
+.compare-tab input::placeholder {
+  color: var(--clr-input-placeholder);
+}
+.compare-tab .custom-time-amount {
+  flex-wrap: nowrap;
+}
+.label-and-input {
+  display: flex;
+  text-wrap: nowrap;
+  flex-direction: column;
+  align-items: start;
+  gap: 0.5rem;
+  width: min(60%, 300px);
+}
 
-  .compare-tab input::placeholder {
-    color: var(--clr-input-placeholder);
-  }
-  .compare-tab .custom-time-amount {
-    flex-wrap: nowrap;
-  }
-  .label-and-input {
-    display: flex;
-    text-wrap: nowrap;
-    flex-direction: column;
-    align-items: start;
-    gap: .5rem;
-    width: min(60%, 300px);
-  }
+.add-rm-btn {
+  background-color: var(--bg-clr-secondary);
+  color: var(--clr-font-white);
+  width: fit-content;
+}
+.input-and-btn {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+.compare-tab .submit-btn {
+  color: var(--clr-font-white);
+  background-color: var(--clr-red-2);
+  cursor: pointer;
+  border-radius: 15px;
+  font-size: 1.1rem;
+  transition: background-color 0.3s ease;
+  border: none;
+}
 
-  
+.submit-btn:hover {
+  background-color: var(--clr-red-3);
+}
 
-  .compare-tab .submit-btn {
-    color: var(--clr-font-white);
-    background-color: var(--clr-red-2);
-    cursor: pointer;
-    border-radius: 15px;
-    font-size: 1.1rem;
-    margin-top: 2rem;
-    transition: background-color 0.3s ease;
-    border: none;
-  }
+p.error {
+  font-size: 1rem;
+  font-weight: 400;
+  padding: 0;
+  color: var(--clr-red-1);
+}
 
-  .submit-btn:hover {
-    background-color: var(--clr-red-3);
-  }
-   
-  p.error {
-    font-size: 1rem;
-    font-weight: 400;
-    padding: 0;
-    color: var(--clr-red-1);
-  }
+.compare-tab .submit-btn:disabled {
+  opacity: 0.7;
+  background-color: var(--clr-red-2);
+  cursor: auto;
+}
 
-  .compare-tab .submit-btn:disabled {
-    opacity: 0.7;
-    background-color: var(--clr-red-2);
-    cursor: auto;
-  }
+.compare-tab .radio-group {
+  display: flex;
+  margin-left: 0;
+  align-items: center;
+  gap: 1em;
+}
 
-  .compare-tab .radio-group {
-    display: flex;
-    margin-left: 0;
-    align-items: center;
-    gap: 1em;
-  }
+.compare-tab .chart-wrapper {
+  width: 95%;
+  height: 90%;
+}
 
-  .compare-tab .chart-wrapper {
-    width: 95%;
-    height: 90%;
-    
-  }
+.compare-tab .graph-container {
+  height: 100%;
+  display: flex;
+  gap: 2rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 60%;
+  flex-basis: 1 1 60%;
+  grid-area: summary;
+  padding: 0;
+}
 
-  .compare-tab .graph-container {
-    height: 100%;
-    display: flex;
-    gap: 2rem;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 60%;
-    flex-basis: 1 1 60%;
-    grid-area: summary;
-    padding: 0;
-  
-  }
-
-  .compare-tab .radio-group {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 95%;
-    gap: 2em;
-    padding: 1rem;
+.compare-tab .radio-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 95%;
+  gap: 2em;
+  padding: 1rem;
 }
 
 .compare-tab .radio-measurement-label {
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
-    font-size: 1.4em;
-    font-weight: 500;
-    color: var(--clr-font-white);
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 1.4em;
+  font-weight: 500;
+  color: var(--clr-font-white);
 }
 
 .compare-tab .radio-measurement-label input {
-  width: max-content
+  width: max-content;
 }
 
 .chart-emoji {
@@ -189,7 +194,7 @@ label {
 
 .compare-tab .loading-div {
   display: flex;
-  
+
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -197,9 +202,9 @@ label {
   width: 60%;
   padding-bottom: 2rem;
   flex-basis: 1 1 60%;
-  gap: .5rem;
+  gap: 0.5rem;
 }
 
 .compare-tab .loading-div p {
-  color: var(--clr-input-placeholder-dark); 
+  color: var(--clr-input-placeholder-dark);
 }
