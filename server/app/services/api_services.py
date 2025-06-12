@@ -116,14 +116,14 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
     probe_location: Optional[ServerLocation] = measurement.probe_data.probe_location
     return {
         "ntp_version": measurement.ntp_measurement.server_info.ntp_version,
+        "vantage_point_ip": ip_to_str(measurement.ntp_measurement.vantage_point_ip),
         "ripe_measurement_id": measurement.measurement_id,
         "ntp_server_ip": ip_to_str(measurement.ntp_measurement.server_info.ntp_server_ip),
+        "ntp_server_name": measurement.ntp_measurement.server_info.ntp_server_name,
         "ntp_server_location": {
             "country_code": measurement.ntp_measurement.server_info.ntp_server_location.country_code,
             "coordinates": measurement.ntp_measurement.server_info.ntp_server_location.coordinates
         },
-        "ntp_server_name": measurement.ntp_measurement.server_info.ntp_server_name,
-        "vantage_point_ip": ip_to_str(measurement.ntp_measurement.vantage_point_ip),
         "probe_addr": {
             "ipv4": ip_to_str(measurement.probe_data.probe_addr[0]),
             "ipv6": ip_to_str(measurement.probe_data.probe_addr[1])

@@ -1,11 +1,16 @@
 from fastapi import HTTPException, APIRouter, Request, Depends
+from fastapi.responses import HTMLResponse
 
 from datetime import datetime, timezone
 from typing import Any, Optional, Generator
 from fastapi.responses import JSONResponse
 
 from sqlalchemy.orm import Session
+from starlette.responses import HTMLResponse
 
+from server.app.dtos.RipeMeasurementResponse import RipeResult
+from server.app.dtos.NtpMeasurementResponse import MeasurementResponse
+from server.app.dtos.RipeMeasurementTriggerResponse import RipeMeasurementTriggerResponse
 from server.app.utils.location_resolver import get_country_for_ip, get_coordinates_for_ip
 from server.app.utils.ip_utils import client_ip_fetch
 from server.app.models.CustomError import DNSError, MeasurementQueryError
@@ -23,18 +28,46 @@ from server.app.services.api_services import get_format, measure, fetch_historic
 router = APIRouter()
 
 
-@router.get("/")
-def read_root() -> dict[str, str]:
+@router.get("/", response_class=HTMLResponse)
+def read_root() -> str:
     """
     Root endpoint for basic service health check.
 
     Returns:
-        dict: A simple JSON message {"Hello": "World"}
+        dict: A simple HTML welkom message.
     """
-    return {"Hello": "World"}
+    return """
+    <html>
+        <head>
+            <title>NTPInfo API</title>
+        </head>
+        <body>
+            <h1>Welcome to the NTPInfo API</h1>
+            <p>This API powers the NTPInfo platform, offering real-time metrics collection related to Network Time Protocol (NTP) analysis.</p>
+            <p>See the <a href='/docs'>interactive docs</a> or <a href='/redoc'>ReDoc</a> for more info.</p>
+        </body>
+    </html>
+    """
 
 
-@router.post("/measurements/")
+@router.post(
+    "/measurements/",
+    summary="Perform a live NTP measurement",
+    description="""
+Compute a live NTP synchronization measurement for a specified server.
+
+- Accepts an IP or domain name.
+- Returns data about the measurement
+- Limited to 5 requests per second.
+""",
+    response_model=MeasurementResponse,
+    responses={
+        200: {"description": "Measurement successfully initiated"},
+        400: {"description": "Invalid server address"},
+        422: {"description": "Domain resolution failed"},
+        500: {"description": "Internal server error"}
+    }
+)
 @limiter.limit("5/second")
 async def read_data_measurement(payload: MeasurementRequest, request: Request,
                                 session: Session = Depends(get_db)) -> JSONResponse:
@@ -94,7 +127,24 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
         raise HTTPException(status_code=500, detail=f"Sever error: {str(e)}.")
 
 
-@router.get("/measurements/history/")
+@router.get(
+    "/measurements/history/",
+    summary="Retrieve historic NTP measurements",
+    description="""
+Fetch historic NTP measurement data for a given server over a specified time range.
+
+- Accepts a server IP or domain name.
+- Filters data between `start` and `end` timestamps (UTC).
+- Rejects queries with invalid or future timestamps.
+- Limited to 5 requests per second.
+""",
+    response_model=MeasurementResponse,
+    responses={
+        200: {"description": "Successful retrieval of historic measurements"},
+        400: {"description": "Invalid parameters or malformed datetime values"},
+        500: {"description": "Server error or database access issue"}
+    }
+)
 @limiter.limit("5/second")
 async def read_historic_data_time(server: str,
                                   start: datetime, end: datetime, request: Request,
@@ -154,7 +204,25 @@ async def read_historic_data_time(server: str,
         raise HTTPException(status_code=500, detail=f"Sever error: {str(e)}.")
 
 
-@router.post("/measurements/ripe/trigger/")
+@router.post(
+    "/measurements/ripe/trigger/",
+    summary="Trigger a RIPE Atlas NTP measurement",
+    description="""
+Initiate a RIPE Atlas NTP measurement for the specified server.
+
+- Accepts an IP address or domain name via the request payload.
+- Returns a measurement ID and vantage point metadata.
+- Limited to 5 requests per second.
+""",
+    response_model=RipeMeasurementTriggerResponse,
+    responses={
+        200: {"description": "Measurement successfully initiated"},
+        400: {"description": "Invalid input parameters"},
+        502: {"description": "RIPE Atlas measurement failed after initiation"},
+        503: {"description": "Failed to retrieve client or server IP"},
+        500: {"description": "Internal server error"}
+    }
+)
 @limiter.limit("5/second")
 async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request) -> JSONResponse:
     """
@@ -220,7 +288,28 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
         raise HTTPException(status_code=500, detail=f"Failed to initiate measurement: {str(e)}")
 
 
-@router.get("/measurements/ripe/{measurement_id}")
+@router.get(
+    "/measurements/ripe/{measurement_id}",
+    summary="Fetch RIPE Atlas measurement results",
+    description="""
+Retrieve the result of a previously triggered RIPE Atlas NTP measurement.
+
+- Accepts a RIPE Atlas `measurement_id` as a path parameter.
+- Returns full results if the measurement is complete.
+- Returns partial results if some probes are still pending.
+- Informs the client if results are not ready yet.
+- Limited to 5 requests per second.
+""",
+    response_model=RipeResult,
+    responses={
+        200: {"description": "Measurement complete"},
+        202: {"description": "Measurement still being processed"},
+        206: {"description": "Partial results available"},
+        405: {"description": "RIPE API error"},
+        504: {"description": "Timeout or incomplete probe data"},
+        500: {"description": "Internal server error"}
+    }
+)
 @limiter.limit("5/second")
 async def get_ripe_measurement_result(measurement_id: str, request: Request) -> JSONResponse:
     """

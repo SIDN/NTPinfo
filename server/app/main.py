@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from typing import Union, Any, AsyncGenerator
 from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import HTTPException
+from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -40,7 +41,17 @@ def create_app(dev: bool = True) -> FastAPI:
             Base.metadata.create_all(bind=engine)
         yield
 
-    app = FastAPI(lifespan=lifespan)
+    app = FastAPI(
+        lifespan=lifespan,
+        title="NTPInfo API",
+        description="API of the NTPInfo website. Through this API measurements ot NTP servers can be done based on the ip"
+                    "or domain name. The API has 4 main routes that are presented in more detail below:",
+        version="1.0.0",
+        # contact={
+        #     "name": "Team15D",
+        #     "email": "support@example.com",
+        # }
+    )
     app.state.limiter = limiter
     app.include_router(router)
     app.add_middleware(
