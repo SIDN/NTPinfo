@@ -35,3 +35,5 @@ venv/
 
 #MaxMind db
 /server/GeoLite2-City.mmdb
+/server/GeoLite2-ASN.mmdb
+/server/GeoLite2-Country.mmdb

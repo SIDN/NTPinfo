@@ -3,6 +3,8 @@ from ipaddress import IPv4Address, IPv6Address
 from sqlalchemy import Row
 from sqlalchemy.orm import Session
 
+from server.app.dtos.ProbeData import ServerLocation
+from server.app.utils.location_resolver import get_country_for_ip, get_coordinates_for_ip
 from server.app.dtos.NtpExtraDetails import NtpExtraDetails
 from server.app.dtos.NtpMainDetails import NtpMainDetails
 from server.app.dtos.NtpServerInfo import NtpServerInfo
@@ -102,7 +104,11 @@ def dict_to_measurement(entry: dict[str, Any]) -> NtpMeasurement:
 
     try:
         vantage_point_ip = entry['vantage_point_ip']
-        server_info = NtpServerInfo(entry['ntp_version'], entry['ntp_server_ip'], entry['ntp_server_name'],
+        ntp_server_ip = entry['ntp_server_ip']
+        ntp_server_country_code = get_country_for_ip(entry['ntp_server_ip'])
+        ntp_server_coordinates = get_coordinates_for_ip(entry['ntp_server_ip'])
+        server_info = NtpServerInfo(entry['ntp_version'], ntp_server_ip, entry['ntp_server_name'],
+                                    ServerLocation(ntp_server_country_code, ntp_server_coordinates),
                                     entry['ntp_server_ref_parent_ip'], entry['ref_name'])
         extra_details = NtpExtraDetails(PreciseTime(entry['root_delay'], entry['root_delay_prec']),
                                         entry['poll'],
