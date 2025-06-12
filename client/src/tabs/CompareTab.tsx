@@ -97,9 +97,7 @@ function CompareTab() {
                 </div>
             </div>
         ))}
-        <button className="add-rm-btn" type="button" onClick={addServerInput}>
-            + 
-        </button>
+        <button className="add-rm-btn" type="button" onClick={addServerInput}>+</button>
 
         <TimeInput
             options={["Last Hour", "Last Day", "Last Week", "Custom"]}
@@ -112,7 +110,7 @@ function CompareTab() {
         />
             <button type="submit"
                     className='submit-btn'
-                    disabled={apiHistoricalLoading}>
+                    disabled={servers.some(s => s.trim() === "") || apiHistoricalLoading}>
                         {loading ? "Comparing..." : "Compare"}
             </button>
             {errMessage && (<p className='error'>{errMessage}</p>)}
