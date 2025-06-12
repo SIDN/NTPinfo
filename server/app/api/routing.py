@@ -201,8 +201,8 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
                 "measurement_id": measurement_id,
                 "vantage_point_ip": ip_to_str(get_server_ip()),
                 "vantage_point_location": {
-                    "country_code": get_country_for_ip(ip_to_str(get_server_ip())),
-                    "coordinates": get_coordinates_for_ip(ip_to_str(get_server_ip()))
+                    "country_code": get_country_for_ip(str(get_server_ip())),
+                    "coordinates": get_coordinates_for_ip(str(get_server_ip()))
                 },
                 "status": "started",
                 "message": "You can fetch the result at /measurements/ripe/{measurement_id}",
