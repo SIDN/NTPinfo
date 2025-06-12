@@ -1,3 +1,5 @@
+import ipaddress
+import os
 import socket
 from ipaddress import ip_address, IPv4Address, IPv6Address
 from typing import Optional
@@ -239,3 +241,45 @@ def client_ip_fetch(request: Request) -> str | None:
         return client_ip
     except Exception as e:
         raise HTTPException(status_code=503, detail="Could not resolve client IP or fallback IP.")
+
+
+def is_this_ip_anycast(searched_ip: Optional[str]) -> bool:
+    """
+    This method checks whether an IP address is anycast or not, by searching in the local anycast prefix databases.
+    This method would never throw an exception. (If the databases don't exist, it will return False)
+
+    Args:
+        searched_ip (Optional[str]): The IP address to check.
+
+    Returns:
+        bool: Whether the IP address is anycast or not.
+    """
+    if searched_ip is None:
+        return False
+    try:
+        ip_family = get_ip_family(searched_ip)
+        ip = ip_address(searched_ip)
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        # get the correct database
+        if ip_family == 4:
+            file_path = os.path.abspath(os.path.join(current_dir, "..", "..", "anycast-v4-prefixes.txt"))
+        else:
+            file_path = os.path.abspath(os.path.join(current_dir, "..", "..", "anycast-v6-prefixes.txt"))
+
+        with open(file_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                try:
+                    whole_network = ipaddress.IPv4Network(line, strict=False)
+                    if ip in whole_network:
+                        print(line)
+                        return True
+                except Exception as e:
+                    continue
+        return False
+    except Exception as e:
+        print(f"Error (safe) in is anycast: {e}")
+        return False
+
+# print(is_this_ip_anycast("2001:4860:4806:c::"))
+# print(is_this_ip_anycast("2001:4860:4806:000c:0000:0000:0000:0000"))
