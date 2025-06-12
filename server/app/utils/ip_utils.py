@@ -270,7 +270,10 @@ def is_this_ip_anycast(searched_ip: Optional[str]) -> bool:
             for line in f:
                 line = line.strip()
                 try:
-                    whole_network = ipaddress.IPv4Network(line, strict=False)
+                    if ip_family == 4:
+                        whole_network = ipaddress.IPv4Network(line, strict=False)
+                    else:
+                        whole_network = ipaddress.IPv6Network(line, strict=False)
                     if ip in whole_network:
                         print(line)
                         return True
@@ -282,4 +285,3 @@ def is_this_ip_anycast(searched_ip: Optional[str]) -> bool:
         return False
 
 # print(is_this_ip_anycast("2001:4860:4806:c::"))
-# print(is_this_ip_anycast("2001:4860:4806:000c:0000:0000:0000:0000"))
