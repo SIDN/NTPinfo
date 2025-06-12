@@ -19,9 +19,9 @@ def client():
 
 def test_creating_ripe_measurement_unsuccessful(client):
     response = client.post("/measurements/ripe/trigger/", json={"server": ""})
-    assert response.status_code == 400 or response.status_code == 500
+    assert response.status_code == 400
     response = client.post("/measurements/ripe/trigger/", json={"server": "4536.35.pool.bla"})
-    assert response.status_code == 502 or response.status_code == 500
+    assert response.status_code == 400
 
 def test_creating_ripe_measurement_successful(client):
     try:
