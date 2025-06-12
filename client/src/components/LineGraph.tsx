@@ -109,10 +109,9 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
   }
 
   /*SAMPLE_DENSITY represents the approximate maximum number of points that can be displayed on the graph */
-  const SAMPLE_DENSITY = 300;  // data points reduction factor
+  const SAMPLE_DENSITY = 100;  // data points reduction factor
 
-  const axisMs = endPoint.getTime() - startingPoint.getTime();
-
+  const axisMs = endPoint.getTime() - startingPoint.getTime();1
   const datasets: any[] = [];
   const thresholdMs =
         SAMPLE_DENSITY > 0 && axisMs > 0

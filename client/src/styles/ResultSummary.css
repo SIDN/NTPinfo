@@ -21,7 +21,7 @@ h2#not-found {
   width: 100%;
   background-color: var(--bg-clr-secondary);
   color: var(--clr-font-white);
-  font-weight: bold;
+  font-weight: 500;
   border-radius: 8px;
   padding: 1rem;
   display: flex;
@@ -34,6 +34,12 @@ h2#not-found {
   display: flex;
   justify-content: space-between;
   font-size: 1rem;
+}
+
+.metric span:last-child {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
 }
 
 .status-line {
