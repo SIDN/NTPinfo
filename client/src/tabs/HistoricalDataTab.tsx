@@ -42,28 +42,26 @@ const HistoricalDataTab: React.FC<HistoricalDataTabProps> = ({ data }) => {
           onFromChange={setCustomFrom}
           onToChange={setCustomTo}
         />
+        <div className="historical-radio-toggle">
+          <input
+            type="radio"
+            id="offset"
+            name="measurement"
+            value="offset"
+            checked={selMeasurement === 'offset'}
+            onChange={handleMeasurementChange}
+          />
+          <label htmlFor="offset">Offset</label>
 
-        <div className="radio-group">
-          <label className="radio-measurement-label">
-            <input
-              type="radio"
-              name="measurement-tab"
-              value="offset"
-              checked={selMeasurement === "offset"}
-              onChange={handleMeasurementChange}
-            />
-            Offset
-          </label>
-          <label className="radio-measurement-label">
-            <input
-              type="radio"
-              name="measurement-tab"
-              value="RTT"
-              checked={selMeasurement === "RTT"}
-              onChange={handleMeasurementChange}
-            />
-            Round-trip time
-          </label>
+          <input
+            type="radio"
+            id="rtt"
+            name="measurement"
+            value="RTT"
+            checked={selMeasurement === 'RTT'}
+            onChange={handleMeasurementChange}
+          />
+          <label htmlFor="rtt">Round-trip time</label>
         </div>
       </div>
       <div className="graph-statistics-container">

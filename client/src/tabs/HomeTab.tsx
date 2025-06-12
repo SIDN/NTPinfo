@@ -209,28 +209,28 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         {/* Div for the visualization graph, and the radios for setting the what measurement to show */}
         <div className="graphs">
           <div className='graph-box'>
-            <div className="radio-group-home">
-                <label>
+            <div className="radio-toggle">
               <input
                 type="radio"
+                id="offset"
                 name="measurement"
                 value="offset"
                 checked={selMeasurement === 'offset'}
                 onChange={handleMeasurementChange}
               />
-              Offset
-            </label>
-            <label>
+              <label htmlFor="offset">Offset</label>
+
               <input
                 type="radio"
+                id="rtt"
                 name="measurement"
                 value="RTT"
                 checked={selMeasurement === 'RTT'}
                 onChange={handleMeasurementChange}
               />
-              Round-trip time
-            </label>
+              <label htmlFor="rtt">Round-trip time</label>
             </div>
+
             <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day" legendDisplay={false}/>
           </div>
         </div>

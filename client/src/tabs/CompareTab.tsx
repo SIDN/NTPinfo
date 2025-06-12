@@ -129,30 +129,27 @@ function CompareTab() {
            </div>
             {(!loading && showData &&
            (<div className='graph-container'>
-                        <div className="radio-group">
-                        {/*Radio for showing offset data*/}
-                        <label className="radio-measurement-label">
-                            <input
-                                type="radio"
-                                name="measurement-popup"
-                                value="offset"
-                                checked={selMeasurement === "offset"}
-                                onChange={handleMeasurementChange}
-                            />
-                            Offset
-                        </label>
-                        {/*Radio for showing delay data*/}
-                        <label className="radio-measurement-label">
-                            <input
-                                type="radio"
-                                name="measurement-popup"
-                                value="RTT"
-                                checked={selMeasurement === "RTT"}
-                                onChange={handleMeasurementChange}
-                            />
-                            Round-trip time
-                        </label>
-                    </div>
+                <div className="radio-toggle">
+                    <input
+                        type="radio"
+                        id="offset"
+                        name="measurement"
+                        value="offset"
+                        checked={selMeasurement === 'offset'}
+                        onChange={handleMeasurementChange}
+                    />
+                    <label htmlFor="offset">Offset</label>
+
+                    <input
+                        type="radio"
+                        id="rtt"
+                        name="measurement"
+                        value="RTT"
+                        checked={selMeasurement === 'RTT'}
+                        onChange={handleMeasurementChange}
+                    />
+                    <label htmlFor="rtt">Round-trip time</label>
+                </div>
 
 
                  <div className="chart-wrapper">

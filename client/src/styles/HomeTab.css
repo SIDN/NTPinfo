@@ -69,11 +69,11 @@
 }
 
 .results-and-graph {
-  display: flex;
+  /* display: flex; */
   gap: 1rem;
   flex-wrap: wrap;
   padding: 0.5rem;
-  align-items: stretch;
+  align-items: flex-start;
   width: 100%;
 }
 
@@ -94,11 +94,12 @@
 }
 
 .graphs {
-  display: flex;
+  /* display: flex; */
   gap: 1rem;
   flex: 1 1 50%;
   min-width: 50%;
   height: 100%;
+  margin-top: 2.5rem;
 }
 
 .graph-box {
@@ -120,12 +121,13 @@
   color: var(--clr-font-white);
   font-weight: bold;
   border-radius: 8px;
-  padding: 2rem;
-  margin-top: 2.5rem;
+  padding: 1rem;
+  margin-top: 0;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   margin-left: 0;
+  gap: 0.75rem;
 }
 
 .graph-box canvas {
@@ -171,12 +173,50 @@
   box-shadow: var(--shadow);
 }
 
-.graphs {
-  flex: 1 1 50%;
-  min-width: calc(50% - 0.5rem);
-  /* other existing styles remain */
-}
-
 .app-container {
   overflow-x: hidden;
+}
+
+.results-and-graph{
+  display:flex;
+  flex-wrap:wrap;
+  gap:1rem;
+  padding:.5rem;
+  align-items:stretch;
+}
+
+.radio-toggle{
+  display: inline-flex;
+  background: var(--bg-clr-secondary);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 2px;
+  gap: 0;
+}
+
+.radio-toggle input[type="radio"]{
+  appearance: none;
+  -webkit-appearance: none;
+  display: none;
+}
+
+.radio-toggle label{
+  padding: .35rem 1.25rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  user-select: none;
+  color: var(--clr-font-muted, #9fa4b9);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.radio-toggle input[type="radio"]:checked + label{
+  background: var(--clr-btn-selected-purple, #020718);
+  color: var(--clr-font-white, #fff);
+}
+
+.radio-toggle input[type="radio"]:focus + label{
+  outline: 2px solid var(--clr-btn-selected-purple);
+  outline-offset: 2px;
 }
