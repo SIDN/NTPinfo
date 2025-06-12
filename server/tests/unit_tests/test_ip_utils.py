@@ -1,4 +1,3 @@
-import os
 from ipaddress import IPv4Address, IPv6Address
 from unittest.mock import patch, MagicMock, mock_open
 import pytest

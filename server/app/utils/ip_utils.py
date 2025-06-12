@@ -270,6 +270,7 @@ def is_this_ip_anycast(searched_ip: Optional[str]) -> bool:
             for line in f:
                 line = line.strip()
                 try:
+                    whole_network: ipaddress._BaseNetwork
                     if ip_family == 4:
                         whole_network = ipaddress.IPv4Network(line, strict=False)
                     else:

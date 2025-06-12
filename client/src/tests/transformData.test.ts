@@ -16,7 +16,11 @@ describe("transform JSON Data to NTP Data", () => {
             ref_name: "GPSs",
             root_dispersion: 0,
             root_delay: 0,
-            vantage_point_ip: "1.1.1.1"
+            vantage_point_ip: "1.1.1.1",
+            ntp_server_location: {
+              coordinates: [50.262, 4.333],
+              country_code: "DE"
+            }
         }
 
         const res = transformJSONDataToNTPData(fetchedData)
@@ -33,6 +37,9 @@ describe("transform JSON Data to NTP Data", () => {
         expect(res?.root_delay).toBe(fetchedData.root_delay)
         expect(res?.root_dispersion).toBe(fetchedData.root_dispersion)
         expect(res?.vantage_point_ip).toBe(fetchedData.vantage_point_ip)
+        expect(res?.coordinates[0]).toBe(fetchedData.ntp_server_location.coordinates[0])
+        expect(res?.coordinates[1]).toBe(fetchedData.ntp_server_location.coordinates[1])
+        expect(res?.country_code).toBe(fetchedData.ntp_server_location.country_code)
     })
 
     test("Return null on null input", () => {
@@ -40,7 +47,7 @@ describe("transform JSON Data to NTP Data", () => {
     })
 })
 
-describe('transform JSOn Data to RIPE Data', () => {
+describe('transform JSON Data to RIPE Data', () => {
     test("tranform to RIPE Data Success", () => {
     const input = {
       result: [
@@ -64,7 +71,11 @@ describe('transform JSOn Data to RIPE Data', () => {
         country_code: "NL",
         coordinates: [4.895168, 52.370216]
       },
-      ripe_measurement_id: 67890
+      ripe_measurement_id: 67890,
+      ntp_server_location: {
+        coordinates: [50.262, 4.333],
+        country_code: "DE"
+      }
     }
 
     const result = transformJSONDataToRIPEData(input)
@@ -77,6 +88,8 @@ describe('transform JSOn Data to RIPE Data', () => {
     expect(result!.probe_id).toBe(12345)
     expect(result!.probe_country).toBe("NL")
     expect(result!.probe_location).toEqual([52.370216, 4.895168])
+    expect(result!.measurementData.coordinates).toEqual([50.262, 4.333])
+    expect(result?.measurementData.country_code).toBe("DE")
   })
 
   test('Return null on null input', () => {

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.utils.ip_utils import is_this_ip_anycast
+from server.app.utils.ip_utils import is_this_ip_anycast
 from server.app.utils.perform_measurements import perform_ntp_measurement_domain_name_list
 from server.app.utils.ip_utils import get_server_ip
 from server.app.models.CustomError import InputError, RipeMeasurementError
@@ -50,8 +50,8 @@ def get_format(measurement: NtpMeasurement, jitter: Optional[float] = None,
         "vantage_point_ip": ip_to_str(measurement.vantage_point_ip),
         "ntp_server_ip": ip_to_str(measurement.server_info.ntp_server_ip),
         "ntp_server_name": measurement.server_info.ntp_server_name,
-        "nrp_server_location": {
-            "ip_is_anycast": is_this_ip_anycast(measurement.server_info.ntp_server_ip),
+        "ntp_server_location": {
+            "ip_is_anycast": is_this_ip_anycast(ip_to_str(measurement.server_info.ntp_server_ip)),
             "country_code": measurement.server_info.ntp_server_location.country_code,
             "coordinates": measurement.server_info.ntp_server_location.coordinates
         },
@@ -121,7 +121,7 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
         "ripe_measurement_id": measurement.measurement_id,
         "ntp_server_ip": ip_to_str(measurement.ntp_measurement.server_info.ntp_server_ip),
         "ntp_server_location": {
-            "ip_is_anycast": is_this_ip_anycast(measurement.ntp_measurement.server_info.ntp_server_ip),
+            "ip_is_anycast": is_this_ip_anycast(ip_to_str(measurement.ntp_measurement.server_info.ntp_server_ip)),
             "country_code": measurement.ntp_measurement.server_info.ntp_server_location.country_code,
             "coordinates": measurement.ntp_measurement.server_info.ntp_server_location.coordinates
         },
@@ -131,7 +131,7 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
             "ipv4": ip_to_str(measurement.probe_data.probe_addr[0]),
             "ipv6": ip_to_str(measurement.probe_data.probe_addr[1])
         },
-        "probe_id": measurement.probe_data.probe_id,
+        "probe_id": str(measurement.probe_data.probe_id),
         "probe_location": {
             "country_code": probe_location.country_code if probe_location else "UNKNOWN",
             "coordinates": probe_location.coordinates if probe_location else (0.0, 0.0)
