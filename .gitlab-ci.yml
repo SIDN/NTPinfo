@@ -67,7 +67,16 @@ server_tests:
     - apt-get update && apt-get install -y postgresql-client
     - until pg_isready -h postgres -p 5432; do echo "Waiting for postgres..."; sleep 1; done
     - PGPASSWORD=test_password psql -h postgres -U test_user -d myapp_test -c "SELECT 1;"
+    - |
+      if [ ! -f .env ]; then
+        echo "token=$ripe_api_token" > .env
+        echo "email=$ripe_account_email" >> .env
+        echo ".env file created"
+      else
+        echo ".env file already exists, skipping creation"
+      fi
     - pytest --cov=server --cov-report=term-missing server/tests/
+    - rm -f .env
   coverage: '/TOTAL\s+\d+\s+\d+\s+\d+\s+(\d+%)$/'
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
