@@ -1,5 +1,5 @@
 import '../styles/Hero.css'
-import github from '../assets/github-logo-high-res-white.png'
+import github from '../assets/github-svgrepo-com.png'
 import NTPinfoLogo from '../assets/NTPinfo.png'
 
 function Hero() {
