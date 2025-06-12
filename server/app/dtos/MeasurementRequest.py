@@ -13,6 +13,17 @@ class MeasurementRequest(BaseModel):
 
     @model_validator(mode='after')
     def validate_after(self) -> Self:
+        """
+        Checks that the server is a string.
+        Args:
+            self (Self): Instance of the class.
+        Returns:
+            Self: the MeasurementRequest instance.
+
+        Raises:
+            TypeError: if the server is not a string.
+
+        """
         if not isinstance(self.server, str):
             raise TypeError(f"server must be str, got {type(self.server).__name__}")
         return self

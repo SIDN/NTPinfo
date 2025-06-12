@@ -27,8 +27,11 @@ def fake_measurement():
     m.reachability = ""
     m.root_delay = 12
     m.root_delay_prec = 5
+    m.root_dispersion = 0
+    m.root_dispersion_prec = 0
     m.ntp_last_sync_time = 1650000000
     m.ntp_last_sync_time_prec = 1
+    m.poll = 0
     return m
 
 

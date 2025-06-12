@@ -49,7 +49,7 @@ def get_format(measurement: NtpMeasurement, jitter: Optional[float] = None,
         "vantage_point_ip": ip_to_str(measurement.vantage_point_ip),
         "ntp_server_ip": ip_to_str(measurement.server_info.ntp_server_ip),
         "ntp_server_name": measurement.server_info.ntp_server_name,
-        "nrp_server_location": {
+        "ntp_server_location": {
             "country_code": measurement.server_info.ntp_server_location.country_code,
             "coordinates": measurement.server_info.ntp_server_location.coordinates
         },
@@ -128,7 +128,7 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
             "ipv4": ip_to_str(measurement.probe_data.probe_addr[0]),
             "ipv6": ip_to_str(measurement.probe_data.probe_addr[1])
         },
-        "probe_id": measurement.probe_data.probe_id,
+        "probe_id": str(measurement.probe_data.probe_id),
         "probe_location": {
             "country_code": probe_location.country_code if probe_location else "UNKNOWN",
             "coordinates": probe_location.coordinates if probe_location else (0.0, 0.0)
