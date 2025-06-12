@@ -194,7 +194,6 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
 
     client_ip: Optional[str] = client_ip_fetch(request=request)
     try:
-        client_ip = "46.97.171.106"
         measurement_id = perform_ripe_measurement(server, client_ip=client_ip)
         return JSONResponse(
             status_code=200,
