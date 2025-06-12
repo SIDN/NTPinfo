@@ -308,7 +308,6 @@ def get_available_probes_asn_and_prefix(client_ip: str, ip_asn: str, ip_prefix: 
 
     Args:
         client_ip (str): The IP address of the client.
-        client_ip (str): The IP address of the client.
         ip_asn (str): the ASN of the searched network
         ip_prefix(str): the prefix of the respective IP
         ip_type (str): the IP type (ipv4 or ipv6). (not case-sensitive)
@@ -319,7 +318,10 @@ def get_available_probes_asn_and_prefix(client_ip: str, ip_asn: str, ip_prefix: 
     Raises:
         Exception: If the input is invalid
     """
-    ip_asn_number = int(ip_asn[2:])
+    try:
+        ip_asn_number = int(ip_asn.lstrip("AS").lstrip("as"))
+    except ValueError as e:
+        raise InputError(f"{ip_asn} is not a valid ASN")
     prefix_type: str = "prefix_v4" if ip_type == "ipv4" else "prefix_v6"
     filters = {
         "asn": ip_asn_number,
@@ -361,7 +363,10 @@ def get_available_probes_asn_and_country(client_ip: str, ip_asn: str, ip_country
     Raises:
         Exception: If the input is invalid
     """
-    ip_asn_number = int(ip_asn[2:])
+    try:
+        ip_asn_number = int(ip_asn.lstrip("AS").lstrip("as"))
+    except ValueError as e:
+        raise InputError(f"{ip_asn} is not a valid ASN")
     filters = {
         "asn": ip_asn_number,
         "country_code": ip_country_code,

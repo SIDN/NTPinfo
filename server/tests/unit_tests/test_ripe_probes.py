@@ -392,6 +392,8 @@ def test_get_available_probes_asn_and_prefix_stop_iteration(mock_probe_request, 
     assert kwargs["prefix_v4"] == "80.211.224.0/20"
     assert kwargs["tags"] == "system-ipv4-works"
     assert kwargs["status"] == 1
+    with pytest.raises(Exception):
+        get_available_probes_asn_and_prefix("80.211.238.247", "ASab", "80.211.224.0/20", "ipv4")
 
     # test ipv6
     mock_probe_request.reset_mock()
@@ -468,6 +470,8 @@ def test_get_available_probes_asn_and_country_stop_iteration(mock_probe_request,
     assert kwargs["country_code"] == "NL"
     assert kwargs["tags"] == "system-ipv4-works"
     assert kwargs["status"] == 1
+    with pytest.raises(Exception):
+        get_available_probes_asn_and_country("80.211.238.247", "ASab", "NL", "ipv4")
 
     # test ipv6
     mock_probe_request.reset_mock()

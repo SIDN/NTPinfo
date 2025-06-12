@@ -6,7 +6,7 @@ import requests
 
 from server.app.utils.location_resolver import get_asn_for_ip, get_country_for_ip, get_continent_for_ip
 from server.app.models.CustomError import InputError
-from server.app.utils.load_config_data import get_ipinfo_lite_api_token, get_edns_default_servers
+from server.app.utils.load_config_data import get_edns_default_servers
 from server.app.utils.validate import is_ip_address
 from fastapi import HTTPException, Request
 
@@ -96,8 +96,8 @@ def get_area_of_ip(ip_country: Optional[str], ip_continent: Optional[str]) -> st
     This method tries to get the area of an IP address based on its country and continent.
 
     Args:
-        ip_country (str): The country code of the IP address.
-        ip_continent (str): The continent code of the IP address.
+        ip_country (Optional[str]): The country code of the IP address.
+        ip_continent (Optional[str]): The continent code of the IP address.
 
     Returns:
         str: The area of an IP address
