@@ -2,6 +2,8 @@ import math
 from ipaddress import IPv4Address
 from unittest.mock import patch, MagicMock
 
+import pytest
+
 from server.app.dtos.PreciseTime import PreciseTime
 from server.app.dtos.NtpTimestamps import NtpTimestamps
 from server.app.dtos.NtpMeasurement import NtpMeasurement
@@ -107,8 +109,8 @@ def test_calculate_jitter_with_identical_offsets(mock_get_measurements):
     assert no_measurement == 5
 
 def test_ntp_precise_time_to_human_date():
-    t = PreciseTime(None, 12345)
-    assert ntp_precise_time_to_human_date(t) == ""
+    with pytest.raises(TypeError):
+        t = PreciseTime(None, 12345)
     t2 = PreciseTime(3955513183, 623996928)
     assert ntp_precise_time_to_human_date(t2) == "2025-05-06 09:39:43.145286 UTC"
 

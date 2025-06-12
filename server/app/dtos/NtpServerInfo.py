@@ -18,7 +18,20 @@ class NtpServerInfo:
     """
     ntp_version: int
     ntp_server_ip: IPv4Address | IPv6Address | None
-    ntp_server_name: None | str
     ntp_server_location: ServerLocation
-    ntp_server_ref_parent_ip: None | IPv4Address | IPv6Address
+    ntp_server_name: str | None
+    ntp_server_ref_parent_ip: IPv4Address | IPv6Address | None
     ref_name: None | str
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.ntp_server_ip, IPv4Address | IPv6Address | None):
+            raise TypeError(f"ntp_server_ip must be IPv4 or IPv6Address, got {type(self.ntp_server_ip).__name__}")
+        if not isinstance(self.ntp_server_name, str | None):
+            raise TypeError(f"ntp_server_name must be str, got {type(self.ntp_server_name).__name__}")
+        if not isinstance(self.ntp_version, int):
+            raise TypeError(f"ntp_version must be int, got {type(self.ntp_version).__name__}")
+        if not isinstance(self.ntp_server_ref_parent_ip, IPv4Address | IPv6Address | None):
+            raise TypeError(f"ntp_server_ref_parent_ip must be IPv4Address or IPv6Address, got {type(self.ntp_server_ref_parent_ip).__name__}")
+        if not isinstance(self.ref_name, str | None):
+            raise TypeError(f"ref_name must be str, got {type(self.ref_name).__name__}")
+
