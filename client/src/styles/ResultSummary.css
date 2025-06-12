@@ -139,3 +139,14 @@ h2#not-found {
   visibility: visible;
   opacity: 1;
 }
+
+.measurement-link {
+  color: var(--clr-font-white);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.measurement-link:hover {
+  color: var(--clr-input-placeholder);
+  text-decoration: underline;
+}

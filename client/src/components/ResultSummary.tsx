@@ -1,4 +1,3 @@
-
 import '../styles/ResultSummary.css'
 import { NTPData, RIPEData } from '../utils/types.ts'
 import { calculateStatus } from '../utils/calculateStatus.ts'
@@ -65,7 +64,18 @@ function ResultSummary({data, ripeData, err, httpStatus} : {data : NTPData | nul
                         <div className="metric"><span title='A hierarchical level number indicating the distance from the reference clock'>Stratum</span><span>{ripeData?.measurementData.stratum}</span></div>
                         <div className="metric"><span title='The IP address of the NTP server'>IP address</span><span>{ripeData?.measurementData.ip}</span></div>
                         <div className="metric"><span>Vantage point IP</span><span>{ripeData?.measurementData.vantage_point_ip}</span></div>
-                        <div className="metric"><span>Measurement ID</span><span>{ripeData?.measurement_id}</span></div>
+                        <div className="metric"><span>Measurement ID</span><span>
+                            {ripeData?.measurement_id ? (
+                                <a
+                                    href={`https://atlas.ripe.net/measurements/${ripeData.measurement_id}/`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="measurement-link"
+                                >
+                                    {ripeData.measurement_id}
+                                </a>
+                            ) : 'N/A'}
+                        </span></div>
                     </div>
                 </div>
 
