@@ -194,7 +194,6 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
 
     client_ip: Optional[str] = client_ip_fetch(request=request)
     try:
-        client_ip = "46.97.171.106"
         measurement_id = perform_ripe_measurement(server, client_ip=client_ip)
         return JSONResponse(
             status_code=200,
@@ -202,8 +201,8 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
                 "measurement_id": measurement_id,
                 "vantage_point_ip": ip_to_str(get_server_ip()),
                 "vantage_point_location": {
-                    "country_code": get_country_for_ip(client_ip),
-                    "coordinates": get_coordinates_for_ip(client_ip)
+                    "country_code": get_country_for_ip(str(get_server_ip())),
+                    "coordinates": get_coordinates_for_ip(str(get_server_ip()))
                 },
                 "status": "started",
                 "message": "You can fetch the result at /measurements/ripe/{measurement_id}",
