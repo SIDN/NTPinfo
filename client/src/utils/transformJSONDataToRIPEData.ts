@@ -18,7 +18,7 @@ export const transformJSONDataToRIPEData = (fetchedData: any): RIPEData | null =
         return null
     }
 
-    //const measurement = fetchedData.result[0]
+    const measurement = fetchedData.result[0]
 
     const measurementData: NTPData = {
         ntp_version: fetchedData.ntp_verison, //
@@ -29,13 +29,13 @@ export const transformJSONDataToRIPEData = (fetchedData: any): RIPEData | null =
         country_code: fetchedData.ntp_server_location.country_code,//
         coordinates: [fetchedData.ntp_server_location.coordinates[0],fetchedData.ntp_server_location.coordinates[1]],//
         ntp_server_ref_parent_ip: "", 
-        ref_id: fetchedData.fetchedData.ref_id ?? null,//
-        client_sent_time: [fetchedData.client_sent_time.seconds, fetchedData.client_sent_time.fraction],//
-        server_recv_time: [fetchedData.server_recv_time.seconds, fetchedData.server_recv_time.fraction],//
-        server_sent_time: [fetchedData.server_sent_time.seconds, fetchedData.server_sent_time.fraction],//
-        client_recv_time: [fetchedData.client_recv_time.seconds, fetchedData.client_recv_time.fraction],//
-        offset: Number((fetchedData.offset * 1000).toFixed(3)), //measurement
-        RTT: Number((fetchedData.rtt * 1000).toFixed(3)), //measurement
+        ref_id: fetchedData.ref_id,//
+        client_sent_time: [measurement.client_sent_time.seconds, measurement.client_sent_time.fraction],//
+        server_recv_time: [measurement.server_recv_time.seconds, measurement.server_recv_time.fraction],//
+        server_sent_time: [measurement.server_sent_time.seconds, measurement.server_sent_time.fraction],//
+        client_recv_time: [measurement.client_recv_time.seconds, measurement.client_recv_time.fraction],//
+        offset: Number((measurement.offset * 1000).toFixed(3)), //measurement
+        RTT: Number((measurement.rtt * 1000).toFixed(3)), //measurement
         stratum: fetchedData.stratum,//
         precision: fetchedData.precision,//
         root_delay: fetchedData.root_delay,//
@@ -45,7 +45,7 @@ export const transformJSONDataToRIPEData = (fetchedData: any): RIPEData | null =
         leap: -1,
         jitter: -1,
         nr_measurements_jitter: -1,
-        time: (fetchedData.client_sent_time.seconds - 2208988800) * 1000 //measurement
+        time: (measurement.client_sent_time.seconds - 2208988800) * 1000 //measurement
     }
     return{
         measurementData: measurementData,
@@ -55,7 +55,7 @@ export const transformJSONDataToRIPEData = (fetchedData: any): RIPEData | null =
         probe_country: fetchedData.probe_location.country_code,
         probe_location: [fetchedData.probe_location.coordinates[1], fetchedData.probe_location.coordinates[0]],
         time_to_result: fetchedData.time_to_result,
-        got_results: fetchedData.rtt !== -1, //measurement
+        got_results: measurement.rtt !== -1, //measurement
         measurement_id: fetchedData.ripe_measurement_id
     }
 }
