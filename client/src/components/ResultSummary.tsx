@@ -4,6 +4,7 @@ import { calculateStatus } from '../utils/calculateStatus.ts'
 import { useState, useEffect } from 'react'
 import triangleGreen from '../assets/triangle-green-svgrepo-com.png'
 import triangleRed from '../assets/triangle-red-svgrepo-com.png'
+import linkIcon from '../assets/link-svgrepo-com.png'
 
 function ResultSummary({data, ripeData, err, httpStatus} : {data : NTPData | null, ripeData: RIPEData | null, err : Error | null, httpStatus: number}) {
 
@@ -102,6 +103,7 @@ function ResultSummary({data, ripeData, err, httpStatus} : {data : NTPData | nul
                                     className="measurement-link"
                                 >
                                     {ripeData.measurement_id}
+                                    <img src={linkIcon} alt="external link" style={{width:'14px',verticalAlign:'middle',marginLeft:'4px'}} />
                                 </a>
                             ) : 'N/A'}
                         </span></div>
