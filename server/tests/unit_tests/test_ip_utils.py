@@ -2,7 +2,7 @@ from ipaddress import IPv4Address, IPv6Address
 from unittest.mock import patch, MagicMock, mock_open
 import pytest
 
-from app.utils.load_config_data import get_mask_ipv4
+from server.app.utils.load_config_data import get_mask_ipv4, get_mask_ipv6
 from server.app.utils.ip_utils import ref_id_to_ip_or_name, get_ip_family, get_area_of_ip, get_ip_network_details, \
     ip_to_str, is_this_ip_anycast, randomize_ip
 
@@ -158,7 +158,7 @@ def test_randomize_ipv6():
     original_int = int(ipv6)
     randomized_int = int(res)
 
-    network_mask = (2 ** 128 - 1) << (128 - get_mask_ipv4()) & (2 ** 128 - 1)
+    network_mask = (2 ** 128 - 1) << (128 - get_mask_ipv6()) & (2 ** 128 - 1)
 
     original_network = original_int & network_mask
     randomized_network = randomized_int & network_mask
