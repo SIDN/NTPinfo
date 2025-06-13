@@ -19,7 +19,8 @@ describe("transform JSON Data to NTP Data", () => {
             vantage_point_ip: "1.1.1.1",
             ntp_server_location: {
               coordinates: [50.262, 4.333],
-              country_code: "DE"
+              country_code: "DE",
+              ip_is_anycast: true
             }
         }
 
@@ -40,6 +41,7 @@ describe("transform JSON Data to NTP Data", () => {
         expect(res?.coordinates[0]).toBe(fetchedData.ntp_server_location.coordinates[0])
         expect(res?.coordinates[1]).toBe(fetchedData.ntp_server_location.coordinates[1])
         expect(res?.country_code).toBe(fetchedData.ntp_server_location.country_code)
+        expect(res?.is_anycast).toBe(fetchedData.ntp_server_location.ip_is_anycast)
     })
 
     test("Return null on null input", () => {
@@ -74,7 +76,8 @@ describe('transform JSON Data to RIPE Data', () => {
       ripe_measurement_id: 67890,
       ntp_server_location: {
         coordinates: [50.262, 4.333],
-        country_code: "DE"
+        country_code: "DE",
+        ip_is_anycast: true
       }
     }
 
@@ -90,6 +93,7 @@ describe('transform JSON Data to RIPE Data', () => {
     expect(result!.probe_location).toEqual([52.370216, 4.895168])
     expect(result!.measurementData.coordinates).toEqual([50.262, 4.333])
     expect(result?.measurementData.country_code).toBe("DE")
+    expect(result?.measurementData.is_anycast).toBe(true)
   })
 
   test('Return null on null input', () => {

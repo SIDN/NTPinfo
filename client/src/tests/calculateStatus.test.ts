@@ -16,7 +16,8 @@ test('Passing Data', () => {
         root_delay: 0,
         vantage_point_ip: "",
         coordinates: [50.262, 4.333],
-        country_code: "DE"
+        country_code: "DE",
+        is_anycast: true
     }
     expect(calculateStatus(data)).toBe('PASSING')
 })
@@ -36,7 +37,8 @@ test('Passing Data with jitter', () => {
         root_delay: 0,
         vantage_point_ip: "",
         coordinates: [50.262, 4.333],
-        country_code: "DE"
+        country_code: "DE",
+        is_anycast: true
     }
     expect(calculateStatus(data)).toBe('PASSING')
 })
@@ -56,7 +58,8 @@ test('Unstable Data 1', () => {
         root_delay: 0,
         vantage_point_ip: "",
         coordinates: [50.262, 4.333],
-        country_code: "DE"
+        country_code: "DE",
+        is_anycast: true
     }
     expect(calculateStatus(data)).toBe('UNSTABLE')
 })
@@ -76,7 +79,8 @@ test ('Unstable Data 2', () => {
         root_delay: 0,
         vantage_point_ip: "",
         coordinates: [50.262, 4.333],
-        country_code: "DE"
+        country_code: "DE",
+        is_anycast: true
     }
     expect(calculateStatus(data)).toBe('UNSTABLE')
 })
@@ -96,7 +100,8 @@ test ('Unstable Data 3', () => {
         root_delay: 0,
         vantage_point_ip: "",
         coordinates: [50.262, 4.333],
-        country_code: "DE"
+        country_code: "DE",
+        is_anycast: true
     }
     expect(calculateStatus(data)).toBe('UNSTABLE')
 })
@@ -116,7 +121,8 @@ test ('Unstable Data 4', () => {
         root_delay: 0,
         vantage_point_ip: "",
         coordinates: [50.262, 4.333],
-        country_code: "DE"
+        country_code: "DE",
+        is_anycast: true
     }
     expect(calculateStatus(data)).toBe('UNSTABLE')
 })
@@ -136,7 +142,8 @@ test('Unstable Data with jitter', () => {
         root_delay: 0,
         vantage_point_ip: "",
         coordinates: [50.262, 4.333],
-        country_code: "DE"
+        country_code: "DE",
+        is_anycast: true
     }
     expect(calculateStatus(data)).toBe('UNSTABLE')
 })
@@ -156,7 +163,8 @@ test('Failing Data', () => {
         root_delay: 0,
         vantage_point_ip: "",
         coordinates: [50.262, 4.333],
-        country_code: "DE"
+        country_code: "DE",
+        is_anycast: true
     }
     expect(calculateStatus(data)).toBe('FAILING')
 })
@@ -176,7 +184,8 @@ test('Failing Data with jitter', () => {
         root_delay: 0,
         vantage_point_ip: "",
         coordinates: [50.262, 4.333],
-        country_code: "DE"
+        country_code: "DE",
+        is_anycast: true
     }
     expect(calculateStatus(data)).toBe('FAILING')
 })
