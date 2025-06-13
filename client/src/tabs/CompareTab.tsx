@@ -75,7 +75,7 @@ function CompareTab() {
         <div className="compare-tab">
             {/* <Hero /> */}
             <div className="compare-input">
-                <p>Enter the domain names or IP adresses of the servers </p>
+                <p>Enter the domain names or IP adresses of the servers. You can add more!</p>
             <form className="compare-form" onSubmit={(e) => {
                 e.preventDefault(); // Prevent page reload
                 handleCompare(servers);
@@ -93,14 +93,14 @@ function CompareTab() {
                         placeholder={`(ex. time.google.com)`}
                     />
                     {servers.length > 2 && (
-                        <button type="button" className="add-rm-btn" onClick={() => removeServerInput(index)}>-</button>
+                        <button type="button" className="add-rm-btn rm" onClick={() => removeServerInput(index)}>-</button>
                     )}
                 </div>
             </div>
             ))}
             </div>
             
-        <button className="add-rm-btn" type="button" onClick={addServerInput}>+</button>
+        <button className="add-rm-btn add" type="button" onClick={addServerInput}>+</button>
 
         <TimeInput
             options={["Last Hour", "Last Day", "Last Week", "Custom"]}
@@ -156,7 +156,14 @@ function CompareTab() {
                             <p>Loading...</p>
                             <LoadingSpinner size="large"/>
                         </div>)) ||
-            (
+            (apiHistoricalError && (<div className='graph-container'>
+                    <div className="placeholder-text-compare">
+                    <p className="text-compare">There was an error.</p>
+                    <p className="text-compare">Check the server names and try again.</p>
+                    </div>
+
+                </div>))
+            || (
                 <div className='graph-container'>
                     <div className="placeholder-text-compare">
                     <p className="chart-emoji">📈</p>

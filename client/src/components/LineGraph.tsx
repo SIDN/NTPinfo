@@ -68,7 +68,7 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
 
 
   const now = new Date()
-  const graphColors: string[] = ['rgb(53, 126, 235)', 'rgb(208, 120, 12)']
+  const graphColors: string[] = ['rgb(53, 126, 235)', 'rgb(208, 120, 12)', 'rgb(253, 0, 0)']
   //
   // format X axis labels based on which time interval is selected
   //
@@ -131,7 +131,7 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
     }));
 
     datasets.push({
-      label: `${server} - ${measurementMap[selectedMeasurement]}`,
+      label: `${server}`,
       data: points,
       borderColor: graphColors[clrIndex++],
       backgroundColor: 'rgba(236, 240, 243, 0.3)',
