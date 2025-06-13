@@ -67,7 +67,7 @@ def test_get_probes_some_found_from_first_try(mock_get_prefix_from_ip, mock_get_
 @patch("server.app.utils.ripe_probes.get_best_probes_with_multiple_attributes")
 @patch("server.app.utils.ripe_probes.get_best_probes_matched_by_single_attribute")
 @patch("server.app.utils.ripe_probes.get_ip_network_details")
-@patch("server.app.utils.ripe_probes.get_prefix_probes")
+@patch("server.app.utils.ripe_probes.get_prefix_from_ip")
 def test_get_probes_area(mock_get_prefix_from_ip, mock_get_network_details, mock_get_best_single,
                          mock_get_multiple_attributes, mock_get_probes_by_ids, mock_geolocation):
     mock_geolocation.return_value = (1.0, 1.0)
@@ -97,7 +97,7 @@ def test_get_probes_area(mock_get_prefix_from_ip, mock_get_network_details, mock
 @patch("server.app.utils.ripe_probes.get_best_probes_with_multiple_attributes")
 @patch("server.app.utils.ripe_probes.get_best_probes_matched_by_single_attribute")
 @patch("server.app.utils.ripe_probes.get_ip_network_details")
-@patch("server.app.utils.ripe_probes.get_prefix_probes")
+@patch("server.app.utils.ripe_probes.get_prefix_from_ip")
 def test_get_probes_random(mock_get_prefix_from_ip, mock_get_network_details, mock_get_best_single,
                            mock_get_multiple_attributes, mock_get_probes_by_ids, mock_geolocation):
     mock_geolocation.return_value = (1.0, 1.0)
