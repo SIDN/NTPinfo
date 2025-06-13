@@ -330,9 +330,6 @@ def randomize_ip(ip: IPv4Address | IPv6Address) -> IPv4Address | IPv6Address | N
         randomized_ip_int = network_part | random_host
         return ip_address(randomized_ip_int)
 
-    except Exception as e:
-        print("IP cannot be randomized.")
+    except InputError as e:
+        print(f"IP cannot be randomized. {e}")
         return None
-
-
-print(randomize_ip(ip_address("2001:db8:0:ee:f14:80af:18c:73bc")))
