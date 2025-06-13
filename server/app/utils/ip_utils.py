@@ -305,39 +305,34 @@ def is_this_ip_anycast(searched_ip: Optional[str]) -> bool:
         return False
 
 
-def randomize_ipv4(ip: IPv4Address) -> IPv4Address:
+def randomize_ip(ip: IPv4Address | IPv6Address) -> IPv4Address | IPv6Address | None:
     """
-    Randomizes the host bits of an IPv4 address based on a subnet mask length.
+    Randomizes the host bits of an IPv4 or IPv6 address based on a subnet mask length.
 
     Args:
-        ip (IPv4Address): The IPv4 address to randomize.
+        ip (IPv4Address | IPv6Address): The IPv4 or IPv6 address to randomize.
 
     Returns:
-        IPv4Address: A new IPv4 address with the same network bits and randomized host bits.
+        IPv4Address | IPv6Address: A new IPv4 or IPv6 address with the same network bits and randomized host bits.
     """
-    mask_length = get_mask_ipv4()
-    ip_int = int(ip)
-    network_mask = (2 ** 32 - 1) << (32 - mask_length) & 0xFFFFFFFF
-    network_part = ip_int & network_mask
-    random_host = random.getrandbits(32 - mask_length)
-    randomized_ip_int = network_part | random_host
-    return ipaddress.IPv4Address(randomized_ip_int)
+    try:
+        if get_ip_family(str(ip)) == 4:
+            mask_length = get_mask_ipv4()
+            network_mask = (2 ** 32 - 1) << (32 - mask_length) & 0xFFFFFFFF
+            random_host = random.getrandbits(32 - mask_length)
+        else:
+            mask_length = get_mask_ipv6()
+            network_mask = (2 ** 128 - 1) << (128 - mask_length) & (2 ** 128 - 1)
+            random_host = random.getrandbits(128 - mask_length)
+
+        ip_int = int(ip)
+        network_part = ip_int & network_mask
+        randomized_ip_int = network_part | random_host
+        return ip_address(randomized_ip_int)
+
+    except Exception as e:
+        print("IP cannot be randomized.")
+        return None
 
 
-def randomize_ipv6(ip: IPv6Address) -> IPv6Address:
-    """
-    Randomizes the host bits of an IPv6 address based on a subnet mask length.
-
-    Args:
-        ip (IPv6Address): The IPv6 address to randomize.
-
-    Returns:
-        IPv6Address: A new IPv6 address with the same network bits and randomized host bits.
-    """
-    mask_length = get_mask_ipv6()
-    ip_int = int(ip)
-    network_mask = (2 ** 128 - 1) << (128 - mask_length) & (2 ** 128 - 1)
-    network_part = ip_int & network_mask
-    random_host = random.getrandbits(128 - mask_length)
-    randomized_ip_int = network_part | random_host
-    return ipaddress.IPv6Address(randomized_ip_int)
+print(randomize_ip(ip_address("2001:db8:0:ee:f14:80af:18c:73bc")))
