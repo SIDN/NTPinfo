@@ -48,6 +48,22 @@ function thinByProximity<T extends { time: string | number | Date }>(
   }
   return out;
 }
+/**
+ *
+ * @param count the number of servers on the graphs
+ * @returns an array of strings representing the colors of the graphs
+ */
+function generateGradientColors(count: number): string[] {
+    const colors: string[] = [];
+    for (let i = 0; i < count; i++) {
+        const ratio = i / Math.max(count - 1, 1); // Normalize between 0 and 1
+        const red = Math.round(255 * ratio);
+        const green = 0;
+        const blue = Math.round(255 * (1 - ratio));
+        colors.push(`rgb(${red}, ${green}, ${blue})`);
+    }
+    return colors;
+}
 
 function unitForSpan(spanMs: number): { unit: 'second'|'minute'|'hour'|'day'|'month'|'year', fmt: string } {
   const s = 1000, m = 60*s, h = 60*m, d = 24*h, y = 365*d;
@@ -61,15 +77,15 @@ function unitForSpan(spanMs: number): { unit: 'second'|'minute'|'hour'|'day'|'mo
 
 export default function LineChart({data, selectedMeasurement, selectedOption, customRange, legendDisplay}: ChartInputData) {
   const measurementMap = {
-      RTT: 'Round-trip time (s)',
-      offset: 'Offset (s)'
+      RTT: 'Round-trip time (ms)',
+      offset: 'Offset (ms)'
   }
   if (data == null)
     return null
 
 
   const now = new Date()
-  const graphColors: string[] = ['rgb(53, 126, 235)', 'rgb(208, 120, 12)']
+  const graphColors: string[] = generateGradientColors(data.size)
   //
   // format X axis labels based on which time interval is selected
   //
@@ -132,7 +148,7 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
     }));
 
     datasets.push({
-      label: `${server} - ${measurementMap[selectedMeasurement]}`,
+      label: `${server}`,
       data: points,
       borderColor: graphColors[clrIndex++],
       backgroundColor: 'rgba(236, 240, 243, 0.3)',

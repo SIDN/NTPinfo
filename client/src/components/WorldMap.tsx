@@ -258,6 +258,8 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
   const [intersectedLocations, setIntersectedLocations] = useState<LocationInfo[]>([])
   const [failedLocations, setFailedLocations] = useState<LocationInfo[]>([])
 
+  const [isAnycast, setIsAnycast] = useState<boolean>(false)
+
   useEffect(() => {
     if (!probes || !ntpServers) return
     
@@ -318,6 +320,12 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
     setFailedLocations(Array.from(failedLocations.values()))
   }, [probes,ntpServers])
 
+  useEffect(() => {
+    if (!probes || !ntpServers) return
+
+    setIsAnycast(probes.some(x => x.measurementData.is_anycast === true) || ntpServers.some(x => x.is_anycast === true))
+  })
+
   /**
    * Effect to dynamically update the status shown depening on the progress of the RIPE measurement
    */
@@ -339,9 +347,12 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
 
   const probe_locations = probes?.map(x => x.probe_location) ?? []
   const icons = probes?.map(x => getIconByRTT(x.measurementData.RTT, x.got_results)) ?? []
+  console.log(probes)
+  console.log(ntpServers)
     return (
       <div style={{height: '500px', width: '100%'}}>
         <h2>{statusMessage}</h2>
+        {isAnycast && <h2>This server uses Anycast. Server Geolocation might be inaccurate</h2>}
         <MapContainer style={{height: '100%', width: '100%'}}>
             <TileLayer 
                 url = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -365,8 +376,8 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
                 <Marker key={index} position={x.location} icon={ntpServerIcon}>
                   <Popup>
                     NTP Server (RIPE)<br/>
-                    IP: {x.ip}<br/>
-                    Name: {x.server_name}
+                    IP: {x.ip}
+                    Name: {x.server_name}<br/>
                     Location: {x.location}
                   </Popup>
                 </Marker>
@@ -377,7 +388,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
                   <Popup>
                     NTP Server (Vantage Point)<br/>
                     IP: {x.ip}<br/>
-                    Name: {x.server_name}
+                    Name: {x.server_name}<br/>
                     Location: {x.location}
                   </Popup>
                 </Marker>
@@ -388,7 +399,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
                   <Popup>
                     NTP Server<br/>
                     IP: {x.ip}<br/>
-                    Name: {x.server_name}
+                    Name: {x.server_name}<br/>
                     Location: {x.location}
                   </Popup>
                 </Marker>
@@ -399,7 +410,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
                   <Popup>
                     NTP Server (Unavailable)<br/>
                     IP: {x.ip}<br/>
-                    Name: {x.server_name}
+                    Name: {x.server_name}<br/>
                     Location: {x.location}
                   </Popup>
                 </Marker>

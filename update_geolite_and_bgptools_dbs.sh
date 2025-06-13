@@ -13,8 +13,10 @@ CONFIG_FILE="./server/server_config.yaml"
 
 # load from server_config the urls for anycast dbs
 # you search for variable "anycast_prefixes_v4_url" in the config
-URL_V4=$(grep 'anycast_prefixes_v4_url:' "$CONFIG_FILE" | sed -E 's/.*:\s*"([^"]+)"/\1/' | tr -d '\r\n')
-URL_V6=$(grep 'anycast_prefixes_v6_url:' "$CONFIG_FILE" | sed -E 's/.*:\s*"([^"]+)"/\1/' | tr -d '\r\n')
+#URL_V4=$(grep 'anycast_prefixes_v4_url:' "$CONFIG_FILE" | sed -E 's/.*:\s*"([^"]+)"/\1/' | tr -d '\r\n')
+#URL_V6=$(grep 'anycast_prefixes_v6_url:' "$CONFIG_FILE" | sed -E 's/.*:\s*"([^"]+)"/\1/' | tr -d '\r\n')
+URL_V4=$(awk -F'"' '/anycast_prefixes_v4_url:/ { print $2 }' "$CONFIG_FILE" | tr -d '\r\n')
+URL_V6=$(awk -F'"' '/anycast_prefixes_v6_url:/ { print $2 }' "$CONFIG_FILE" | tr -d '\r\n')
 
 download_anycast_db() {
   FILE_NAME=$1
@@ -49,7 +51,7 @@ download_and_extract() {
 
   if [ -z "$MMDB_FILE" ]; then
     echo "Error: .mmdb file not found for ${DB_NAME}."
-    exit 1
+    return 1
   fi
 
   echo "Moving .mmdb to ${TARGET_DIR}/${DB_NAME}.mmdb"

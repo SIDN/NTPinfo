@@ -4,7 +4,7 @@ import '../styles/HomeTab.css'
 import InputSection from '../components/InputSection.tsx'
 import ResultSummary from '../components/ResultSummary'
 import DownloadButton from '../components/DownloadButton'
-import VisualizationPopup from '../components/Visualization'
+
 import LoadingSpinner from '../components/LoadingSpinner'
 import LineChart from '../components/LineGraph'
 import { useFetchIPData } from '../hooks/useFetchIPData.ts'
@@ -80,12 +80,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     });
   }, [ripeMeasurementResp, ripeMeasurementStatus]);
 
-  //dropdown format
-  const dropdown = {
-    options: ["Last Hour", "Last Day", "Last Week", "Custom"],
-    selectedValue: selOption,
-    onSelect: setOption,
-  }
+
   //
   //functions for handling state changes
   //
