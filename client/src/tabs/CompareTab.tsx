@@ -7,6 +7,8 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import { NTPData, Measurement } from '../utils/types'
 import LineChart from '../components/LineGraph'
 import Hero from '../components/Hero';
+import scaleUnbalancedIcon from '../assets/scale-unbalanced-svgrepo-com.png'
+
 function CompareTab() {
 
     const [servers, setServers] = useState<string[]>(["", ""])
@@ -15,7 +17,7 @@ function CompareTab() {
     const [selOption, setSelOption] = useState("Last Day")
     const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
     const [data, setData] = useState<Map<string, NTPData[]>>(new Map())
-    // “from” & “to” values for custom range
+    // "from" & "to" values for custom range
     const [customFrom, setCustomFrom] = useState<string>("")
     const [customTo,   setCustomTo]   = useState<string>("")
 
@@ -121,34 +123,31 @@ function CompareTab() {
            </div>
             {(!loading && showData &&
            (<div className='graph-container'>
-                        <div className="radio-group">
-                        {/*Radio for showing offset data*/}
-                        <label className="radio-measurement-label">
-                            <input
-                                type="radio"
-                                name="measurement-popup"
-                                value="offset"
-                                checked={selMeasurement === "offset"}
-                                onChange={handleMeasurementChange}
-                            />
-                            Offset
-                        </label>
-                        {/*Radio for showing delay data*/}
-                        <label className="radio-measurement-label">
-                            <input
-                                type="radio"
-                                name="measurement-popup"
-                                value="RTT"
-                                checked={selMeasurement === "RTT"}
-                                onChange={handleMeasurementChange}
-                            />
-                            Round-trip time
-                        </label>
-                    </div>
+                <div className="radio-toggle">
+                    <input
+                        type="radio"
+                        id="offset"
+                        name="measurement"
+                        value="offset"
+                        checked={selMeasurement === 'offset'}
+                        onChange={handleMeasurementChange}
+                    />
+                    <label htmlFor="offset">Offset</label>
+
+                    <input
+                        type="radio"
+                        id="rtt"
+                        name="measurement"
+                        value="RTT"
+                        checked={selMeasurement === 'RTT'}
+                        onChange={handleMeasurementChange}
+                    />
+                    <label htmlFor="rtt">Round-trip time</label>
+                </div>
 
 
                  <div className="chart-wrapper">
-                <LineChart data = {data} selectedMeasurement={selMeasurement} selectedOption={selOption}/>
+                <LineChart data = {data} selectedMeasurement={selMeasurement} selectedOption={selOption} legendDisplay={true}/>
                 </div>
 
             </div>)) ||
@@ -166,7 +165,7 @@ function CompareTab() {
             || (
                 <div className='graph-container'>
                     <div className="placeholder-text-compare">
-                    <p className="chart-emoji">📈</p>
+                    <img src={scaleUnbalancedIcon} alt="Compare Icon" className="chart-emoji" />
                     <p className="text-compare">Compare the accuracy of two NTP servers.</p>
                     <p className="text-compare">Their historical data will be shown here as a graph.</p>
                     </div>

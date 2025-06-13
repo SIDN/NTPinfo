@@ -80,7 +80,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     });
   }, [ripeMeasurementResp, ripeMeasurementStatus]);
 
- 
+
   //
   //functions for handling state changes
   //
@@ -183,14 +183,13 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
 
   return (
     <div>
-    {/* <Hero /> */}
+    <Hero />
     {/* The main container for the app, containing the input section, results and graph, and the map */}
     <div className="app-container">
-      <Hero />
       <div className="input-wrapper">
         <InputSection onClick={handleInput} loading={apiDataLoading} />
       </div>
-      <h3 id="disclaimer">DISCLAIMER: Your IP may be used to get a RIPE probe close to you for the most accurate data. Your IP will not be stored.</h3>
+      {/* <h3 id="disclaimer">DISCLAIMER: Your IP may be used to get a RIPE probe close to you for the most accurate data. Your IP will not be stored.</h3> */}
         <div className="result-text">
           {(!apiDataLoading && measured && (<p>Results</p>)) ||
                     (apiDataLoading && <div className="loading-div">
@@ -206,29 +205,29 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         {/* Div for the visualization graph, and the radios for setting the what measurement to show */}
         <div className="graphs">
           <div className='graph-box'>
-            <div className="radio-group-home">
-                <label>
+            <div className="radio-toggle">
               <input
                 type="radio"
+                id="offset"
                 name="measurement"
                 value="offset"
                 checked={selMeasurement === 'offset'}
                 onChange={handleMeasurementChange}
               />
-              Offset
-            </label>
-            <label>
+              <label htmlFor="offset">Offset</label>
+
               <input
                 type="radio"
+                id="rtt"
                 name="measurement"
                 value="RTT"
                 checked={selMeasurement === 'RTT'}
                 onChange={handleMeasurementChange}
               />
-              Round-trip time
-            </label>
+              <label htmlFor="rtt">Round-trip time</label>
             </div>
-            <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day"/>
+
+            <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day" legendDisplay={false}/>
           </div>
         </div>
       </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus} ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null}/>)}
@@ -241,7 +240,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         <DownloadButton name="Download CSV" onclick={() => downloadCSV(ripeMeasurementResp ? [ntpData, ripeMeasurementResp[0]] : [ntpData])} />
       </div>)}
       {/*Map compoment that shows the NTP servers, the vantage point, and the RIPE probes*/}
-      {/*{(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
+       {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
         <div className='map-box'>
           <WorldMap
             probes={ripeMeasurementResp}
@@ -250,7 +249,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
             status={ripeMeasurementStatus}
           />
         </div>
-        )}*/}
+        )}
     </div>
     </div>
     );
