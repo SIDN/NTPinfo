@@ -196,9 +196,16 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
           },
         }
       },
-        y: {
+      y: {
         min: minY,
         max: maxY,
+        title: {
+          display: true,
+          text: measurementMap[selectedMeasurement],
+          font: {
+            size: 14
+          }
+        }
       },
     },
   }

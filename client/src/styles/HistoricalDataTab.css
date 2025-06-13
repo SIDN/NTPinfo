@@ -98,7 +98,7 @@ a {
 .graph-statistics-container {
     flex: 1;
     padding: 1em;
-    background-color: var(--bg-clr-secondary);
+    /* background-color: var(--bg-clr-secondary); */
     border-radius: 20px;
     margin: 0 2em;
     height: fit-content;

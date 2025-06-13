@@ -139,7 +139,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
      * Update the stored data and show it again
      */
     // setMeasured(true)
-    const data = apiMeasurementResp[0]
+    const data = apiMeasurementResp ? apiMeasurementResp[0] : null
     const chartData = new Map<string, NTPData[]>()
     chartData.set(payload.server, apiHistoricalResp)
     // setAllNtpMeasurements(apiMeasurementResp ?? null)
