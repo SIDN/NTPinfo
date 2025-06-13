@@ -32,6 +32,7 @@ export const useFetchIPData = () => {
             setHttpStatus(resp.status)
             return transformedData
         } catch (err: any) {
+            console.warn(err)
             setError(err)
             setHttpStatus(err.response?.status)
             return null

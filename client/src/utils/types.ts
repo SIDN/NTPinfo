@@ -4,21 +4,31 @@ import { LatLngTuple } from "leaflet"
  * Data type used for manipulating and using NTP information
  */
 export type NTPData = {
+  ntp_version: number
+  vantage_point_ip: string
+  ip: string
+  server_name: string
+  is_anycast: boolean
+  country_code: string
+  coordinates: LatLngTuple
+  ntp_server_ref_parent_ip: string
+  ref_id: string
+  client_sent_time: [number,number]
+  server_recv_time: [number,number]
+  server_sent_time: [number,number]
+  client_recv_time: [number,number]
   offset: number
   RTT: number
   stratum: number
-  jitter: number | null
   precision: number
+  root_delay: number
+  poll: number
+  root_dispersion: number
+  ntp_last_sync_time: [number,number]
+  leap: number
+  jitter: number | null
+  nr_measurements_jitter: number
   time: number
-  ip: string
-  server_name: string,
-  ref_id: string,
-  root_dispersion: number,
-  root_delay: number,
-  vantage_point_ip: string
-  country_code: string
-  coordinates: LatLngTuple
-  is_anycast: boolean
 }
 
 /**
@@ -31,9 +41,12 @@ export type Measurement = "RTT" | "offset"
  */
 export type RIPEData = {
   measurementData : NTPData
+  probe_addr_v4: string
+  probe_addr_v6: string
   probe_id: number
   probe_country: string
   probe_location: LatLngTuple
+  time_to_result: number
   got_results: boolean
   measurement_id: number
 }
