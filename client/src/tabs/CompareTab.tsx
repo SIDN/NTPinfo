@@ -7,6 +7,8 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import { NTPData, Measurement } from '../utils/types'
 import LineChart from '../components/LineGraph'
 import Hero from '../components/Hero';
+import scaleUnbalancedIcon from '../assets/scale-unbalanced-svgrepo-com.png'
+
 function CompareTab() {
 
     const [first, setFirst] = useState<string>('')
@@ -17,7 +19,7 @@ function CompareTab() {
     const [selOption, setSelOption] = useState("Last Day")
     const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
     const [data, setData] = useState<Map<string, NTPData[]>>(new Map())
-    // “from” & “to” values for custom range
+    // "from" & "to" values for custom range
     const [customFrom, setCustomFrom] = useState<string>("")
     const [customTo,   setCustomTo]   = useState<string>("")
 
@@ -164,7 +166,7 @@ function CompareTab() {
             (
                 <div className='graph-container'>
                     <div className="placeholder-text-compare">
-                    <p className="chart-emoji">📈</p>
+                    <img src={scaleUnbalancedIcon} alt="Compare Icon" className="chart-emoji" />
                     <p className="text-compare">Compare the accuracy of two NTP servers.</p>
                     <p className="text-compare">Their historical data will be shown here as a graph.</p>
                     </div>

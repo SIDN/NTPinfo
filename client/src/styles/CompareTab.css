@@ -169,9 +169,11 @@ label {
 }
 
 .chart-emoji {
-  scale: 2.5;
+  width: 60px;
+  height: 60px;
   padding: 0;
-  width: fit-content;
+  display: block;
+  margin: 0 auto;
 }
 
 .placeholder-text-compare {
