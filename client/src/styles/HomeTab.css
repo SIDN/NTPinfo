@@ -174,7 +174,7 @@
 }
 
 .app-container {
-  overflow-x: hidden;
+  /* Remove the overflow-x property that was causing the scrollbar */
 }
 
 .results-and-graph{
