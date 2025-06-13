@@ -34,7 +34,8 @@ export const transformJSONDataToRIPEData = (fetchedData: any): RIPEData | null =
         root_delay: fetchedData.root_delay,
         vantage_point_ip: fetchedData.vantage_point_ip,
         country_code: fetchedData.ntp_server_location.country_code,
-        coordinates: [fetchedData.ntp_server_location.coordinates[0],fetchedData.ntp_server_location.coordinates[1]]
+        coordinates: [fetchedData.ntp_server_location.coordinates[0],fetchedData.ntp_server_location.coordinates[1]],
+        is_anycast: fetchedData.ntp_server_location.ip_is_anycast
     }
     return{
         measurementData: measurementData,

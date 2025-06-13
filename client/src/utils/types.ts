@@ -18,6 +18,7 @@ export type NTPData = {
   vantage_point_ip: string
   country_code: string
   coordinates: LatLngTuple
+  is_anycast: boolean
 }
 
 /**
