@@ -24,9 +24,9 @@ const StatisticsDisplay: React.FC<StatisticsDisplayProps> = ({
     const avg = values.reduce((a, b) => a + b, 0) / values.length;
 
     return {
-      min: min.toFixed(6),
-      max: max.toFixed(6),
-      avg: avg.toFixed(6),
+      min: min.toFixed(3),
+      max: max.toFixed(3),
+      avg: avg.toFixed(3),
     };
   };
 
@@ -40,15 +40,15 @@ const StatisticsDisplay: React.FC<StatisticsDisplayProps> = ({
             <div className="stats-grid">
               <div className="stat-item">
                 <span className="stat-label">Min:</span>
-                <span className="stat-value">{stats.min}s</span>
+                <span className="stat-value">{stats.min} ms</span>
               </div>
               <div className="stat-item">
                 <span className="stat-label">Max:</span>
-                <span className="stat-value">{stats.max}s</span>
+                <span className="stat-value">{stats.max} ms</span>
               </div>
               <div className="stat-item">
                 <span className="stat-label">Average:</span>
-                <span className="stat-value">{stats.avg}s</span>
+                <span className="stat-value">{stats.avg} ms</span>
               </div>
             </div>
           </div>
