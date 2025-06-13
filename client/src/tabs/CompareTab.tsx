@@ -40,7 +40,7 @@ function CompareTab() {
         const endDate = dateFormatConversion(Date.now());
         const map = new Map<string, NTPData[]>();
         for (const server of serverSet) {
-            const historicalDataUrl = `http://localhost:8000/measurements/history/?server=${server}&start=${startDate}&end=${endDate}`;
+            const historicalDataUrl = `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/history/?server=${server}&start=${startDate}&end=${endDate}`;
             const historicalData = await fetchHistoricalData(historicalDataUrl);
             map.set(server, historicalData);
             console.log(`called ${historicalDataUrl}`);
@@ -80,6 +80,7 @@ function CompareTab() {
                 e.preventDefault(); // Prevent page reload
                 handleCompare(servers);
             }}>
+            <div className="server-inputs">
             {servers.map((server, index) => (
             <div className="label-and-input" key={index}>
                 <label htmlFor={`server-${index}`}>Server {index + 1}</label>
@@ -96,7 +97,9 @@ function CompareTab() {
                     )}
                 </div>
             </div>
-        ))}
+            ))}
+            </div>
+            
         <button className="add-rm-btn" type="button" onClick={addServerInput}>+</button>
 
         <TimeInput
