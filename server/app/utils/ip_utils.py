@@ -183,13 +183,6 @@ def ip_to_location(ip_str: str) -> tuple[float, float]:
     return latitude, longitude
 
 
-# import time
-
-# start = time.time()
-# print(get_ip_network_details("80.211.238.247"))
-# print(get_prefix_from_ip("80.211.238.247"))
-# end = time.time()
-
 def get_server_ip() -> IPv4Address | IPv6Address | None:
     """
     Determines the outward-facing IP address of the server by opening a
@@ -212,10 +205,32 @@ def get_server_ip() -> IPv4Address | IPv6Address | None:
     finally:
         s.close()
     try:
-        return ip_address(ip)
+        # if it is public
+        if get_country_for_ip(ip) is not None:
+            return ip_address(ip)
+        # if it is private
+        ip_public = get_server_ip_from_ipify()
+        print(f"fallback to public IP: {ip_to_str(ip_public)}")
+        return ip_public
     except ValueError:
         return None
 
+def get_server_ip_from_ipify() -> IPv4Address | IPv6Address | None:
+    """
+    This method is a fallback to try to get the public IP address of our server from ipify.org
+
+    Returns:
+        Optional[IPv4Address | IPv6Address]: The public IP address of our server.
+    """
+    try:
+        response = requests.get("https://api.ipify.org?format=json", timeout=3)
+        response.raise_for_status()
+
+        data = response.json()
+        ip_str: str = data.get("ip", None)
+        return ip_address(ip_str.strip())
+    except Exception:
+        return None
 
 def client_ip_fetch(request: Request) -> str | None:
     """
