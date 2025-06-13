@@ -139,7 +139,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
      * Update the stored data and show it again
      */
     // setMeasured(true)
-    const data = apiMeasurementResp[0]
+    const data = apiMeasurementResp ? apiMeasurementResp[0] : null
     const chartData = new Map<string, NTPData[]>()
     chartData.set(payload.server, apiHistoricalResp)
     // setAllNtpMeasurements(apiMeasurementResp ?? null)
@@ -246,7 +246,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         <DownloadButton name="Download CSV" onclick={() => downloadCSV(ripeMeasurementResp ? [ntpData, ripeMeasurementResp[0]] : [ntpData])} />
       </div>)}
       {/*Map compoment that shows the NTP servers, the vantage point, and the RIPE probes*/}
-      {(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
+      {/*{(ripeMeasurementStatus === "complete" || ripeMeasurementStatus === "partial_results" || ripeMeasurementStatus === "timeout") && (
         <div className='map-box'>
           <WorldMap
             probes={ripeMeasurementResp}
@@ -255,7 +255,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
             status={ripeMeasurementStatus}
           />
         </div>
-        )}
+        )}*/}
     </div>
     </div>
     );
