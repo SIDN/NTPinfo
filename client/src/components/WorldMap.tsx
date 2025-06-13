@@ -376,8 +376,8 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
                 <Marker key={index} position={x.location} icon={ntpServerIcon}>
                   <Popup>
                     NTP Server (RIPE)<br/>
-                    IP: {x.ip}<br/>
-                    Name: {x.server_name}
+                    IP: {x.ip}
+                    Name: {x.server_name}<br/>
                     Location: {x.location}
                   </Popup>
                 </Marker>
@@ -388,7 +388,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
                   <Popup>
                     NTP Server (Vantage Point)<br/>
                     IP: {x.ip}<br/>
-                    Name: {x.server_name}
+                    Name: {x.server_name}<br/>
                     Location: {x.location}
                   </Popup>
                 </Marker>
@@ -399,7 +399,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
                   <Popup>
                     NTP Server<br/>
                     IP: {x.ip}<br/>
-                    Name: {x.server_name}
+                    Name: {x.server_name}<br/>
                     Location: {x.location}
                   </Popup>
                 </Marker>
@@ -410,7 +410,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
                   <Popup>
                     NTP Server (Unavailable)<br/>
                     IP: {x.ip}<br/>
-                    Name: {x.server_name}
+                    Name: {x.server_name}<br/>
                     Location: {x.location}
                   </Popup>
                 </Marker>
