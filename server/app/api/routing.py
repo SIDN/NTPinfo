@@ -82,7 +82,7 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
                 }
             )
         else:
-            raise HTTPException(status_code=400, detail="Sever is not reachable.")
+            raise HTTPException(status_code=400, detail="Server is not reachable.")
     except HTTPException as e:
         print(e)
         raise e
@@ -91,7 +91,7 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
         raise HTTPException(status_code=422, detail="Domain name cannot be resolved.")
     except Exception as e:
         print(e)
-        raise HTTPException(status_code=500, detail=f"Sever error: {str(e)}.")
+        raise HTTPException(status_code=500, detail=f"Server error: {str(e)}.")
 
 
 @router.get("/measurements/history/")

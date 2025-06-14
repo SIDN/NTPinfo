@@ -77,7 +77,8 @@ function CompareTab() {
         <div className="compare-tab">
             {/* <Hero /> */}
             <div className="compare-input">
-                <p>Enter the domain names or IP adresses of the servers. You can add more!</p>
+                <p>Enter the names or IPs of the NTP servers you want to compare.</p>
+                <p>Click the "+" button to add more.</p>
             <form className="compare-form" onSubmit={(e) => {
                 e.preventDefault(); // Prevent page reload
                 handleCompare(servers);

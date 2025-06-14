@@ -77,3 +77,5 @@ export interface HomeCacheState {
   ripeMeasurementResp: RIPEData[] | null
   ripeMeasurementStatus: string | null     // 'loading' | 'complete' | ...
 }
+
+export type RipeStatus = "pending" | "partial_results" | "complete" | "timeout" | "error"
