@@ -104,7 +104,6 @@
 
 .graph-box {
   /* flex: 1; */
-  background-color: #2a2a3c;
   display: flex;
   align-items: stretch;
   justify-content: center;
@@ -117,7 +116,7 @@
 
   margin-left: 1rem;
   grid-area: summary;
-  background-color: var(--bg-clr-secondary);
+  background-color: var(--bg-secondary);
   color: var(--clr-font-white);
   font-weight: bold;
   border-radius: 8px;
@@ -128,6 +127,8 @@
   box-sizing: border-box;
   margin-left: 0;
   gap: 0.75rem;
+
+  border: 1px solid var(--border-color);
 }
 
 .graph-box canvas {
@@ -173,10 +174,6 @@
   box-shadow: var(--shadow);
 }
 
-.app-container {
-  /* Remove the overflow-x property that was causing the scrollbar */
-}
-
 .results-and-graph{
   display:flex;
   flex-wrap:wrap;
@@ -187,11 +184,12 @@
 
 .radio-toggle{
   display: inline-flex;
-  background: var(--bg-clr-secondary);
+  background: var(--bg-secondary);
   border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 12px;
+  border-radius: var(--radius);
   padding: 2px;
   gap: 0;
+  border: 1px solid var(--border-color);
 }
 
 .radio-toggle input[type="radio"]{

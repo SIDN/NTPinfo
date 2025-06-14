@@ -19,7 +19,7 @@ h2#not-found {
   grid-area: summary;
   height: 100%;
   width: 100%;
-  background-color: var(--bg-clr-secondary);
+  background-color: var(--bg-secondary);
   color: var(--clr-font-white);
   font-weight: 500;
   border-radius: 8px;
@@ -28,6 +28,7 @@ h2#not-found {
   flex-direction: column;
   gap: 0.75rem;
   box-sizing: border-box;
+  border: 1px solid var(--border-color);
 }
 
 .metric {

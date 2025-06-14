@@ -254,11 +254,12 @@ p.error {
 
 .radio-toggle{
   display: inline-flex;
-  background: var(--bg-clr-secondary);
+  background: #1e293b;
   border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 12px;
+  border-radius: var(--radius);
   padding: 2px;
   gap: 0;
+  box-shadow: var(--shadow);
 }
 
 .radio-toggle input[type="radio"]{
@@ -273,14 +274,15 @@ p.error {
   font-size: 0.95rem;
   cursor: pointer;
   user-select: none;
-  color: var(--clr-font-muted, #9fa4b9);
+  color: var(--text-white, #9fa4b9);
   border-radius: 8px;
   transition: all 0.2s ease;
 }
 
 .radio-toggle input[type="radio"]:checked + label{
-  background: var(--clr-btn-selected-purple, #020718);
-  color: var(--clr-font-white, #fff);
+  background: var(--bg-primary, #020718);
+  color: var(--text-white, #fff);
+  border-radius: 6px
 }
 
 .radio-toggle input[type="radio"]:focus + label{

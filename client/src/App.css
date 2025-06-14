@@ -137,7 +137,6 @@ body {
 .graph-box {
   /* flex: 1; */
   height: 150px;
-  background-color: #2a2a3c;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -149,7 +148,6 @@ body {
   grid-area: summary;
   height: auto;
   width: 600px;
-  background-color: var(--bg-clr-secondary);
   color: var(--clr-font-white);
   font-weight: bold;
   border-radius: 8px;
