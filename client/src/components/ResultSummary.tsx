@@ -90,7 +90,7 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
                         <div className="tooltip-container">
                             <span className="tooltip-icon">?</span>
                             <div className="tooltip-text">
-                                RIPE Atlas tries to choose a probe near the user to perform more accurate measurements.
+                                RIPE Atlas tries to choose a probe near the user to perform more accurate measurements. This can take longer.
                             </div>
                         </div>
                     </div>

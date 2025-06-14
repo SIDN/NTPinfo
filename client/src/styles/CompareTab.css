@@ -25,10 +25,10 @@ label {
   align-items: flex-start;
 }
 .compare-tab p {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 600;
   text-align: left;
-  padding: 1rem;
+  padding: 0.5rem 1rem;
 }
 
 label {
@@ -44,7 +44,7 @@ label {
   align-items: flex-start;
   justify-content: space-evenly;
   gap: 0.5rem;
-  padding-left: 2rem;
+  padding-left: 1rem;
 }
 
 .compare-tab input {
@@ -252,23 +252,23 @@ p.error {
   color: var(--clr-input-placeholder-dark);
 }
 
-.radio-toggle{
+.radio-toggle {
   display: inline-flex;
   background: var(--bg-clr-secondary);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 2px;
   gap: 0;
 }
 
-.radio-toggle input[type="radio"]{
+.radio-toggle input[type="radio"] {
   appearance: none;
   -webkit-appearance: none;
   display: none;
 }
 
-.radio-toggle label{
-  padding: .35rem 1.25rem;
+.radio-toggle label {
+  padding: 0.35rem 1.25rem;
   font-weight: 500;
   font-size: 0.95rem;
   cursor: pointer;
@@ -278,12 +278,12 @@ p.error {
   transition: all 0.2s ease;
 }
 
-.radio-toggle input[type="radio"]:checked + label{
+.radio-toggle input[type="radio"]:checked + label {
   background: var(--clr-btn-selected-purple, #020718);
   color: var(--clr-font-white, #fff);
 }
 
-.radio-toggle input[type="radio"]:focus + label{
+.radio-toggle input[type="radio"]:focus + label {
   outline: 2px solid var(--clr-btn-selected-purple);
   outline-offset: 2px;
 }
