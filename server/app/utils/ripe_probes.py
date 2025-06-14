@@ -11,7 +11,7 @@ from ripe.atlas.cousteau import ProbeRequest
 T = TypeVar('T', int, float)  # float or int
 
 
-def get_probes(client_ip: str,
+def get_probes(client_ip: str, ip_family_of_ntp_server: int,
                probes_requested: int = get_ripe_number_of_probes_per_measurement()) -> list[dict]:
     """
     This method handles all cases regarding what probes we should send.
@@ -21,6 +21,7 @@ def get_probes(client_ip: str,
 
     Args:
         client_ip (str): The IP address of the client.
+        ip_family_of_ntp_server (int): The IP family of the NTP server. (4 or 6)
         probes_requested (int): The total number of probes that we will request.
 
     Returns:
@@ -32,7 +33,14 @@ def get_probes(client_ip: str,
     # get the details. (this will take around 150-200ms)
     ip_family: int = get_ip_family(client_ip)
     ip_asn, ip_country, ip_area = get_ip_network_details(client_ip)
-    ip_prefix = get_prefix_from_ip(client_ip)
+    ip_prefix = None
+    # the prefix is relevant if and only if the client has the same IP type as the NTP server.
+    # Otherwise, we won't "find probes with the same prefix as the client that can perform NTP measurements for that server"
+
+    # If we do not have this check, "get available" methods that involves prefix will fail
+    if ip_family == ip_family_of_ntp_server:
+        ip_prefix = get_prefix_from_ip(client_ip)
+
     # settings:
     probes: list[dict] = []
     current_probes_set: set[int] = set()
@@ -40,7 +48,7 @@ def get_probes(client_ip: str,
     probes_requested, current_probes_set = (
         get_best_probes_with_multiple_attributes(client_ip=client_ip, current_probes_set=current_probes_set,
                                                  ip_asn=ip_asn, ip_prefix=ip_prefix,
-                                                 ip_country=ip_country, ip_family=ip_family,
+                                                 ip_country=ip_country, ip_family=ip_family_of_ntp_server,
                                                  probes_requested=probes_requested))
 
     if probes_requested <= 0:
@@ -52,7 +60,7 @@ def get_probes(client_ip: str,
     probes_requested, current_probes_set = (
         get_best_probes_matched_by_single_attribute(client_ip=client_ip, current_probes_set=current_probes_set,
                                                     ip_asn=ip_asn, ip_prefix=ip_prefix,
-                                                    ip_country=ip_country, ip_family=ip_family,
+                                                    ip_country=ip_country, ip_family=ip_family_of_ntp_server,
                                                     probes_requested=probes_requested))
     # add the IDs of the probes
     if len(current_probes_set) > 0:
@@ -328,6 +336,7 @@ def get_available_probes_asn_and_prefix(client_ip: str, ip_asn: str, ip_prefix: 
         prefix_type: ip_prefix,
         "status": 1,  # Connected probes
         "tags": f"system-{ip_type.lower()}-works",
+        "is_public": True
     }
     probes = ProbeRequest(
         return_objects=True,
@@ -343,6 +352,7 @@ def get_available_probes_asn_and_prefix(client_ip: str, ip_asn: str, ip_prefix: 
             print(f"error (safe): {e}")
 
     # print(probe_ids_list)
+    print(f"asn and prefix list{len(probe_ids_list)}")
     return probe_ids_list
 
 
@@ -372,6 +382,7 @@ def get_available_probes_asn_and_country(client_ip: str, ip_asn: str, ip_country
         "country_code": ip_country_code,
         "status": 1,  # Connected probes
         "tags": f"system-{ip_type.lower()}-works",
+        "is_public": True
     }
     probes = ProbeRequest(
         return_objects=True,
@@ -396,6 +407,7 @@ def get_available_probes_asn_and_country(client_ip: str, ip_asn: str, ip_country
     probe_ids_list: list[int] = [i for (i, d) in probe_ids_dist_list]
 
     # print(probe_ids_list)
+    print(f"asn and country list {len(probe_ids_list)}")
     return probe_ids_list
 
 
@@ -425,6 +437,7 @@ def get_available_probes_asn(client_ip: str, ip_asn: str, ip_type: str) -> list[
         "asn": ip_asn_number,
         "status": 1,  # Connected probes
         "tags": f"system-{ip_type.lower()}-works",
+        "is_public": True
     }
     probes = ProbeRequest(
         return_objects=True,
@@ -438,6 +451,7 @@ def get_available_probes_asn(client_ip: str, ip_asn: str, ip_type: str) -> list[
             probe_ids_list.append(p.id)
         except Exception as e:
             print(f"error (safe): {e}")
+    print(f"asn list {len(probe_ids_list)}")
     return probe_ids_list
 
 
@@ -464,6 +478,7 @@ def get_available_probes_prefix(client_ip: str, ip_prefix: str, ip_type: str) ->
         prefix_type: ip_prefix,
         "status": 1,  # Connected probes
         "tags": f"system-{ip_type.lower()}-works",
+        "is_public": True
     }
     probes = ProbeRequest(
         return_objects=True,
@@ -477,6 +492,7 @@ def get_available_probes_prefix(client_ip: str, ip_prefix: str, ip_type: str) ->
             probe_ids_list.append(p.id)
         except Exception as e:
             print(f"error (safe): {e}")
+    print(f"prefix list{len(probe_ids_list)}")
     return probe_ids_list
 
 
@@ -502,6 +518,7 @@ def get_available_probes_country(client_ip: str, country_code: str, ip_type: str
         "country_code": country_code,
         "status": 1,  # Connected probes
         "tags": f"system-{ip_type.lower()}-works",
+        "is_public": True
     }
     probes = ProbeRequest(
         return_objects=True,
@@ -526,6 +543,7 @@ def get_available_probes_country(client_ip: str, country_code: str, ip_type: str
     probe_ids_dist_list.sort(key=lambda x: x[1])
     probe_ids_list: list[int] = [i for (i, d) in probe_ids_dist_list]
 
+    print(f"country list{len(probe_ids_list)}")
     return probe_ids_list
 
 
@@ -562,6 +580,6 @@ def consume_probes(probes_requested: int, current_probes_set: set[int], probes_i
 # import time
 # start = time.time()
 # ipp="2a06:93c0::24"#"145.94.210.165"
-# print(get_probes(ipp))
+# print(get_probes("89.46.74.148",6,10))
 # end = time.time()
 # print(end - start)
