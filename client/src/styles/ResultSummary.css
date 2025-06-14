@@ -124,11 +124,12 @@ h2#not-found {
 .tooltip-text {
   visibility: hidden;
   width: 250px;
-  background-color: var(--bg-clr-secondary);
-  color: var(--clr-font-white);
+  background-color: var(--bg-secondary);
+  color: var(--txt-white);
   text-align: left;
   padding: 8px;
-  border-radius: 6px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
   white-space: normal;
   word-wrap: break-word;
 
