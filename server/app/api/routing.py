@@ -50,6 +50,7 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
     Args:
         payload (MeasurementRequest): A Pydantic model containing:
             - server (str): IP address (IPv4/IPv6) or domain name of the NTP server.
+            - ipv6_measurement (bool): True if the type of IPs that we want to measure is IPv6. False otherwise.
         request (Request): The Request object that gives you the IP of the client.
         session (Session): The currently active database session.
 
@@ -64,11 +65,12 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
 
     """
     server = payload.server
+    wanted_ip_type = 6 if payload.ipv6_measurement else 4
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided.")
     client_ip: Optional[str] = client_ip_fetch(request=request)
     try:
-        response = measure(server, session, client_ip)
+        response = measure(server, wanted_ip_type, session, client_ip)
         # print(response)
         if response is not None:
             new_format = []
@@ -170,8 +172,7 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
     Args:
         payload (MeasurementRequest): A Pydantic model that includes:
             - server (str): The IP address or domain name of the target server
-            - jitter_flag (bool, optional): Whether to calculate jitter
-            - measurements_no (int, optional): Number of measurements
+            - ipv6_measurement (bool): True if the type of IPs that we want to measure is IPv6. False otherwise.
         request (Request): The FastAPI request object, used to extract the client IP address
 
     Returns:
@@ -189,12 +190,13 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
             - 503: If we could not get client IP address or our server's IP address
     """
     server = payload.server
+    wanted_ip_type = 6 if payload.ipv6_measurement else 4
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
 
     client_ip: Optional[str] = client_ip_fetch(request=request)
     try:
-        measurement_id = perform_ripe_measurement(server, client_ip=client_ip)
+        measurement_id = perform_ripe_measurement(server, client_ip=client_ip, wanted_ip_type=wanted_ip_type)
         return JSONResponse(
             status_code=200,
             content={

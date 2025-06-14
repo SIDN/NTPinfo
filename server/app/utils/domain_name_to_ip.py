@@ -11,15 +11,15 @@ from server.app.utils.load_config_data import get_edns_default_servers, get_mask
 from server.app.utils.validate import is_valid_domain_name
 
 
-def domain_name_to_ip_list(ntp_server_domain_name: str, client_ip: Optional[str], wanted_ip_type: int=4) -> list[str]:
+def domain_name_to_ip_list(ntp_server_domain_name: str, client_ip: Optional[str], wanted_ip_type: int) -> list[str]:
     """
     This method handles the case when client IP is None and uses our server as the default IP.
     It will return the list of IP addresses that are close to the client.
 
     Args:
-        ntp_server_domain_name: NTP server domain name.
-        client_ip: Client IP address.
-        wanted_ip_type: The IP type of the resulting IPs that we want. (IPv4 or IPv6).
+        ntp_server_domain_name (str): NTP server domain name.
+        client_ip (Optional[str]): Client IP address.
+        wanted_ip_type (int): The IP type of the resulting IPs that we want. (IPv4 or IPv6).
 
     Returns:
         list[str]: List of IP addresses that are close to the client or to the server if client IP is None
@@ -44,7 +44,7 @@ def domain_name_to_ip_default(domain_name: str) -> Optional[list[str]]:
     This method is useful if you want IPs close to this server, or you do not care about the location of the IPs.
 
     Args:
-        domain_name(str): The domain name.:
+        domain_name(str): The NTP server domain name.
 
     Returns:
         Optional[list[str]]: A list of IPs of the domain name or None if the domain name is not valid.

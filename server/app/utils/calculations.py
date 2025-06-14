@@ -139,7 +139,7 @@ def get_non_responding_ntp_measurement(server_ip_str: str, server_name: Optional
         ntp_version=ntp_version,
         ntp_server_ip=server_ip,
         ntp_server_name=server_name,
-        ntp_server_ref_parent_ip=ip_address("0.0.0.0"),
+        ntp_server_ref_parent_ip=ip_address("0.0.0.0"), # if you change this value, change it also in "measure"
         ref_name="",
         ntp_server_location=ServerLocation(country_code=get_country_for_ip(ip_to_str(server_ip)),
                                            coordinates=get_coordinates_for_ip(ip_to_str(server_ip)))

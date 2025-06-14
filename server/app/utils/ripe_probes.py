@@ -28,7 +28,7 @@ def get_probes(client_ip: str, ip_family_of_ntp_server: int,
         list[dict]: The list of probes that we will use for the measurement.
 
     Raises:
-        Exception: If the NTP server IP address is invalid or
+        InputError: If the client IP address is invalid
     """
     # get the details. (this will take around 150-200ms)
     ip_family: int = get_ip_family(client_ip)
