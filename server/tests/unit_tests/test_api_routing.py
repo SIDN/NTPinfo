@@ -261,7 +261,7 @@ def test_read_data_measurement_missing_measurement_no(mock_is_ip, mock_insert, m
     response = test_client.post("/measurements/", json={"server": "pool.ntp.org"},
                                 headers=headers)
     assert response.status_code == 400
-    assert '{"detail":"Sever is not reachable."}' in response.text
+    assert '{"detail":"Server is not reachable."}' in response.text
 
 
 @patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
@@ -300,7 +300,7 @@ def test_read_data_measurement_wrong_server(test_client):
     response = test_client.post("/measurements/", json={"server": "random-server-name.org", },
                                 headers=headers)
     assert response.status_code == 400
-    assert response.json() == {"detail": "Sever is not reachable."}
+    assert response.json() == {"detail": "Server is not reachable."}
 
 
 @patch("server.app.services.api_services.get_measurements_timestamps_dn")

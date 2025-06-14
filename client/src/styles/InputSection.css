@@ -77,63 +77,60 @@
 .ip-options {
   display: flex;
   align-items: center;
-  flex: 1 1 25%;
-  width: max-content;
+  padding: 0;
+  width: fit-content;
   color: var(--clr-font-white);
   gap: 1rem;
 }
-
-.custom-checkbox {
-  display: flex;
-  gap: 0.5rem;
-  cursor: pointer;
-  align-items: center;
-  font-size: 1rem;
-}
-
-.custom-checkbox input[type="checkbox"] {
-  display: none;
-}
-
-.custom-checkbox .checkmark {
-  height: 1.2rem;
-  width: 1.2rem;
-  background-color: var(--clr-font-white);
-  border-radius: 5px;
-  display: inline-block;
-  position: relative;
-  transition: background-color 0.2s, border 0.2s;
+.measure-text {
+  flex: 1 1 20%;
+  font-weight: 600;
+  font-size: 1.1rem;
 }
 .input-and-options {
   display: flex;
   align-items: center;
-  gap: 1rem;
-}
-.custom-checkbox input[type="checkbox"]:checked + .checkmark {
-  background-color: var(--clr-red-2);
+  gap: 0.25rem;
 }
 
-.custom-checkbox .checkmark::after {
-  content: "";
-  position: absolute;
+.ip-options {
+  display: inline-flex;
+  background: var(--bg-clr-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 2px;
+  gap: 0;
+}
+
+.ip-options input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
   display: none;
 }
 
-.custom-checkbox input[type="checkbox"]:checked + .checkmark::after {
-  display: block;
-  left: 5px;
-  top: 2px;
-  width: 6px;
-  height: 10px;
-  border: solid var(--clr-font-white);
-  border-width: 0 3px 3px 0;
-  transform: rotate(45deg);
+.ip-options label {
+  padding: 0.35rem 1.25rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  user-select: none;
+  color: var(--clr-font-muted, #9fa4b9);
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
-#measurements-no-box {
-  margin-top: 2px;
-  background-color: var(--clr-font-white);
-  color: var(--clr-font-dark);
-  color-scheme: light;
-  border-radius: 5px;
-  border-color: transparent;
+
+.ip-options input[type="radio"]:checked + label {
+  background: var(--clr-btn-selected-purple, #020718);
+  color: var(--clr-font-white, #fff);
+}
+
+.ip-options input[type="radio"]:focus + label {
+  outline: 2px solid var(--clr-btn-selected-purple);
+  outline-offset: 2px;
+}
+
+.ip-options {
+  margin-left: auto;
+  display: flex;
+  justify-content: flex-end;
 }

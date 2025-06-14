@@ -39,20 +39,27 @@ const InputSection: React.FC<InputProps> = ({ onClick, loading }) => {
                         Measure
                     </button>
                 </div>
+                <p className="measure-text">Measure using: </p>
                 <form className="ip-options" onSubmit={(e) => e.preventDefault()}>
-                <label className="custom-checkbox">
-                    <input type="checkbox"
-                           id="ipv6-check"
-                           checked={useIPv6}
-                           onChange={(e) => setUseIPv6(e.target.checked)}
+                    <input
+                        type="radio"
+                        name="ip-version"
+                        id="ipv4"
+                        checked={!useIPv6}
+                        onChange={() => setUseIPv6(false)}
                     />
-                    <span className="checkmark"></span>
-                        Measure using IPv6
-                    </label>
+                    <label htmlFor="ipv4">IPv4</label>
+
+                    <input
+                        type="radio"
+                        name="ip-version"
+                        id="ipv6"
+                        checked={useIPv6}
+                        onChange={() => setUseIPv6(true)}
+                    />
+                    <label htmlFor="ipv6">IPv6</label>
                 </form>
             </div>
-           
-
         </div>
     );
 
