@@ -98,7 +98,7 @@ a {
 .graph-statistics-container {
     flex: 1;
     padding: 1em;
-    background-color: var(--bg-clr-secondary);
+    /* background-color: var(--bg-clr-secondary); */
     border-radius: 20px;
     margin: 0 2em;
     height: fit-content;
@@ -182,4 +182,81 @@ a {
 .dt-input:focus {
     background-color: var(--clr-btn-selected-purple);
     outline: none;
+}
+
+@media screen and (max-width: 1250px) {
+    .data-display-container {
+        flex-direction: column;
+    }
+
+    .statistics-container {
+        width: 100%;
+        max-width: none;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        padding: 0.5em;
+    }
+
+    .server-stats {
+        flex: 1;
+        min-width: 200px;
+        margin: 0.5em;
+    }
+
+    .stats-grid {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 1em;
+    }
+
+    .stat-item {
+        min-width: 150px;
+    }
+
+    .chart-box {
+        width: 100%;
+    }
+}
+
+.historical-radio-toggle{
+    display: inline-flex;
+    background: var(--bg-clr-secondary);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 2px;
+    gap: 0;
+}
+
+.historical-radio-toggle input[type="radio"]{
+    appearance: none;
+    -webkit-appearance: none;
+    display: none;
+}
+
+.historical-radio-toggle label{
+    padding: .35rem 1.25rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    user-select: none;
+    color: var(--clr-font-muted, #9fa4b9);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.historical-radio-toggle input[type="radio"]:checked + label{
+    background: var(--clr-btn-selected-purple, #020718);
+    color: var(--clr-font-white, #fff);
+}
+
+.historical-radio-toggle input[type="radio"]:focus + label{
+    outline: 2px solid var(--clr-btn-selected-purple);
+    outline-offset: 2px;
+}
+
+.historical-radio-toggle {
+    margin-left: auto;
+    display: flex;
+    justify-content: flex-end;
 }

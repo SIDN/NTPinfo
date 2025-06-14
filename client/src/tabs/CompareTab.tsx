@@ -7,156 +7,148 @@ import LoadingSpinner from '../components/LoadingSpinner'
 import { NTPData, Measurement } from '../utils/types'
 import LineChart from '../components/LineGraph'
 import Hero from '../components/Hero';
+import scaleUnbalancedIcon from '../assets/scale-unbalanced-svgrepo-com.png'
+
 function CompareTab() {
 
-    const [first, setFirst] = useState<string>('')
-    const [second, setSecond] = useState<string>('')
-    const [selectedInput, setSelectedInput] = useState<number>(1)
+    const [servers, setServers] = useState<string[]>(["", ""])
     const [loading, setLoading] = useState(false)
     const [showData, setShowData] = useState(false)
     const [selOption, setSelOption] = useState("Last Day")
     const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
     const [data, setData] = useState<Map<string, NTPData[]>>(new Map())
-    // “from” & “to” values for custom range
+    // "from" & "to" values for custom range
     const [customFrom, setCustomFrom] = useState<string>("")
     const [customTo,   setCustomTo]   = useState<string>("")
 
     const [errMessage, setErrMessage] = useState<string | null>(null)
     const {fetchData: fetchHistoricalData, loading: apiHistoricalLoading, error: apiHistoricalError} = useFetchHistoricalIPData()
 
-    const handleCompare = async (first: string, second: string) => {
-
-        first = first.trim()
-        second = second.trim()
+    const handleCompare = async (servers: string[]) => {
         setErrMessage(null)
-        if (first.length == 0 || second.length == 0) {
-            setErrMessage("Please fill in both servers")
-            return
-        }
-
-
-        if (first === second) {
-            setErrMessage("The servers must be different")
-            return
-        }
+        
+        for (const sv of servers)
+            if (sv.trim().length == 0) {
+                setErrMessage("Please fill in all servers")
+                return
+            }
+                
+        const trimmed = servers.map(s => s.trim())
+        const serverSet = [...new Set(trimmed)];
         setLoading(true)
         setShowData(false)
+        
+        const startDate = dateFormatConversion(Date.now() - 86400000);
+        const endDate = dateFormatConversion(Date.now());
+        const map = new Map<string, NTPData[]>();
+        for (const server of serverSet) {
+            const historicalDataUrl = `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/history/?server=${server}&start=${startDate}&end=${endDate}`;
+            const historicalData = await fetchHistoricalData(historicalDataUrl);
+            map.set(server, historicalData);
+            console.log(`called ${historicalDataUrl}`);
+        }
 
-        //Get data from past day from historical data API to chart in the graph
-        const startDate = dateFormatConversion(Date.now()-86400000)
-        const endDate = dateFormatConversion(Date.now())
-        const urlHistoricalData1 = `http://localhost:8000/measurements/history/?server=${first}&start=${startDate}&end=${endDate}`
-        const apiHistoricalResp1 = await fetchHistoricalData(urlHistoricalData1)
-
-        const urlHistoricalData2 = `http://localhost:8000/measurements/history/?server=${second}&start=${startDate}&end=${endDate}`
-        const apiHistoricalResp2 = await fetchHistoricalData(urlHistoricalData2)
-        console.log(`called ${urlHistoricalData1}`)
-        console.log(`called ${urlHistoricalData2}`)
-        //update data stored and show the data again
-        const chartData1 = apiHistoricalResp1
-        const chartData2 = apiHistoricalResp2
-        console.log(chartData1)
-        console.log(chartData2)
-
-        const map = new Map<string, NTPData[]>()
-        map.set(first, chartData1)
-        map.set(second, chartData2)
-        setData(map)
-        setShowData(true)
         setLoading(false)
-
+        setShowData(true)
+        setData(map);
     }
 
+    const addServerInput = () => setServers([...servers, ""]);
+    const removeServerInput = (index: number) => {
+        if (servers.length <= 2) return;
+            const updated = [...servers];
+            updated.splice(index, 1);
+            setServers(updated);
+    }
+    
     const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSelMeasurement(event.target.value as Measurement);
     }
 
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-            if (selectedInput == 1)
-                setFirst(event.target.value)
-            if (selectedInput == 2)
-                setSecond(event.target.value)
-    };
+    const handleInputChange = (index: number, value: string) => {
+        const updated = [...servers];
+        updated[index] = value;
+        setServers(updated);
+    }
+
     return (
         <div>
             <Hero />
         <div className="compare-tab">
             {/* <Hero /> */}
             <div className="compare-input">
-                <p>Enter the domain names or IP adresses of the servers </p>
+                <p>Enter the names or IPs of the NTP servers you want to compare.</p>
+                <p>Click the "+" button to add more.</p>
             <form className="compare-form" onSubmit={(e) => {
                 e.preventDefault(); // Prevent page reload
-                handleCompare(first, second);
+                handleCompare(servers);
             }}>
-            <div className="label-and-input">
-                <label htmlFor="first">First server</label>
-                <input
-                    name="first"
-                    type="text"
-                    value={first}
-                    onFocus={() => setSelectedInput(1)}
-                    onChange={handleInputChange}
-                    placeholder="Server 1 (ex. time.google.com)"
-                />
+            <div className="server-inputs">
+            {servers.map((server, index) => (
+            <div className="label-and-input" key={index}>
+                <label htmlFor={`server-${index}`}>Server {index + 1}</label>
+                <div className="input-and-btn">
+                    <input
+                        name={`server-${index}`}
+                        type="text"
+                        value={server}
+                        onChange={(e) => handleInputChange(index, e.target.value)}
+                        placeholder={`(ex. time.google.com)`}
+                    />
+                    {servers.length > 2 && (
+                        <button type="button" className="add-rm-btn rm" onClick={() => removeServerInput(index)}>-</button>
+                    )}
+                </div>
             </div>
-            <div className="label-and-input">
-                <label htmlFor="second">Second server</label>
-                <input
-                    name="second"
-                    type="text"
-                    value={second}
-                    onFocus={() => setSelectedInput(2)}
-                    onChange={handleInputChange}
-                    placeholder="Server 2 (ex. time.google.com)"
-                />
+            ))}
             </div>
-            <TimeInput
-                options={["Last Hour", "Last Day", "Last Week", "Custom"]}
-                selectedOption={selOption}
-                onSelectionChange={setSelOption}
-                customFrom={customFrom}
-                customTo={customTo}
-                onFromChange={setCustomFrom}
-                onToChange={setCustomTo}
-            />
-            {errMessage && (<p className='error'>{errMessage}</p>)}
+            
+        <button className="add-rm-btn add" type="button" onClick={addServerInput}>+</button>
+
+        <TimeInput
+            options={["Last Hour", "Last Day", "Last Week", "Custom"]}
+            selectedOption={selOption}
+            onSelectionChange={setSelOption}
+            customFrom={customFrom}
+            customTo={customTo}
+            onFromChange={setCustomFrom}
+            onToChange={setCustomTo}
+        />
             <button type="submit"
                     className='submit-btn'
-                    disabled={!first.trim() || !second.trim() || loading}>
+                    disabled={servers.some(s => s.trim() === "") || apiHistoricalLoading}>
                         {loading ? "Comparing..." : "Compare"}
             </button>
+            {errMessage && (<p className='error'>{errMessage}</p>)}
            </form>
            </div>
             {(!loading && showData &&
            (<div className='graph-container'>
-                        <div className="radio-group">
-                        {/*Radio for showing offset data*/}
-                        <label className="radio-measurement-label">
-                            <input
-                                type="radio"
-                                name="measurement-popup"
-                                value="offset"
-                                checked={selMeasurement === "offset"}
-                                onChange={handleMeasurementChange}
-                            />
-                            Offset
-                        </label>
-                        {/*Radio for showing delay data*/}
-                        <label className="radio-measurement-label">
-                            <input
-                                type="radio"
-                                name="measurement-popup"
-                                value="RTT"
-                                checked={selMeasurement === "RTT"}
-                                onChange={handleMeasurementChange}
-                            />
-                            Round-trip time
-                        </label>
-                    </div>
+                <div className="radio-toggle">
+                    <input
+                        type="radio"
+                        id="offset"
+                        name="measurement"
+                        value="offset"
+                        checked={selMeasurement === 'offset'}
+                        onChange={handleMeasurementChange}
+                    />
+                    <label htmlFor="offset">Offset</label>
+
+                    <input
+                        type="radio"
+                        id="rtt"
+                        name="measurement"
+                        value="RTT"
+                        checked={selMeasurement === 'RTT'}
+                        onChange={handleMeasurementChange}
+                    />
+                    <label htmlFor="rtt">Round-trip time</label>
+                </div>
 
 
                  <div className="chart-wrapper">
-                <LineChart data = {data} selectedMeasurement={selMeasurement} selectedOption={selOption}/>
+                <LineChart data = {data} selectedMeasurement={selMeasurement} selectedOption={selOption} legendDisplay={true}/>
                 </div>
 
             </div>)) ||
@@ -164,10 +156,17 @@ function CompareTab() {
                             <p>Loading...</p>
                             <LoadingSpinner size="large"/>
                         </div>)) ||
-            (
+            (apiHistoricalError && (<div className='graph-container'>
+                    <div className="placeholder-text-compare">
+                    <p className="text-compare">There was an error.</p>
+                    <p className="text-compare">Check the server names and try again.</p>
+                    </div>
+
+                </div>))
+            || (
                 <div className='graph-container'>
                     <div className="placeholder-text-compare">
-                    <p className="chart-emoji">📈</p>
+                    <img src={scaleUnbalancedIcon} alt="Compare Icon" className="chart-emoji" />
                     <p className="text-compare">Compare the accuracy of two NTP servers.</p>
                     <p className="text-compare">Their historical data will be shown here as a graph.</p>
                     </div>

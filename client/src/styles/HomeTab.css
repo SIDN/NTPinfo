@@ -1,5 +1,10 @@
 @import "../index.css";
 
+.app-container {
+  /* background-color: var(--bg-clr-primary); */
+  /* background: linear-gradient(to bottom, var(--bg-primary), var(--bg-secondary)); */
+}
+
 .open-popup-btn {
   display: flex;
   border-radius: 15px;
@@ -40,9 +45,11 @@
 .app-container {
   width: 100%;
 }
-
+.input-wrapper {
+  width: 1000%;
+  max-width: 1000px;
+}
 .main-content {
-  max-width: 600px;
   box-sizing: border-box;
   text-align: left;
 }
@@ -57,15 +64,16 @@
   margin-top: 0;
   margin-left: 1rem;
   /* max-width: 600px; */
-  width: 60%;
+  box-sizing: border-box;
 }
 
 .results-and-graph {
-  display: flex;
+  /* display: flex; */
   gap: 1rem;
   flex-wrap: wrap;
   padding: 0.5rem;
-  align-items: center;
+  align-items: flex-start;
+  width: 100%;
 }
 
 .result-text p {
@@ -85,24 +93,26 @@
 }
 
 .graphs {
-  display: flex;
+  /* display: flex; */
   gap: 1rem;
-  /* margin-top: 1rem; */
   flex: 1 1 50%;
   min-width: 50%;
   height: 100%;
+  margin-top: 2.5rem;
 }
 
 .graph-box {
   /* flex: 1; */
   background-color: #2a2a3c;
-  /* border-radius: 8px; */
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   font-weight: bold;
   color: white;
-  width: 90%;
+  width: 100%;
+  box-shadow: var(--shadow);
+  height: 100%;
+  min-height: 300px;
 
   margin-left: 1rem;
   grid-area: summary;
@@ -110,14 +120,19 @@
   color: var(--clr-font-white);
   font-weight: bold;
   border-radius: 8px;
-  padding: 2rem;
-  margin-top: 2.5rem;
+  padding: 1rem;
+  margin-top: 0;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
+  margin-left: 0;
+  gap: 0.75rem;
+}
 
-  /* max-width: 600px;
-  height: auto;
-  padding: 1rem; */
+.graph-box canvas {
+  max-height: none;
+  height: 100%;
+  flex: 1;
 }
 
 .map-box {
@@ -131,8 +146,9 @@
   display: flex;
   gap: 1.5rem;
 }
-.graph-box canvas {
-  max-height: 200px;
+
+.radio-group-home input[type="radio"] {
+  margin-right: 0.5rem;
 }
 
 .ip-list {
@@ -150,4 +166,56 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.result-box {
+  box-shadow: var(--shadow);
+}
+
+.app-container {
+  /* Remove the overflow-x property that was causing the scrollbar */
+}
+
+.results-and-graph {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.5rem;
+  align-items: stretch;
+}
+
+.radio-toggle {
+  display: inline-flex;
+  background: var(--bg-clr-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 2px;
+  gap: 0;
+}
+
+.radio-toggle input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  display: none;
+}
+
+.radio-toggle label {
+  padding: 0.35rem 1.25rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  user-select: none;
+  color: var(--clr-font-muted, #9fa4b9);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.radio-toggle input[type="radio"]:checked + label {
+  background: var(--clr-btn-selected-purple, #020718);
+  color: var(--clr-font-white, #fff);
+}
+
+.radio-toggle input[type="radio"]:focus + label {
+  outline: 2px solid var(--clr-btn-selected-purple);
+  outline-offset: 2px;
 }

@@ -14,25 +14,40 @@ a {
 
 .hero {
     width: 100%;
-    height: max(4.5rem, 5vw);
+    height: max(3.5rem, 4vw);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--bg-clr-hero);
-    padding: 1rem 2rem;
+    background-color: rgba(15, 23, 42, 0.8); /* var(--bg-primary) with 80% opacity */
+    /* background: var(--bg-clr-hero); */
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+    padding: 0.75rem 2rem;
     position: sticky;
     top: 0;
     z-index: 3;
+    border-bottom: 1px solid var(--border-color);
+    /* border-radius: 0 0 var(--radius) var(--radius); */
+    box-shadow: var(--shadow);
+}
+
+.text-hero {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
 
 .text-hero > h1 {
-    color: var(--clr-font-dark);
-    font-size: clamp(1.5rem, 2.3vw, 2.5rem);
+    /* color: var(--clr-font-dark); */
+    color: var(--text-white);
+    font-size: clamp(1.5rem, 2.3vw, 2.0rem);
+    /* font-size: 2.5rem; */
     line-height: 1.2;
 }
 
 .text-hero > p {
-    color: var(--clr-font-dark);
+    /* color: var(--clr-font-dark); */
+    color: var(--text-white);
     font-weight: 200;
     font-size: clamp(0.8rem, 1.2vw, 1.2rem);
     text-align: left;
@@ -47,7 +62,8 @@ a {
 .navbar a {
     font-size: clamp(0.9rem, 1.5vw, 1.2rem);
     font-weight: bold;
-    color: var(--clr-font-dark);
+    /* color: var(--clr-font-dark); */
+    color: var(--text-white);
     display: flex;
     align-items: center;
 }
@@ -65,6 +81,13 @@ a {
     width: auto;
     object-fit: contain;
     align-self: center;
+}
+
+.ntpinfo-logo {
+    height: 5rem;
+    width: auto;
+    object-fit: contain;
+    /* margin-right: 0.2rem; */
 }
 
 /* Media Queries */
@@ -101,5 +124,13 @@ a {
 
     .navbar {
         gap: 1rem;
+    }
+
+    .ntpinfo-logo {
+        height: 2.5rem;
+    }
+
+    .text-hero {
+        gap: 0.5rem;
     }
 }

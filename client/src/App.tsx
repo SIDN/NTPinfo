@@ -12,6 +12,7 @@ import './App.css';
 function App() {
   const [selectedTab, setSelectedTab] = useState(1);
   const [visualizationData, setVisualizationData] = useState<Map<string, NTPData[]> | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   /* ------------------   NEW: cache that outlives HomeTab   ------------------ */
   const initialCache: HomeCacheState = {
@@ -29,8 +30,8 @@ function App() {
 
   return (
     <div className="app-layout">
-      <Sidebar selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
-      <main className="app-content">
+      <Sidebar selectedTab={selectedTab} setSelectedTab={setSelectedTab} open={sidebarOpen} setOpen={setSidebarOpen} />
+      <main className={`app-content${!sidebarOpen ? ' with-sidebar-collapsed' : ''}`}>
         {/* <Hero /> */}
         {/* {selectedTab === 1 && <HomeTab onVisualizationDataChange={setVisualizationData} />} */}
         {selectedTab === 1 && (

@@ -2,8 +2,9 @@ from ipaddress import IPv4Address, IPv6Address
 from unittest.mock import patch, MagicMock, mock_open
 import pytest
 
+from server.app.utils.load_config_data import get_mask_ipv4, get_mask_ipv6
 from server.app.utils.ip_utils import ref_id_to_ip_or_name, get_ip_family, get_area_of_ip, get_ip_network_details, \
-    ip_to_str, is_this_ip_anycast
+    ip_to_str, is_this_ip_anycast, randomize_ip
 
 
 def test_ip_to_str():
@@ -77,6 +78,7 @@ def test_is_this_ip_anycast_input_errors():
     assert is_this_ip_anycast(None) is False
     assert is_this_ip_anycast("blabla") is False
 
+
 @patch("server.app.utils.ip_utils.open", new_callable=mock_open, read_data="1.0.0.0/24\ninvalid\n1.3.1.0/16\n")
 @patch("server.app.utils.ip_utils.os.path.join")
 @patch("server.app.utils.ip_utils.os.path.dirname")
@@ -96,7 +98,9 @@ def test_is_this_ip_anycast_ipv4(mock_abspath, mock_dirname, mock_join, mock_ope
     assert result is False
     mock_join.assert_called_once_with("/server/app/utils", "..", "..", "anycast-v4-prefixes.txt")
 
-@patch("server.app.utils.ip_utils.open", new_callable=mock_open, read_data="2001:4998:170::/48\ninvalid\n2400:44a0:1::/48\n")
+
+@patch("server.app.utils.ip_utils.open", new_callable=mock_open,
+       read_data="2001:4998:170::/48\ninvalid\n2400:44a0:1::/48\n")
 @patch("server.app.utils.ip_utils.os.path.join")
 @patch("server.app.utils.ip_utils.os.path.dirname")
 @patch("server.app.utils.ip_utils.os.path.abspath")
@@ -115,7 +119,9 @@ def test_is_this_ip_anycast_ipv6(mock_abspath, mock_dirname, mock_join, mock_ope
     assert result is False
     mock_join.assert_called_once_with("/server/app/utils", "..", "..", "anycast-v6-prefixes.txt")
 
-@patch("server.app.utils.ip_utils.open", new_callable=mock_open, read_data="2001:4998:170::/48\ninvalid\n2400:44a0:1::/48\n")
+
+@patch("server.app.utils.ip_utils.open", new_callable=mock_open,
+       read_data="2001:4998:170::/48\ninvalid\n2400:44a0:1::/48\n")
 @patch("server.app.utils.ip_utils.os.path.join")
 @patch("server.app.utils.ip_utils.os.path.dirname")
 @patch("server.app.utils.ip_utils.os.path.abspath")
@@ -126,3 +132,41 @@ def test_is_this_ip_anycast_exception(mock_abspath, mock_dirname, mock_join, moc
     # error loading database
     result = is_this_ip_anycast("2400:44a0:1::")
     assert result is False
+
+
+def test_randomize_ipv4():
+    ipv4 = IPv4Address("123.45.67.89")
+    res = randomize_ip(ipv4)
+    assert isinstance(res, IPv4Address)
+
+    original_int = int(ipv4)
+    randomized_int = int(res)
+
+    network_mask = (2 ** 32 - 1) << (32 - get_mask_ipv4()) & 0xFFFFFFFF
+
+    original_network = original_int & network_mask
+    randomized_network = randomized_int & network_mask
+
+    assert original_network == randomized_network
+
+
+def test_randomize_ipv6():
+    ipv6 = IPv6Address("2001:0db8:85a3:0000:0000:8a2e:0370:7334")
+    res = randomize_ip(ipv6)
+    assert isinstance(res, IPv6Address)
+
+    original_int = int(ipv6)
+    randomized_int = int(res)
+
+    network_mask = (2 ** 128 - 1) << (128 - get_mask_ipv6()) & (2 ** 128 - 1)
+
+    original_network = original_int & network_mask
+    randomized_network = randomized_int & network_mask
+
+    assert original_network == randomized_network
+
+
+def test_randomize_ip_not_ip():
+    ip = "no ip"
+    res = randomize_ip(ip)
+    assert res is None
