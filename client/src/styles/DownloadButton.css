@@ -11,7 +11,7 @@
 .download-btn {
     padding: .5rem .75rem;
     color: var(--text-white);
-    background-color: transparent;
+    background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
