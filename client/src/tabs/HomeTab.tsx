@@ -89,7 +89,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
    * Performs a normal measurement call, a historical measurement call for the graph, and a RIPE measurement call for the map.
    * @param query The input given by the user
    */
-  const handleInput = async (query: string) => {
+  const handleInput = async (query: string, useIPv6: boolean) => {
     if (query.length == 0)
       return
 
@@ -108,10 +108,11 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     })
 
     /**
-     * The payload for the measurement call, containing the server
+     * The payload for the measurement call, containing the server and the choice of using IPv6 or not
      */
     const payload = {
-      server: query.trim()
+      server: query.trim(),
+      ipv6_measurement: useIPv6
 
     }
 
@@ -150,10 +151,11 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     })
 
     /**
-     * Payload for the RIPE measurement call, containing only the ip of the server to be measured.
+     * Payload for the RIPE measurement call, containing only the ip of the server to be measured and whether to use IPv6.
      */
     const ripePayload = {
-      server: query.trim()
+      server: query.trim(),
+      ipv6_measurement: useIPv6
     }
 
     /**

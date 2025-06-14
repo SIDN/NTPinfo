@@ -118,8 +118,8 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
                         </span></div>
                     </div>)) || 
                     ((ripeStatus === "pending" || ripeStatus === "partial_results")&& (<LoadingSpinner size="medium"/>)) ||
-                    (ripeStatus === "timeout" && (<p>RIPE measurement timed out</p>)) || 
-                    (ripeStatus === "error" && (<p>RIPE measurement failed</p>))}
+                    (ripeStatus === "timeout" && (<p className="ripe-err">RIPE measurement timed out</p>)) || 
+                    (ripeStatus === "error" && (<p className="ripe-err">RIPE measurement failed</p>))}
                 </div>
 
             </div>

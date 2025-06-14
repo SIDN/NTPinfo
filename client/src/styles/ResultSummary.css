@@ -37,7 +37,7 @@ h2#not-found {
 }
 
 .metric span:last-child {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
   font-feature-settings: "tnum";
   font-variant-numeric: tabular-nums;
 }
@@ -69,7 +69,6 @@ h2#not-found {
   min-width: 20rem;
   /* max-width: 100%; */
   width: max-content;
-
 }
 
 .tooltip-label {
@@ -155,4 +154,10 @@ h2#not-found {
 .measurement-link:hover {
   color: var(--clr-input-placeholder);
   text-decoration: underline;
+}
+
+.ripe-err {
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-align: center;
 }
