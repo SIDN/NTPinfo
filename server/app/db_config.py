@@ -29,6 +29,7 @@ Each value is loaded from environment variables to enhance security and flexibil
     - DB_PASSWORD: Password for authentication.
     - DB_HOST: Hostname or IP address of the database server.
     - DB_PORT: Port number on which the database server is listening.
+    
 """
 
 dsn = f"postgresql://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['dbname']}"
@@ -42,6 +43,7 @@ It is required by most PostgreSQL drivers, including `psycopg`, to initiate conn
 
 _engine: Engine | None = None
 _SessionLocal: sessionmaker | None = None
+
 
 def init_engine() -> Engine:
     """

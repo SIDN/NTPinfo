@@ -17,25 +17,42 @@ from slowapi.errors import RateLimitExceeded
 
 def create_app(dev: bool = True) -> FastAPI:
     """
-    Creates a FastAPI application instance.
-    This instance is used to define all API endpoints and serve the application.
+    Create and configure a FastAPI application instance.
+
+    This function sets up the FastAPI app with necessary middleware, routes,
+    and lifecycle event handlers. It optionally initializes the database engine
+    and verifies configuration during development mode.
 
     Args:
-        dev (bool): Tells us whether to initialize the real database or not (so if we are not in testing).
+        dev (bool): Flag indicating whether the app runs in development mode.
+                    If True, config verification and database initialization are performed.
+
     Returns:
-        FastAPI: A FastAPI application.
+        FastAPI: Configured FastAPI application instance.
+
     Raises:
-        Exception: if the server_config file is not correctly set.
+        Exception: If configuration verification fails in development mode.
     """
-    if dev:  # only in this mode verify the config file
+    if dev:
         try:
             verify_if_config_is_set()
         except Exception as e:
             print(f"Configuration error: {e}")
-            raise  # Prevent app creation
+            raise
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:
+        """
+        Application lifespan context manager.
+
+        Initializes the database schema if in development mode.
+
+        Args:
+            app (FastAPI): The FastAPI application instance.
+
+        Yields:
+            None
+        """
         if dev:
             engine = init_engine()
             Base.metadata.create_all(bind=engine)
@@ -44,14 +61,14 @@ def create_app(dev: bool = True) -> FastAPI:
     app = FastAPI(
         lifespan=lifespan,
         title="NTPInfo API",
-        description="API of the NTPInfo website. Through this API measurements ot NTP servers can be done based on the ip"
-                    "or domain name. The API has 4 main routes that are presented in more detail below:",
+        description=(
+            "API of the NTPInfo website. Through this API measurements of NTP servers "
+            "can be performed based on IP or domain name. The API has 4 main routes "
+            "that are presented in more detail below:"
+        ),
         version="1.0.0",
-        # contact={
-        #     "name": "Team15D",
-        #     "email": "support@example.com",
-        # }
     )
+
     app.state.limiter = limiter
     app.include_router(router)
     app.add_middleware(
@@ -65,46 +82,20 @@ def create_app(dev: bool = True) -> FastAPI:
     @app.exception_handler(RateLimitExceeded)
     async def rate_limit_handler(request: Request, exc: RateLimitExceeded) -> Union[JSONResponse, Response]:
         """
-        Handle requests that exceed the configured rate limit.
+        Handle rate limit exceeded exceptions by returning HTTP 429.
 
-         Args:
+        Args:
             request (Request): The incoming HTTP request that triggered the exception.
-            exc (RateLimitExceeded): The exception raised due to rate limiting.
+            exc (RateLimitExceeded): The rate limit exception.
 
         Returns:
-            Union[JSONResponse, Response]: A response with HTTP 429 Too Many Requests.
+            Union[JSONResponse, Response]: Response indicating too many requests (HTTP 429).
         """
         return _rate_limit_exceeded_handler(request, exc)
-
-    # @app.exception_handler(HTTPException)
-    # async def custom_http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
-    #     """
-    #     Handle generic HTTPException errors and return a custom error structure.
-    #
-    #     Overrides FastAPI's default error response by returning an object with an "error" key
-    #     instead of the default "detail" key for better frontend compatibility or customization.
-    #
-    #     Args:
-    #         request (Request): The incoming HTTP request that caused the error.
-    #         exc (HTTPException): The raised HTTPException.
-    #
-    #     Returns:
-    #         JSONResponse: A response with the appropriate status code and custom error format.
-    #     """
-    #     if exc.status_code == 200 or exc.status_code == 202 or exc.status_code == 206:
-    #         return JSONResponse(
-    #             status_code=exc.status_code,
-    #             content={"response": exc.detail}
-    #         )
-    #     return JSONResponse(
-    #         status_code=exc.status_code,
-    #         content={"error": exc.detail},
-    #     )
 
     return app
 
 
-# app = create_app()
 if __name__ == "__main__":
     import uvicorn
 
