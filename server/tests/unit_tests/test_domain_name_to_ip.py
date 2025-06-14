@@ -14,17 +14,37 @@ def test_domain_name_to_ip_list_normal(mock_dn_default, mock_dn_close):
     mock_dn_default.return_value = ["11.22.34.45", "13.22.34.46", "14.22.34.47"]
     mock_dn_close.return_value = ["71.22.34.45", "73.22.34.46", "74.22.34.47"]
     # test client ip none
-    result = domain_name_to_ip_list("nl.pool.ntp.org", None)
+    result = domain_name_to_ip_list("nl.pool.ntp.org", None, 4)
     assert set(result) == {"11.22.34.45", "13.22.34.46", "14.22.34.47"}
     mock_dn_default.assert_called_once()
     mock_dn_close.assert_not_called()
 
     mock_dn_default.reset_mock()
     mock_dn_close.reset_mock()
-    result = domain_name_to_ip_list("nl.pool.ntp.org", "83.25.24.10")
+    result = domain_name_to_ip_list("nl.pool.ntp.org", "83.25.24.10", 4)
     assert set(result) == {"71.22.34.45", "73.22.34.46", "74.22.34.47"}
     mock_dn_default.assert_not_called()
     mock_dn_close.assert_called_once()
+
+
+@patch("server.app.utils.domain_name_to_ip.domain_name_to_ip_close_to_client")
+@patch("server.app.utils.domain_name_to_ip.domain_name_to_ip_default")
+def test_domain_name_to_ip_list_normal_ipv6(mock_dn_default, mock_dn_close):
+    mock_dn_default.return_value = ["2b06:93c0::25", "2c06:93c0::24", "2d06:93c0::24"]
+    mock_dn_close.return_value = ["5b06:93c0::20", "8b06:93c0::20", "9b06:93c0::20"]
+    # test client ip none
+    result = domain_name_to_ip_list("nl.pool.ntp.org", None, 6)
+    assert set(result) == {"2b06:93c0::25", "2c06:93c0::24", "2d06:93c0::24"}
+    mock_dn_default.assert_called_once()
+    mock_dn_close.assert_not_called()
+
+    mock_dn_default.reset_mock()
+    mock_dn_close.reset_mock()
+    result = domain_name_to_ip_list("nl.pool.ntp.org", "1a06:13c0::24", 6)
+    assert set(result) == {"5b06:93c0::20", "8b06:93c0::20", "9b06:93c0::20"}
+    mock_dn_default.assert_not_called()
+    mock_dn_close.assert_called_once()
+
 
 @patch("server.app.utils.domain_name_to_ip.domain_name_to_ip_close_to_client")
 @patch("server.app.utils.domain_name_to_ip.domain_name_to_ip_default")
@@ -33,7 +53,7 @@ def test_domain_name_to_ip_list_empty(mock_dn_default, mock_dn_close):
     mock_dn_close.return_value = None
     #[]
     with pytest.raises(Exception):
-        domain_name_to_ip_list("nl.pool.ntp.org", None)
+        domain_name_to_ip_list("nl.pool.ntp.org", None, 4)
     mock_dn_default.assert_called_once()
     mock_dn_close.assert_not_called()
 
@@ -41,7 +61,12 @@ def test_domain_name_to_ip_list_empty(mock_dn_default, mock_dn_close):
     mock_dn_default.reset_mock()
     mock_dn_close.reset_mock()
     with pytest.raises(DNSError):
-        domain_name_to_ip_list("nl.pool.ntp.org", "74.22.34.47")
+        domain_name_to_ip_list("nl.pool.ntp.org", "74.22.34.47", 4)
+
+    mock_dn_default.reset_mock()
+    mock_dn_close.reset_mock()
+    with pytest.raises(DNSError):
+        domain_name_to_ip_list("nl.pool.ntp.org", "74.22.34.47", 6)
     mock_dn_default.assert_not_called()
     mock_dn_close.assert_called_once()
 
@@ -120,13 +145,13 @@ def test_domain_name_to_ip_close_to_client_first_resolver(mock_mask4, mock_mask6
     mock_perform_edns_query.return_value = MagicMock()
     mock_edns_response_to_ips.return_value = ["1.2.5.78", "2.3.4.5"]
     mock_edns_option.return_value = MagicMock()
-    # ipv4
+    # ipv4 wants ipv4
     result = domain_name_to_ip_close_to_client("nl.pool.ntp.org", "10.11.12.13", 4, ["8.8.8.8", "1.1.1.1"])
     assert set(result) == {"1.2.5.78", "2.3.4.5"}
     mock_perform_edns_query.assert_called_once()
     mock_edns_response_to_ips.assert_called_once()
     mock_edns_option.assert_called_once_with(address="10.11.12.13", srclen=24, scopelen=0)
-    # ipv6
+    # ipv6 wants ipv6
     mock_perform_edns_query.reset_mock()
     mock_edns_response_to_ips.reset_mock()
     mock_edns_option.reset_mock()
@@ -136,6 +161,38 @@ def test_domain_name_to_ip_close_to_client_first_resolver(mock_mask4, mock_mask6
     mock_perform_edns_query.assert_called_once()
     mock_edns_response_to_ips.assert_called_once()
     mock_edns_option.assert_called_once_with(address="2a06:93c0::21", srclen=56, scopelen=0)
+
+
+@patch("server.app.utils.domain_name_to_ip.dns.edns.ECSOption")
+@patch("server.app.utils.domain_name_to_ip.edns_response_to_ips")
+@patch("server.app.utils.domain_name_to_ip.perform_edns_query")
+@patch("server.app.utils.domain_name_to_ip.get_mask_ipv6")
+@patch("server.app.utils.domain_name_to_ip.get_mask_ipv4")
+def test_domain_name_to_ip_close_to_client_ipv4_wants_ipv6_and_reverse(mock_mask4, mock_mask6,
+                                            mock_perform_edns_query, mock_edns_response_to_ips,
+                                            mock_edns_option):
+    mock_mask4.return_value = 24
+    mock_mask6.return_value = 56
+    mock_perform_edns_query.return_value = MagicMock()
+    mock_edns_response_to_ips.return_value = ["1.2.5.78", "2.3.4.5"]
+    mock_edns_option.return_value = MagicMock()
+    # ipv6 wants ipv4
+    result = domain_name_to_ip_close_to_client("nl.pool.ntp.org", "2a06:93c0::24", 4, ["8.8.8.8", "1.1.1.1"])
+    assert set(result) == {"1.2.5.78", "2.3.4.5"}
+    mock_perform_edns_query.assert_called_once()
+    mock_edns_response_to_ips.assert_called_once()
+    mock_edns_option.assert_called_once_with(address="2a06:93c0::24", srclen=56, scopelen=0)
+    # ipv6 wants ipv6
+    mock_perform_edns_query.reset_mock()
+    mock_edns_response_to_ips.reset_mock()
+    mock_edns_option.reset_mock()
+    mock_edns_response_to_ips.return_value = ["2a06:93c0::2f", "2b06:93c0::2f"]
+    result = domain_name_to_ip_close_to_client("nl.pool.ntp.org", "2.3.4.5", 4, ["8.8.8.8", "1.1.1.1"])
+    assert set(result) == {"2a06:93c0::2f", "2b06:93c0::2f"}
+    mock_perform_edns_query.assert_called_once()
+    mock_edns_response_to_ips.assert_called_once()
+    mock_edns_option.assert_called_once_with(address="2.3.4.5", srclen=24, scopelen=0)
+
 
 @patch("server.app.utils.domain_name_to_ip.dns.edns.ECSOption")
 @patch("server.app.utils.domain_name_to_ip.edns_response_to_ips")

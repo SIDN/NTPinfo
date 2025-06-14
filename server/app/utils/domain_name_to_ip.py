@@ -60,7 +60,7 @@ def domain_name_to_ip_default(domain_name: str) -> Optional[list[str]]:
         return None
 
 
-def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str, wanted_ip_type: int=4,
+def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str, wanted_ip_type: int,
                                                     resolvers: list[str] = get_edns_default_servers(),
                                                     depth: int = 0, max_depth: int = 2) -> Optional[list[str]]:
     """

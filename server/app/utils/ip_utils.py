@@ -128,7 +128,7 @@ def get_area_of_ip(ip_country: Optional[str], ip_continent: Optional[str]) -> st
 
 def get_prefix_from_ip(ip_str: str) -> Optional[str]:
     """
-    This method returns the prefix of an IP address.
+    This method returns the prefix of an IP address. It randomizes it before sending it to stat.ripe.net
 
     Args:
         ip_str: The ip address.
@@ -137,6 +137,7 @@ def get_prefix_from_ip(ip_str: str) -> Optional[str]:
         str: the prefix of an IP address.
     """
     try:
+        ip_str = ip_to_str(randomize_ip(ip_address(ip_str)))
         response = requests.get(f"https://stat.ripe.net/data/prefix-overview/data.json?resource={ip_str}")
         response.raise_for_status()
         data = response.json()["data"]
