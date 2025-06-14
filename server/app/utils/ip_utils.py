@@ -223,7 +223,8 @@ def get_server_ip_from_ipify() -> IPv4Address | IPv6Address | None:
         Optional[IPv4Address | IPv6Address]: The public IP address of our server.
     """
     try:
-        response = requests.get("https://api.ipify.org?format=json", timeout=3)
+        # api64 will return ipv4 or ipv6 if it is available
+        response = requests.get("https://api64.ipify.org?format=json", timeout=3)
         response.raise_for_status()
 
         data = response.json()
@@ -301,3 +302,5 @@ def is_this_ip_anycast(searched_ip: Optional[str]) -> bool:
         return False
 
 # print(is_this_ip_anycast("2001:4860:4806:c::"))
+# print(get_server_ip_from_ipify())
+# print(get_country_for_ip("2a06:93c0::24"))

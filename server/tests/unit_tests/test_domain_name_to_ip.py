@@ -99,12 +99,12 @@ def test_domain_name_to_ip_default_more_ips(mock_getaddrinfo):
 
 def test_domain_name_to_ip_close_to_client_invalid_input():
     # invalid domain name
-    result = domain_name_to_ip_close_to_client(domain_name="intp.org....", client_ip="83.25.24.10")
+    result = domain_name_to_ip_close_to_client(domain_name="intp.org....", client_ip="83.25.24.10", wanted_ip_type=4)
     assert result is None
 
     # invalid IP address
     with pytest.raises(Exception):
-        domain_name_to_ip_close_to_client("time.google.com", "not an IP")
+        domain_name_to_ip_close_to_client("time.google.com", "not an IP", 4)
 
 
 @patch("server.app.utils.domain_name_to_ip.dns.edns.ECSOption")
@@ -121,7 +121,7 @@ def test_domain_name_to_ip_close_to_client_first_resolver(mock_mask4, mock_mask6
     mock_edns_response_to_ips.return_value = ["1.2.5.78", "2.3.4.5"]
     mock_edns_option.return_value = MagicMock()
     # ipv4
-    result = domain_name_to_ip_close_to_client("nl.pool.ntp.org", "10.11.12.13", ["8.8.8.8", "1.1.1.1"])
+    result = domain_name_to_ip_close_to_client("nl.pool.ntp.org", "10.11.12.13", 4, ["8.8.8.8", "1.1.1.1"])
     assert set(result) == {"1.2.5.78", "2.3.4.5"}
     mock_perform_edns_query.assert_called_once()
     mock_edns_response_to_ips.assert_called_once()
@@ -131,7 +131,7 @@ def test_domain_name_to_ip_close_to_client_first_resolver(mock_mask4, mock_mask6
     mock_edns_response_to_ips.reset_mock()
     mock_edns_option.reset_mock()
     mock_edns_response_to_ips.return_value = ["2a06:93c0::2f", "2b06:93c0::2f"]
-    result = domain_name_to_ip_close_to_client("nl.pool.ntp.org", "2a06:93c0::21", ["8.8.8.8", "1.1.1.1"])
+    result = domain_name_to_ip_close_to_client("nl.pool.ntp.org", "2a06:93c0::21", 6, ["8.8.8.8", "1.1.1.1"])
     assert set(result) == {"2a06:93c0::2f", "2b06:93c0::2f"}
     mock_perform_edns_query.assert_called_once()
     mock_edns_response_to_ips.assert_called_once()
@@ -151,7 +151,7 @@ def test_domain_name_to_ip_close_to_client_none_exception(mock_mask4, mock_mask6
     mock_edns_response_to_ips.return_value = ["1.2.5.78", "2.3.4.5"]
     mock_edns_option.return_value = MagicMock()
     # ipv4 with perform_edns_query returning None the first time and a list of IPs second time
-    result = domain_name_to_ip_close_to_client("nl.pool.ntp.org", "10.11.12.13", ["8.8.8.8", "1.1.1.1"])
+    result = domain_name_to_ip_close_to_client("nl.pool.ntp.org", "10.11.12.13", 4, ["8.8.8.8", "1.1.1.1"])
     assert set(result) == {"1.2.5.78", "2.3.4.5"}
     assert mock_perform_edns_query.call_count == 2
     assert mock_edns_option.call_count == 1
@@ -164,7 +164,7 @@ def test_domain_name_to_ip_close_to_client_none_exception(mock_mask4, mock_mask6
     mock_edns_response_to_ips.return_value = ["1.2.5.78", "2.3.4.5"]
     mock_edns_option.return_value = MagicMock()
 
-    result = domain_name_to_ip_close_to_client("nl.pool.ntp.org", "2a06:93c0::2f", ["8.8.8.8", "1.1.1.1"])
+    result = domain_name_to_ip_close_to_client("nl.pool.ntp.org", "2a06:93c0::2f", 6,["8.8.8.8", "1.1.1.1"])
     assert result is None
     assert mock_perform_edns_query.call_count == 1
     assert mock_edns_option.call_count == 1
@@ -321,7 +321,7 @@ def test_edns_response_to_ips_only_ips(mock_domain_name):
     mock_response = MagicMock()
     mock_response.answer = [a_rrset, aaaa_rrset, a_rrset2]
 
-    result = edns_response_to_ips(mock_response, client_ip="83.25.24.10", resolvers=["8.8.8.8"])
+    result = edns_response_to_ips(mock_response, client_ip="83.25.24.10", wanted_ip_type=4, resolvers=["8.8.8.8"])
 
     assert set(result) == {"123.43.12.9",
                       "124.11.13.19",
@@ -347,9 +347,8 @@ def test_edns_response_to_ips_cname(mock_domain_name):
     mock_response = MagicMock()
     mock_response.answer = [a_rrset, cname_rrset]
 
-    result = edns_response_to_ips(mock_response, client_ip="83.25.24.10", resolvers=["8.8.8.8"])
-    mock_domain_name.assert_called_with("redirected.example.com", "83.25.24.10",
-                                        ["8.8.8.8"], 1, 2)
+    result = edns_response_to_ips(mock_response, client_ip="83.25.24.10", wanted_ip_type=4, resolvers=["8.8.8.8"])
+    mock_domain_name.assert_called_with("redirected.example.com", "83.25.24.10", 4, ["8.8.8.8"], 1, 2)
     assert set(result) == {"123.43.12.9",
                       "124.11.13.19",
                       "33.44.56.78",
@@ -374,9 +373,8 @@ def test_edns_response_to_ips_cname_none(mock_domain_name):
     mock_response = MagicMock()
     mock_response.answer = [a_rrset, cname_rrset]
 
-    result = edns_response_to_ips(mock_response, client_ip="83.25.24.10", resolvers=["8.8.8.8"])
-    mock_domain_name.assert_called_with("redirected.example.com", "83.25.24.10",
-                                        ["8.8.8.8"], 1, 2)
+    result = edns_response_to_ips(mock_response, client_ip="83.25.24.10", wanted_ip_type=4, resolvers=["8.8.8.8"])
+    mock_domain_name.assert_called_with("redirected.example.com", "83.25.24.10", 4, ["8.8.8.8"], 1, 2)
     assert set(result) == {"123.43.12.9",
                       "124.11.13.19"}
 
@@ -398,6 +396,6 @@ def test_edns_response_to_ips_cname_too_large_depth(mock_domain_name):
     mock_response = MagicMock()
     mock_response.answer = [a_rrset, cname_rrset]
 
-    result = edns_response_to_ips(mock_response, client_ip="83.25.24.10", resolvers=["8.8.8.8"], depth=2, max_depth=2)
+    result = edns_response_to_ips(mock_response, client_ip="83.25.24.10", wanted_ip_type=4, resolvers=["8.8.8.8"], depth=2, max_depth=2)
     mock_domain_name.assert_not_called()
     assert set(result) == {"123.43.12.9", "124.11.13.19"}

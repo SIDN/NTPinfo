@@ -69,9 +69,7 @@ def perform_ntp_measurement_domain_name_list(server_name: str = "pool.ntp.org", 
 
 def perform_ntp_measurement_ip(server_ip_str: str, ntp_version: int = get_ntp_version()) -> Optional[NtpMeasurement]:
     """
-    This method performs a NTP measurement on a NTP server from its IP address. The "other IPs list" of the
-    measurement will be None.
-    empty list of other IPs of the domain name.
+    This method performs a NTP measurement on a NTP server from its IP address.
 
     Args:
         server_ip_str (str): the ip address of the ntp server in string format
@@ -351,7 +349,14 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
 # import time
 #
 # start = time.time()
-# print(perform_ripe_measurement_domain_name("time.apple.com","145.94.210.165")) #("89.46.74.148"))
+# print(perform_ntp_measurement_ip("2a01:b740:a20:3000::1f2"))
+# # print(perform_ripe_measurement_domain_name("time.apple.com","2a06:93c0::24")) #("89.46.74.148"))
+# print(perform_ntp_measurement_ip("17.253.14.251"))
+# print(perform_ntp_measurement_ip("17.253.108.125"))
+# print(perform_ntp_measurement_ip("17.253.52.253"))
+# print(perform_ntp_measurement_ip("17.253.28.125"))
+# print(perform_ntp_measurement_ip("17.253.28.251"))
+# print(perform_ntp_measurement_ip("17.253.52.125"))
 # end = time.time()
 #
 # print(end - start)
