@@ -7,11 +7,10 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from server.app.utils.location_resolver import get_country_for_ip, get_coordinates_for_ip
-from server.app.utils.ip_utils import client_ip_fetch, get_server_ip_if_possible
+from server.app.utils.ip_utils import client_ip_fetch, get_server_ip_if_possible, get_server_ip
 from server.app.models.CustomError import DNSError, MeasurementQueryError
 from server.app.utils.ip_utils import ip_to_str
 from server.app.models.CustomError import InputError, RipeMeasurementError
-from server.app.utils.ip_utils import get_server_ip
 from server.app.db_config import get_db
 
 from server.app.services.api_services import fetch_ripe_data, override_desired_ip_type_if_input_is_ip
@@ -77,7 +76,7 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
     wanted_ip_type = override_desired_ip_type_if_input_is_ip(server, wanted_ip_type)
 
     # get the client IP (if possible the same type as wanted_ip_type)
-    client_ip: Optional[str] = client_ip_fetch(request=request)
+    client_ip: Optional[str] = client_ip_fetch(request=request, wanted_ip_type=wanted_ip_type)
     # for IPv6 measurements, we need to communicate using IPv6. (we need to have the same protocol as the target)
     this_server_ip_strict = get_server_ip(wanted_ip_type)  # strict means we want exactly this type
     if this_server_ip_strict is None: # which means we cannot perform this type of NTP measurements from our server
@@ -207,7 +206,8 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
 
-    client_ip: Optional[str] = client_ip_fetch(request=request)
+    client_ip: Optional[str] = client_ip_fetch(request=request, wanted_ip_type=wanted_ip_type)
+    print("client IP is: ", client_ip)
     try:
         measurement_id = perform_ripe_measurement(server, client_ip=client_ip, wanted_ip_type=wanted_ip_type)
         this_server_ip = get_server_ip_if_possible(wanted_ip_type) # this does not affect the measurement

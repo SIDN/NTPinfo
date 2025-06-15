@@ -1,3 +1,5 @@
+
+
 import ntplib
 from ipaddress import ip_address
 import json
@@ -345,6 +347,7 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
         "bill_to": get_ripe_account_email(),
         "probes": get_probes(client_ip, ip_family_of_ntp_server, probes_requested)  # we want probes close to the client
     }
+    # pprint.pprint(request_content["probes"])
     return headers, request_content
 # m=perform_ntp_measurement_domain_name("time.google.com")
 # m=perform_ntp_measurement_domain_name("pool.ntp.org","83.25.24.10")

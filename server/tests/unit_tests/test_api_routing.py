@@ -229,54 +229,61 @@ def test_read_root(test_client):
     assert response.json() == {"Hello": "World"}
 
 
+@patch("server.app.api.routing.get_server_ip")
 @patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
 @patch("server.app.services.api_services.insert_measurement")
 @patch("server.app.services.api_services.is_ip_address")
-def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_measurement, test_client):
+def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_measurement, mock_get_server_ip, test_client):
     mock_is_ip.return_value = None
     measurement = mock_measurement()
+    mock_get_server_ip.return_value = "234.22.41.9"
 
     mock_perform_measurement.return_value = [measurement]
 
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    response = test_client.post("/measurements/", json={"server": "pool.ntp.org"},
+    response = test_client.post("/measurements/", json={"server": "pool.ntp.org", "ipv6_measurement": False},
                                 headers=headers)
     assert response.status_code == 200
     assert "measurement" in response.json()
     assert response.json()["measurement"][0]["ntp_server_name"] == "pool.ntp.org"
     assert response.json()["measurement"][0]["jitter"] == 0
-    mock_perform_measurement.assert_called_with("pool.ntp.org", "83.25.24.10")
+    mock_perform_measurement.assert_called_with("pool.ntp.org", "83.25.24.10", 4)
     mock_insert.assert_called_once_with(measurement, mock_insert.call_args[0][1])
 
-
+@patch("server.app.api.routing.get_server_ip")
 @patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
 @patch("server.app.services.api_services.insert_measurement")
 @patch("server.app.services.api_services.is_ip_address")
-def test_read_data_measurement_missing_measurement_no(mock_is_ip, mock_insert, mock_perform_measurement, test_client):
+def test_read_data_measurement_missing_measurement_no(mock_is_ip, mock_insert, mock_perform_measurement,
+                                                      mock_get_server_ip, test_client):
     mock_is_ip.return_value = None
     measurement = mock_measurement()
+    mock_get_server_ip.return_value = "234.22.41.9"
     mock_perform_measurement.return_value = (measurement, ["83.25.24.10"])
 
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    response = test_client.post("/measurements/", json={"server": "pool.ntp.org"},
+    response = test_client.post("/measurements/", json={"server": "pool.ntp.org", "ipv6_measurement": False},
                                 headers=headers)
     assert response.status_code == 400
     assert '{"detail":"Server is not reachable."}' in response.text
 
 
+@patch("server.app.api.routing.get_server_ip")
 @patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
 @patch("server.app.services.api_services.insert_measurement")
 @patch("server.app.services.api_services.is_ip_address")
 @patch("server.app.services.api_services.calculate_jitter_from_measurements")
-def test_read_data_measurement_with_jitter(mock_jitter, mock_is_ip, mock_insert, mock_perform_measurement, test_client):
+def test_read_data_measurement_with_jitter(mock_jitter, mock_is_ip, mock_insert, mock_perform_measurement,
+                                           mock_get_server_ip, test_client):
     mock_is_ip.return_value = None
     measurement = mock_measurement()
+    mock_get_server_ip.return_value = "234.22.41.9"
     mock_perform_measurement.return_value = [measurement]
     mock_jitter.return_value = 0.75, 4
 
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = test_client.post("/measurements/",
-                                json={"server": "pool.ntp.org"},
+                                json={"server": "pool.ntp.org", "ipv6_measurement": False},
                                 headers=headers)
     assert response.status_code == 200
     json_data = response.json()
@@ -294,10 +301,12 @@ def test_read_data_measurement_missing_server(test_client):
     assert response.json() == {"detail": "Either 'ip' or 'dn' must be provided."}
 
 
-def test_read_data_measurement_wrong_server(test_client):
+@patch("server.app.api.routing.get_server_ip")
+def test_read_data_measurement_wrong_server(mock_get_server_ip, test_client):
+    mock_get_server_ip.return_value = "234.22.41.9"
     headers = {"X-Forwarded-For": "83.25.24.10"}
 
-    response = test_client.post("/measurements/", json={"server": "random-server-name.org", },
+    response = test_client.post("/measurements/", json={"server": "random-server-name.org", "ipv6_measurement": False},
                                 headers=headers)
     assert response.status_code == 400
     assert response.json() == {"detail": "Server is not reachable."}
@@ -395,28 +404,31 @@ def test_read_historic_data_wrong_end(test_client):
     assert response.json() == {"detail": "'end' cannot be in the future"}
 
 
+@patch("server.app.api.routing.get_server_ip")
 @patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
 @patch("server.app.services.api_services.insert_measurement")
 @patch("server.app.services.api_services.is_ip_address")
-def test_perform_measurement_with_rate_limiting(mock_is_ip, mock_insert, mock_perform_measurement, test_client):
+def test_perform_measurement_with_rate_limiting(mock_is_ip, mock_insert, mock_perform_measurement,
+                                                mock_get_server_ip, test_client):
     mock_is_ip.return_value = None
     measurement = mock_measurement()
+    mock_get_server_ip.return_value = "234.22.41.9"
 
     mock_perform_measurement.return_value = [measurement]
 
     for _ in range(5):
         headers = {"X-Forwarded-For": "83.25.24.10"}
-        response = test_client.post("/measurements/", json={"server": "pool.ntp.org"},
+        response = test_client.post("/measurements/", json={"server": "pool.ntp.org", "ipv6_measurement": False},
                                     headers=headers)
         assert response.status_code == 200
         assert "measurement" in response.json()
         assert response.json()["measurement"][0]["ntp_server_name"] == "pool.ntp.org"
         assert response.json()["measurement"][0]["jitter"] == 0.0
-        mock_perform_measurement.assert_called_with("pool.ntp.org", "83.25.24.10")
+        mock_perform_measurement.assert_called_with("pool.ntp.org", "83.25.24.10", 4)
 
     assert mock_perform_measurement.call_count == 5
     calls_before_6th = mock_perform_measurement.call_count
-    response = test_client.post("/measurements/", json={"server": "pool.ntp.org"},
+    response = test_client.post("/measurements/", json={"server": "pool.ntp.org", "ipv6_measurement": False},
                                 headers=headers)
     assert response.status_code == 429
     assert response.json() == {"error": "Rate limit exceeded: 5 per 1 second"}
@@ -511,7 +523,7 @@ def test_historic_data_dn_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock
 def test_trigger_ripe_measurement_server_not_present(test_client):
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = test_client.post("/measurements/ripe/trigger/",
-                                json={"server": ""},
+                                json={"server": "", "ipv6_measurement": False},
                                 headers=headers)
     assert response.status_code == 400
     assert response.json() == {"detail": "Either 'ip' or 'dn' must be provided"}
@@ -522,7 +534,7 @@ def test_trigger_ripe_measurement_server_ip(mock_perform_ripe_measurement, test_
     mock_perform_ripe_measurement.return_value = "123456"
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = test_client.post("/measurements/ripe/trigger/",
-                                json={"server": "83.25.24.10"},
+                                json={"server": "83.25.24.10", "ipv6_measurement": False},
                                 headers=headers)
     assert response.status_code == 200
     assert response.json()["measurement_id"] == "123456"
@@ -535,7 +547,7 @@ def test_trigger_ripe_measurement_server_dn(mock_perform_ripe_measurement, test_
     mock_perform_ripe_measurement.return_value = "123456"
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = test_client.post("/measurements/ripe/trigger/",
-                                json={"server": "time.server_some.com"},
+                                json={"server": "time.server_some.com", "ipv6_measurement": False},
                                 headers=headers)
     assert response.status_code == 200
     assert response.json()["measurement_id"] == "123456"
@@ -549,7 +561,7 @@ def test_trigger_ripe_measurement_server_error(mock_perform_ripe_measurement, te
 
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = test_client.post("/measurements/ripe/trigger/",
-                                json={"server": "time.server_some.com"},
+                                json={"server": "time.server_some.com", "ipv6_measurement": False},
                                 headers=headers)
 
     assert response.status_code == 500

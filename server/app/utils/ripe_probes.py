@@ -351,8 +351,7 @@ def get_available_probes_asn_and_prefix(client_ip: str, ip_asn: str, ip_prefix: 
         except Exception as e:
             print(f"error (safe): {e}")
 
-    # print(probe_ids_list)
-    print(f"asn and prefix list{len(probe_ids_list)}")
+    # print(f"asn and prefix list{len(probe_ids_list)}")
     return probe_ids_list
 
 
@@ -406,8 +405,7 @@ def get_available_probes_asn_and_country(client_ip: str, ip_asn: str, ip_country
     probe_ids_dist_list.sort(key=lambda x: x[1])
     probe_ids_list: list[int] = [i for (i, d) in probe_ids_dist_list]
 
-    # print(probe_ids_list)
-    print(f"asn and country list {len(probe_ids_list)}")
+    # print(f"asn and country list {len(probe_ids_list)}")
     return probe_ids_list
 
 
@@ -451,7 +449,7 @@ def get_available_probes_asn(client_ip: str, ip_asn: str, ip_type: str) -> list[
             probe_ids_list.append(p.id)
         except Exception as e:
             print(f"error (safe): {e}")
-    print(f"asn list {len(probe_ids_list)}")
+    # print(f"asn list {len(probe_ids_list)}")
     return probe_ids_list
 
 
@@ -492,7 +490,7 @@ def get_available_probes_prefix(client_ip: str, ip_prefix: str, ip_type: str) ->
             probe_ids_list.append(p.id)
         except Exception as e:
             print(f"error (safe): {e}")
-    print(f"prefix list{len(probe_ids_list)}")
+    # print(f"prefix list{len(probe_ids_list)}")
     return probe_ids_list
 
 
@@ -543,7 +541,7 @@ def get_available_probes_country(client_ip: str, country_code: str, ip_type: str
     probe_ids_dist_list.sort(key=lambda x: x[1])
     probe_ids_list: list[int] = [i for (i, d) in probe_ids_dist_list]
 
-    print(f"country list{len(probe_ids_list)}")
+    # print(f"country list{len(probe_ids_list)}")
     return probe_ids_list
 
 

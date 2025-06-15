@@ -6,6 +6,8 @@ from ipaddress import ip_address, IPv4Address, IPv6Address
 from typing import Optional
 import ntplib
 import requests
+import dns.resolver
+import dns.reversename
 
 from server.app.utils.load_config_data import get_ipv4_edns_server, get_ipv6_edns_server
 from server.app.utils.load_config_data import get_mask_ipv4, get_mask_ipv6
@@ -46,7 +48,7 @@ def ref_id_to_ip_or_name(ref_id: int, stratum: int) \
             return None, None  # invalid stratum!!
 
 
-def get_ip_family(ip_str: str) -> int:
+def get_ip_family(ip_str: Optional[str]) -> int:
     """
     This method returns the IP family of the given IP address. It returns 4 if we have an IPv4, and
     it returns 6 if we have an IPv6 address. Otherwise, it raises an exception.
@@ -137,8 +139,8 @@ def get_prefix_from_ip(ip_str: str) -> Optional[str]:
         str: the prefix of an IP address.
     """
     try:
-        ip_str = ip_to_str(randomize_ip(ip_address(ip_str)))
-        response = requests.get(f"https://stat.ripe.net/data/prefix-overview/data.json?resource={ip_str}")
+        ip_str_to_ask = ip_to_str(randomize_ip(ip_address(ip_str)))
+        response = requests.get(f"https://stat.ripe.net/data/prefix-overview/data.json?resource={ip_str_to_ask}")
         response.raise_for_status()
         data = response.json()["data"]
         prefix: str = data.get("resource", None)
@@ -162,28 +164,6 @@ def ip_to_str(ip: Optional[IPv4Address | IPv6Address]) -> Optional[str]:
         Optional[str]: The string representation of the IP address, or `None` if the input is `None`.
     """
     return str(ip) if ip is not None else None
-
-
-def ip_to_location(ip_str: str) -> tuple[float, float]:
-    """
-    This method returns the latitude and longitude of an IP address by making an API call.
-    This method also works with a domain name, but it is recommended to use an IP address.
-    (These API calls are unlimited)
-
-    Args:
-        ip_str: The IP address.
-
-    Returns:
-        tuple[float, float]: latitude and longitude of the provided IP address.
-
-    Raises:
-        Exception: If the IP provided is invalid
-    """
-    response = requests.get(f"https://ipwhois.app/json/{ip_str}")
-    data = response.json()
-    latitude: float = data.get("latitude", None)
-    longitude: float = data.get("longitude", None)
-    return latitude, longitude
 
 
 def get_server_ip(wanted_ip_type: int=4) -> IPv4Address | IPv6Address | None:
@@ -210,7 +190,7 @@ def get_server_ip(wanted_ip_type: int=4) -> IPv4Address | IPv6Address | None:
         # search for IPv4 DNS IP addresses in the config
         dns_server_used = get_ipv4_edns_server()
     s = socket.socket(family, socket.SOCK_DGRAM) # with wanted connection type and Data socket (UDP)
-    ip = None
+    ip: Optional[str] = None
     try:
         s.connect((dns_server_used, 80))
         ip = s.getsockname()[0]
@@ -221,7 +201,7 @@ def get_server_ip(wanted_ip_type: int=4) -> IPv4Address | IPv6Address | None:
 
     try:
         # if it is public
-        if get_country_for_ip(ip) is not None:
+        if ip is not None and get_country_for_ip(ip) is not None:
             return ip_address(ip)
         # if it is private
         ip_public = get_server_ip_from_ipify(wanted_ip_type)
@@ -272,17 +252,19 @@ def get_server_ip_from_ipify(wanted_ip_type: int) -> IPv4Address | IPv6Address |
         data = response.json()
         ip_str: str = data.get("ip", None)
         return ip_address(ip_str.strip())
-    except Exception:
+    except Exception as e:
+        print(e)
         return None
 
 
-def client_ip_fetch(request: Request) -> str | None:
+def client_ip_fetch(request: Request, wanted_ip_type: int) -> str | None:
     """
     Attempts to determine the client's IP address from the request.
 
     Args:
         request (Request): The FastAPI Request object, containing information
                            about the incoming client request
+        wanted_ip_type (int): The type of IP address that you want to get. (4 or 6)
 
     Returns:
         str: The determined IP address of the client (or a fallback server IP)
@@ -294,13 +276,48 @@ def client_ip_fetch(request: Request) -> str | None:
     """
     try:
         client_ip = request.headers.get("X-Forwarded-For", request.client.host if request.client is not None else None)
-        if client_ip is None:
-            client_ip = ip_to_str(get_server_ip())
+        # if it is None or if it is private (a private IP is useless for us)
+        if client_ip is None or get_country_for_ip(client_ip) is None:
+            client_ip = ip_to_str(get_server_ip(wanted_ip_type))
 
-        return client_ip
+        # test if you got the desired IP address type
+        if get_ip_family(client_ip) == wanted_ip_type:
+            return client_ip
+        else: # try to convert it. If conversion fails, it returns the original IP address
+            return try_converting_ip(client_ip, wanted_ip_type)
+
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=503, detail="Could not resolve client IP or fallback IP.")
 
+def try_converting_ip(client_ip: Optional[str], wanted_ip_type: int) -> Optional[str]:
+    """
+    This method tries to convert an IPv4 into IPv6 or an IPv6 into an IPv4 using reverse DNS from dnspython.
+    It only works if there is a configured PTR record + AAAA record.
+
+    Args:
+        client_ip (Optional[str]): The client IP to convert.
+        wanted_ip_type (int): The type of IP address that we want.
+
+    Returns:
+        Optional[str]: The converted IPv6 or IPv4 as a string or the original IP if the process failed.
+    """
+    if client_ip is None:
+        return None
+    try: #getting PTR record
+        reverse_name = dns.reversename.from_address(client_ip)
+        answer = dns.resolver.resolve(reverse_name, 'PTR')
+        client_domain_name = str(answer[0]).rstrip('.')
+        # try getting IPv4 or IPv6
+        rdtype = "A"
+        if wanted_ip_type == 6:
+            rdtype = "AAAA"
+        new_ip = dns.resolver.resolve(client_domain_name, rdtype)
+        return str(new_ip[0])
+    except Exception as e:
+        # It failed. Return the original IP
+        # print(e)
+        return client_ip
 
 def is_this_ip_anycast(searched_ip: Optional[str]) -> bool:
     """
@@ -375,6 +392,6 @@ def randomize_ip(ip: IPv4Address | IPv6Address) -> IPv4Address | IPv6Address | N
         return None
 
 # print(get_server_ip(4))
-# print(get_server_ip(6))
-# print(get_server_ip_from_ipify(4))
-# print(get_server_ip_from_ipify(6))
+# print(get_server_ip(6))2001:610:450:41::18f
+# print(try_converting_ip("2001:610:450:41::18f",4))
+# print(try_converting_ip("145.126.193.143",6))

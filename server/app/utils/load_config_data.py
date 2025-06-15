@@ -1,5 +1,4 @@
 import ipaddress
-import math
 import os
 from pathlib import Path
 from typing import Any, cast, Optional
