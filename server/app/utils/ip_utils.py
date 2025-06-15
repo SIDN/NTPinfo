@@ -7,6 +7,7 @@ from typing import Optional
 import ntplib
 import requests
 
+from server.app.utils.load_config_data import get_ipv4_edns_server, get_ipv6_edns_server
 from server.app.utils.load_config_data import get_mask_ipv4, get_mask_ipv6
 from server.app.utils.location_resolver import get_asn_for_ip, get_country_for_ip, get_continent_for_ip
 from server.app.models.CustomError import InputError
@@ -186,40 +187,75 @@ def ip_to_location(ip_str: str) -> tuple[float, float]:
     return latitude, longitude
 
 
-def get_server_ip() -> IPv4Address | IPv6Address | None:
+def get_server_ip(wanted_ip_type: int=4) -> IPv4Address | IPv6Address | None:
     """
     Determines the outward-facing IP address of the server by opening a
-    dummy UDP connection to a well-known external host (Google DNS).
+    dummy UDP connection to a well-known external host (taken from the config). If you want IPv4,
+    it will open an IPv4 connection, otherwise it will open an IPv6 connection.
+    It will return None if it could not return the type you wanted.
+
+    Args:
+        wanted_ip_type (int): The type of IP address we are looking for.
 
     Returns:
         Optional[Union[IPv4Address, IPv6Address]]: The server's external IP address
         as an IPv4Address or IPv6Address object, or None if detection fails.
-
-    Raises:
-        ValueError: If the detected IP address is not a valid IPv4 or IPv6 address.
     """
-    # use a dummy connection to get the outward-facing IP
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # use a dummy connection to get the outward-facing IP (IPv4 or IPv6 connection)
+    family = socket.AF_INET6 if wanted_ip_type == 6 else socket.AF_INET
+    dns_server_used: Optional[str]
+    if wanted_ip_type == 6:
+        # search for IPv6 DNS IP addresses in the config
+        dns_server_used = get_ipv6_edns_server()
+    else:
+        # search for IPv4 DNS IP addresses in the config
+        dns_server_used = get_ipv4_edns_server()
+    s = socket.socket(family, socket.SOCK_DGRAM) # with wanted connection type and Data socket (UDP)
+    ip = None
     try:
-        s.connect((get_edns_default_servers()[0], 80))
+        s.connect((dns_server_used, 80))
         ip = s.getsockname()[0]
     except Exception as e:
-        return None
+        print(f"Socket failed. Trying from ipify...")
+        # return None
     finally:
         s.close()
+
     try:
         # if it is public
         if get_country_for_ip(ip) is not None:
             return ip_address(ip)
         # if it is private
-        ip_public = get_server_ip_from_ipify()
+        ip_public = get_server_ip_from_ipify(wanted_ip_type)
         print(f"fallback to public IP: {ip_to_str(ip_public)}")
         return ip_public
     except ValueError:
         return None
 
+def get_server_ip_if_possible(wanted_ip_type: int) -> IPv4Address | IPv6Address | None:
+    """
+    This method returns the IP address of this server. If it has both IPv6 and IPv4, it will return whatever
+    type you wanted. If not, it returns the type it has. (It has at least one IP address which is either IPv4 or IPv6)
 
-def get_server_ip_from_ipify() -> IPv4Address | IPv6Address | None:
+    Args:
+        wanted_ip_type (int): The type of IP address that you want to get. (4 or 6)
+
+    Returns:
+        IPv4Address | IPv6Address | None: The IP address of this server with the desired IP type if possible.
+    """
+    try:
+        ip = get_server_ip_from_ipify(wanted_ip_type)
+        if ip is None: # try the other IP
+            ip = get_server_ip_from_ipify(10 - wanted_ip_type)
+        return ip
+    except Exception as e:
+        return None
+
+def get_server_ip_strict(wanted_ip_type: int) -> IPv4Address | IPv6Address | None:
+    return get_server_ip_from_ipify(wanted_ip_type)
+
+
+def get_server_ip_from_ipify(wanted_ip_type: int) -> IPv4Address | IPv6Address | None:
     """
     This method is a fallback to try to get the public IP address of our server from ipify.org
 
@@ -227,8 +263,11 @@ def get_server_ip_from_ipify() -> IPv4Address | IPv6Address | None:
         Optional[IPv4Address | IPv6Address]: The public IP address of our server.
     """
     try:
+        ip_type: str = "" # which means 4
+        if wanted_ip_type == 6:
+            ip_type = "6"
         # api64 will return ipv4 or ipv6 if it is available
-        response = requests.get("https://api64.ipify.org?format=json", timeout=3)
+        response = requests.get(f"https://api{ip_type}.ipify.org?format=json", timeout=3)
         response.raise_for_status()
 
         data = response.json()
@@ -335,3 +374,8 @@ def randomize_ip(ip: IPv4Address | IPv6Address) -> IPv4Address | IPv6Address | N
     except InputError as e:
         print(f"IP cannot be randomized. {e}")
         return None
+
+print(get_server_ip(4))
+print(get_server_ip(6))
+# print(get_server_ip_from_ipify(4))
+# print(get_server_ip_from_ipify(6))

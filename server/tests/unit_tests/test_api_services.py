@@ -102,7 +102,7 @@ def test_measure_with_domain(mock_measure_ip, mock_measure_domain, mock_insert, 
     result = measure("pool.ntp.org", 4, fake_session)
 
     assert result == [(fake_measurement, 0, 1)]
-    mock_measure_domain.assert_called_once_with("pool.ntp.org", None)
+    mock_measure_domain.assert_called_once_with("pool.ntp.org", None, 4)
     mock_insert.assert_called_once_with(fake_measurement, mock_insert.call_args[0][1])  # pool
     mock_measure_ip.assert_not_called()
 
@@ -119,7 +119,7 @@ def test_measure_with_invalid_ip(mock_measure_ip, mock_measure_domain, mock_inse
 
     assert result is None
     mock_measure_ip.assert_not_called()
-    mock_measure_domain.assert_called_once_with("not.an.ip", None)
+    mock_measure_domain.assert_called_once_with("not.an.ip", None, 4)
     mock_insert.assert_not_called()
 
 
@@ -134,7 +134,7 @@ def test_measure_with_unresolvable_input(mock_measure_ip, mock_measure_domain, m
 
     assert result is None
     mock_measure_ip.assert_not_called()
-    mock_measure_domain.assert_called_once_with("not.an.ip", None)
+    mock_measure_domain.assert_called_once_with("not.an.ip", None, 4)
     mock_insert.assert_not_called()
 
 
@@ -177,7 +177,7 @@ def test_measure_with_exception(mock_measure_ip, mock_measure_domain, mock_inser
 
     assert result is None
     mock_measure_ip.assert_not_called()
-    mock_measure_domain.assert_called_once_with("invalid.server", None)
+    mock_measure_domain.assert_called_once_with("invalid.server", None, 4)
     mock_insert.assert_not_called()
 
 

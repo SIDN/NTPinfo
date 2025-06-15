@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from server.app.utils.location_resolver import get_country_for_ip, get_coordinates_for_ip
-from server.app.utils.ip_utils import client_ip_fetch
+from server.app.utils.ip_utils import client_ip_fetch, get_server_ip_if_possible, get_server_ip_strict
 from server.app.models.CustomError import DNSError, MeasurementQueryError
 from server.app.utils.ip_utils import ip_to_str
 from server.app.models.CustomError import InputError, RipeMeasurementError
@@ -43,7 +43,8 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
 
     This endpoint receives a JSON payload containing the server to be measured.
     It uses the `measure()` function to perform the NTP synchronization measurement,
-    and formats the result using `get_format()`.
+    and formats the result using `get_format()`. User can choose whether they want to measure IPv4 of IPv6,
+    but this will take effect only for domain names. If user inputs an IP, we will measure the type of that IP.
 
     This endpoint is also limited to 5 requests per minute to prevent abuse and reduce server load.
 
@@ -69,6 +70,10 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided.")
     client_ip: Optional[str] = client_ip_fetch(request=request)
+
+    this_server_ip_strict = get_server_ip_strict(wanted_ip_type)
+    if this_server_ip_strict is None: # which means we cannot perform this type of NTP measurements from our server
+        raise HTTPException(status_code=422, detail=f"Our server cannot perform IPv{wanted_ip_type} measurements currently. Try the other IP type.")
     try:
         response = measure(server, wanted_ip_type, session, client_ip)
         # print(response)
@@ -197,14 +202,15 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
     client_ip: Optional[str] = client_ip_fetch(request=request)
     try:
         measurement_id = perform_ripe_measurement(server, client_ip=client_ip, wanted_ip_type=wanted_ip_type)
+        this_server_ip = get_server_ip_if_possible(wanted_ip_type) # this does not affect the measurement
         return JSONResponse(
             status_code=200,
             content={
                 "measurement_id": measurement_id,
-                "vantage_point_ip": ip_to_str(get_server_ip()),
+                "vantage_point_ip": ip_to_str(this_server_ip),
                 "vantage_point_location": {
-                    "country_code": get_country_for_ip(str(get_server_ip())),
-                    "coordinates": get_coordinates_for_ip(str(get_server_ip()))
+                    "country_code": get_country_for_ip(ip_to_str(this_server_ip)),
+                    "coordinates": get_coordinates_for_ip(ip_to_str(this_server_ip))
                 },
                 "status": "started",
                 "message": "You can fetch the result at /measurements/ripe/{measurement_id}",
