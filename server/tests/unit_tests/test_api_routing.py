@@ -1,3 +1,4 @@
+import time
 from unittest.mock import patch, MagicMock
 import pytest
 from fastapi.testclient import TestClient
@@ -449,6 +450,7 @@ def test_historic_data_ip_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock
 
     mock_get_ip.return_value = mock_data  # Mock for IP address fetch
     mock_get_dn.return_value = mock_data  # Mock for Domain Name fetch
+    time.sleep(2) # assure it is paused
     for _ in range(5):
         response = test_client.get("/measurements/history/", params={
             "server": "192.168.1.1",

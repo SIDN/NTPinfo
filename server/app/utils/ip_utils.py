@@ -201,7 +201,7 @@ def get_server_ip(wanted_ip_type: int=4) -> IPv4Address | IPv6Address | None:
 
     try:
         # if it is public
-        if ip is not None and get_country_for_ip(ip) is not None:
+        if ip is not None and is_private_ip(ip) is not None:
             return ip_address(ip)
         # if it is private
         ip_public = get_server_ip_from_ipify(wanted_ip_type)
@@ -277,7 +277,7 @@ def client_ip_fetch(request: Request, wanted_ip_type: int) -> str | None:
     try:
         client_ip = request.headers.get("X-Forwarded-For", request.client.host if request.client is not None else None)
         # if it is None or if it is private (a private IP is useless for us)
-        if client_ip is None or get_country_for_ip(client_ip) is None:
+        if client_ip is None or is_private_ip(client_ip) is None:
             client_ip = ip_to_str(get_server_ip(wanted_ip_type))
 
         # test if you got the desired IP address type
@@ -318,6 +318,22 @@ def try_converting_ip(client_ip: Optional[str], wanted_ip_type: int) -> Optional
         # It failed. Return the original IP
         # print(e)
         return client_ip
+
+def is_private_ip(ip_str: str) -> bool:
+    """
+    This method checks whether an IP address is a private IP.
+
+    Args:
+        ip_str (str): The IP address to check.
+
+    Returns:
+        bool: Whether the IP address is a private IP.
+    """
+    try:
+        ip_obj = ipaddress.ip_address(ip_str)
+        return ip_obj.is_private
+    except Exception:
+        return False
 
 def is_this_ip_anycast(searched_ip: Optional[str]) -> bool:
     """
