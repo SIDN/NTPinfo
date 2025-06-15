@@ -80,9 +80,9 @@ def get_best_probes_with_multiple_attributes(client_ip: str, current_probes_set:
     Args:
         client_ip (str): The IP address of the client.
         current_probes_set (set[int]): The set of probes that we will use for the measurement. (to be sure that we do not include duplicates)
-        ip_asn (int): The ASN of the NTP server IP address.
-        ip_prefix (str): The prefix of the NTP server IP address.
-        ip_country (str): The country of the NTP server IP address.
+        ip_asn (Optional[str]): The ASN of the NTP server IP address.
+        ip_prefix (Optional[str]): The prefix of the NTP server IP address.
+        ip_country (Optional[str]): The country of the NTP server IP address.
         ip_family (int): The family of the NTP server IP address. (4 or 6)
         probes_requested (int): The number of probes that we still need to request.
 

@@ -1,9 +1,13 @@
+import ipaddress
+import os
+import random
 import socket
 from ipaddress import ip_address, IPv4Address, IPv6Address
 from typing import Optional
 import ntplib
 import requests
 
+from server.app.utils.load_config_data import get_mask_ipv4, get_mask_ipv6
 from server.app.utils.location_resolver import get_asn_for_ip, get_country_for_ip, get_continent_for_ip
 from server.app.models.CustomError import InputError
 from server.app.utils.load_config_data import get_edns_default_servers
@@ -181,13 +185,6 @@ def ip_to_location(ip_str: str) -> tuple[float, float]:
     return latitude, longitude
 
 
-# import time
-
-# start = time.time()
-# print(get_ip_network_details("80.211.238.247"))
-# print(get_prefix_from_ip("80.211.238.247"))
-# end = time.time()
-
 def get_server_ip() -> IPv4Address | IPv6Address | None:
     """
     Determines the outward-facing IP address of the server by opening a
@@ -210,8 +207,32 @@ def get_server_ip() -> IPv4Address | IPv6Address | None:
     finally:
         s.close()
     try:
-        return ip_address(ip)
+        # if it is public
+        if get_country_for_ip(ip) is not None:
+            return ip_address(ip)
+        # if it is private
+        ip_public = get_server_ip_from_ipify()
+        print(f"fallback to public IP: {ip_to_str(ip_public)}")
+        return ip_public
     except ValueError:
+        return None
+
+
+def get_server_ip_from_ipify() -> IPv4Address | IPv6Address | None:
+    """
+    This method is a fallback to try to get the public IP address of our server from ipify.org
+
+    Returns:
+        Optional[IPv4Address | IPv6Address]: The public IP address of our server.
+    """
+    try:
+        response = requests.get("https://api.ipify.org?format=json", timeout=3)
+        response.raise_for_status()
+
+        data = response.json()
+        ip_str: str = data.get("ip", None)
+        return ip_address(ip_str.strip())
+    except Exception:
         return None
 
 
@@ -239,3 +260,76 @@ def client_ip_fetch(request: Request) -> str | None:
         return client_ip
     except Exception as e:
         raise HTTPException(status_code=503, detail="Could not resolve client IP or fallback IP.")
+
+
+def is_this_ip_anycast(searched_ip: Optional[str]) -> bool:
+    """
+    This method checks whether an IP address is anycast or not, by searching in the local anycast prefix databases.
+    This method would never throw an exception. (If the databases don't exist, it will return False)
+
+    Args:
+        searched_ip (Optional[str]): The IP address to check.
+
+    Returns:
+        bool: Whether the IP address is anycast or not.
+    """
+    if searched_ip is None:
+        return False
+    try:
+        ip_family = get_ip_family(searched_ip)
+        ip = ip_address(searched_ip)
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        # get the correct database
+        if ip_family == 4:
+            file_path = os.path.abspath(os.path.join(current_dir, "..", "..", "anycast-v4-prefixes.txt"))
+        else:
+            file_path = os.path.abspath(os.path.join(current_dir, "..", "..", "anycast-v6-prefixes.txt"))
+
+        with open(file_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                try:
+                    whole_network: ipaddress._BaseNetwork
+                    if ip_family == 4:
+                        whole_network = ipaddress.IPv4Network(line, strict=False)
+                    else:
+                        whole_network = ipaddress.IPv6Network(line, strict=False)
+                    if ip in whole_network:
+                        print(line)
+                        return True
+                except Exception as e:
+                    continue
+        return False
+    except Exception as e:
+        print(f"Error (safe) in is anycast: {e}")
+        return False
+
+
+def randomize_ip(ip: IPv4Address | IPv6Address) -> IPv4Address | IPv6Address | None:
+    """
+    Randomizes the host bits of an IPv4 or IPv6 address based on a subnet mask length.
+
+    Args:
+        ip (IPv4Address | IPv6Address): The IPv4 or IPv6 address to randomize.
+
+    Returns:
+        IPv4Address | IPv6Address: A new IPv4 or IPv6 address with the same network bits and randomized host bits.
+    """
+    try:
+        if get_ip_family(str(ip)) == 4:
+            mask_length = get_mask_ipv4()
+            network_mask = (2 ** 32 - 1) << (32 - mask_length) & 0xFFFFFFFF
+            random_host = random.getrandbits(32 - mask_length)
+        else:
+            mask_length = get_mask_ipv6()
+            network_mask = (2 ** 128 - 1) << (128 - mask_length) & (2 ** 128 - 1)
+            random_host = random.getrandbits(128 - mask_length)
+
+        ip_int = int(ip)
+        network_part = ip_int & network_mask
+        randomized_ip_int = network_part | random_host
+        return ip_address(randomized_ip_int)
+
+    except InputError as e:
+        print(f"IP cannot be randomized. {e}")
+        return None

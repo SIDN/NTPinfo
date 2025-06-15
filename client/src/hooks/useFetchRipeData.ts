@@ -1,6 +1,6 @@
 import {useEffect, useState, useRef} from "react"
 import axios from "axios"
-import { RIPEData } from "../utils/types"
+import { RIPEData, RipeStatus } from "../utils/types"
 import { transformJSONDataToRIPEData } from "../utils/transformJSONDataToRIPEData"
 
 /**
@@ -16,7 +16,7 @@ import { transformJSONDataToRIPEData } from "../utils/transformJSONDataToRIPEDat
  */
 export const useFetchRIPEData = (measurementId: string | null, intervalMs = 3000) => {
     const [result, setResult] = useState<RIPEData[] | null>(null)
-    const [status, setStatus] = useState<"pending" | "partial_results" | "complete" | "timeout" | "error">("pending")
+    const [status, setStatus] = useState<RipeStatus>("pending")
     const [error, setError] = useState<Error | null>(null)
 
     // @ts-ignore

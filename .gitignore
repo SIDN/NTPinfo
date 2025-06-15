@@ -33,6 +33,9 @@ run_pipeline.sh
 .coverage
 venv/
 
+#BGP tools db
+/server/anycast-v4-prefixes.txt
+/server/anycast-v6-prefixes.txt
 #MaxMind db
 /server/GeoLite2-City.mmdb
 /server/GeoLite2-ASN.mmdb

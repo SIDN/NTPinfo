@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+from server.app.utils.ip_utils import is_this_ip_anycast
 from server.app.utils.perform_measurements import perform_ntp_measurement_domain_name_list
 from server.app.utils.ip_utils import get_server_ip
 from server.app.models.CustomError import InputError, RipeMeasurementError
@@ -50,6 +51,7 @@ def get_format(measurement: NtpMeasurement, jitter: Optional[float] = None,
         "ntp_server_ip": ip_to_str(measurement.server_info.ntp_server_ip),
         "ntp_server_name": measurement.server_info.ntp_server_name,
         "ntp_server_location": {
+            "ip_is_anycast": is_this_ip_anycast(ip_to_str(measurement.server_info.ntp_server_ip)),
             "country_code": measurement.server_info.ntp_server_location.country_code,
             "coordinates": measurement.server_info.ntp_server_location.coordinates
         },
@@ -121,6 +123,7 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
         "ntp_server_ip": ip_to_str(measurement.ntp_measurement.server_info.ntp_server_ip),
         "ntp_server_name": measurement.ntp_measurement.server_info.ntp_server_name,
         "ntp_server_location": {
+            "ip_is_anycast": is_this_ip_anycast(ip_to_str(measurement.ntp_measurement.server_info.ntp_server_ip)),
             "country_code": measurement.ntp_measurement.server_info.ntp_server_location.country_code,
             "coordinates": measurement.ntp_measurement.server_info.ntp_server_location.coordinates
         },

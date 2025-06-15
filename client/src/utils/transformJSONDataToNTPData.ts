@@ -12,19 +12,30 @@ export const transformJSONDataToNTPData = (fetchedData: any): NTPData | null => 
         return null
     
     return {
-        offset: fetchedData.offset,
-        RTT: fetchedData.rtt,
-        stratum: fetchedData.stratum,
-        jitter: fetchedData.jitter,
-        precision: fetchedData.precision,
-        time: (fetchedData.client_sent_time.seconds - 2208988800) * 1000,
+        ntp_version: fetchedData.ntp_verison,
+        vantage_point_ip: fetchedData.vantage_point_ip,
         ip: fetchedData.ntp_server_ip,
         server_name: fetchedData.ntp_server_name,
-        ref_id: fetchedData.ntp_server_ref_parent_ip ?? fetchedData.ref_name,
-        root_dispersion: fetchedData.root_dispersion,
-        root_delay: fetchedData.root_delay,
-        vantage_point_ip: fetchedData.vantage_point_ip,
+        is_anycast: fetchedData.ntp_server_location.ip_is_anycast,
         country_code: fetchedData.ntp_server_location.country_code,
-        coordinates: [fetchedData.ntp_server_location.coordinates[0],fetchedData.ntp_server_location.coordinates[1]]
+        coordinates: [fetchedData.ntp_server_location.coordinates[0],fetchedData.ntp_server_location.coordinates[1]],
+        ntp_server_ref_parent_ip: fetchedData.ntp_server_ref_parent_ip,
+        ref_id: fetchedData.ref_name ?? fetchedData.ntp_server_ref_parent_ip,
+        client_sent_time: [fetchedData.client_sent_time.seconds, fetchedData.client_sent_time.fraction],
+        server_recv_time: [fetchedData.server_recv_time.seconds, fetchedData.server_recv_time.fraction],
+        server_sent_time: [fetchedData.server_sent_time.seconds, fetchedData.server_sent_time.fraction],
+        client_recv_time: [fetchedData.client_recv_time.seconds, fetchedData.client_recv_time.fraction],
+        offset: Number((fetchedData.offset * 1000).toFixed(3)),
+        RTT: Number((fetchedData.rtt * 1000).toFixed(3)),
+        stratum: fetchedData.stratum,
+        precision: fetchedData.precision,
+        root_delay: fetchedData.root_delay,
+        poll: fetchedData.poll,
+        root_dispersion: fetchedData.root_dispersion,
+        ntp_last_sync_time: [fetchedData.ntp_last_sync_time.seconds, fetchedData.ntp_last_sync_time.fraction],
+        leap: fetchedData.leap,
+        jitter: fetchedData.jitter,
+        nr_measurements_jitter: fetchedData.nr_measurements_jitter,
+        time: (fetchedData.client_sent_time.seconds - 2208988800) * 1000
     }
 };
