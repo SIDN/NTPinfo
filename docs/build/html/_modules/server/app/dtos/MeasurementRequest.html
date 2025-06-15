@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>server.app.dtos.MeasurementRequest &mdash; a  documentation</title>
+  <title>server.app.dtos.MeasurementRequest &mdash; NTPinfo  documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
 
@@ -29,7 +29,7 @@
           
           
           <a href="../../../../index.html" class="icon icon-home">
-            a
+            NTPinfo
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
@@ -41,7 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">Back-end server</a></li>
 </ul>
 
         </div>
@@ -50,7 +50,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../../index.html">a</a>
+          <a href="../../../../index.html">NTPinfo</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -83,6 +83,7 @@
 <span class="sd">        server (str): The IP address or domain name of the NTP server to be measured.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">server</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">ipv6_measurement</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="MeasurementRequest.validate_after">
 <a class="viewcode-back" href="../../../../server.app.dtos.html#server.app.dtos.MeasurementRequest.MeasurementRequest.validate_after">[docs-agendas]</a>
@@ -97,10 +98,13 @@
 
 <span class="sd">        Raises:</span>
 <span class="sd">            TypeError: if the server is not a string.</span>
+<span class="sd">            TypeError: if the flag for ipv6 measurement is not a bool.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;server must be str, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ipv6_measurement</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Flag for ipv6 measurement must be bool, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ipv6_measurement</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 </div>
 
@@ -113,7 +117,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, a.</p>
+    <p>&#169; Copyright 2025, TU Delft CSE 2000 Group 15d.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

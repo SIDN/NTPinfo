@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>server package &mdash; a  documentation</title>
+  <title>Application modules &mdash; NTPinfo  documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -19,8 +19,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="server.app package" href="server.app.html" />
-    <link rel="prev" title="server" href="modules.html" /> 
+    <link rel="next" title="Application Architecture" href="server.app.html" />
+    <link rel="prev" title="Getting started" href="getting_started.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -32,7 +32,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            a
+            NTPinfo
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -44,16 +44,15 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">server</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">server package</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.html">server.app package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.tests.html">server.tests package</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Back-end server</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html">Getting started</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Application modules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="server.app.html">Application Architecture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="infrastructure.html">Infrastructure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="services_utilities.html">Services and utilities</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#module-server">Module contents</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="server.tests.html">Testing</a></li>
 </ul>
 </li>
 </ul>
@@ -64,7 +63,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">a</a>
+          <a href="index.html">NTPinfo</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -72,8 +71,8 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="modules.html">server</a></li>
-      <li class="breadcrumb-item active">server package</li>
+          <li class="breadcrumb-item"><a href="modules.html">Back-end server</a></li>
+      <li class="breadcrumb-item active">Application modules</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/server.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -83,88 +82,45 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="server-package">
-<h1>server package<a class="headerlink" href="#server-package" title="Link to this heading"></a></h1>
-<section id="subpackages">
-<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading"></a></h2>
+  <section id="application-modules">
+<h1>Application modules<a class="headerlink" href="#application-modules" title="Link to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="server.app.html">server.app package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="server.app.html#subpackages">Subpackages</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html">server.app.dtos package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.MeasurementRequest">server.app.dtos.MeasurementRequest module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.NtpExtraDetails">server.app.dtos.NtpExtraDetails module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.NtpMainDetails">server.app.dtos.NtpMainDetails module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.NtpMeasurement">server.app.dtos.NtpMeasurement module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.NtpMeasurementResponse">server.app.dtos.NtpMeasurementResponse module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.NtpServerInfo">server.app.dtos.NtpServerInfo module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.NtpTimestamps">server.app.dtos.NtpTimestamps module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.PreciseTime">server.app.dtos.PreciseTime module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.ProbeData">server.app.dtos.ProbeData module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.RipeMeasurement">server.app.dtos.RipeMeasurement module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.RipeMeasurementResponse">server.app.dtos.RipeMeasurementResponse module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.RipeMeasurementTriggerResponse">server.app.dtos.RipeMeasurementTriggerResponse module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos">Module contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="server.app.html">Application Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="server.app.html#package-overview">Package Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.app.html#data-models-and-dtos">Data Models and DTOs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.app.html#api-routes">API Routes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.app.html#database-interaction">Database Interaction</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="server.app.models.html">server.app.models package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#submodules">Submodules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#module-server.app.models.Base">server.app.models.Base module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#module-server.app.models.CustomError">server.app.models.CustomError module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#module-server.app.models.Measurement">server.app.models.Measurement module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#module-server.app.models.Time">server.app.models.Time module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#module-server.app.models">Module contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="infrastructure.html">Infrastructure</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="infrastructure.html#module-server.app.db_config">Database Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="infrastructure.html#module-server.app.rate_limiter">Rate Limiting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="infrastructure.html#module-server.app.main">Application Entrypoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="infrastructure.html#module-server.app">Package Contents</a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.html#module-server.app.db_config">server.app.db_config module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.html#server.app.db_config.DB_CONFIG"><code class="docutils literal notranslate"><span class="pre">DB_CONFIG</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="server.app.html#server.app.db_config.dsn"><code class="docutils literal notranslate"><span class="pre">dsn</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="server.app.html#server.app.db_config.get_db"><code class="docutils literal notranslate"><span class="pre">get_db()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="server.app.html#server.app.db_config.init_engine"><code class="docutils literal notranslate"><span class="pre">init_engine()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.html#module-server.app.main">server.app.main module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.html#server.app.main.create_app"><code class="docutils literal notranslate"><span class="pre">create_app()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.html#module-server.app.rate_limiter">server.app.rate_limiter module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.html#server.app.rate_limiter.limiter"><code class="docutils literal notranslate"><span class="pre">limiter</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.html#id0"><code class="docutils literal notranslate"><span class="pre">limiter</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.html#module-server.app">Module contents</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="server.tests.html">server.tests package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="server.tests.html#module-server.tests">Module contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="services_utilities.html">Services and utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="services.html">Services</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utilities.html">Utilities</a></li>
 </ul>
 </li>
 </ul>
 </div>
-</section>
-<section id="module-server">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-server" title="Link to this heading"></a></h2>
-</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="modules.html" class="btn btn-neutral float-left" title="server" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="server.app.html" class="btn btn-neutral float-right" title="server.app package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="getting_started.html" class="btn btn-neutral float-left" title="Getting started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="server.app.html" class="btn btn-neutral float-right" title="Application Architecture" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, a.</p>
+    <p>&#169; Copyright 2025, TU Delft CSE 2000 Group 15d.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

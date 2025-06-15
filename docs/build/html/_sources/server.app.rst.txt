@@ -1,46 +1,33 @@
-server.app package
+Application Architecture
 ==================
 
-Subpackages
------------
+Package Overview
+----------------
+
+This package includes key components for the application's backend functionality, such as data transfer objects, models, database configuration, rate limiting, and the main entry point.
+
+Data Models and DTOs
+--------------------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
 
    server.app.dtos
    server.app.models
 
-Submodules
+API Routes
 ----------
 
-server.app.db\_config module
-----------------------------
+The following routes define the public API endpoints available in the application.
 
-.. automodule:: server.app.db_config
-   :members:
-   :show-inheritance:
-   :undoc-members:
+.. toctree::
+   :maxdepth: 1
 
-server.app.main module
-----------------------
+   server.app.api.routing
 
-.. automodule:: server.app.main
-   :members:
-   :show-inheritance:
-   :undoc-members:
+Database Interaction
+--------------------
+.. toctree::
+   :maxdepth: 2
 
-server.app.rate\_limiter module
--------------------------------
-
-.. automodule:: server.app.rate_limiter
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: server.app
-   :members:
-   :show-inheritance:
-   :undoc-members:
+   server.app.db.db_interaction

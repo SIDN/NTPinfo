@@ -1,4 +1,4 @@
-server.app.models package
+Database Models
 =========================
 
 Submodules

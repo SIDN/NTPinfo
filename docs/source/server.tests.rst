@@ -1,4 +1,4 @@
-server.tests package
+Testing
 ====================
 
 Module contents

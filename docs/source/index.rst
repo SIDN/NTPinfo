@@ -4,7 +4,7 @@ You can adapt this file completely to your liking, but it should at least
 contain the root `toctree` directive.
 
 
-a documentation
+NTPinfo documentation
 ===============
 
 Add your content using ``reStructuredText`` syntax. See the
@@ -12,7 +12,7 @@ Add your content using ``reStructuredText`` syntax. See the
 documentation for details.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: Contents:
 
    modules

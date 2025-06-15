@@ -1,19 +1,9 @@
-server package
+Application modules
 ==============
 
-Subpackages
------------
-
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 2
 
    server.app
-   server.tests
-
-Module contents
----------------
-
-.. automodule:: server
-   :members:
-   :show-inheritance:
-   :undoc-members:
+   infrastructure
+   services_utilities

@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>server.app package &mdash; a  documentation</title>
+  <title>Application Architecture &mdash; NTPinfo  documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
@@ -19,8 +19,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="server.app.dtos package" href="server.app.dtos.html" />
-    <link rel="prev" title="server package" href="server.html" /> 
+    <link rel="next" title="Data Transfer Objects" href="server.app.dtos.html" />
+    <link rel="prev" title="Application modules" href="server.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -32,7 +32,7 @@
           
           
           <a href="index.html" class="icon icon-home">
-            a
+            NTPinfo
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -44,16 +44,21 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="modules.html">server</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="server.html">server package</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="server.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l4 current"><a class="current reference internal" href="#">server.app package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.tests.html">server.tests package</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Back-end server</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="getting_started.html">Getting started</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="server.html">Application modules</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Application Architecture</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#package-overview">Package Overview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#data-models-and-dtos">Data Models and DTOs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#api-routes">API Routes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#database-interaction">Database Interaction</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="server.html#module-server">Module contents</a></li>
+<li class="toctree-l3"><a class="reference internal" href="infrastructure.html">Infrastructure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="services_utilities.html">Services and utilities</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="server.tests.html">Testing</a></li>
 </ul>
 </li>
 </ul>
@@ -64,7 +69,7 @@
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">a</a>
+          <a href="index.html">NTPinfo</a>
       </nav>
 
       <div class="wy-nav-content">
@@ -72,9 +77,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-          <li class="breadcrumb-item"><a href="modules.html">server</a></li>
-          <li class="breadcrumb-item"><a href="server.html">server package</a></li>
-      <li class="breadcrumb-item active">server.app package</li>
+          <li class="breadcrumb-item"><a href="modules.html">Back-end server</a></li>
+          <li class="breadcrumb-item"><a href="server.html">Application modules</a></li>
+      <li class="breadcrumb-item active">Application Architecture</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/server.app.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -84,400 +89,59 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="server-app-package">
-<h1>server.app package<a class="headerlink" href="#server-app-package" title="Link to this heading"></a></h1>
-<section id="subpackages">
-<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading"></a></h2>
+  <section id="application-architecture">
+<h1>Application Architecture<a class="headerlink" href="#application-architecture" title="Link to this heading"></a></h1>
+<section id="package-overview">
+<h2>Package Overview<a class="headerlink" href="#package-overview" title="Link to this heading"></a></h2>
+<p>This package includes key components for the application’s backend functionality, such as data transfer objects, models, database configuration, rate limiting, and the main entry point.</p>
+</section>
+<section id="data-models-and-dtos">
+<h2>Data Models and DTOs<a class="headerlink" href="#data-models-and-dtos" title="Link to this heading"></a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="server.app.dtos.html">server.app.dtos package</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="server.app.dtos.html">Data Transfer Objects</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="server.app.dtos.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.MeasurementRequest">server.app.dtos.MeasurementRequest module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.MeasurementRequest.MeasurementRequest"><code class="docutils literal notranslate"><span class="pre">MeasurementRequest</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.MeasurementRequest.MeasurementRequest.server"><code class="docutils literal notranslate"><span class="pre">MeasurementRequest.server</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.MeasurementRequest.MeasurementRequest.model_config"><code class="docutils literal notranslate"><span class="pre">MeasurementRequest.model_config</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#id0"><code class="docutils literal notranslate"><span class="pre">MeasurementRequest.server</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.MeasurementRequest.MeasurementRequest.validate_after"><code class="docutils literal notranslate"><span class="pre">MeasurementRequest.validate_after()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.NtpExtraDetails">server.app.dtos.NtpExtraDetails module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpExtraDetails.NtpExtraDetails"><code class="docutils literal notranslate"><span class="pre">NtpExtraDetails</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpExtraDetails.NtpExtraDetails.leap"><code class="docutils literal notranslate"><span class="pre">NtpExtraDetails.leap</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpExtraDetails.NtpExtraDetails.ntp_last_sync_time"><code class="docutils literal notranslate"><span class="pre">NtpExtraDetails.ntp_last_sync_time</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpExtraDetails.NtpExtraDetails.poll"><code class="docutils literal notranslate"><span class="pre">NtpExtraDetails.poll</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpExtraDetails.NtpExtraDetails.root_delay"><code class="docutils literal notranslate"><span class="pre">NtpExtraDetails.root_delay</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpExtraDetails.NtpExtraDetails.root_dispersion"><code class="docutils literal notranslate"><span class="pre">NtpExtraDetails.root_dispersion</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.NtpMainDetails">server.app.dtos.NtpMainDetails module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMainDetails.NtpMainDetails"><code class="docutils literal notranslate"><span class="pre">NtpMainDetails</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMainDetails.NtpMainDetails.offset"><code class="docutils literal notranslate"><span class="pre">NtpMainDetails.offset</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMainDetails.NtpMainDetails.precision"><code class="docutils literal notranslate"><span class="pre">NtpMainDetails.precision</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMainDetails.NtpMainDetails.reachability"><code class="docutils literal notranslate"><span class="pre">NtpMainDetails.reachability</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMainDetails.NtpMainDetails.rtt"><code class="docutils literal notranslate"><span class="pre">NtpMainDetails.rtt</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMainDetails.NtpMainDetails.stratum"><code class="docutils literal notranslate"><span class="pre">NtpMainDetails.stratum</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.NtpMeasurement">server.app.dtos.NtpMeasurement module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurement.NtpMeasurement"><code class="docutils literal notranslate"><span class="pre">NtpMeasurement</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurement.NtpMeasurement.extra_details"><code class="docutils literal notranslate"><span class="pre">NtpMeasurement.extra_details</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurement.NtpMeasurement.main_details"><code class="docutils literal notranslate"><span class="pre">NtpMeasurement.main_details</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurement.NtpMeasurement.server_info"><code class="docutils literal notranslate"><span class="pre">NtpMeasurement.server_info</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurement.NtpMeasurement.timestamps"><code class="docutils literal notranslate"><span class="pre">NtpMeasurement.timestamps</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurement.NtpMeasurement.vantage_point_ip"><code class="docutils literal notranslate"><span class="pre">NtpMeasurement.vantage_point_ip</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.NtpMeasurementResponse">server.app.dtos.NtpMeasurementResponse module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResponse"><code class="docutils literal notranslate"><span class="pre">MeasurementResponse</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResponse.measurements"><code class="docutils literal notranslate"><span class="pre">MeasurementResponse.measurements</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResponse.model_config"><code class="docutils literal notranslate"><span class="pre">MeasurementResponse.model_config</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult"><code class="docutils literal notranslate"><span class="pre">MeasurementResult</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.client_recv_time"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.client_recv_time</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.client_sent_time"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.client_sent_time</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.jitter"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.jitter</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.leap"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.leap</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.model_config"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.model_config</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.nr_measurements_jitter"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.nr_measurements_jitter</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.ntp_last_sync_time"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.ntp_last_sync_time</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.ntp_server_ip"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.ntp_server_ip</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.ntp_server_location"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.ntp_server_location</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.ntp_server_name"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.ntp_server_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.ntp_server_ref_parent_ip"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.ntp_server_ref_parent_ip</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.ntp_version"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.ntp_version</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.offset"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.offset</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.poll"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.poll</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.precision"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.precision</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.reachability"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.reachability</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.ref_name"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.ref_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.root_delay"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.root_delay</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.root_dispersion"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.root_dispersion</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.rtt"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.rtt</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.server_recv_time"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.server_recv_time</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.server_sent_time"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.server_sent_time</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.stratum"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.stratum</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.vantage_point_ip"><code class="docutils literal notranslate"><span class="pre">MeasurementResult.vantage_point_ip</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.NtpServerInfo">server.app.dtos.NtpServerInfo module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpServerInfo.NtpServerInfo"><code class="docutils literal notranslate"><span class="pre">NtpServerInfo</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpServerInfo.NtpServerInfo.ntp_server_ip"><code class="docutils literal notranslate"><span class="pre">NtpServerInfo.ntp_server_ip</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpServerInfo.NtpServerInfo.ntp_server_location"><code class="docutils literal notranslate"><span class="pre">NtpServerInfo.ntp_server_location</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpServerInfo.NtpServerInfo.ntp_server_name"><code class="docutils literal notranslate"><span class="pre">NtpServerInfo.ntp_server_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpServerInfo.NtpServerInfo.ntp_server_ref_parent_ip"><code class="docutils literal notranslate"><span class="pre">NtpServerInfo.ntp_server_ref_parent_ip</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpServerInfo.NtpServerInfo.ntp_version"><code class="docutils literal notranslate"><span class="pre">NtpServerInfo.ntp_version</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpServerInfo.NtpServerInfo.ref_name"><code class="docutils literal notranslate"><span class="pre">NtpServerInfo.ref_name</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.NtpTimestamps">server.app.dtos.NtpTimestamps module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpTimestamps.NtpTimestamps"><code class="docutils literal notranslate"><span class="pre">NtpTimestamps</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpTimestamps.NtpTimestamps.client_recv_time"><code class="docutils literal notranslate"><span class="pre">NtpTimestamps.client_recv_time</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpTimestamps.NtpTimestamps.client_sent_time"><code class="docutils literal notranslate"><span class="pre">NtpTimestamps.client_sent_time</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpTimestamps.NtpTimestamps.server_recv_time"><code class="docutils literal notranslate"><span class="pre">NtpTimestamps.server_recv_time</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.NtpTimestamps.NtpTimestamps.server_sent_time"><code class="docutils literal notranslate"><span class="pre">NtpTimestamps.server_sent_time</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.PreciseTime">server.app.dtos.PreciseTime module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.PreciseTime.PreciseTime"><code class="docutils literal notranslate"><span class="pre">PreciseTime</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.PreciseTime.PreciseTime.fraction"><code class="docutils literal notranslate"><span class="pre">PreciseTime.fraction</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.PreciseTime.PreciseTime.seconds"><code class="docutils literal notranslate"><span class="pre">PreciseTime.seconds</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.ProbeData">server.app.dtos.ProbeData module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.ProbeData.ProbeData"><code class="docutils literal notranslate"><span class="pre">ProbeData</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.ProbeData.ProbeData.probe_id"><code class="docutils literal notranslate"><span class="pre">ProbeData.probe_id</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.ProbeData.ProbeData.probe_addr"><code class="docutils literal notranslate"><span class="pre">ProbeData.probe_addr</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.ProbeData.ProbeData.probe_location"><code class="docutils literal notranslate"><span class="pre">ProbeData.probe_location</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#id1"><code class="docutils literal notranslate"><span class="pre">ProbeData.probe_addr</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#id2"><code class="docutils literal notranslate"><span class="pre">ProbeData.probe_id</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#id3"><code class="docutils literal notranslate"><span class="pre">ProbeData.probe_location</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.ProbeData.ServerLocation"><code class="docutils literal notranslate"><span class="pre">ServerLocation</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.ProbeData.ServerLocation.country_code"><code class="docutils literal notranslate"><span class="pre">ServerLocation.country_code</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.ProbeData.ServerLocation.coordinates"><code class="docutils literal notranslate"><span class="pre">ServerLocation.coordinates</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#id4"><code class="docutils literal notranslate"><span class="pre">ServerLocation.coordinates</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#id5"><code class="docutils literal notranslate"><span class="pre">ServerLocation.country_code</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.RipeMeasurement">server.app.dtos.RipeMeasurement module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurement.RipeMeasurement"><code class="docutils literal notranslate"><span class="pre">RipeMeasurement</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurement.RipeMeasurement.measurement_id"><code class="docutils literal notranslate"><span class="pre">RipeMeasurement.measurement_id</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurement.RipeMeasurement.ntp_measurement"><code class="docutils literal notranslate"><span class="pre">RipeMeasurement.ntp_measurement</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurement.RipeMeasurement.probe_data"><code class="docutils literal notranslate"><span class="pre">RipeMeasurement.probe_data</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurement.RipeMeasurement.ref_id"><code class="docutils literal notranslate"><span class="pre">RipeMeasurement.ref_id</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurement.RipeMeasurement.time_to_result"><code class="docutils literal notranslate"><span class="pre">RipeMeasurement.time_to_result</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.RipeMeasurementResponse">server.app.dtos.RipeMeasurementResponse module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.ProbeAddr"><code class="docutils literal notranslate"><span class="pre">ProbeAddr</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.ProbeAddr.ipv4"><code class="docutils literal notranslate"><span class="pre">ProbeAddr.ipv4</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.ProbeAddr.ipv6"><code class="docutils literal notranslate"><span class="pre">ProbeAddr.ipv6</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.ProbeAddr.model_config"><code class="docutils literal notranslate"><span class="pre">ProbeAddr.model_config</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.ProbeCountPerType"><code class="docutils literal notranslate"><span class="pre">ProbeCountPerType</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.ProbeCountPerType.area"><code class="docutils literal notranslate"><span class="pre">ProbeCountPerType.area</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.ProbeCountPerType.asn"><code class="docutils literal notranslate"><span class="pre">ProbeCountPerType.asn</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.ProbeCountPerType.country"><code class="docutils literal notranslate"><span class="pre">ProbeCountPerType.country</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.ProbeCountPerType.model_config"><code class="docutils literal notranslate"><span class="pre">ProbeCountPerType.model_config</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.ProbeCountPerType.prefix"><code class="docutils literal notranslate"><span class="pre">ProbeCountPerType.prefix</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.ProbeCountPerType.random"><code class="docutils literal notranslate"><span class="pre">ProbeCountPerType.random</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeMeasurementResponse"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementResponse</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeMeasurementResponse.measurements"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementResponse.measurements</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeMeasurementResponse.model_config"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementResponse.model_config</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeMeasurementResult"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementResult</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeMeasurementResult.client_recv_time"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementResult.client_recv_time</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeMeasurementResult.client_sent_time"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementResult.client_sent_time</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeMeasurementResult.model_config"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementResult.model_config</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeMeasurementResult.offset"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementResult.offset</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeMeasurementResult.rtt"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementResult.rtt</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeMeasurementResult.server_recv_time"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementResult.server_recv_time</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeMeasurementResult.server_sent_time"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementResult.server_sent_time</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult"><code class="docutils literal notranslate"><span class="pre">RipeResult</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.model_config"><code class="docutils literal notranslate"><span class="pre">RipeResult.model_config</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.ntp_server_ip"><code class="docutils literal notranslate"><span class="pre">RipeResult.ntp_server_ip</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.ntp_server_location"><code class="docutils literal notranslate"><span class="pre">RipeResult.ntp_server_location</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.ntp_server_name"><code class="docutils literal notranslate"><span class="pre">RipeResult.ntp_server_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.ntp_version"><code class="docutils literal notranslate"><span class="pre">RipeResult.ntp_version</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.poll"><code class="docutils literal notranslate"><span class="pre">RipeResult.poll</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.precision"><code class="docutils literal notranslate"><span class="pre">RipeResult.precision</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.probe_addr"><code class="docutils literal notranslate"><span class="pre">RipeResult.probe_addr</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.probe_count_per_type"><code class="docutils literal notranslate"><span class="pre">RipeResult.probe_count_per_type</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.probe_id"><code class="docutils literal notranslate"><span class="pre">RipeResult.probe_id</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.probe_location"><code class="docutils literal notranslate"><span class="pre">RipeResult.probe_location</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.ref_id"><code class="docutils literal notranslate"><span class="pre">RipeResult.ref_id</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.result"><code class="docutils literal notranslate"><span class="pre">RipeResult.result</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.ripe_measurement_id"><code class="docutils literal notranslate"><span class="pre">RipeResult.ripe_measurement_id</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.root_delay"><code class="docutils literal notranslate"><span class="pre">RipeResult.root_delay</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.root_dispersion"><code class="docutils literal notranslate"><span class="pre">RipeResult.root_dispersion</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.stratum"><code class="docutils literal notranslate"><span class="pre">RipeResult.stratum</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.time_to_result"><code class="docutils literal notranslate"><span class="pre">RipeResult.time_to_result</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.vantage_point_ip"><code class="docutils literal notranslate"><span class="pre">RipeResult.vantage_point_ip</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos.RipeMeasurementTriggerResponse">server.app.dtos.RipeMeasurementTriggerResponse module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementTriggerResponse.RipeMeasurementTriggerResponse"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementTriggerResponse</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementTriggerResponse.RipeMeasurementTriggerResponse.measurement_id"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementTriggerResponse.measurement_id</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementTriggerResponse.RipeMeasurementTriggerResponse.message"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementTriggerResponse.message</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementTriggerResponse.RipeMeasurementTriggerResponse.model_config"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementTriggerResponse.model_config</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementTriggerResponse.RipeMeasurementTriggerResponse.status"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementTriggerResponse.status</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementTriggerResponse.RipeMeasurementTriggerResponse.vantage_point_ip"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementTriggerResponse.vantage_point_ip</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.dtos.html#server.app.dtos.RipeMeasurementTriggerResponse.RipeMeasurementTriggerResponse.vantage_point_location"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementTriggerResponse.vantage_point_location</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="server.app.dtos.html#api-request-response-models">API Request/Response Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.app.dtos.html#core-data-models">Core Data Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="server.app.dtos.html#module-server.app.dtos">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="server.app.models.html">server.app.models package</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="server.app.models.html">Database Models</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="server.app.models.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.models.html#module-server.app.models.Base">server.app.models.Base module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.models.html#server.app.models.Base.Base"><code class="docutils literal notranslate"><span class="pre">Base</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Base.Base.metadata"><code class="docutils literal notranslate"><span class="pre">Base.metadata</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Base.Base.registry"><code class="docutils literal notranslate"><span class="pre">Base.registry</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.models.html#module-server.app.models.CustomError">server.app.models.CustomError module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.models.html#server.app.models.CustomError.DNSError"><code class="docutils literal notranslate"><span class="pre">DNSError</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="server.app.models.html#server.app.models.CustomError.DatabaseInsertError"><code class="docutils literal notranslate"><span class="pre">DatabaseInsertError</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="server.app.models.html#server.app.models.CustomError.InputError"><code class="docutils literal notranslate"><span class="pre">InputError</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="server.app.models.html#server.app.models.CustomError.InvalidMeasurementDataError"><code class="docutils literal notranslate"><span class="pre">InvalidMeasurementDataError</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="server.app.models.html#server.app.models.CustomError.MeasurementQueryError"><code class="docutils literal notranslate"><span class="pre">MeasurementQueryError</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="server.app.models.html#server.app.models.CustomError.RipeMeasurementError"><code class="docutils literal notranslate"><span class="pre">RipeMeasurementError</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.models.html#module-server.app.models.Measurement">server.app.models.Measurement module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.IPAddress"><code class="docutils literal notranslate"><span class="pre">IPAddress</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.IPAddress.cache_ok"><code class="docutils literal notranslate"><span class="pre">IPAddress.cache_ok</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.IPAddress.impl"><code class="docutils literal notranslate"><span class="pre">IPAddress.impl</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.IPAddress.load_dialect_impl"><code class="docutils literal notranslate"><span class="pre">IPAddress.load_dialect_impl()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement"><code class="docutils literal notranslate"><span class="pre">Measurement</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.id"><code class="docutils literal notranslate"><span class="pre">Measurement.id</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.ntp_last_sync_time"><code class="docutils literal notranslate"><span class="pre">Measurement.ntp_last_sync_time</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.ntp_last_sync_time_prec"><code class="docutils literal notranslate"><span class="pre">Measurement.ntp_last_sync_time_prec</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.ntp_server_ip"><code class="docutils literal notranslate"><span class="pre">Measurement.ntp_server_ip</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.ntp_server_name"><code class="docutils literal notranslate"><span class="pre">Measurement.ntp_server_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.ntp_server_ref_parent"><code class="docutils literal notranslate"><span class="pre">Measurement.ntp_server_ref_parent</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.ntp_version"><code class="docutils literal notranslate"><span class="pre">Measurement.ntp_version</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.poll"><code class="docutils literal notranslate"><span class="pre">Measurement.poll</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.precision"><code class="docutils literal notranslate"><span class="pre">Measurement.precision</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.reachability"><code class="docutils literal notranslate"><span class="pre">Measurement.reachability</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.ref_name"><code class="docutils literal notranslate"><span class="pre">Measurement.ref_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.root_delay"><code class="docutils literal notranslate"><span class="pre">Measurement.root_delay</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.root_delay_prec"><code class="docutils literal notranslate"><span class="pre">Measurement.root_delay_prec</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.root_dispersion"><code class="docutils literal notranslate"><span class="pre">Measurement.root_dispersion</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.root_dispersion_prec"><code class="docutils literal notranslate"><span class="pre">Measurement.root_dispersion_prec</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.rtt"><code class="docutils literal notranslate"><span class="pre">Measurement.rtt</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.stratum"><code class="docutils literal notranslate"><span class="pre">Measurement.stratum</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.time_id"><code class="docutils literal notranslate"><span class="pre">Measurement.time_id</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.time_offset"><code class="docutils literal notranslate"><span class="pre">Measurement.time_offset</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.timestamps"><code class="docutils literal notranslate"><span class="pre">Measurement.timestamps</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Measurement.Measurement.vantage_point_ip"><code class="docutils literal notranslate"><span class="pre">Measurement.vantage_point_ip</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="server.app.models.html#module-server.app.models.Time">server.app.models.Time module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="server.app.models.html#server.app.models.Time.Time"><code class="docutils literal notranslate"><span class="pre">Time</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Time.Time.client_recv"><code class="docutils literal notranslate"><span class="pre">Time.client_recv</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Time.Time.client_recv_prec"><code class="docutils literal notranslate"><span class="pre">Time.client_recv_prec</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Time.Time.client_sent"><code class="docutils literal notranslate"><span class="pre">Time.client_sent</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Time.Time.client_sent_prec"><code class="docutils literal notranslate"><span class="pre">Time.client_sent_prec</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Time.Time.id"><code class="docutils literal notranslate"><span class="pre">Time.id</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Time.Time.server_recv"><code class="docutils literal notranslate"><span class="pre">Time.server_recv</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Time.Time.server_recv_prec"><code class="docutils literal notranslate"><span class="pre">Time.server_recv_prec</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Time.Time.server_sent"><code class="docutils literal notranslate"><span class="pre">Time.server_sent</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="server.app.models.html#server.app.models.Time.Time.server_sent_prec"><code class="docutils literal notranslate"><span class="pre">Time.server_sent_prec</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="server.app.models.html#module-server.app.models.Base">server.app.models.Base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.app.models.html#module-server.app.models.CustomError">server.app.models.CustomError module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.app.models.html#module-server.app.models.Measurement">server.app.models.Measurement module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.app.models.html#module-server.app.models.Time">server.app.models.Time module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="server.app.models.html#module-server.app.models">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </section>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
-</section>
-<section id="module-server.app.db_config">
-<span id="server-app-db-config-module"></span><h2>server.app.db_config module<a class="headerlink" href="#module-server.app.db_config" title="Link to this heading"></a></h2>
-<dl class="py data">
-<dt class="sig sig-object py" id="server.app.db_config.DB_CONFIG">
-<span class="sig-prename descclassname"><span class="pre">server.app.db_config.</span></span><span class="sig-name descname"><span class="pre">DB_CONFIG</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'dbname':</span> <span class="pre">'measurements',</span> <span class="pre">'host':</span> <span class="pre">'localhost',</span> <span class="pre">'password':</span> <span class="pre">'Catalin2004',</span> <span class="pre">'port':</span> <span class="pre">'5432',</span> <span class="pre">'user':</span> <span class="pre">'postgres'}</span></em><a class="headerlink" href="#server.app.db_config.DB_CONFIG" title="Link to this definition"></a></dt>
-<dd><p>Dictionary holding PostgreSQL connection details.</p>
-<dl class="simple">
-<dt>Each value is loaded from environment variables to enhance security and flexibility:</dt><dd><ul class="simple">
-<li><p>DB_NAME: Name of the PostgreSQL database.</p></li>
-<li><p>DB_USER: Username for authentication.</p></li>
-<li><p>DB_PASSWORD: Password for authentication.</p></li>
-<li><p>DB_HOST: Hostname or IP address of the database server.</p></li>
-<li><p>DB_PORT: Port number on which the database server is listening.</p></li>
+<section id="api-routes">
+<h2>API Routes<a class="headerlink" href="#api-routes" title="Link to this heading"></a></h2>
+<p>The following routes define the public API endpoints available in the application.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="server.app.api.routing.html">/</a></li>
+<li class="toctree-l1"><a class="reference internal" href="server.app.api.routing.html#measurements">/measurements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="server.app.api.routing.html#measurements-history">/measurements/history</a></li>
+<li class="toctree-l1"><a class="reference internal" href="server.app.api.routing.html#measurements-ripe-trigger">/measurements/ripe/trigger</a></li>
+<li class="toctree-l1"><a class="reference internal" href="server.app.api.routing.html#measurements-ripe-measurement-id">/measurements/ripe/{measurement_id}</a></li>
 </ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py data">
-<dt class="sig sig-object py" id="server.app.db_config.dsn">
-<span class="sig-prename descclassname"><span class="pre">server.app.db_config.</span></span><span class="sig-name descname"><span class="pre">dsn</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'postgresql://postgres:Catalin2004&#64;localhost:5432/measurements'</span></em><a class="headerlink" href="#server.app.db_config.dsn" title="Link to this definition"></a></dt>
-<dd><p>Constructs a PostgreSQL connection string (DSN) from the <cite>DB_CONFIG</cite> dictionary.</p>
-<dl class="simple">
-<dt>This string follows the format:</dt><dd><p>postgresql://&lt;user&gt;:&lt;password&gt;&#64;&lt;host&gt;:&lt;port&gt;/&lt;dbname&gt;</p>
-</dd>
-</dl>
-<p>It is required by most PostgreSQL drivers, including <cite>psycopg</cite>, to initiate connections.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="server.app.db_config.get_db">
-<span class="sig-prename descclassname"><span class="pre">server.app.db_config.</span></span><span class="sig-name descname"><span class="pre">get_db</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/db_config.html#get_db"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.db_config.get_db" title="Link to this definition"></a></dt>
-<dd><p>Returns the current database session.
-:Yields: <em>Session</em> – The current database session.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Generator</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Session</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]</span></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="server.app.db_config.init_engine">
-<span class="sig-prename descclassname"><span class="pre">server.app.db_config.</span></span><span class="sig-name descname"><span class="pre">init_engine</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/db_config.html#init_engine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.db_config.init_engine" title="Link to this definition"></a></dt>
-<dd><p>Creates the engine necessary for the SQLAlchemy connection, as well as the session maker.
-:returns: The engine for the SQLAlchemy connection (necessary for creating the tables later).
-:rtype: Engine</p>
-</dd></dl>
-
+</div>
 </section>
-<section id="module-server.app.main">
-<span id="server-app-main-module"></span><h2>server.app.main module<a class="headerlink" href="#module-server.app.main" title="Link to this heading"></a></h2>
-<dl class="py function">
-<dt class="sig sig-object py" id="server.app.main.create_app">
-<span class="sig-prename descclassname"><span class="pre">server.app.main.</span></span><span class="sig-name descname"><span class="pre">create_app</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/main.html#create_app"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.main.create_app" title="Link to this definition"></a></dt>
-<dd><p>Create and configure a FastAPI application instance.</p>
-<p>This function sets up the FastAPI app with necessary middleware, routes,
-and lifecycle event handlers. It optionally initializes the database engine
-and verifies configuration during development mode.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>dev</strong> (<em>bool</em>) – Flag indicating whether the app runs in development mode.
-If True, config verification and database initialization are performed.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Configured FastAPI application instance.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>FastAPI</p>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>Exception</strong> – If configuration verification fails in development mode.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
-<section id="module-server.app.rate_limiter">
-<span id="server-app-rate-limiter-module"></span><h2>server.app.rate_limiter module<a class="headerlink" href="#module-server.app.rate_limiter" title="Link to this heading"></a></h2>
-<dl class="py data">
-<dt class="sig sig-object py" id="server.app.rate_limiter.limiter">
-<span class="sig-prename descclassname"><span class="pre">server.app.rate_limiter.</span></span><span class="sig-name descname"><span class="pre">limiter</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;slowapi.extension.Limiter</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#server.app.rate_limiter.limiter" title="Link to this definition"></a></dt>
-<dd><p>Create a rate limiter instance using the client’s IP address as the unique identifier.</p>
-<p>This Limiter is used with FastAPI to enforce rate limiting on specific endpoints.
-It uses <cite>get_remote_address</cite> to extract the client’s IP from the request, ensuring
-that limits are applied by ip address</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="id0">
-<span class="sig-prename descclassname"><span class="pre">server.app.rate_limiter.</span></span><span class="sig-name descname"><span class="pre">limiter</span></span><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
-<dd><p>The configured SlowAPI rate limiter instance.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Limiter</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-</section>
-<section id="module-server.app">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-server.app" title="Link to this heading"></a></h2>
+<section id="database-interaction">
+<h2>Database Interaction<a class="headerlink" href="#database-interaction" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="server.app.db.db_interaction.html">Database Interaction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="server.app.db.db_interaction.html#insertion">Insertion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.app.db.db_interaction.html#module-server.app.db.db_interaction">Rest</a></li>
+</ul>
+</li>
+</ul>
+</div>
 </section>
 </section>
 
@@ -485,14 +149,14 @@ that limits are applied by ip address</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="server.html" class="btn btn-neutral float-left" title="server package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="server.app.dtos.html" class="btn btn-neutral float-right" title="server.app.dtos package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="server.html" class="btn btn-neutral float-left" title="Application modules" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="server.app.dtos.html" class="btn btn-neutral float-right" title="Data Transfer Objects" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, a.</p>
+    <p>&#169; Copyright 2025, TU Delft CSE 2000 Group 15d.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
