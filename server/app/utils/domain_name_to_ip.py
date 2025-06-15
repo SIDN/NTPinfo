@@ -212,4 +212,4 @@ def edns_response_to_ips(response: dns.message.Message, client_ip: str, wanted_i
 #time.google.com, time.windows.com, time.aws.com, time.cloudflare.com, and pool.ntp.org.
 # print(domain_name_to_ip_list("time.apple.com", "83.25.24.10", 6))#2a01:b740:a20:3000::1f2"))
 # print(domain_name_to_ip_list("time.apple.com", "2a01:b740:a20:3000::1f2", 4))
-# print(domain_name_to_ip_list("time.apple.com", "83.25.24.10", 4))
+# print(domain_name_to_ip_close_to_client("time.google.com", "83.25.24.10", 6))

@@ -4,13 +4,10 @@ from server.app.utils.ip_utils import is_this_ip_anycast
 from server.app.utils.perform_measurements import perform_ntp_measurement_domain_name_list
 from server.app.utils.ip_utils import get_server_ip
 from server.app.models.CustomError import InputError, RipeMeasurementError
-from server.app.utils.load_config_data import get_ripe_number_of_probes_per_measurement, \
-    get_nr_of_measurements_for_jitter
+from server.app.utils.load_config_data import get_nr_of_measurements_for_jitter
 from server.app.utils.calculations import calculate_jitter_from_measurements, human_date_to_ntp_precise_time
 from server.app.utils.ip_utils import ip_to_str
-
-from ipaddress import IPv4Address, IPv6Address, ip_address
-from typing import Any, Optional, Coroutine
+from typing import Any, Optional
 
 from server.app.utils.ripe_fetch_data import check_all_measurements_scheduled
 from server.app.utils.perform_measurements import perform_ripe_measurement_domain_name
@@ -175,6 +172,23 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
         ]
     }
 
+
+def override_desired_ip_type_if_input_is_ip(target_server: str, wanted_ip_type: int) -> int:
+    """
+    If the target server input is IP, then we want to perform its IP type measurements.
+    Only for domain names, "wanted_ip_type" is considered. Otherwise, it is ignored.
+
+    Args:
+        target_server (str): The server we want to measure (domain name or IP address)
+        wanted_ip_type (int): The IP type the user said they wanted to measure.
+    Returns:
+        int: The IP type of the server in case the server input is IP, otherwise the wanted_ip_type unmodified.
+    """
+    if is_ip_address(target_server) == "ipv4":
+        return 4
+    elif is_ip_address(target_server) == "ipv6":
+        return 6
+    return wanted_ip_type
 
 def measure(server: str, wanted_ip_type: int, session: Session, client_ip: Optional[str] = None,
             measurement_no: int = get_nr_of_measurements_for_jitter()) -> list[tuple[

@@ -1,4 +1,3 @@
-
 import ntplib
 from ipaddress import ip_address
 import json
@@ -110,7 +109,9 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
     """
     try:
         vantage_point_ip = None
-        vantage_point_ip_temp = get_server_ip()
+        ip_type = get_ip_family(server_ip_str)
+        # get the same type (We guaranteed before calling this method that it exists)
+        vantage_point_ip_temp = get_server_ip(ip_type)
         if vantage_point_ip_temp is not None:
             vantage_point_ip = vantage_point_ip_temp
         ref_ip, ref_name = ref_id_to_ip_or_name(response.ref_id,
@@ -354,7 +355,18 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
 # print(perform_ntp_measurement_ip("2a01:b740:a20:3000::1f2"))
 # print(perform_ntp_measurement_domain_name_list("ntp1.time.nl"))
 # example:
-# print(perform_ripe_measurement_ip("2a01:b740:a16:4000::1f2","83.25.24.10", 12))
+# print_ntp_measurement(perform_ntp_measurement_ip("2a01:b740:a16:4000::1f2", 4))
+# print_ntp_measurement(perform_ntp_measurement_ip("17.253.6.45", 4))
+# print_ntp_measurement(perform_ntp_measurement_ip("17.253.6.45",  4))
+# print_ntp_measurement(perform_ntp_measurement_ip("17.253.6.45",  4))
+# print_ntp_measurement(perform_ntp_measurement_ip("2620:149:a23:4000::1e2",  4))
+# example to see that they work
+# print_ntp_measurement(perform_ntp_measurement_domain_name_list("time.apple.com", "5a01:c741:a16:4000::1f2", 4, 4)[0])
+# print_ntp_measurement(perform_ntp_measurement_domain_name_list("time.apple.com", "5a01:c741:a16:4000::1f2", 6, 4)[0])
+# print_ntp_measurement(perform_ntp_measurement_domain_name_list("time.apple.com", "17.253.6.45", 4,4)[0])
+# print_ntp_measurement(perform_ntp_measurement_domain_name_list("time.apple.com", "17.253.6.45", 6,4)[0])
+
+# print(perform_ripe_measurement_ip("2a01:b740:a16:4000::1f2","2a01:c741:a16:4000::1f2", 12))
 # print(perform_ripe_measurement_domain_name("time.apple.com","83.25.24.10", 6, 15))
 # end = time.time()
 #
