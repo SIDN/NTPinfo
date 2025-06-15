@@ -17,7 +17,6 @@ import Hero from '../components/Hero';
 
 import { NTPData, RIPEData } from '../utils/types.ts'
 import { Measurement } from '../utils/types.ts'
-import { LatLngTuple } from 'leaflet'
 
 import 'leaflet/dist/leaflet.css'
 import { triggerRipeMeasurement } from '../hooks/triggerRipeMeasurement.ts'
@@ -45,7 +44,6 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
   } = cache;
 
   // still local UI state
-  const [selOption, setOption] = useState("Last Hour")
 
   // helper to update only the fields we touch
   const updateCache = (partial: Partial<HomeCacheState>) =>
@@ -65,11 +63,12 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
 
   //Varaibles to log and use API hooks
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
-  const {fetchData: fetchHistoricalData, loading: apiHistoricalLoading, error: apiHistoricalError} = useFetchHistoricalIPData()
+  const {fetchData: fetchHistoricalData} = useFetchHistoricalIPData()
   const {triggerMeasurement, error: triggerRipeError} = triggerRipeMeasurement()
   const {
     result: ripeMeasurementResp,
     status: ripeMeasurementStatus,
+    error: ripeMeasurementError
   } = useFetchRIPEData(measurementId)
 
   useEffect(() => {
@@ -78,7 +77,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
       ripeMeasurementResp,
       ripeMeasurementStatus,
     });
-  }, [ripeMeasurementResp, ripeMeasurementStatus]);
+  }, [ripeMeasurementResp, ripeMeasurementStatus, updateCache]);
 
 
   //
@@ -90,7 +89,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
    * Performs a normal measurement call, a historical measurement call for the graph, and a RIPE measurement call for the map.
    * @param query The input given by the user
    */
-  const handleInput = async (query: string) => {
+  const handleInput = async (query: string, useIPv6: boolean) => {
     if (query.length == 0)
       return
 
@@ -109,10 +108,11 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     })
 
     /**
-     * The payload for the measurement call, containing the server
+     * The payload for the measurement call, containing the server and the choice of using IPv6 or not
      */
     const payload = {
-      server: query.trim()
+      server: query.trim(),
+      ipv6_measurement: useIPv6
 
     }
 
@@ -151,10 +151,11 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     })
 
     /**
-     * Payload for the RIPE measurement call, containing only the ip of the server to be measured.
+     * Payload for the RIPE measurement call, containing only the ip of the server to be measured and whether to use IPv6.
      */
     const ripePayload = {
-      server: query.trim()
+      server: query.trim(),
+      ipv6_measurement: useIPv6
     }
 
     /**
@@ -200,7 +201,12 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         </div>
         {/* The main page shown after the main measurement is done */}
       {(ntpData && !apiDataLoading && (<div className="results-and-graph">
-        <ResultSummary data={ntpData} ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null} err={apiErrorLoading} httpStatus={respStatus}/>
+        <ResultSummary data={ntpData}
+                       ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null}
+                       err={apiErrorLoading}
+                       httpStatus={respStatus}
+                       ripeErr={ripeMeasurementError}
+                       ripeStatus={ripeMeasurementStatus}/>
 
         {/* Div for the visualization graph, and the radios for setting the what measurement to show */}
         <div className="graphs">
@@ -230,7 +236,9 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
             <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day" legendDisplay={false}/>
           </div>
         </div>
-      </div>)) || (!ntpData && !apiDataLoading && measured && <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus} ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null}/>)}
+      </div>)) || (!ntpData && !apiDataLoading && measured &&
+      <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}
+      ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null} ripeErr={ripeMeasurementError} ripeStatus={ripeMeasurementStatus}/>)}
 
       {/*Buttons to download results in JSON and CSV format as well as open a popup displaying historical data*/}
       {/*The open popup button is commented out, because it is implemented as a separate tab*/}

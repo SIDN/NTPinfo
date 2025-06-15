@@ -5,8 +5,6 @@
   /* background: linear-gradient(to bottom, var(--bg-primary), var(--bg-secondary)); */
 }
 
-
-
 .open-popup-btn {
   display: flex;
   border-radius: 15px;
@@ -47,9 +45,11 @@
 .app-container {
   width: 100%;
 }
-
+.input-wrapper {
+  width: 1000%;
+  max-width: 1000px;
+}
 .main-content {
-  max-width: 600px;
   box-sizing: border-box;
   text-align: left;
 }
@@ -60,11 +60,11 @@
   padding-bottom: 0;
   font-weight: 600;
 }
+
 .input-wrapper {
   margin-top: 0;
   margin-left: 1rem;
   /* max-width: 600px; */
-  width: 60%;
   box-sizing: border-box;
 }
 
@@ -176,33 +176,32 @@
 .result-box {
   box-shadow: var(--shadow);
 }
-
-.results-and-graph{
-  display:flex;
-  flex-wrap:wrap;
-  gap:1rem;
-  padding:.5rem;
-  align-items:stretch;
+.results-and-graph {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.5rem;
+  align-items: stretch;
 }
 
-.radio-toggle{
+.radio-toggle {
   display: inline-flex;
   background: var(--bg-secondary);
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius);
   padding: 2px;
   gap: 0;
   border: 1px solid var(--border-color);
 }
 
-.radio-toggle input[type="radio"]{
+.radio-toggle input[type="radio"] {
   appearance: none;
   -webkit-appearance: none;
   display: none;
 }
 
-.radio-toggle label{
-  padding: .35rem 1.25rem;
+.radio-toggle label {
+  padding: 0.35rem 1.25rem;
   font-weight: 500;
   font-size: 0.95rem;
   cursor: pointer;
@@ -212,12 +211,12 @@
   transition: all 0.2s ease;
 }
 
-.radio-toggle input[type="radio"]:checked + label{
+.radio-toggle input[type="radio"]:checked + label {
   background: var(--clr-btn-selected-purple, #020718);
   color: var(--clr-font-white, #fff);
 }
 
-.radio-toggle input[type="radio"]:focus + label{
+.radio-toggle input[type="radio"]:focus + label {
   outline: 2px solid var(--clr-btn-selected-purple);
   outline-offset: 2px;
 }

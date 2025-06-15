@@ -1,11 +1,13 @@
 import ipaddress
 import os
+import random
 import socket
 from ipaddress import ip_address, IPv4Address, IPv6Address
 from typing import Optional
 import ntplib
 import requests
 
+from server.app.utils.load_config_data import get_mask_ipv4, get_mask_ipv6
 from server.app.utils.location_resolver import get_asn_for_ip, get_country_for_ip, get_continent_for_ip
 from server.app.models.CustomError import InputError
 from server.app.utils.load_config_data import get_edns_default_servers
@@ -215,6 +217,7 @@ def get_server_ip() -> IPv4Address | IPv6Address | None:
     except ValueError:
         return None
 
+
 def get_server_ip_from_ipify() -> IPv4Address | IPv6Address | None:
     """
     This method is a fallback to try to get the public IP address of our server from ipify.org
@@ -231,6 +234,7 @@ def get_server_ip_from_ipify() -> IPv4Address | IPv6Address | None:
         return ip_address(ip_str.strip())
     except Exception:
         return None
+
 
 def client_ip_fetch(request: Request) -> str | None:
     """
@@ -300,4 +304,32 @@ def is_this_ip_anycast(searched_ip: Optional[str]) -> bool:
         print(f"Error (safe) in is anycast: {e}")
         return False
 
-# print(is_this_ip_anycast("2001:4860:4806:c::"))
+
+def randomize_ip(ip: IPv4Address | IPv6Address) -> IPv4Address | IPv6Address | None:
+    """
+    Randomizes the host bits of an IPv4 or IPv6 address based on a subnet mask length.
+
+    Args:
+        ip (IPv4Address | IPv6Address): The IPv4 or IPv6 address to randomize.
+
+    Returns:
+        IPv4Address | IPv6Address: A new IPv4 or IPv6 address with the same network bits and randomized host bits.
+    """
+    try:
+        if get_ip_family(str(ip)) == 4:
+            mask_length = get_mask_ipv4()
+            network_mask = (2 ** 32 - 1) << (32 - mask_length) & 0xFFFFFFFF
+            random_host = random.getrandbits(32 - mask_length)
+        else:
+            mask_length = get_mask_ipv6()
+            network_mask = (2 ** 128 - 1) << (128 - mask_length) & (2 ** 128 - 1)
+            random_host = random.getrandbits(128 - mask_length)
+
+        ip_int = int(ip)
+        network_part = ip_int & network_mask
+        randomized_ip_int = network_part | random_host
+        return ip_address(randomized_ip_int)
+
+    except InputError as e:
+        print(f"IP cannot be randomized. {e}")
+        return None
