@@ -1,10 +1,5 @@
 @import "../index.css";
 
-.app-container {
-  /* background-color: var(--bg-clr-primary); */
-  /* background: linear-gradient(to bottom, var(--bg-primary), var(--bg-secondary)); */
-}
-
 .open-popup-btn {
   display: flex;
   border-radius: 15px;
@@ -170,10 +165,6 @@
 
 .result-box {
   box-shadow: var(--shadow);
-}
-
-.app-container {
-  /* Remove the overflow-x property that was causing the scrollbar */
 }
 
 .results-and-graph {

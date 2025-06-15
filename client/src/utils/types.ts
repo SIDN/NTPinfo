@@ -76,6 +76,7 @@ export interface HomeCacheState {
   allNtpMeasurements: NTPData[] | null
   ripeMeasurementResp: RIPEData[] | null
   ripeMeasurementStatus: string | null     // 'loading' | 'complete' | ...
+  ipv6Selected: boolean
 }
 
 export type RipeStatus = "pending" | "partial_results" | "complete" | "timeout" | "error"
