@@ -19,7 +19,6 @@ a {
     flex-direction: column;
     gap: 0.5em;
     padding: 0;
-    overflow-y: auto;
 }
 
 .historical-data-tab h2 {
@@ -174,14 +173,14 @@ a {
     overflow: hidden;
     position: relative;
     width: 100%;
+    aspect-ratio: 16 / 9;
 }
 
 .chart-box canvas {
     max-height: 100%;
     width: 100%;
     height: auto;
-    aspect-ratio: 16/9;
-    object-fit: contain;
+    height: 100%;
 }
 
 .dropdown-select:hover,
