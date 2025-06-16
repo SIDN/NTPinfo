@@ -73,7 +73,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.responses</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTMLResponse</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Generator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.responses</span><span class="w"> </span><span class="kn">import</span> <span class="n">JSONResponse</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">sqlalchemy.orm</span><span class="w"> </span><span class="kn">import</span> <span class="n">Session</span>
@@ -83,14 +83,13 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">server.app.dtos.NtpMeasurementResponse</span><span class="w"> </span><span class="kn">import</span> <span class="n">MeasurementResponse</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">server.app.dtos.RipeMeasurementTriggerResponse</span><span class="w"> </span><span class="kn">import</span> <span class="n">RipeMeasurementTriggerResponse</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">server.app.utils.location_resolver</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_country_for_ip</span><span class="p">,</span> <span class="n">get_coordinates_for_ip</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">server.app.utils.ip_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">client_ip_fetch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">server.app.utils.ip_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">client_ip_fetch</span><span class="p">,</span> <span class="n">get_server_ip_if_possible</span><span class="p">,</span> <span class="n">get_server_ip</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">server.app.models.CustomError</span><span class="w"> </span><span class="kn">import</span> <span class="n">DNSError</span><span class="p">,</span> <span class="n">MeasurementQueryError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">server.app.utils.ip_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">ip_to_str</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">server.app.models.CustomError</span><span class="w"> </span><span class="kn">import</span> <span class="n">InputError</span><span class="p">,</span> <span class="n">RipeMeasurementError</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">server.app.utils.ip_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_server_ip</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">server.app.db_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_db</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">server.app.services.api_services</span><span class="w"> </span><span class="kn">import</span> <span class="n">fetch_ripe_data</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">server.app.services.api_services</span><span class="w"> </span><span class="kn">import</span> <span class="n">fetch_ripe_data</span><span class="p">,</span> <span class="n">override_desired_ip_type_if_input_is_ip</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">server.app.services.api_services</span><span class="w"> </span><span class="kn">import</span> <span class="n">perform_ripe_measurement</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">server.app.rate_limiter</span><span class="w"> </span><span class="kn">import</span> <span class="n">limiter</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">server.app.dtos.MeasurementRequest</span><span class="w"> </span><span class="kn">import</span> <span class="n">MeasurementRequest</span>
@@ -152,13 +151,15 @@
 
 <span class="sd">    This endpoint receives a JSON payload containing the server to be measured.</span>
 <span class="sd">    It uses the `measure()` function to perform the NTP synchronization measurement,</span>
-<span class="sd">    and formats the result using `get_format()`.</span>
+<span class="sd">    and formats the result using `get_format()`. User can choose whether they want to measure IPv4 of IPv6,</span>
+<span class="sd">    but this will take effect only for domain names. If user inputs an IP, we will measure the type of that IP.</span>
 
 <span class="sd">    This endpoint is also limited to 5 requests per minute to prevent abuse and reduce server load.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        payload (MeasurementRequest): A Pydantic model containing:</span>
 <span class="sd">            - server (str): IP address (IPv4/IPv6) or domain name of the NTP server.</span>
+<span class="sd">            - ipv6_measurement (bool): True if the type of IPs that we want to measure is IPv6. False otherwise.</span>
 <span class="sd">        request (Request): The Request object that gives you the IP of the client.</span>
 <span class="sd">        session (Session): The currently active database session.</span>
 
@@ -167,16 +168,30 @@
 <span class="sd">              On failure, returns {&quot;Error&quot;: &quot;Could not perform measurement, DNS or IP not reachable.&quot;}</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">        HTTPException: 400 – If the `server` field is empty or there is no response.</span>
-<span class="sd">        HTTPException: 503 – If the client IP address or the server&#39;s IP address could not be retrieved.</span>
+<span class="sd">        HTTPException: 400 - If the `server` field is empty or no response</span>
+<span class="sd">        HTTPException: 422 - If the server cannot perform the desired IP type (IPv4 or IPv6) measurements,</span>
+<span class="sd">              or if the domain name could not be resolved.</span>
+<span class="sd">        HTTPException: 503 - If we could not get client IP address or our server&#39;s IP address.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">server</span> <span class="o">=</span> <span class="n">payload</span><span class="o">.</span><span class="n">server</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">server</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Either &#39;ip&#39; or &#39;dn&#39; must be provided.&quot;</span><span class="p">)</span>
-    <span class="n">client_ip</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">client_ip_fetch</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span>
+
+    <span class="n">wanted_ip_type</span> <span class="o">=</span> <span class="mi">6</span> <span class="k">if</span> <span class="n">payload</span><span class="o">.</span><span class="n">ipv6_measurement</span> <span class="k">else</span> <span class="mi">4</span>
+    <span class="c1"># Override it if we received an IP, not a domain name:</span>
+    <span class="c1"># In case the input is an IP and not a domain name, then &quot;wanted_ip_type&quot; will be ignored and the IP type of the IP will be used.</span>
+    <span class="n">wanted_ip_type</span> <span class="o">=</span> <span class="n">override_desired_ip_type_if_input_is_ip</span><span class="p">(</span><span class="n">server</span><span class="p">,</span> <span class="n">wanted_ip_type</span><span class="p">)</span>
+
+    <span class="c1"># get the client IP (if possible the same type as wanted_ip_type)</span>
+    <span class="n">client_ip</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">client_ip_fetch</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">wanted_ip_type</span><span class="o">=</span><span class="n">wanted_ip_type</span><span class="p">)</span>
+    <span class="c1"># for IPv6 measurements, we need to communicate using IPv6. (we need to have the same protocol as the target)</span>
+    <span class="n">this_server_ip_strict</span> <span class="o">=</span> <span class="n">get_server_ip</span><span class="p">(</span><span class="n">wanted_ip_type</span><span class="p">)</span>  <span class="c1"># strict means we want exactly this type</span>
+    <span class="k">if</span> <span class="n">this_server_ip_strict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># which means we cannot perform this type of NTP measurements from our server</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">422</span><span class="p">,</span>
+                            <span class="n">detail</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Our server cannot perform IPv</span><span class="si">{</span><span class="n">wanted_ip_type</span><span class="si">}</span><span class="s2"> measurements currently. Try the other IP type.&quot;</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">measure</span><span class="p">(</span><span class="n">server</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">client_ip</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">measure</span><span class="p">(</span><span class="n">server</span><span class="p">,</span> <span class="n">wanted_ip_type</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">client_ip</span><span class="p">)</span>
         <span class="c1"># print(response)</span>
         <span class="k">if</span> <span class="n">response</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">new_format</span> <span class="o">=</span> <span class="p">[]</span>
@@ -247,11 +262,8 @@
 <span class="sd">        JSONResponse: A json response containing a list of formatted measurements under &quot;measurements&quot;.</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">        HTTPException:</span>
-<span class="sd">            Raises:</span>
-<span class="sd">        HTTPException:</span>
-<span class="sd">            - 400: If `server` parameter is empty, or the start and end dates are badly formatted (e.g., `start &gt;= end`, `end` in future).</span>
-<span class="sd">            - 500: If there&#39;s an internal server error, such as a database access issue (`MeasurementQueryError`) or any other unexpected server-side exception.</span>
+<span class="sd">        HTTPException: 400 - If `server` parameter is empty, or the start and end dates are badly formatted (e.g., `start &gt;= end`, `end` in future).</span>
+<span class="sd">        HTTPException: 500 - If there&#39;s an internal server error, such as a database access issue (`MeasurementQueryError`) or any other unexpected server-side exception.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">server</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Either &#39;ip&#39; or &#39;domain name&#39; must be provided&quot;</span><span class="p">)</span>
@@ -319,8 +331,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">        payload (MeasurementRequest): A Pydantic model that includes:</span>
 <span class="sd">            - server (str): The IP address or domain name of the target server</span>
-<span class="sd">            - jitter_flag (bool, optional): Whether to calculate jitter</span>
-<span class="sd">            - measurements_no (int, optional): Number of measurements</span>
+<span class="sd">            - ipv6_measurement (bool): True if the type of IPs that we want to measure is IPv6. False otherwise.</span>
 <span class="sd">        request (Request): The FastAPI request object, used to extract the client IP address</span>
 
 <span class="sd">    Returns:</span>
@@ -331,27 +342,29 @@
 <span class="sd">            - ip_list (list[str]): List of ips for ntp server</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">        HTTPException:</span>
-<span class="sd">            - 400: If the `server` field is empty</span>
-<span class="sd">            - 500: If the RIPE measurement could not be initiated</span>
-<span class="sd">            - 502: If the RIPE measurement was initiated but failed</span>
-<span class="sd">            - 503: If we could not get client IP address or our server&#39;s IP address</span>
+<span class="sd">        HTTPException: 400 - If the `server` field is invalid</span>
+<span class="sd">        HTTPException: 500 - If the RIPE measurement could not be initiated</span>
+<span class="sd">        HTTPException: 502 - If the RIPE measurement was initiated but failed</span>
+<span class="sd">        HTTPException: 503 - If we could not get client IP address or our server&#39;s IP address</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">server</span> <span class="o">=</span> <span class="n">payload</span><span class="o">.</span><span class="n">server</span>
+    <span class="n">wanted_ip_type</span> <span class="o">=</span> <span class="mi">6</span> <span class="k">if</span> <span class="n">payload</span><span class="o">.</span><span class="n">ipv6_measurement</span> <span class="k">else</span> <span class="mi">4</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">server</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Either &#39;ip&#39; or &#39;dn&#39; must be provided&quot;</span><span class="p">)</span>
 
-    <span class="n">client_ip</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">client_ip_fetch</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">)</span>
+    <span class="n">client_ip</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">client_ip_fetch</span><span class="p">(</span><span class="n">request</span><span class="o">=</span><span class="n">request</span><span class="p">,</span> <span class="n">wanted_ip_type</span><span class="o">=</span><span class="n">wanted_ip_type</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;client IP is: &quot;</span><span class="p">,</span> <span class="n">client_ip</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">measurement_id</span> <span class="o">=</span> <span class="n">perform_ripe_measurement</span><span class="p">(</span><span class="n">server</span><span class="p">,</span> <span class="n">client_ip</span><span class="o">=</span><span class="n">client_ip</span><span class="p">)</span>
+        <span class="n">measurement_id</span> <span class="o">=</span> <span class="n">perform_ripe_measurement</span><span class="p">(</span><span class="n">server</span><span class="p">,</span> <span class="n">client_ip</span><span class="o">=</span><span class="n">client_ip</span><span class="p">,</span> <span class="n">wanted_ip_type</span><span class="o">=</span><span class="n">wanted_ip_type</span><span class="p">)</span>
+        <span class="n">this_server_ip</span> <span class="o">=</span> <span class="n">get_server_ip_if_possible</span><span class="p">(</span><span class="n">wanted_ip_type</span><span class="p">)</span>  <span class="c1"># this does not affect the measurement</span>
         <span class="k">return</span> <span class="n">JSONResponse</span><span class="p">(</span>
             <span class="n">status_code</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
             <span class="n">content</span><span class="o">=</span><span class="p">{</span>
                 <span class="s2">&quot;measurement_id&quot;</span><span class="p">:</span> <span class="n">measurement_id</span><span class="p">,</span>
-                <span class="s2">&quot;vantage_point_ip&quot;</span><span class="p">:</span> <span class="n">ip_to_str</span><span class="p">(</span><span class="n">get_server_ip</span><span class="p">()),</span>
+                <span class="s2">&quot;vantage_point_ip&quot;</span><span class="p">:</span> <span class="n">ip_to_str</span><span class="p">(</span><span class="n">this_server_ip</span><span class="p">),</span>
                 <span class="s2">&quot;vantage_point_location&quot;</span><span class="p">:</span> <span class="p">{</span>
-                    <span class="s2">&quot;country_code&quot;</span><span class="p">:</span> <span class="n">get_country_for_ip</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">get_server_ip</span><span class="p">())),</span>
-                    <span class="s2">&quot;coordinates&quot;</span><span class="p">:</span> <span class="n">get_coordinates_for_ip</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">get_server_ip</span><span class="p">()))</span>
+                    <span class="s2">&quot;country_code&quot;</span><span class="p">:</span> <span class="n">get_country_for_ip</span><span class="p">(</span><span class="n">ip_to_str</span><span class="p">(</span><span class="n">this_server_ip</span><span class="p">)),</span>
+                    <span class="s2">&quot;coordinates&quot;</span><span class="p">:</span> <span class="n">get_coordinates_for_ip</span><span class="p">(</span><span class="n">ip_to_str</span><span class="p">(</span><span class="n">this_server_ip</span><span class="p">))</span>
                 <span class="p">},</span>
                 <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;started&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;You can fetch the result at /measurements/ripe/</span><span class="si">{measurement_id}</span><span class="s2">&quot;</span><span class="p">,</span>
@@ -416,9 +429,8 @@
 <span class="sd">            - If pending: {&quot;status&quot;: &quot;pending&quot;, &quot;message&quot;: &quot;...&quot;}</span>
 <span class="sd">            - If partial results received: {&quot;status&quot;: &quot;partial_results&quot;, &quot;results&quot;: &lt;ripe_data&gt;}</span>
 <span class="sd">    Raises:</span>
-<span class="sd">        HTTPException:</span>
-<span class="sd">            - 500: There is an error with processing.</span>
-<span class="sd">            - 405: If fetching the measurement did not work.</span>
+<span class="sd">        HTTPException: 500 - There is an error with processing.</span>
+<span class="sd">        HTTPException: 405 - If fetching the measurement did not work.</span>
 <span class="sd">    Notes:</span>
 <span class="sd">        - A result is only marked &quot;complete&quot; when all requested probes have been scheduled</span>
 <span class="sd">    &quot;&quot;&quot;</span>

@@ -167,11 +167,11 @@
 </li>
       <li><a href="utilities.html#server.app.utils.perform_measurements.convert_ntp_response_to_measurement">convert_ntp_response_to_measurement() (in module server.app.utils.perform_measurements)</a>
 </li>
-      <li><a href="server.app.dtos.html#id4">coordinates (server.app.dtos.ProbeData.ServerLocation attribute)</a>, <a href="server.app.dtos.html#server.app.dtos.ProbeData.ServerLocation.coordinates">[1]</a>
+      <li><a href="server.app.dtos.html#server.app.dtos.ProbeData.ServerLocation.coordinates">coordinates (server.app.dtos.ProbeData.ServerLocation attribute)</a>
 </li>
       <li><a href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.ProbeCountPerType.country">country (server.app.dtos.RipeMeasurementResponse.ProbeCountPerType attribute)</a>
 </li>
-      <li><a href="server.app.dtos.html#id5">country_code (server.app.dtos.ProbeData.ServerLocation attribute)</a>, <a href="server.app.dtos.html#server.app.dtos.ProbeData.ServerLocation.country_code">[1]</a>
+      <li><a href="server.app.dtos.html#server.app.dtos.ProbeData.ServerLocation.country_code">country_code (server.app.dtos.ProbeData.ServerLocation attribute)</a>
 </li>
       <li><a href="infrastructure.html#server.app.main.create_app">create_app() (in module server.app.main)</a>
 </li>
@@ -279,6 +279,10 @@
 </li>
       <li><a href="utilities.html#server.app.utils.load_config_data.get_ipinfo_lite_api_token">get_ipinfo_lite_api_token() (in module server.app.utils.load_config_data)</a>
 </li>
+      <li><a href="utilities.html#server.app.utils.load_config_data.get_ipv4_edns_server">get_ipv4_edns_server() (in module server.app.utils.load_config_data)</a>
+</li>
+      <li><a href="utilities.html#server.app.utils.load_config_data.get_ipv6_edns_server">get_ipv6_edns_server() (in module server.app.utils.load_config_data)</a>
+</li>
       <li><a href="utilities.html#server.app.utils.load_config_data.get_mask_ipv4">get_mask_ipv4() (in module server.app.utils.load_config_data)</a>
 </li>
       <li><a href="utilities.html#server.app.utils.load_config_data.get_mask_ipv6">get_mask_ipv6() (in module server.app.utils.load_config_data)</a>
@@ -335,6 +339,8 @@
 </li>
       <li><a href="utilities.html#server.app.utils.ip_utils.get_server_ip_from_ipify">get_server_ip_from_ipify() (in module server.app.utils.ip_utils)</a>
 </li>
+      <li><a href="utilities.html#server.app.utils.ip_utils.get_server_ip_if_possible">get_server_ip_if_possible() (in module server.app.utils.ip_utils)</a>
+</li>
       <li><a href="utilities.html#server.app.utils.load_config_data.get_timeout_measurement_s">get_timeout_measurement_s() (in module server.app.utils.load_config_data)</a>
 </li>
   </ul></td>
@@ -365,21 +371,21 @@
 </li>
       <li><a href="server.app.models.html#server.app.models.CustomError.InvalidMeasurementDataError">InvalidMeasurementDataError</a>
 </li>
-      <li><a href="utilities.html#server.app.utils.ip_utils.ip_to_location">ip_to_location() (in module server.app.utils.ip_utils)</a>
-</li>
       <li><a href="utilities.html#server.app.utils.ip_utils.ip_to_str">ip_to_str() (in module server.app.utils.ip_utils)</a>
+</li>
+      <li><a href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.ProbeAddr.ipv4">ipv4 (server.app.dtos.RipeMeasurementResponse.ProbeAddr attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.ProbeAddr.ipv4">ipv4 (server.app.dtos.RipeMeasurementResponse.ProbeAddr attribute)</a>
-</li>
       <li><a href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.ProbeAddr.ipv6">ipv6 (server.app.dtos.RipeMeasurementResponse.ProbeAddr attribute)</a>
 </li>
-      <li><a href="server.app.dtos.html#server.app.dtos.MeasurementRequest.MeasurementRequest.ipv6_measurement">ipv6_measurement (server.app.dtos.MeasurementRequest.MeasurementRequest attribute)</a>
+      <li><a href="server.app.dtos.html#id0">ipv6_measurement (server.app.dtos.MeasurementRequest.MeasurementRequest attribute)</a>, <a href="server.app.dtos.html#server.app.dtos.MeasurementRequest.MeasurementRequest.ipv6_measurement">[1]</a>
 </li>
       <li><a href="utilities.html#server.app.utils.ripe_fetch_data.is_failed_measurement">is_failed_measurement() (in module server.app.utils.ripe_fetch_data)</a>
 </li>
       <li><a href="utilities.html#server.app.utils.validate.is_ip_address">is_ip_address() (in module server.app.utils.validate)</a>
+</li>
+      <li><a href="utilities.html#server.app.utils.ip_utils.is_private_ip">is_private_ip() (in module server.app.utils.ip_utils)</a>
 </li>
       <li><a href="utilities.html#server.app.utils.ip_utils.is_this_ip_anycast">is_this_ip_anycast() (in module server.app.utils.ip_utils)</a>
 </li>
@@ -449,26 +455,6 @@
 </li>
       <li><a href="server.app.models.html#server.app.models.Base.Base.metadata">metadata (server.app.models.Base.Base attribute)</a>
 </li>
-      <li><a href="server.app.dtos.html#server.app.dtos.MeasurementRequest.MeasurementRequest.model_config">model_config (server.app.dtos.MeasurementRequest.MeasurementRequest attribute)</a>
-
-      <ul>
-        <li><a href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResponse.model_config">(server.app.dtos.NtpMeasurementResponse.MeasurementResponse attribute)</a>
-</li>
-        <li><a href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.model_config">(server.app.dtos.NtpMeasurementResponse.MeasurementResult attribute)</a>
-</li>
-        <li><a href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.ProbeAddr.model_config">(server.app.dtos.RipeMeasurementResponse.ProbeAddr attribute)</a>
-</li>
-        <li><a href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.ProbeCountPerType.model_config">(server.app.dtos.RipeMeasurementResponse.ProbeCountPerType attribute)</a>
-</li>
-        <li><a href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeMeasurementResponse.model_config">(server.app.dtos.RipeMeasurementResponse.RipeMeasurementResponse attribute)</a>
-</li>
-        <li><a href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeMeasurementResult.model_config">(server.app.dtos.RipeMeasurementResponse.RipeMeasurementResult attribute)</a>
-</li>
-        <li><a href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.model_config">(server.app.dtos.RipeMeasurementResponse.RipeResult attribute)</a>
-</li>
-        <li><a href="server.app.dtos.html#server.app.dtos.RipeMeasurementTriggerResponse.RipeMeasurementTriggerResponse.model_config">(server.app.dtos.RipeMeasurementTriggerResponse.RipeMeasurementTriggerResponse attribute)</a>
-</li>
-      </ul></li>
       <li>
     module
 
@@ -573,8 +559,6 @@
       <li><a href="server.app.dtos.html#server.app.dtos.NtpMeasurementResponse.MeasurementResult.ntp_server_location">ntp_server_location (server.app.dtos.NtpMeasurementResponse.MeasurementResult attribute)</a>
 
       <ul>
-        <li><a href="server.app.dtos.html#server.app.dtos.NtpServerInfo.NtpServerInfo.ntp_server_location">(server.app.dtos.NtpServerInfo.NtpServerInfo attribute)</a>
-</li>
         <li><a href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.ntp_server_location">(server.app.dtos.RipeMeasurementResponse.RipeResult attribute)</a>
 </li>
       </ul></li>
@@ -637,6 +621,10 @@
 </li>
       </ul></li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="services.html#server.app.services.api_services.override_desired_ip_type_if_input_is_ip">override_desired_ip_type_if_input_is_ip() (in module server.app.services.api_services)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="P">P</h2>
@@ -688,7 +676,7 @@
 </li>
       <li><a href="utilities.html#server.app.utils.perform_measurements.print_ntp_measurement">print_ntp_measurement() (in module server.app.utils.perform_measurements)</a>
 </li>
-      <li><a href="server.app.dtos.html#id1">probe_addr (server.app.dtos.ProbeData.ProbeData attribute)</a>, <a href="server.app.dtos.html#server.app.dtos.ProbeData.ProbeData.probe_addr">[1]</a>
+      <li><a href="server.app.dtos.html#server.app.dtos.ProbeData.ProbeData.probe_addr">probe_addr (server.app.dtos.ProbeData.ProbeData attribute)</a>
 
       <ul>
         <li><a href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.probe_addr">(server.app.dtos.RipeMeasurementResponse.RipeResult attribute)</a>
@@ -698,13 +686,13 @@
 </li>
       <li><a href="server.app.dtos.html#server.app.dtos.RipeMeasurement.RipeMeasurement.probe_data">probe_data (server.app.dtos.RipeMeasurement.RipeMeasurement attribute)</a>
 </li>
-      <li><a href="server.app.dtos.html#id2">probe_id (server.app.dtos.ProbeData.ProbeData attribute)</a>, <a href="server.app.dtos.html#server.app.dtos.ProbeData.ProbeData.probe_id">[1]</a>
+      <li><a href="server.app.dtos.html#server.app.dtos.ProbeData.ProbeData.probe_id">probe_id (server.app.dtos.ProbeData.ProbeData attribute)</a>
 
       <ul>
         <li><a href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.probe_id">(server.app.dtos.RipeMeasurementResponse.RipeResult attribute)</a>
 </li>
       </ul></li>
-      <li><a href="server.app.dtos.html#id3">probe_location (server.app.dtos.ProbeData.ProbeData attribute)</a>, <a href="server.app.dtos.html#server.app.dtos.ProbeData.ProbeData.probe_location">[1]</a>
+      <li><a href="server.app.dtos.html#server.app.dtos.ProbeData.ProbeData.probe_location">probe_location (server.app.dtos.ProbeData.ProbeData attribute)</a>
 
       <ul>
         <li><a href="server.app.dtos.html#server.app.dtos.RipeMeasurementResponse.RipeResult.probe_location">(server.app.dtos.RipeMeasurementResponse.RipeResult attribute)</a>
@@ -824,7 +812,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="server.app.dtos.html#server.app.dtos.PreciseTime.PreciseTime.seconds">seconds (server.app.dtos.PreciseTime.PreciseTime attribute)</a>
 </li>
-      <li><a href="server.app.dtos.html#id0">server (server.app.dtos.MeasurementRequest.MeasurementRequest attribute)</a>, <a href="server.app.dtos.html#server.app.dtos.MeasurementRequest.MeasurementRequest.server">[1]</a>
+      <li><a href="server.app.dtos.html#id1">server (server.app.dtos.MeasurementRequest.MeasurementRequest attribute)</a>, <a href="server.app.dtos.html#server.app.dtos.MeasurementRequest.MeasurementRequest.server">[1]</a>
 </li>
       <li>
     server.app.db_config
@@ -1121,6 +1109,8 @@
 </li>
       </ul></li>
       <li><a href="server.app.api.routing.html#server.app.api.routing.trigger_ripe_measurement">trigger_ripe_measurement() (in module server.app.api.routing)</a>
+</li>
+      <li><a href="utilities.html#server.app.utils.ip_utils.try_converting_ip">try_converting_ip() (in module server.app.utils.ip_utils)</a>
 </li>
   </ul></td>
 </tr></table>

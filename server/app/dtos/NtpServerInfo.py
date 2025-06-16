@@ -9,7 +9,7 @@ class NtpServerInfo:
     """
     Represents the relevant metadata of an NTP server.
 
-    Fields:
+    Attributes:
         ntp_version (int): The version of NTP the user chose to use (backwards compatible)
         ntp_server_ip (IPv4Address | IPv6Address | None): The IP of the server, either in IPv4 or IPv6 format
         ntp_server_name (str): The name of the server
@@ -31,7 +31,7 @@ class NtpServerInfo:
         if not isinstance(self.ntp_version, int):
             raise TypeError(f"ntp_version must be int, got {type(self.ntp_version).__name__}")
         if not isinstance(self.ntp_server_ref_parent_ip, IPv4Address | IPv6Address | None):
-            raise TypeError(f"ntp_server_ref_parent_ip must be IPv4Address or IPv6Address, got {type(self.ntp_server_ref_parent_ip).__name__}")
+            raise TypeError(
+                f"ntp_server_ref_parent_ip must be IPv4Address or IPv6Address, got {type(self.ntp_server_ref_parent_ip).__name__}")
         if not isinstance(self.ref_name, str | None):
             raise TypeError(f"ref_name must be str, got {type(self.ref_name).__name__}")
-

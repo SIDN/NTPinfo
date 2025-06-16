@@ -232,7 +232,7 @@ We need to shift from ntp time to unix time so we need to subtract all the secon
 <span id="methods-used-for-converting-a-domain-name-to-an-ip"></span><h2>Methods used for converting a domain name to an ip<a class="headerlink" href="#module-server.app.utils.domain_name_to_ip" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="server.app.utils.domain_name_to_ip.domain_name_to_ip_close_to_client">
-<span class="sig-prename descclassname"><span class="pre">server.app.utils.domain_name_to_ip.</span></span><span class="sig-name descname"><span class="pre">domain_name_to_ip_close_to_client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_ip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolvers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['8.8.8.8',</span> <span class="pre">'1.1.1.1']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/domain_name_to_ip.html#domain_name_to_ip_close_to_client"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.domain_name_to_ip.domain_name_to_ip_close_to_client" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">server.app.utils.domain_name_to_ip.</span></span><span class="sig-name descname"><span class="pre">domain_name_to_ip_close_to_client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_ip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wanted_ip_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolvers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['8.8.8.8',</span> <span class="pre">'1.1.1.1',</span> <span class="pre">'2001:4860:4860::8888']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/domain_name_to_ip.html#domain_name_to_ip_close_to_client"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.domain_name_to_ip.domain_name_to_ip_close_to_client" title="Link to this definition"></a></dt>
 <dd><p>This method tries to obtain the ip addresses of the domain name from some popular DNS servers (resolvers)
 that have (or may have) the ability to get an IP close to the client. It uses EDNS queries to get the IPs
 and in case the queries return a domain name, this method recursively tries to solve them. It uses “depth”
@@ -247,6 +247,7 @@ If the EDNS query does not return a CNAME, depth and max_depth would not be used
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>domain_name</strong> (<em>str</em>) – The domain name.</p></li>
 <li><p><strong>client_ip</strong> (<em>str</em>) – The client IP.</p></li>
+<li><p><strong>wanted_ip_type</strong> (<em>int</em>) – The IP type of the resulting IPs that we want.</p></li>
 <li><p><strong>resolvers</strong> (<em>list</em>) – A list of popular DNS resolvers that are ECS-capable.</p></li>
 <li><p><strong>depth</strong> (<em>int</em>) – The depth of the EDNS query if it returns a CNAME. (It is recommended to set this to 0.)</p></li>
 <li><p><strong>max_depth</strong> (<em>int</em>) – The maximum depth of the EDNS query. (It is recommended to set this to 2 or 3 to prevent long delay.)</p></li>
@@ -271,7 +272,7 @@ If the EDNS query does not return a CNAME, depth and max_depth would not be used
 This method is useful if you want IPs close to this server, or you do not care about the location of the IPs.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>domain_name</strong> (<em>str</em>) – The domain name.:</p>
+<dd class="field-odd"><p><strong>domain_name</strong> (<em>str</em>) – The NTP server domain name.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A list of IPs of the domain name or None if the domain name is not valid.</p>
@@ -284,14 +285,15 @@ This method is useful if you want IPs close to this server, or you do not care a
 
 <dl class="py function">
 <dt class="sig sig-object py" id="server.app.utils.domain_name_to_ip.domain_name_to_ip_list">
-<span class="sig-prename descclassname"><span class="pre">server.app.utils.domain_name_to_ip.</span></span><span class="sig-name descname"><span class="pre">domain_name_to_ip_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ntp_server_domain_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_ip</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/domain_name_to_ip.html#domain_name_to_ip_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.domain_name_to_ip.domain_name_to_ip_list" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">server.app.utils.domain_name_to_ip.</span></span><span class="sig-name descname"><span class="pre">domain_name_to_ip_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ntp_server_domain_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_ip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wanted_ip_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/domain_name_to_ip.html#domain_name_to_ip_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.domain_name_to_ip.domain_name_to_ip_list" title="Link to this definition"></a></dt>
 <dd><p>This method handles the case when client IP is None and uses our server as the default IP.
 It will return the list of IP addresses that are close to the client.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ntp_server_domain_name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – NTP server domain name.</p></li>
-<li><p><strong>client_ip</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – Client IP address.</p></li>
+<li><p><strong>ntp_server_domain_name</strong> (<em>str</em>) – NTP server domain name.</p></li>
+<li><p><strong>client_ip</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Client IP address.</p></li>
+<li><p><strong>wanted_ip_type</strong> (<em>int</em>) – The IP type of the resulting IPs that we want. (IPv4 or IPv6).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -308,7 +310,7 @@ It will return the list of IP addresses that are close to the client.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="server.app.utils.domain_name_to_ip.edns_response_to_ips">
-<span class="sig-prename descclassname"><span class="pre">server.app.utils.domain_name_to_ip.</span></span><span class="sig-name descname"><span class="pre">edns_response_to_ips</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_ip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolvers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/domain_name_to_ip.html#edns_response_to_ips"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.domain_name_to_ip.edns_response_to_ips" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">server.app.utils.domain_name_to_ip.</span></span><span class="sig-name descname"><span class="pre">edns_response_to_ips</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_ip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wanted_ip_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolvers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/domain_name_to_ip.html#edns_response_to_ips"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.domain_name_to_ip.edns_response_to_ips" title="Link to this definition"></a></dt>
 <dd><p>This method takes the IPs from the response. In case the response has a CNAME, it will
 recursively try to get an IP from that CNAME. In the worst case, it will be redirected “max_depth” times.
 This parameter is useful for preventing an infinite loop in redirecting.</p>
@@ -317,6 +319,7 @@ This parameter is useful for preventing an infinite loop in redirecting.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>response</strong> (<em>dns.message.Message</em>) – The response from the EDNS query.</p></li>
 <li><p><strong>client_ip</strong> (<em>str</em>) – The client IP.</p></li>
+<li><p><strong>wanted_ip_type</strong> (<em>int</em>) – The IP type of the resulting IPs that we want.</p></li>
 <li><p><strong>resolvers</strong> (<em>list</em>) – A list of popular DNS resolvers that are ECS-capable. They are used in the CNAME case.</p></li>
 <li><p><strong>depth</strong> (<em>int</em>) – The depth of the EDNS query.</p></li>
 <li><p><strong>max_depth</strong> (<em>int</em>) – The maximum depth of the EDNS query.</p></li>
@@ -333,7 +336,7 @@ This parameter is useful for preventing an infinite loop in redirecting.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="server.app.utils.domain_name_to_ip.perform_edns_query">
-<span class="sig-prename descclassname"><span class="pre">server.app.utils.domain_name_to_ip.</span></span><span class="sig-name descname"><span class="pre">perform_edns_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolver_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ecs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ip_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/domain_name_to_ip.html#perform_edns_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.domain_name_to_ip.perform_edns_query" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">server.app.utils.domain_name_to_ip.</span></span><span class="sig-name descname"><span class="pre">perform_edns_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resolver_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ecs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wanted_ip_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/domain_name_to_ip.html#perform_edns_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.domain_name_to_ip.perform_edns_query" title="Link to this definition"></a></dt>
 <dd><p>This method performs a EDNS query against the domain name using the resolver as
 the DNS IP and returns the response.</p>
 <dl class="field-list simple">
@@ -342,7 +345,7 @@ the DNS IP and returns the response.</p>
 <li><p><strong>domain_name</strong> (<em>str</em>) – The domain name.</p></li>
 <li><p><strong>resolver_name</strong> (<em>str</em>) – The resolver name.</p></li>
 <li><p><strong>ecs</strong> (<em>dns.edns.ECSOption</em>) – The EDNS query option. It contains information about the client IP.</p></li>
-<li><p><strong>ip_type</strong> (<em>int</em>) – The IP type of the EDNS query. (4 or 6)</p></li>
+<li><p><strong>wanted_ip_type</strong> (<em>int</em>) – The IP type of the EDNS query. (4 or 6)</p></li>
 <li><p><strong>timeout</strong> (<em>float</em><em>|</em><em>int</em>) – The timeout for the EDNS query.</p></li>
 </ul>
 </dd>
@@ -360,12 +363,15 @@ the DNS IP and returns the response.</p>
 <span id="ip-utility-methods"></span><h2>IP utility methods<a class="headerlink" href="#module-server.app.utils.ip_utils" title="Link to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="server.app.utils.ip_utils.client_ip_fetch">
-<span class="sig-prename descclassname"><span class="pre">server.app.utils.ip_utils.</span></span><span class="sig-name descname"><span class="pre">client_ip_fetch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/ip_utils.html#client_ip_fetch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.ip_utils.client_ip_fetch" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">server.app.utils.ip_utils.</span></span><span class="sig-name descname"><span class="pre">client_ip_fetch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wanted_ip_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/ip_utils.html#client_ip_fetch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.ip_utils.client_ip_fetch" title="Link to this definition"></a></dt>
 <dd><p>Attempts to determine the client’s IP address from the request.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>request</strong> (<em>Request</em>) – The FastAPI Request object, containing information
-about the incoming client request</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request</strong> (<em>Request</em>) – The FastAPI Request object, containing information
+about the incoming client request</p></li>
+<li><p><strong>wanted_ip_type</strong> (<em>int</em>) – The type of IP address that you want to get. (4 or 6)</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><dl class="simple">
@@ -413,7 +419,7 @@ about the incoming client request</p>
 it returns 6 if we have an IPv6 address. Otherwise, it raises an exception.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ip_str</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The IP address</p>
+<dd class="field-odd"><p><strong>ip_str</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – The IP address</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The ip family or an exception if we do not get an IP address</p>
@@ -448,7 +454,7 @@ of an IP address if they can be taken.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="server.app.utils.ip_utils.get_prefix_from_ip">
 <span class="sig-prename descclassname"><span class="pre">server.app.utils.ip_utils.</span></span><span class="sig-name descname"><span class="pre">get_prefix_from_ip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ip_str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/ip_utils.html#get_prefix_from_ip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.ip_utils.get_prefix_from_ip" title="Link to this definition"></a></dt>
-<dd><p>This method returns the prefix of an IP address.</p>
+<dd><p>This method returns the prefix of an IP address. It randomizes it before sending it to stat.ripe.net</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>ip_str</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The ip address.</p>
@@ -464,55 +470,56 @@ of an IP address if they can be taken.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="server.app.utils.ip_utils.get_server_ip">
-<span class="sig-prename descclassname"><span class="pre">server.app.utils.ip_utils.</span></span><span class="sig-name descname"><span class="pre">get_server_ip</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/ip_utils.html#get_server_ip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.ip_utils.get_server_ip" title="Link to this definition"></a></dt>
-<dd><p>Determines the outward-facing IP address of the server by opening a
-dummy UDP connection to a well-known external host (Google DNS).</p>
+<span class="sig-prename descclassname"><span class="pre">server.app.utils.ip_utils.</span></span><span class="sig-name descname"><span class="pre">get_server_ip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wanted_ip_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/ip_utils.html#get_server_ip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.ip_utils.get_server_ip" title="Link to this definition"></a></dt>
+<dd><p>It determines the public IP address of this server by opening a dummy UDP socket
+connection to DNS (taken from the config). It has fallbacks to ipify.org. If you want IPv4,
+it will open an IPv4 connection, otherwise it will open an IPv6 connection.
+It is <strong>strict</strong>, and it will return None if it could not return the type you wanted.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The server’s external IP address
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>wanted_ip_type</strong> (<em>int</em>) – The type of IP address we are looking for.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The server’s external IP address
 as an IPv4Address or IPv6Address object, or None if detection fails.</p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Optional[Union[IPv4Address, IPv6Address]]</p>
-</dd>
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ValueError</strong> – If the detected IP address is not a valid IPv4 or IPv6 address.</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[Union[IPv4Address, IPv6Address]]</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="server.app.utils.ip_utils.get_server_ip_from_ipify">
-<span class="sig-prename descclassname"><span class="pre">server.app.utils.ip_utils.</span></span><span class="sig-name descname"><span class="pre">get_server_ip_from_ipify</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/ip_utils.html#get_server_ip_from_ipify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.ip_utils.get_server_ip_from_ipify" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">server.app.utils.ip_utils.</span></span><span class="sig-name descname"><span class="pre">get_server_ip_from_ipify</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wanted_ip_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/ip_utils.html#get_server_ip_from_ipify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.ip_utils.get_server_ip_from_ipify" title="Link to this definition"></a></dt>
 <dd><p>This method is a fallback to try to get the public IP address of our server from ipify.org</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>The public IP address of our server.</p>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>wanted_ip_type</strong> (<em>int</em>) – The type of IP address that you want to get. (4 or 6)</p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Optional[IPv4Address | IPv6Address]</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The public IP address of our server.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[IPv4Address | IPv6Address]</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="server.app.utils.ip_utils.ip_to_location">
-<span class="sig-prename descclassname"><span class="pre">server.app.utils.ip_utils.</span></span><span class="sig-name descname"><span class="pre">ip_to_location</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ip_str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/ip_utils.html#ip_to_location"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.ip_utils.ip_to_location" title="Link to this definition"></a></dt>
-<dd><p>This method returns the latitude and longitude of an IP address by making an API call.
-This method also works with a domain name, but it is recommended to use an IP address.
-(These API calls are unlimited)</p>
+<dt class="sig sig-object py" id="server.app.utils.ip_utils.get_server_ip_if_possible">
+<span class="sig-prename descclassname"><span class="pre">server.app.utils.ip_utils.</span></span><span class="sig-name descname"><span class="pre">get_server_ip_if_possible</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wanted_ip_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/ip_utils.html#get_server_ip_if_possible"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.ip_utils.get_server_ip_if_possible" title="Link to this definition"></a></dt>
+<dd><p>This method returns the IP address of this server. If it has both IPv6 and IPv4, it will return whatever
+type you wanted. If not, it returns the type it has. (It has at least one IP address which is either IPv4 or IPv6)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ip_str</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – The IP address.</p>
+<dd class="field-odd"><p><strong>wanted_ip_type</strong> (<em>int</em>) – The type of IP address that you want to get. (4 or 6)</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>latitude and longitude of the provided IP address.</p>
+<dd class="field-even"><p>The IP address of this server with the desired IP type if possible.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>tuple[float, float]</p>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>Exception</strong> – If the IP provided is invalid</p>
+<dd class="field-odd"><p>IPv4Address | IPv6Address | None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -533,6 +540,23 @@ It can be either an <cite>IPv4Address</cite> or <cite>IPv6Address</cite> object,
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="server.app.utils.ip_utils.is_private_ip">
+<span class="sig-prename descclassname"><span class="pre">server.app.utils.ip_utils.</span></span><span class="sig-name descname"><span class="pre">is_private_ip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ip_str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/ip_utils.html#is_private_ip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.ip_utils.is_private_ip" title="Link to this definition"></a></dt>
+<dd><p>This method checks whether an IP address is a private IP.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ip_str</strong> (<em>str</em>) – The IP address to check.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Whether the IP address is a private IP.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -595,6 +619,27 @@ If the stratum is greater than 255, then we have an invalid stratum.</p>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="server.app.utils.ip_utils.try_converting_ip">
+<span class="sig-prename descclassname"><span class="pre">server.app.utils.ip_utils.</span></span><span class="sig-name descname"><span class="pre">try_converting_ip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client_ip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wanted_ip_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/ip_utils.html#try_converting_ip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.ip_utils.try_converting_ip" title="Link to this definition"></a></dt>
+<dd><p>This method tries to convert an IPv4 into IPv6 or an IPv6 into an IPv4 using reverse DNS from dnspython.
+It only works if there is a configured PTR record + AAAA record.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>client_ip</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – The client IP to convert.</p></li>
+<li><p><strong>wanted_ip_type</strong> (<em>int</em>) – The type of IP address that we want.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The converted IPv6 or IPv4 as a string or the original IP if the process failed.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-server.app.utils.load_config_data">
 <span id="methods-used-for-fetching-data-from-the-config-file"></span><h2>Methods used for fetching data from the config file<a class="headerlink" href="#module-server.app.utils.load_config_data" title="Link to this heading"></a></h2>
@@ -636,6 +681,30 @@ If the stratum is greater than 255, then we have an invalid stratum.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="server.app.utils.load_config_data.get_ipv4_edns_server">
+<span class="sig-prename descclassname"><span class="pre">server.app.utils.load_config_data.</span></span><span class="sig-name descname"><span class="pre">get_ipv4_edns_server</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/load_config_data.html#get_ipv4_edns_server"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.load_config_data.get_ipv4_edns_server" title="Link to this definition"></a></dt>
+<dd><p>This method returns the first IPv4 EDNS server available in the config.
+It returns None if no IPv4 EDNS server is available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="server.app.utils.load_config_data.get_ipv6_edns_server">
+<span class="sig-prename descclassname"><span class="pre">server.app.utils.load_config_data.</span></span><span class="sig-name descname"><span class="pre">get_ipv6_edns_server</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/load_config_data.html#get_ipv6_edns_server"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.load_config_data.get_ipv6_edns_server" title="Link to this definition"></a></dt>
+<dd><p>This method returns the first IPv6 EDNS server available in the config.
+It returns None if no IPv6 EDNS server is available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -984,14 +1053,15 @@ the IP not being found, it returns None</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="server.app.utils.perform_measurements.perform_ntp_measurement_domain_name_list">
-<span class="sig-prename descclassname"><span class="pre">server.app.utils.perform_measurements.</span></span><span class="sig-name descname"><span class="pre">perform_ntp_measurement_domain_name_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">server_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pool.ntp.org'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_ip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ntp_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/perform_measurements.html#perform_ntp_measurement_domain_name_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.perform_measurements.perform_ntp_measurement_domain_name_list" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">server.app.utils.perform_measurements.</span></span><span class="sig-name descname"><span class="pre">perform_ntp_measurement_domain_name_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">server_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_ip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wanted_ip_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ntp_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/perform_measurements.html#perform_ntp_measurement_domain_name_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.perform_measurements.perform_ntp_measurement_domain_name_list" title="Link to this definition"></a></dt>
 <dd><p>This method performs a NTP measurement on a NTP server from all the IPs got back from its domain name.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>server_name</strong> (<em>str</em>) – the name of the ntp server</p></li>
-<li><p><strong>client_ip</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – the IP address of the client (if given)</p></li>
-<li><p><strong>ntp_version</strong> (<em>int</em>) – the version of the ntp that you want to use</p></li>
+<li><p><strong>server_name</strong> (<em>str</em>) – The name of the ntp server.</p></li>
+<li><p><strong>client_ip</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – The IP address of the client (if given).</p></li>
+<li><p><strong>wanted_ip_type</strong> (<em>int</em>) – The IP type that we want to measure.</p></li>
+<li><p><strong>ntp_version</strong> (<em>int</em>) – The version of the ntp that you want to use.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1009,9 +1079,7 @@ the IP not being found, it returns None</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="server.app.utils.perform_measurements.perform_ntp_measurement_ip">
 <span class="sig-prename descclassname"><span class="pre">server.app.utils.perform_measurements.</span></span><span class="sig-name descname"><span class="pre">perform_ntp_measurement_ip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">server_ip_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ntp_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/perform_measurements.html#perform_ntp_measurement_ip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.perform_measurements.perform_ntp_measurement_ip" title="Link to this definition"></a></dt>
-<dd><p>This method performs a NTP measurement on a NTP server from its IP address. The “other IPs list” of the
-measurement will be None.
-empty list of other IPs of the domain name.</p>
+<dd><p>This method performs a NTP measurement on a NTP server from its IP address.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1030,7 +1098,7 @@ empty list of other IPs of the domain name.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="server.app.utils.perform_measurements.perform_ripe_measurement_domain_name">
-<span class="sig-prename descclassname"><span class="pre">server.app.utils.perform_measurements.</span></span><span class="sig-name descname"><span class="pre">perform_ripe_measurement_domain_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">server_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_ip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probes_requested</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/perform_measurements.html#perform_ripe_measurement_domain_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.perform_measurements.perform_ripe_measurement_domain_name" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">server.app.utils.perform_measurements.</span></span><span class="sig-name descname"><span class="pre">perform_ripe_measurement_domain_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">server_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_ip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wanted_ip_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probes_requested</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/perform_measurements.html#perform_ripe_measurement_domain_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.perform_measurements.perform_ripe_measurement_domain_name" title="Link to this definition"></a></dt>
 <dd><p>This method performs a RIPE measurement on a domain name. It lets the RIPE atlas probe to
 decide which IP of that domain name to use. (You can see this IP from the details of the
 measurement by looking at the measurement ID)</p>
@@ -1039,6 +1107,7 @@ measurement by looking at the measurement ID)</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>server_name</strong> (<em>str</em>) – The domain name of the NTP server.</p></li>
 <li><p><strong>client_ip</strong> (<em>str</em>) – The IP address of the NTP server.</p></li>
+<li><p><strong>wanted_ip_type</strong> (<em>int</em>) – The IP type that we want to measure.</p></li>
 <li><p><strong>probes_requested</strong> (<em>int</em>) – The number of probes requested.</p></li>
 </ul>
 </dd>
@@ -1647,7 +1716,7 @@ from the probes_requested. These probes have the highest priority as they have m
 
 <dl class="py function">
 <dt class="sig sig-object py" id="server.app.utils.ripe_probes.get_probes">
-<span class="sig-prename descclassname"><span class="pre">server.app.utils.ripe_probes.</span></span><span class="sig-name descname"><span class="pre">get_probes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client_ip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probes_requested</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/ripe_probes.html#get_probes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.ripe_probes.get_probes" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">server.app.utils.ripe_probes.</span></span><span class="sig-name descname"><span class="pre">get_probes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client_ip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ip_family_of_ntp_server</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">probes_requested</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/utils/ripe_probes.html#get_probes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.utils.ripe_probes.get_probes" title="Link to this definition"></a></dt>
 <dd><p>This method handles all cases regarding what probes we should send.
 This method assumes all inputs are either valid or None. (If there is a typo in the input, the measurement
 may be affected)
@@ -1656,6 +1725,7 @@ It will try to return the best probes near the client.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>client_ip</strong> (<em>str</em>) – The IP address of the client.</p></li>
+<li><p><strong>ip_family_of_ntp_server</strong> (<em>int</em>) – The IP family of the NTP server. (4 or 6)</p></li>
 <li><p><strong>probes_requested</strong> (<em>int</em>) – The total number of probes that we will request.</p></li>
 </ul>
 </dd>
@@ -1666,7 +1736,7 @@ It will try to return the best probes near the client.</p>
 <dd class="field-odd"><p>list[dict]</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>Exception</strong> – If the NTP server IP address is invalid or</p>
+<dd class="field-even"><p><a class="reference internal" href="server.app.models.html#server.app.models.CustomError.InputError" title="server.app.models.CustomError.InputError"><strong>InputError</strong></a> – If the client IP address is invalid</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1736,7 +1806,7 @@ If so, it assigns UTC as the timezone. If it already has a timezone, it converts
 <dd><p>It verifies if the given string is a valid IPv4 or IPv6 address. If not, it returns None.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>ip_str</strong> (<em>str</em>) – ip address</p>
+<dd class="field-odd"><p><strong>ip_str</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – ip address</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>

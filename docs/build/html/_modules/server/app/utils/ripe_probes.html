@@ -84,7 +84,7 @@
 
 <div class="viewcode-block" id="get_probes">
 <a class="viewcode-back" href="../../../../utilities.html#server.app.utils.ripe_probes.get_probes">[docs-agendas]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_probes</span><span class="p">(</span><span class="n">client_ip</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_probes</span><span class="p">(</span><span class="n">client_ip</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ip_family_of_ntp_server</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
                <span class="n">probes_requested</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">get_ripe_number_of_probes_per_measurement</span><span class="p">())</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This method handles all cases regarding what probes we should send.</span>
@@ -94,18 +94,26 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        client_ip (str): The IP address of the client.</span>
+<span class="sd">        ip_family_of_ntp_server (int): The IP family of the NTP server. (4 or 6)</span>
 <span class="sd">        probes_requested (int): The total number of probes that we will request.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        list[dict]: The list of probes that we will use for the measurement.</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">        Exception: If the NTP server IP address is invalid or</span>
+<span class="sd">        InputError: If the client IP address is invalid</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># get the details. (this will take around 150-200ms)</span>
     <span class="n">ip_family</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">get_ip_family</span><span class="p">(</span><span class="n">client_ip</span><span class="p">)</span>
     <span class="n">ip_asn</span><span class="p">,</span> <span class="n">ip_country</span><span class="p">,</span> <span class="n">ip_area</span> <span class="o">=</span> <span class="n">get_ip_network_details</span><span class="p">(</span><span class="n">client_ip</span><span class="p">)</span>
-    <span class="n">ip_prefix</span> <span class="o">=</span> <span class="n">get_prefix_from_ip</span><span class="p">(</span><span class="n">client_ip</span><span class="p">)</span>
+    <span class="n">ip_prefix</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1"># the prefix is relevant if and only if the client has the same IP type as the NTP server.</span>
+    <span class="c1"># Otherwise, we won&#39;t &quot;find probes with the same prefix as the client that can perform NTP measurements for that server&quot;</span>
+
+    <span class="c1"># If we do not have this check, &quot;get available&quot; methods that involves prefix will fail</span>
+    <span class="k">if</span> <span class="n">ip_family</span> <span class="o">==</span> <span class="n">ip_family_of_ntp_server</span><span class="p">:</span>
+        <span class="n">ip_prefix</span> <span class="o">=</span> <span class="n">get_prefix_from_ip</span><span class="p">(</span><span class="n">client_ip</span><span class="p">)</span>
+
     <span class="c1"># settings:</span>
     <span class="n">probes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">current_probes_set</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
@@ -113,7 +121,7 @@
     <span class="n">probes_requested</span><span class="p">,</span> <span class="n">current_probes_set</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">get_best_probes_with_multiple_attributes</span><span class="p">(</span><span class="n">client_ip</span><span class="o">=</span><span class="n">client_ip</span><span class="p">,</span> <span class="n">current_probes_set</span><span class="o">=</span><span class="n">current_probes_set</span><span class="p">,</span>
                                                  <span class="n">ip_asn</span><span class="o">=</span><span class="n">ip_asn</span><span class="p">,</span> <span class="n">ip_prefix</span><span class="o">=</span><span class="n">ip_prefix</span><span class="p">,</span>
-                                                 <span class="n">ip_country</span><span class="o">=</span><span class="n">ip_country</span><span class="p">,</span> <span class="n">ip_family</span><span class="o">=</span><span class="n">ip_family</span><span class="p">,</span>
+                                                 <span class="n">ip_country</span><span class="o">=</span><span class="n">ip_country</span><span class="p">,</span> <span class="n">ip_family</span><span class="o">=</span><span class="n">ip_family_of_ntp_server</span><span class="p">,</span>
                                                  <span class="n">probes_requested</span><span class="o">=</span><span class="n">probes_requested</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">probes_requested</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
@@ -125,7 +133,7 @@
     <span class="n">probes_requested</span><span class="p">,</span> <span class="n">current_probes_set</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">get_best_probes_matched_by_single_attribute</span><span class="p">(</span><span class="n">client_ip</span><span class="o">=</span><span class="n">client_ip</span><span class="p">,</span> <span class="n">current_probes_set</span><span class="o">=</span><span class="n">current_probes_set</span><span class="p">,</span>
                                                     <span class="n">ip_asn</span><span class="o">=</span><span class="n">ip_asn</span><span class="p">,</span> <span class="n">ip_prefix</span><span class="o">=</span><span class="n">ip_prefix</span><span class="p">,</span>
-                                                    <span class="n">ip_country</span><span class="o">=</span><span class="n">ip_country</span><span class="p">,</span> <span class="n">ip_family</span><span class="o">=</span><span class="n">ip_family</span><span class="p">,</span>
+                                                    <span class="n">ip_country</span><span class="o">=</span><span class="n">ip_country</span><span class="p">,</span> <span class="n">ip_family</span><span class="o">=</span><span class="n">ip_family_of_ntp_server</span><span class="p">,</span>
                                                     <span class="n">probes_requested</span><span class="o">=</span><span class="n">probes_requested</span><span class="p">))</span>
     <span class="c1"># add the IDs of the probes</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_probes_set</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -428,6 +436,7 @@
         <span class="n">prefix_type</span><span class="p">:</span> <span class="n">ip_prefix</span><span class="p">,</span>
         <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>  <span class="c1"># Connected probes</span>
         <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;system-</span><span class="si">{</span><span class="n">ip_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">-works&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;is_public&quot;</span><span class="p">:</span> <span class="kc">True</span>
     <span class="p">}</span>
     <span class="n">probes</span> <span class="o">=</span> <span class="n">ProbeRequest</span><span class="p">(</span>
         <span class="n">return_objects</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -442,7 +451,7 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;error (safe): </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="c1"># print(probe_ids_list)</span>
+    <span class="c1"># print(f&quot;asn and prefix list{len(probe_ids_list)}&quot;)</span>
     <span class="k">return</span> <span class="n">probe_ids_list</span></div>
 
 
@@ -475,6 +484,7 @@
         <span class="s2">&quot;country_code&quot;</span><span class="p">:</span> <span class="n">ip_country_code</span><span class="p">,</span>
         <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>  <span class="c1"># Connected probes</span>
         <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;system-</span><span class="si">{</span><span class="n">ip_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">-works&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;is_public&quot;</span><span class="p">:</span> <span class="kc">True</span>
     <span class="p">}</span>
     <span class="n">probes</span> <span class="o">=</span> <span class="n">ProbeRequest</span><span class="p">(</span>
         <span class="n">return_objects</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -498,7 +508,7 @@
     <span class="n">probe_ids_dist_list</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
     <span class="n">probe_ids_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="ow">in</span> <span class="n">probe_ids_dist_list</span><span class="p">]</span>
 
-    <span class="c1"># print(probe_ids_list)</span>
+    <span class="c1"># print(f&quot;asn and country list {len(probe_ids_list)}&quot;)</span>
     <span class="k">return</span> <span class="n">probe_ids_list</span></div>
 
 
@@ -531,6 +541,7 @@
         <span class="s2">&quot;asn&quot;</span><span class="p">:</span> <span class="n">ip_asn_number</span><span class="p">,</span>
         <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>  <span class="c1"># Connected probes</span>
         <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;system-</span><span class="si">{</span><span class="n">ip_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">-works&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;is_public&quot;</span><span class="p">:</span> <span class="kc">True</span>
     <span class="p">}</span>
     <span class="n">probes</span> <span class="o">=</span> <span class="n">ProbeRequest</span><span class="p">(</span>
         <span class="n">return_objects</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -544,6 +555,7 @@
             <span class="n">probe_ids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;error (safe): </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># print(f&quot;asn list {len(probe_ids_list)}&quot;)</span>
     <span class="k">return</span> <span class="n">probe_ids_list</span></div>
 
 
@@ -573,6 +585,7 @@
         <span class="n">prefix_type</span><span class="p">:</span> <span class="n">ip_prefix</span><span class="p">,</span>
         <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>  <span class="c1"># Connected probes</span>
         <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;system-</span><span class="si">{</span><span class="n">ip_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">-works&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;is_public&quot;</span><span class="p">:</span> <span class="kc">True</span>
     <span class="p">}</span>
     <span class="n">probes</span> <span class="o">=</span> <span class="n">ProbeRequest</span><span class="p">(</span>
         <span class="n">return_objects</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -586,6 +599,7 @@
             <span class="n">probe_ids_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;error (safe): </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># print(f&quot;prefix list{len(probe_ids_list)}&quot;)</span>
     <span class="k">return</span> <span class="n">probe_ids_list</span></div>
 
 
@@ -614,6 +628,7 @@
         <span class="s2">&quot;country_code&quot;</span><span class="p">:</span> <span class="n">country_code</span><span class="p">,</span>
         <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>  <span class="c1"># Connected probes</span>
         <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;system-</span><span class="si">{</span><span class="n">ip_type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">-works&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;is_public&quot;</span><span class="p">:</span> <span class="kc">True</span>
     <span class="p">}</span>
     <span class="n">probes</span> <span class="o">=</span> <span class="n">ProbeRequest</span><span class="p">(</span>
         <span class="n">return_objects</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -638,6 +653,7 @@
     <span class="n">probe_ids_dist_list</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
     <span class="n">probe_ids_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span> <span class="ow">in</span> <span class="n">probe_ids_dist_list</span><span class="p">]</span>
 
+    <span class="c1"># print(f&quot;country list{len(probe_ids_list)}&quot;)</span>
     <span class="k">return</span> <span class="n">probe_ids_list</span></div>
 
 
@@ -677,8 +693,8 @@
 <span class="c1"># print(prefixx)</span>
 <span class="c1"># import time</span>
 <span class="c1"># start = time.time()</span>
-<span class="c1"># ipp=&quot;145.94.210.165&quot;</span>
-<span class="c1"># print(get_probes(ipp))</span>
+<span class="c1"># ipp=&quot;2a06:93c0::24&quot;#&quot;145.94.210.165&quot;</span>
+<span class="c1"># print(get_probes(&quot;89.46.74.148&quot;,6,10))</span>
 <span class="c1"># end = time.time()</span>
 <span class="c1"># print(end - start)</span>
 </pre></div>

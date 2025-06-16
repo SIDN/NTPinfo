@@ -77,11 +77,13 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">ntplib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dns.resolver</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">dns.reversename</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">server.app.utils.load_config_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_ipv4_edns_server</span><span class="p">,</span> <span class="n">get_ipv6_edns_server</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">server.app.utils.load_config_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_mask_ipv4</span><span class="p">,</span> <span class="n">get_mask_ipv6</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">server.app.utils.location_resolver</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_asn_for_ip</span><span class="p">,</span> <span class="n">get_country_for_ip</span><span class="p">,</span> <span class="n">get_continent_for_ip</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">server.app.models.CustomError</span><span class="w"> </span><span class="kn">import</span> <span class="n">InputError</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">server.app.utils.load_config_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_edns_default_servers</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">server.app.utils.validate</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_ip_address</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPException</span><span class="p">,</span> <span class="n">Request</span>
 
@@ -122,7 +124,7 @@
 
 <div class="viewcode-block" id="get_ip_family">
 <a class="viewcode-back" href="../../../../utilities.html#server.app.utils.ip_utils.get_ip_family">[docs-agendas]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_ip_family</span><span class="p">(</span><span class="n">ip_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_ip_family</span><span class="p">(</span><span class="n">ip_str</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This method returns the IP family of the given IP address. It returns 4 if we have an IPv4, and</span>
 <span class="sd">    it returns 6 if we have an IPv6 address. Otherwise, it raises an exception.</span>
@@ -213,7 +215,7 @@
 <a class="viewcode-back" href="../../../../utilities.html#server.app.utils.ip_utils.get_prefix_from_ip">[docs-agendas]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">get_prefix_from_ip</span><span class="p">(</span><span class="n">ip_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This method returns the prefix of an IP address.</span>
+<span class="sd">    This method returns the prefix of an IP address. It randomizes it before sending it to stat.ripe.net</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        ip_str: The ip address.</span>
@@ -222,7 +224,8 @@
 <span class="sd">        str: the prefix of an IP address.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;https://stat.ripe.net/data/prefix-overview/data.json?resource=</span><span class="si">{</span><span class="n">ip_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">ip_str_to_ask</span> <span class="o">=</span> <span class="n">ip_to_str</span><span class="p">(</span><span class="n">randomize_ip</span><span class="p">(</span><span class="n">ip_address</span><span class="p">(</span><span class="n">ip_str</span><span class="p">)))</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;https://stat.ripe.net/data/prefix-overview/data.json?resource=</span><span class="si">{</span><span class="n">ip_str_to_ask</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;data&quot;</span><span class="p">]</span>
         <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;resource&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -252,97 +255,116 @@
 
 
 
-<div class="viewcode-block" id="ip_to_location">
-<a class="viewcode-back" href="../../../../utilities.html#server.app.utils.ip_utils.ip_to_location">[docs-agendas]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">ip_to_location</span><span class="p">(</span><span class="n">ip_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    This method returns the latitude and longitude of an IP address by making an API call.</span>
-<span class="sd">    This method also works with a domain name, but it is recommended to use an IP address.</span>
-<span class="sd">    (These API calls are unlimited)</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        ip_str: The IP address.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        tuple[float, float]: latitude and longitude of the provided IP address.</span>
-
-<span class="sd">    Raises:</span>
-<span class="sd">        Exception: If the IP provided is invalid</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;https://ipwhois.app/json/</span><span class="si">{</span><span class="n">ip_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-    <span class="n">latitude</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;latitude&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="n">longitude</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;longitude&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">latitude</span><span class="p">,</span> <span class="n">longitude</span></div>
-
-
-
 <div class="viewcode-block" id="get_server_ip">
 <a class="viewcode-back" href="../../../../utilities.html#server.app.utils.ip_utils.get_server_ip">[docs-agendas]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_server_ip</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">IPv4Address</span> <span class="o">|</span> <span class="n">IPv6Address</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_server_ip</span><span class="p">(</span><span class="n">wanted_ip_type</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IPv4Address</span> <span class="o">|</span> <span class="n">IPv6Address</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Determines the outward-facing IP address of the server by opening a</span>
-<span class="sd">    dummy UDP connection to a well-known external host (Google DNS).</span>
+<span class="sd">    It determines the public IP address of this server by opening a dummy UDP socket</span>
+<span class="sd">    connection to DNS (taken from the config). It has fallbacks to ipify.org. If you want IPv4,</span>
+<span class="sd">    it will open an IPv4 connection, otherwise it will open an IPv6 connection.</span>
+<span class="sd">    It is **strict**, and it will return None if it could not return the type you wanted.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        wanted_ip_type (int): The type of IP address we are looking for.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Optional[Union[IPv4Address, IPv6Address]]: The server&#39;s external IP address</span>
 <span class="sd">        as an IPv4Address or IPv6Address object, or None if detection fails.</span>
-
-<span class="sd">    Raises:</span>
-<span class="sd">        ValueError: If the detected IP address is not a valid IPv4 or IPv6 address.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># use a dummy connection to get the outward-facing IP</span>
-    <span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_DGRAM</span><span class="p">)</span>
+    <span class="c1"># use a dummy connection to get the outward-facing IP (IPv4 or IPv6 connection)</span>
+    <span class="n">family</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">AF_INET6</span> <span class="k">if</span> <span class="n">wanted_ip_type</span> <span class="o">==</span> <span class="mi">6</span> <span class="k">else</span> <span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span>
+    <span class="n">dns_server_used</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">wanted_ip_type</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+        <span class="c1"># search for IPv6 DNS IP addresses in the config</span>
+        <span class="n">dns_server_used</span> <span class="o">=</span> <span class="n">get_ipv6_edns_server</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># search for IPv4 DNS IP addresses in the config</span>
+        <span class="n">dns_server_used</span> <span class="o">=</span> <span class="n">get_ipv4_edns_server</span><span class="p">()</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">family</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_DGRAM</span><span class="p">)</span> <span class="c1"># with wanted connection type and Data socket (UDP)</span>
+    <span class="n">ip</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">s</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="n">get_edns_default_servers</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">80</span><span class="p">))</span>
+        <span class="n">s</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="n">dns_server_used</span><span class="p">,</span> <span class="mi">80</span><span class="p">))</span>
         <span class="n">ip</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">getsockname</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Socket failed. Trying from ipify...&quot;</span><span class="p">)</span>
     <span class="k">finally</span><span class="p">:</span>
         <span class="n">s</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
     <span class="k">try</span><span class="p">:</span>
         <span class="c1"># if it is public</span>
-        <span class="k">if</span> <span class="n">get_country_for_ip</span><span class="p">(</span><span class="n">ip</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ip</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">is_private_ip</span><span class="p">(</span><span class="n">ip</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">ip_address</span><span class="p">(</span><span class="n">ip</span><span class="p">)</span>
         <span class="c1"># if it is private</span>
-        <span class="n">ip_public</span> <span class="o">=</span> <span class="n">get_server_ip_from_ipify</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fallback to public IP: </span><span class="si">{</span><span class="n">ip_to_str</span><span class="p">(</span><span class="n">ip_public</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">ip_public</span> <span class="o">=</span> <span class="n">get_server_ip_from_ipify</span><span class="p">(</span><span class="n">wanted_ip_type</span><span class="p">)</span>
+        <span class="c1"># print(f&quot;fallback to public IP: {ip_to_str(ip_public)}&quot;)</span>
         <span class="k">return</span> <span class="n">ip_public</span>
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 
 
+<div class="viewcode-block" id="get_server_ip_if_possible">
+<a class="viewcode-back" href="../../../../utilities.html#server.app.utils.ip_utils.get_server_ip_if_possible">[docs-agendas]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_server_ip_if_possible</span><span class="p">(</span><span class="n">wanted_ip_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IPv4Address</span> <span class="o">|</span> <span class="n">IPv6Address</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This method returns the IP address of this server. If it has both IPv6 and IPv4, it will return whatever</span>
+<span class="sd">    type you wanted. If not, it returns the type it has. (It has at least one IP address which is either IPv4 or IPv6)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        wanted_ip_type (int): The type of IP address that you want to get. (4 or 6)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        IPv4Address | IPv6Address | None: The IP address of this server with the desired IP type if possible.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ip</span> <span class="o">=</span> <span class="n">get_server_ip</span><span class="p">(</span><span class="n">wanted_ip_type</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ip</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># try the other IP</span>
+            <span class="n">ip</span> <span class="o">=</span> <span class="n">get_server_ip</span><span class="p">(</span><span class="mi">10</span> <span class="o">-</span> <span class="n">wanted_ip_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ip</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
 
 <div class="viewcode-block" id="get_server_ip_from_ipify">
 <a class="viewcode-back" href="../../../../utilities.html#server.app.utils.ip_utils.get_server_ip_from_ipify">[docs-agendas]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">get_server_ip_from_ipify</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">IPv4Address</span> <span class="o">|</span> <span class="n">IPv6Address</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_server_ip_from_ipify</span><span class="p">(</span><span class="n">wanted_ip_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">IPv4Address</span> <span class="o">|</span> <span class="n">IPv6Address</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This method is a fallback to try to get the public IP address of our server from ipify.org</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        wanted_ip_type (int): The type of IP address that you want to get. (4 or 6)</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Optional[IPv4Address | IPv6Address]: The public IP address of our server.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;https://api.ipify.org?format=json&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">ip_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="c1"># which means 4</span>
+        <span class="k">if</span> <span class="n">wanted_ip_type</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+            <span class="n">ip_type</span> <span class="o">=</span> <span class="s2">&quot;6&quot;</span>
+        <span class="c1"># api64 will return ipv4 or ipv6 if it is available, but we want exactly ipv4 or ipv6</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;https://api</span><span class="si">{</span><span class="n">ip_type</span><span class="si">}</span><span class="s2">.ipify.org?format=json&quot;</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
         <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
 
         <span class="n">data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
         <span class="n">ip_str</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ip&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ip_address</span><span class="p">(</span><span class="n">ip_str</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 
 
 
 <div class="viewcode-block" id="client_ip_fetch">
 <a class="viewcode-back" href="../../../../utilities.html#server.app.utils.ip_utils.client_ip_fetch">[docs-agendas]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">client_ip_fetch</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">client_ip_fetch</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">wanted_ip_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Attempts to determine the client&#39;s IP address from the request.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        request (Request): The FastAPI Request object, containing information</span>
 <span class="sd">                           about the incoming client request</span>
+<span class="sd">        wanted_ip_type (int): The type of IP address that you want to get. (4 or 6)</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        str: The determined IP address of the client (or a fallback server IP)</span>
@@ -354,13 +376,70 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">client_ip</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;X-Forwarded-For&quot;</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">host</span> <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">client</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">client_ip</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">client_ip</span> <span class="o">=</span> <span class="n">ip_to_str</span><span class="p">(</span><span class="n">get_server_ip</span><span class="p">())</span>
+        <span class="c1"># if it is None or if it is private (a private IP is useless for us)</span>
+        <span class="k">if</span> <span class="n">client_ip</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">is_private_ip</span><span class="p">(</span><span class="n">client_ip</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">client_ip</span> <span class="o">=</span> <span class="n">ip_to_str</span><span class="p">(</span><span class="n">get_server_ip</span><span class="p">(</span><span class="n">wanted_ip_type</span><span class="p">))</span>
 
-        <span class="k">return</span> <span class="n">client_ip</span>
+        <span class="c1"># test if you got the desired IP address type</span>
+        <span class="k">if</span> <span class="n">get_ip_family</span><span class="p">(</span><span class="n">client_ip</span><span class="p">)</span> <span class="o">==</span> <span class="n">wanted_ip_type</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">client_ip</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c1"># try to convert it. If conversion fails, it returns the original IP address</span>
+            <span class="k">return</span> <span class="n">try_converting_ip</span><span class="p">(</span><span class="n">client_ip</span><span class="p">,</span> <span class="n">wanted_ip_type</span><span class="p">)</span>
+
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
         <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">503</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Could not resolve client IP or fallback IP.&quot;</span><span class="p">)</span></div>
 
+
+<div class="viewcode-block" id="try_converting_ip">
+<a class="viewcode-back" href="../../../../utilities.html#server.app.utils.ip_utils.try_converting_ip">[docs-agendas]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">try_converting_ip</span><span class="p">(</span><span class="n">client_ip</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">wanted_ip_type</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This method tries to convert an IPv4 into IPv6 or an IPv6 into an IPv4 using reverse DNS from dnspython.</span>
+<span class="sd">    It only works if there is a configured PTR record + AAAA record.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        client_ip (Optional[str]): The client IP to convert.</span>
+<span class="sd">        wanted_ip_type (int): The type of IP address that we want.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Optional[str]: The converted IPv6 or IPv4 as a string or the original IP if the process failed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">client_ip</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span> <span class="c1">#getting PTR record</span>
+        <span class="n">reverse_name</span> <span class="o">=</span> <span class="n">dns</span><span class="o">.</span><span class="n">reversename</span><span class="o">.</span><span class="n">from_address</span><span class="p">(</span><span class="n">client_ip</span><span class="p">)</span>
+        <span class="n">answer</span> <span class="o">=</span> <span class="n">dns</span><span class="o">.</span><span class="n">resolver</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">reverse_name</span><span class="p">,</span> <span class="s1">&#39;PTR&#39;</span><span class="p">)</span>
+        <span class="n">client_domain_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">answer</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+        <span class="c1"># try getting IPv4 or IPv6</span>
+        <span class="n">rdtype</span> <span class="o">=</span> <span class="s2">&quot;A&quot;</span>
+        <span class="k">if</span> <span class="n">wanted_ip_type</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+            <span class="n">rdtype</span> <span class="o">=</span> <span class="s2">&quot;AAAA&quot;</span>
+        <span class="n">new_ip</span> <span class="o">=</span> <span class="n">dns</span><span class="o">.</span><span class="n">resolver</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">client_domain_name</span><span class="p">,</span> <span class="n">rdtype</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">new_ip</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="c1"># It failed. Return the original IP</span>
+        <span class="c1"># print(e)</span>
+        <span class="k">return</span> <span class="n">client_ip</span></div>
+
+
+<div class="viewcode-block" id="is_private_ip">
+<a class="viewcode-back" href="../../../../utilities.html#server.app.utils.ip_utils.is_private_ip">[docs-agendas]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_private_ip</span><span class="p">(</span><span class="n">ip_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This method checks whether an IP address is a private IP.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ip_str (str): The IP address to check.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: Whether the IP address is a private IP.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ip_obj</span> <span class="o">=</span> <span class="n">ipaddress</span><span class="o">.</span><span class="n">ip_address</span><span class="p">(</span><span class="n">ip_str</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ip_obj</span><span class="o">.</span><span class="n">is_private</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
 
 
 <div class="viewcode-block" id="is_this_ip_anycast">
@@ -440,6 +519,11 @@
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;IP cannot be randomized. </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 
+
+<span class="c1"># print(get_server_ip(4))</span>
+<span class="c1"># print(get_server_ip(6))2001:610:450:41::18f</span>
+<span class="c1"># print(try_converting_ip(&quot;2001:610:450:41::18f&quot;,4))</span>
+<span class="c1"># print(try_converting_ip(&quot;145.126.193.143&quot;,6))</span>
 </pre></div>
 
            </div>

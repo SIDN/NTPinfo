@@ -9,6 +9,7 @@ MeasurementRequest
 .. automodule:: server.app.dtos.MeasurementRequest
    :members:
    :show-inheritance:
+   :exclude-members: model_config
    :undoc-members:
 
 NtpMeasurementResponse
@@ -17,6 +18,7 @@ NtpMeasurementResponse
 .. automodule:: server.app.dtos.NtpMeasurementResponse
    :members:
    :show-inheritance:
+   :exclude-members: model_config
    :undoc-members:
 
 RipeMeasurementResponse
@@ -25,6 +27,7 @@ RipeMeasurementResponse
 .. automodule:: server.app.dtos.RipeMeasurementResponse
    :members:
    :show-inheritance:
+   :exclude-members: model_config
    :undoc-members:
 
 RipeMeasurementTriggerResponse
@@ -33,6 +36,7 @@ RipeMeasurementTriggerResponse
 .. automodule:: server.app.dtos.RipeMeasurementTriggerResponse
    :members:
    :show-inheritance:
+   :exclude-members: model_config
    :undoc-members:
 
 Core Data Models
@@ -43,7 +47,6 @@ RipeMeasurement
 .. automodule:: server.app.dtos.RipeMeasurement
    :members:
    :show-inheritance:
-   :undoc-members:
 
 NtpMeasurement
 ^^^^^^^^^^^^^^
@@ -51,7 +54,6 @@ NtpMeasurement
 .. automodule:: server.app.dtos.NtpMeasurement
    :members:
    :show-inheritance:
-   :undoc-members:
 
 NtpServerInfo
 ^^^^^^^^^^^^^
@@ -59,7 +61,6 @@ NtpServerInfo
 .. automodule:: server.app.dtos.NtpServerInfo
    :members:
    :show-inheritance:
-   :undoc-members:
 
 NtpTimestamps
 ^^^^^^^^^^^^^
@@ -67,7 +68,6 @@ NtpTimestamps
 .. automodule:: server.app.dtos.NtpTimestamps
    :members:
    :show-inheritance:
-   :undoc-members:
 
 NtpMainDetails
 ^^^^^^^^^^^^^^
@@ -75,7 +75,6 @@ NtpMainDetails
 .. automodule:: server.app.dtos.NtpMainDetails
    :members:
    :show-inheritance:
-   :undoc-members:
 
 NtpExtraDetails
 ^^^^^^^^^^^^^^^
@@ -83,7 +82,6 @@ NtpExtraDetails
 .. automodule:: server.app.dtos.NtpExtraDetails
    :members:
    :show-inheritance:
-   :undoc-members:
 
 PreciseTime
 ^^^^^^^^^^^
@@ -91,7 +89,6 @@ PreciseTime
 .. automodule:: server.app.dtos.PreciseTime
    :members:
    :show-inheritance:
-   :undoc-members:
 
 ProbeData
 ^^^^^^^^^
@@ -99,4 +96,3 @@ ProbeData
 .. automodule:: server.app.dtos.ProbeData
    :members:
    :show-inheritance:
-   :undoc-members:

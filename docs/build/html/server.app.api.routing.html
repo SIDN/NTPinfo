@@ -120,13 +120,15 @@
 <dd><p>Compute a live NTP measurement for a given server (IP or domain).</p>
 <p>This endpoint receives a JSON payload containing the server to be measured.
 It uses the <cite>measure()</cite> function to perform the NTP synchronization measurement,
-and formats the result using <cite>get_format()</cite>.</p>
+and formats the result using <cite>get_format()</cite>. User can choose whether they want to measure IPv4 of IPv6,
+but this will take effect only for domain names. If user inputs an IP, we will measure the type of that IP.</p>
 <p>This endpoint is also limited to 5 requests per minute to prevent abuse and reduce server load.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>payload</strong> (<a class="reference internal" href="server.app.dtos.html#server.app.dtos.MeasurementRequest.MeasurementRequest" title="server.app.dtos.MeasurementRequest.MeasurementRequest"><em>MeasurementRequest</em></a>) – A Pydantic model containing:
-- server (str): IP address (IPv4/IPv6) or domain name of the NTP server.</p></li>
+- server (str): IP address (IPv4/IPv6) or domain name of the NTP server.
+- ipv6_measurement (bool): True if the type of IPs that we want to measure is IPv6. False otherwise.</p></li>
 <li><p><strong>request</strong> (<em>Request</em>) – The Request object that gives you the IP of the client.</p></li>
 <li><p><strong>session</strong> (<em>Session</em>) – The currently active database session.</p></li>
 </ul>
@@ -143,8 +145,10 @@ and formats the result using <cite>get_format()</cite>.</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>HTTPException</strong> – 400 – If the <cite>server</cite> field is empty or there is no response.</p></li>
-<li><p><strong>HTTPException</strong> – 503 – If the client IP address or the server’s IP address could not be retrieved.</p></li>
+<li><p><strong>HTTPException</strong> – 400 - If the <cite>server</cite> field is empty or no response</p></li>
+<li><p><strong>HTTPException</strong> – 422 - If the server cannot perform the desired IP type (IPv4 or IPv6) measurements,
+    or if the domain name could not be resolved.</p></li>
+<li><p><strong>HTTPException</strong> – 503 - If we could not get client IP address or our server’s IP address.</p></li>
 </ul>
 </dd>
 </dl>
@@ -182,12 +186,8 @@ based on a time range (start and end datetime).</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>HTTPException</strong> – Raises:</p></li>
-<li><p><strong>HTTPException</strong> – <ul>
-<li><p>400: If <cite>server</cite> parameter is empty, or the start and end dates are badly formatted (e.g., <cite>start &gt;= end</cite>, <cite>end</cite> in future).
-    - 500: If there’s an internal server error, such as a database access issue (<cite>MeasurementQueryError</cite>) or any other unexpected server-side exception.</p></li>
-</ul>
-</p></li>
+<li><p><strong>HTTPException</strong> – 400 - If <cite>server</cite> parameter is empty, or the start and end dates are badly formatted (e.g., <cite>start &gt;= end</cite>, <cite>end</cite> in future).</p></li>
+<li><p><strong>HTTPException</strong> – 500 - If there’s an internal server error, such as a database access issue (<cite>MeasurementQueryError</cite>) or any other unexpected server-side exception.</p></li>
 </ul>
 </dd>
 </dl>
@@ -213,8 +213,7 @@ the result using the <cite>/measurements/ripe/{measurement_id}</cite> endpoint.<
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>payload</strong> (<a class="reference internal" href="server.app.dtos.html#server.app.dtos.MeasurementRequest.MeasurementRequest" title="server.app.dtos.MeasurementRequest.MeasurementRequest"><em>MeasurementRequest</em></a>) – A Pydantic model that includes:
 - server (str): The IP address or domain name of the target server
-- jitter_flag (bool, optional): Whether to calculate jitter
-- measurements_no (int, optional): Number of measurements</p></li>
+- ipv6_measurement (bool): True if the type of IPs that we want to measure is IPv6. False otherwise.</p></li>
 <li><p><strong>request</strong> (<em>Request</em>) – The FastAPI request object, used to extract the client IP address</p></li>
 </ul>
 </dd>
@@ -234,13 +233,12 @@ the result using the <cite>/measurements/ripe/{measurement_id}</cite> endpoint.<
 <dd class="field-odd"><p>JSONResponse</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>HTTPException</strong> – <ul class="simple">
-<li><p>400: If the <cite>server</cite> field is empty
-    - 500: If the RIPE measurement could not be initiated
-    - 502: If the RIPE measurement was initiated but failed
-    - 503: If we could not get client IP address or our server’s IP address</p></li>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>HTTPException</strong> – 400 - If the <cite>server</cite> field is invalid</p></li>
+<li><p><strong>HTTPException</strong> – 500 - If the RIPE measurement could not be initiated</p></li>
+<li><p><strong>HTTPException</strong> – 502 - If the RIPE measurement was initiated but failed</p></li>
+<li><p><strong>HTTPException</strong> – 503 - If we could not get client IP address or our server’s IP address</p></li>
 </ul>
-</p>
 </dd>
 </dl>
 </dd></dl>
@@ -282,11 +280,10 @@ that the measurement is still pending.</p>
 <dd class="field-odd"><p>dict[str, Any]</p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>HTTPException</strong> – <ul class="simple">
-<li><p>500: There is an error with processing.
-    - 405: If fetching the measurement did not work.</p></li>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>HTTPException</strong> – 500 - There is an error with processing.</p></li>
+<li><p><strong>HTTPException</strong> – 405 - If fetching the measurement did not work.</p></li>
 </ul>
-</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>

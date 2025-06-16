@@ -224,7 +224,7 @@ results—and formats it as a plain dictionary.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="server.app.services.api_services.measure">
-<span class="sig-prename descclassname"><span class="pre">server.app.services.api_services.</span></span><span class="sig-name descname"><span class="pre">measure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">server</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_ip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measurement_no</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/services/api_services.html#measure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.services.api_services.measure" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">server.app.services.api_services.</span></span><span class="sig-name descname"><span class="pre">measure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">server</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wanted_ip_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_ip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measurement_no</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/services/api_services.html#measure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.services.api_services.measure" title="Link to this definition"></a></dt>
 <dd><p>Performs an NTP measurement for a given server (IP or domain name) and stores the result in the database.</p>
 <p>This function determines whether the input is an IP address or a domain name,
 then performs an NTP measurement using the appropriate method. The result is inserted
@@ -233,6 +233,7 @@ into the database and returned.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>server</strong> (<em>str</em>) – A string representing either an IPv4/IPv6 address or a domain name.</p></li>
+<li><p><strong>wanted_ip_type</strong> (<em>int</em>) – The IP type that we want to measure. Used for domain names.</p></li>
 <li><p><strong>session</strong> (<em>Session</em>) – The currently active database session.</p></li>
 <li><p><strong>client_ip</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – The client IP or None if it was not provided.</p></li>
 <li><p><strong>measurement_no</strong> (<em>int</em>) – How many extra measurements to perform if the jitter_flag is True.</p></li>
@@ -258,8 +259,29 @@ which are caught and logged to stdout.</p></li>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="server.app.services.api_services.override_desired_ip_type_if_input_is_ip">
+<span class="sig-prename descclassname"><span class="pre">server.app.services.api_services.</span></span><span class="sig-name descname"><span class="pre">override_desired_ip_type_if_input_is_ip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_server</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wanted_ip_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/services/api_services.html#override_desired_ip_type_if_input_is_ip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.services.api_services.override_desired_ip_type_if_input_is_ip" title="Link to this definition"></a></dt>
+<dd><p>If the target server input is IP, then we want to perform its IP type measurements.
+Only for domain names, “wanted_ip_type” is considered. Otherwise, it is ignored.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>target_server</strong> (<em>str</em>) – The server we want to measure (domain name or IP address)</p></li>
+<li><p><strong>wanted_ip_type</strong> (<em>int</em>) – The IP type the user said they wanted to measure.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The IP type of the server in case the server input is IP, otherwise the wanted_ip_type unmodified.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="server.app.services.api_services.perform_ripe_measurement">
-<span class="sig-prename descclassname"><span class="pre">server.app.services.api_services.</span></span><span class="sig-name descname"><span class="pre">perform_ripe_measurement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ntp_server</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_ip</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/services/api_services.html#perform_ripe_measurement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.services.api_services.perform_ripe_measurement" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">server.app.services.api_services.</span></span><span class="sig-name descname"><span class="pre">perform_ripe_measurement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ntp_server</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">client_ip</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wanted_ip_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/services/api_services.html#perform_ripe_measurement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.services.api_services.perform_ripe_measurement" title="Link to this definition"></a></dt>
 <dd><p>Initiate a RIPE Atlas measurement for a given server (IP address or domain name).</p>
 <p>This function determines whether the provided server is an IP address or a domain name,
 and triggers the appropriate RIPE measurement.</p>
@@ -268,6 +290,7 @@ and triggers the appropriate RIPE measurement.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ntp_server</strong> (<em>str</em>) – The IP address or domain name of the target NTP server.</p></li>
 <li><p><strong>client_ip</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – The IP address of the client requesting the measurement.</p></li>
+<li><p><strong>wanted_ip_type</strong> (<em>int</em>) – The IP type that we want to measure. (4 or 6)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

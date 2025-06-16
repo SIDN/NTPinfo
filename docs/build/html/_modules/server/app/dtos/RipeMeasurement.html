@@ -83,7 +83,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Represents the complete set of information retrieved from a RipeMeasurement.</span>
 
-<span class="sd">    Fields:</span>
+<span class="sd">    Attributes:</span>
 <span class="sd">        measurement_id (int): ID of the measurement from RIPE Atlas</span>
 <span class="sd">        ntp_measurement (NtpMeasurement): The NTP measurement data</span>
 <span class="sd">        probe_data (ProbeData): Data related to the probe</span>
@@ -107,7 +107,6 @@
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;time_to_result must be float or int, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">time_to_result</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ref_id must be str, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_id</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
-
 
 </pre></div>
 

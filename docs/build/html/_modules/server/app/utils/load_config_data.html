@@ -69,10 +69,10 @@
            <div itemprop="articleBody">
              
   <h1>Source code for server.app.utils.load_config_data</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">ipaddress</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">cast</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dotenv</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_dotenv</span>
 
@@ -310,6 +310,39 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;edns &#39;default_order_of_edns_servers&#39; cannot be empty&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">edns</span><span class="p">[</span><span class="s2">&quot;default_order_of_edns_servers&quot;</span><span class="p">]</span></div>
 
+
+<div class="viewcode-block" id="get_ipv4_edns_server">
+<a class="viewcode-back" href="../../../../utilities.html#server.app.utils.load_config_data.get_ipv4_edns_server">[docs-agendas]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_ipv4_edns_server</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This method returns the first IPv4 EDNS server available in the config.</span>
+<span class="sd">    It returns None if no IPv4 EDNS server is available.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">ip_str</span> <span class="ow">in</span> <span class="n">get_edns_default_servers</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ip</span> <span class="o">=</span> <span class="n">ipaddress</span><span class="o">.</span><span class="n">ip_address</span><span class="p">(</span><span class="n">ip_str</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ip</span><span class="p">,</span> <span class="n">ipaddress</span><span class="o">.</span><span class="n">IPv4Address</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">ip_str</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">continue</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="get_ipv6_edns_server">
+<a class="viewcode-back" href="../../../../utilities.html#server.app.utils.load_config_data.get_ipv6_edns_server">[docs-agendas]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_ipv6_edns_server</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This method returns the first IPv6 EDNS server available in the config.</span>
+<span class="sd">    It returns None if no IPv6 EDNS server is available.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">ip_str</span> <span class="ow">in</span> <span class="n">get_edns_default_servers</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ip</span> <span class="o">=</span> <span class="n">ipaddress</span><span class="o">.</span><span class="n">ip_address</span><span class="p">(</span><span class="n">ip_str</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ip</span><span class="p">,</span> <span class="n">ipaddress</span><span class="o">.</span><span class="n">IPv6Address</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">ip_str</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">continue</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
 
 
 <div class="viewcode-block" id="get_edns_timeout_s">

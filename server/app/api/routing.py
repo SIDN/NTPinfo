@@ -47,7 +47,6 @@ def read_root() -> str:
         </body>
     </html>
     """
-    return {"Hello": "World"}
 
 
 @router.post(
@@ -93,11 +92,10 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
               On failure, returns {"Error": "Could not perform measurement, DNS or IP not reachable."}
 
     Raises:
-        HTTPException:
-            - 400 If the `server` field is empty or no response
-            - 422 If the server cannot perform the desired IP type (IPv4 or IPv6) measurements,
+        HTTPException: 400 - If the `server` field is empty or no response
+        HTTPException: 422 - If the server cannot perform the desired IP type (IPv4 or IPv6) measurements,
               or if the domain name could not be resolved.
-            - 503 If we could not get client IP address or our server's IP address.
+        HTTPException: 503 - If we could not get client IP address or our server's IP address.
 
     """
     server = payload.server
@@ -113,8 +111,9 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
     client_ip: Optional[str] = client_ip_fetch(request=request, wanted_ip_type=wanted_ip_type)
     # for IPv6 measurements, we need to communicate using IPv6. (we need to have the same protocol as the target)
     this_server_ip_strict = get_server_ip(wanted_ip_type)  # strict means we want exactly this type
-    if this_server_ip_strict is None: # which means we cannot perform this type of NTP measurements from our server
-        raise HTTPException(status_code=422, detail=f"Our server cannot perform IPv{wanted_ip_type} measurements currently. Try the other IP type.")
+    if this_server_ip_strict is None:  # which means we cannot perform this type of NTP measurements from our server
+        raise HTTPException(status_code=422,
+                            detail=f"Our server cannot perform IPv{wanted_ip_type} measurements currently. Try the other IP type.")
     try:
         response = measure(server, wanted_ip_type, session, client_ip)
         # print(response)
@@ -184,11 +183,8 @@ async def read_historic_data_time(server: str,
         JSONResponse: A json response containing a list of formatted measurements under "measurements".
 
     Raises:
-        HTTPException:
-            Raises:
-        HTTPException:
-            - 400: If `server` parameter is empty, or the start and end dates are badly formatted (e.g., `start >= end`, `end` in future).
-            - 500: If there's an internal server error, such as a database access issue (`MeasurementQueryError`) or any other unexpected server-side exception.
+        HTTPException: 400 - If `server` parameter is empty, or the start and end dates are badly formatted (e.g., `start >= end`, `end` in future).
+        HTTPException: 500 - If there's an internal server error, such as a database access issue (`MeasurementQueryError`) or any other unexpected server-side exception.
     """
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'domain name' must be provided")
@@ -264,11 +260,10 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
             - ip_list (list[str]): List of ips for ntp server
 
     Raises:
-        HTTPException:
-            - 400: If the `server` field is invalid
-            - 500: If the RIPE measurement could not be initiated
-            - 502: If the RIPE measurement was initiated but failed
-            - 503: If we could not get client IP address or our server's IP address
+        HTTPException: 400 - If the `server` field is invalid
+        HTTPException: 500 - If the RIPE measurement could not be initiated
+        HTTPException: 502 - If the RIPE measurement was initiated but failed
+        HTTPException: 503 - If we could not get client IP address or our server's IP address
     """
     server = payload.server
     wanted_ip_type = 6 if payload.ipv6_measurement else 4
@@ -279,7 +274,7 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
     print("client IP is: ", client_ip)
     try:
         measurement_id = perform_ripe_measurement(server, client_ip=client_ip, wanted_ip_type=wanted_ip_type)
-        this_server_ip = get_server_ip_if_possible(wanted_ip_type) # this does not affect the measurement
+        this_server_ip = get_server_ip_if_possible(wanted_ip_type)  # this does not affect the measurement
         return JSONResponse(
             status_code=200,
             content={
@@ -349,9 +344,8 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
             - If pending: {"status": "pending", "message": "..."}
             - If partial results received: {"status": "partial_results", "results": <ripe_data>}
     Raises:
-        HTTPException:
-            - 500: There is an error with processing.
-            - 405: If fetching the measurement did not work.
+        HTTPException: 500 - There is an error with processing.
+        HTTPException: 405 - If fetching the measurement did not work.
     Notes:
         - A result is only marked "complete" when all requested probes have been scheduled
     """
