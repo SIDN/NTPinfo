@@ -16,7 +16,7 @@ import { transformJSONDataToRIPEData } from "../utils/transformJSONDataToRIPEDat
  */
 export const useFetchRIPEData = (measurementId: string | null, intervalMs = 3000) => {
     const [result, setResult] = useState<RIPEData[] | null>(null)
-    const [status, setStatus] = useState<RipeStatus>("pending")
+    const [status, setStatus] = useState<RipeStatus | null>("pending")
     const [error, setError] = useState<Error | null>(null)
 
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -76,7 +76,7 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 3000
                     if (intervalRef.current) clearInterval(intervalRef.current)
                 } else {
                     setError(err)
-                    setStatus("error")
+                    setStatus(null)
                     if (intervalRef.current) clearInterval(intervalRef.current)
                 }
             }

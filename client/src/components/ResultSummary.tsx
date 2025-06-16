@@ -8,7 +8,7 @@ import linkIcon from '../assets/link-svgrepo-com.png'
 import LoadingSpinner from './LoadingSpinner.tsx'
 
 function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} : 
-    {data : NTPData | null, ripeData: RIPEData | null, err : Error | null, httpStatus: number, ripeErr: Error | null, ripeStatus: RipeStatus}) {
+    {data : NTPData | null, ripeData: RIPEData | null, err : Error | null, httpStatus: number, ripeErr: Error | null, ripeStatus: RipeStatus | null}) {
 
     const [statusMessage, setStatusMessage] = useState<string>("")
     useEffect(() => {
