@@ -9,6 +9,12 @@ def test_load_config(mock):
     with pytest.raises(FileNotFoundError):
         load_config()
 
+@patch("server.app.utils.load_config_data.check_geolite_account_id_and_key")
+@patch("server.app.utils.load_config_data.get_max_mind_path_asn")
+@patch("server.app.utils.load_config_data.get_max_mind_path_country")
+@patch("server.app.utils.load_config_data.get_max_mind_path_city")
+@patch("server.app.utils.load_config_data.get_anycast_prefixes_v6_url")
+@patch("server.app.utils.load_config_data.get_anycast_prefixes_v4_url")
 @patch("server.app.utils.load_config_data.get_ripe_number_of_probes_per_measurement")
 @patch("server.app.utils.load_config_data.get_ripe_packets_per_probe")
 @patch("server.app.utils.load_config_data.get_ripe_timeout_per_probe_ms")
@@ -21,12 +27,11 @@ def test_load_config(mock):
 @patch("server.app.utils.load_config_data.get_ntp_version")
 @patch("server.app.utils.load_config_data.get_ripe_api_token")
 @patch("server.app.utils.load_config_data.get_ripe_account_email")
-@patch("server.app.utils.load_config_data.get_ipinfo_lite_api_token")
-def test_verify_if_config_is_set(mock_ipinfo_lite_api_token, mock_ripe_account_email, mock_ripe_api_token, mock_ntp_version,
+def test_verify_if_config_is_set(mock_ripe_account_email, mock_ripe_api_token, mock_ntp_version,
                                  mock_timeout_measurement_s, mock_nr_of_measurements_for_jitter, mock_mask_ipv4, mock_mask_ipv6,
                                  mock_edns_default_servers, mock_timeout_s, mock_ripe_timeout_per_probe_ms, mock_ripe_packets_per_probe,
-                                 mock_ripe_number_of_probes_per_measurement):
-    mock_ipinfo_lite_api_token.return_value = "s"
+                                 mock_ripe_number_of_probes_per_measurement, mock_anycast_4, mock_anycast_6, mock_city, mock_country,
+                                 mock_asn, mock_geolite_account):
     mock_ripe_account_email.return_value = "e@email.com"
     mock_ripe_api_token.return_value = "e"
     mock_ntp_version.return_value = 4
@@ -39,9 +44,13 @@ def test_verify_if_config_is_set(mock_ipinfo_lite_api_token, mock_ripe_account_e
     mock_ripe_timeout_per_probe_ms.return_value = 2
     mock_ripe_packets_per_probe.return_value = 2
     mock_ripe_number_of_probes_per_measurement.return_value = 1
+    mock_anycast_4.return_value = "link"
+    mock_anycast_6.return_value = "link"
+    mock_city.return_value = "link"
+    mock_country.return_value = "link"
+    mock_asn.return_value = "link"
 
     verify_if_config_is_set()
-    mock_ipinfo_lite_api_token.assert_called_once()
     mock_ripe_account_email.assert_called_once()
     mock_ripe_api_token.assert_called_once()
     mock_ntp_version.assert_called_once()
@@ -55,17 +64,6 @@ def test_verify_if_config_is_set(mock_ipinfo_lite_api_token, mock_ripe_account_e
     mock_ripe_packets_per_probe.assert_called_once()
     mock_ripe_number_of_probes_per_measurement.assert_called_once()
 
-@patch("server.app.utils.load_config_data.os.getenv")
-def test_get_ipinfo_lite_api_token(mock):
-    mock.return_value = "token"
-    assert get_ipinfo_lite_api_token() == "token"
-    mock.assert_called_with("IPINFO_LITE_API_TOKEN")
-
-    # None -> Exception
-    mock.return_value = None
-    with pytest.raises(ValueError):
-        get_ipinfo_lite_api_token()
-    mock.assert_called_with("IPINFO_LITE_API_TOKEN")
 
 @patch("server.app.utils.load_config_data.os.getenv")
 def test_get_ripe_account_email(mock):
