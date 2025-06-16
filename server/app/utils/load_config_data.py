@@ -23,7 +23,6 @@ def load_config() -> dict[str, Any]:
         return cast(dict[str, Any], yaml.safe_load(f))
 
 
-load_dotenv()
 config = load_config()
 
 
@@ -207,6 +206,7 @@ def get_edns_default_servers() -> list[str]:
         raise ValueError("edns 'default_order_of_edns_servers' cannot be empty")
     return edns["default_order_of_edns_servers"]
 
+
 def get_ipv4_edns_server() -> Optional[str]:
     """
     This method returns the first IPv4 EDNS server available in the config.
@@ -221,6 +221,7 @@ def get_ipv4_edns_server() -> Optional[str]:
             continue
     return None
 
+
 def get_ipv6_edns_server() -> Optional[str]:
     """
     This method returns the first IPv6 EDNS server available in the config.
@@ -234,6 +235,7 @@ def get_ipv6_edns_server() -> Optional[str]:
         except Exception:
             continue
     return None
+
 
 def get_edns_timeout_s() -> float | int:
     """

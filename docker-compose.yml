@@ -1,20 +1,26 @@
-version: '3.8'
 services:
   db:
     image: postgres:16
+    restart: always
     environment:
-      POSTGRES_USER: test_user
-      POSTGRES_PASSWORD: test_password
-      POSTGRES_DB: test_db
-    ports:
-      - "5433:5432"  # maps container port 5432 to host port 5433
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U test_user" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+    ports:
+      - "15432:5432"
+
+  backend:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
 
 volumes:
   pgdata:
