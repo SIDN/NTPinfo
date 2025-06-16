@@ -8,6 +8,7 @@ from datetime import datetime, timezone, tzinfo, timedelta
 
 def test_validate():
     assert is_ip_address("1.2.3") is None
+    assert is_ip_address(None) is None
     assert is_ip_address("adfsdgh") is None
     assert is_ip_address("0.0.0.0.0.0") is None
     assert is_ip_address("123.45.67.89") == "ipv4"

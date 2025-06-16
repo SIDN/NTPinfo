@@ -82,12 +82,6 @@ def get_ip_network_details(ip_str: str) -> tuple[Optional[str], Optional[str], O
         of an IP address if they can be taken.
     """
     try:
-        # token: str = get_ipinfo_lite_api_token()
-        # response = requests.get(f"https://api.ipinfo.io/lite/{ip_str}?token={token}")
-        # data = response.json()
-        # asn: str = data.get("asn", None)
-        # country: str = data.get("country_code", None)
-        # continent: str = data.get("continent_code", None)
         asn: Optional[str] = get_asn_for_ip(ip_str)
         country: Optional[str] = get_country_for_ip(ip_str)
         continent: Optional[str] = get_continent_for_ip(ip_str)
@@ -158,7 +152,6 @@ def ip_to_str(ip: Optional[IPv4Address | IPv6Address]) -> Optional[str]:
 
     Args:
         ip (Optional[IPv4Address | IPv6Address]): The IP address to be converted.
-            It can be either an `IPv4Address` or `IPv6Address` object, or `None`.
 
     Returns:
         Optional[str]: The string representation of the IP address, or `None` if the input is `None`.
@@ -201,7 +194,7 @@ def get_server_ip(wanted_ip_type: int=4) -> IPv4Address | IPv6Address | None:
 
     try:
         # if it is public
-        if ip is not None and is_private_ip(ip) is not None:
+        if ip is not None and is_private_ip(ip) == False:
             return ip_address(ip)
         # if it is private
         ip_public = get_server_ip_from_ipify(wanted_ip_type)
@@ -210,7 +203,7 @@ def get_server_ip(wanted_ip_type: int=4) -> IPv4Address | IPv6Address | None:
     except ValueError:
         return None
 
-def get_server_ip_if_possible(wanted_ip_type: int) -> IPv4Address | IPv6Address | None:
+def get_server_ip_if_possible(wanted_ip_type: int) -> Optional[IPv4Address | IPv6Address]:
     """
     This method returns the IP address of this server. If it has both IPv6 and IPv4, it will return whatever
     type you wanted. If not, it returns the type it has. (It has at least one IP address which is either IPv4 or IPv6)
@@ -219,7 +212,7 @@ def get_server_ip_if_possible(wanted_ip_type: int) -> IPv4Address | IPv6Address 
         wanted_ip_type (int): The type of IP address that you want to get. (4 or 6)
 
     Returns:
-        IPv4Address | IPv6Address | None: The IP address of this server with the desired IP type if possible.
+        Optional[IPv4Address | IPv6Address]: The IP address of this server with the desired IP type if possible.
     """
     try:
         ip = get_server_ip(wanted_ip_type)
@@ -231,7 +224,7 @@ def get_server_ip_if_possible(wanted_ip_type: int) -> IPv4Address | IPv6Address 
 
 
 
-def get_server_ip_from_ipify(wanted_ip_type: int) -> IPv4Address | IPv6Address | None:
+def get_server_ip_from_ipify(wanted_ip_type: int) -> Optional[IPv4Address | IPv6Address]:
     """
     This method is a fallback to try to get the public IP address of our server from ipify.org
 
@@ -267,8 +260,7 @@ def client_ip_fetch(request: Request, wanted_ip_type: int) -> str | None:
         wanted_ip_type (int): The type of IP address that you want to get. (4 or 6)
 
     Returns:
-        str: The determined IP address of the client (or a fallback server IP)
-             as a string.
+        str | None: The determined IP address of the client (or a fallback server IP)
 
     Raises:
          HTTPException:
@@ -277,7 +269,7 @@ def client_ip_fetch(request: Request, wanted_ip_type: int) -> str | None:
     try:
         client_ip = request.headers.get("X-Forwarded-For", request.client.host if request.client is not None else None)
         # if it is None or if it is private (a private IP is useless for us)
-        if client_ip is None or is_private_ip(client_ip) is None:
+        if client_ip is None or is_private_ip(client_ip):
             client_ip = ip_to_str(get_server_ip(wanted_ip_type))
 
         # test if you got the desired IP address type
@@ -406,8 +398,3 @@ def randomize_ip(ip: IPv4Address | IPv6Address) -> IPv4Address | IPv6Address | N
     except InputError as e:
         print(f"IP cannot be randomized. {e}")
         return None
-
-# print(get_server_ip(4))
-# print(get_server_ip(6))2001:610:450:41::18f
-# print(try_converting_ip("2001:610:450:41::18f",4))
-# print(try_converting_ip("145.126.193.143",6))

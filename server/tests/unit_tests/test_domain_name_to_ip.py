@@ -436,6 +436,28 @@ def test_edns_response_to_ips_cname_none(mock_domain_name):
                       "124.11.13.19"}
 
 @patch("server.app.utils.domain_name_to_ip.domain_name_to_ip_close_to_client")
+def test_edns_response_to_ips_ptr(mock_domain_name):
+    mock_domain_name.return_value = None
+    # answers with IPv4 (A)
+    a_rrset = MagicMock()
+    a_rrset.rdtype = dns.rdatatype.A
+    a_rrset.items = [MagicMock(address="123.43.12.9"), MagicMock(address="124.11.13.19")]
+    # answers with PTR
+    cname_rrset = MagicMock()
+    cname_rrset.rdtype = dns.rdatatype.PTR
+    cname_item = MagicMock()
+    cname_item.__str__.return_value = "redirected.example.com."
+    cname_rrset.items = [cname_item]
+
+    # response
+    mock_response = MagicMock()
+    mock_response.answer = [a_rrset, cname_rrset]
+
+    result = edns_response_to_ips(mock_response, client_ip="83.25.24.10", wanted_ip_type=4, resolvers=["8.8.8.8"])
+    mock_domain_name.assert_not_called()
+    assert set(result) == {"123.43.12.9",
+                      "124.11.13.19"}
+@patch("server.app.utils.domain_name_to_ip.domain_name_to_ip_close_to_client")
 def test_edns_response_to_ips_cname_too_large_depth(mock_domain_name):
     mock_domain_name.return_value = ["33.44.56.78", "44.44.55.75", "2.2.2.2"] # it should not arrive there because depth is max_depth
     # answers with IPv4 (A)
