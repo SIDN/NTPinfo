@@ -114,8 +114,8 @@ type LocationInfo = {
  * @param measurementNtpServer the geolocation of the NTP server that the vantage point measured on
  * @param vantagePoint the geolocation of the vantage point that the measurement was taken from
  */
-const FitMapBounds = ({probes, ripeNtpServers, measurementNtpServers, intersectionNtpServers, unavailableNtpServers, vantagePoint}: {probes: LatLngTuple[], 
-  ripeNtpServers: LatLngTuple[], measurementNtpServers: LatLngTuple[], intersectionNtpServers: LatLngTuple[], unavailableNtpServers: LatLngTuple[], vantagePoint: LatLngTuple}) => {
+const FitMapBounds = ({probes, ripeNtpServers, measurementNtpServers, intersectionNtpServers, unavailableNtpServers, vantagePoint}: {probes: LatLngTuple[] | null, 
+  ripeNtpServers: LatLngTuple[], measurementNtpServers: LatLngTuple[], intersectionNtpServers: LatLngTuple[], unavailableNtpServers: LatLngTuple[], vantagePoint: LatLngTuple | null}) => {
   const map = useMap()
   const userInteracted = useRef(false)
   const ignoreEvents = useRef(false)
@@ -137,12 +137,13 @@ const FitMapBounds = ({probes, ripeNtpServers, measurementNtpServers, intersecti
   }, [map])
 
   useEffect(() => {
-    if (probes.length === 0 || !vantagePoint) return
-    
     if (userInteracted.current) return
 
     const fitBounds = () => {
-      const allPoints = [...probes, ...ripeNtpServers, ...measurementNtpServers, ...intersectionNtpServers, ...unavailableNtpServers, vantagePoint]
+      const allPoints = [...(probes ?? []), ...ripeNtpServers, ...measurementNtpServers, ...intersectionNtpServers, ...unavailableNtpServers, ...(vantagePoint ? [vantagePoint] : [])]
+
+      if (allPoints.length === 0) return
+
       const bounds = L.latLngBounds(allPoints)
       ignoreEvents.current = true
       map.fitBounds(bounds, { padding: [15, 15] })
@@ -457,6 +458,9 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
                 </Marker>
               ))}
 
+              <FitMapBounds probes={probe_locations} ripeNtpServers={ripeOnlyLocations.map(x=>x.location)} measurementNtpServers = {ntpOnlyLocations.map(x=>x.location)}
+                  intersectionNtpServers={intersectedLocations.map(x=>x.location)} unavailableNtpServers={failedLocations.map(x=>x.location)}
+                  vantagePoint={vantagePointInfo?.[0] ?? null}/>
               {vantagePointInfo &&
               <>
                 <Marker position = {vantagePointInfo[0]} icon = {vantagePointIcon}>
@@ -466,9 +470,6 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
                       Location: {vantagePointInfo[0]}
                     </Popup>
                 </Marker>
-                <FitMapBounds probes={probe_locations} ripeNtpServers={ripeOnlyLocations.map(x=>x.location)} measurementNtpServers = {ntpOnlyLocations.map(x=>x.location)}
-                  intersectionNtpServers={intersectedLocations.map(x=>x.location)} unavailableNtpServers={failedLocations.map(x=>x.location)}
-                  vantagePoint={vantagePointInfo[0]}/>
                 <DrawConnectingLines probes={probes} measurementNtpServers = {ntpOnlyLocations.map(x=>x.location)}
                   intersectionNtpServers={intersectedLocations.map(x=>x.location)} unavailableNtpServers={failedLocations.map(x=>x.location)}
                   vantagePoint={vantagePointInfo[0]}/>
