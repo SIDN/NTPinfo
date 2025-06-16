@@ -4,7 +4,7 @@ Application Architecture
 Package Overview
 ----------------
 
-This package includes key components for the application's backend functionality, such as data transfer objects, models, database configuration, rate limiting, and the main entry point.
+This package includes key components for the application's backend functionality, such as data transfer objects, API routes and interaction with the database
 
 Data Models and DTOs
 --------------------
@@ -27,7 +27,9 @@ The following routes define the public API endpoints available in the applicatio
 
 Database Interaction
 --------------------
+This module presents the components that make the interaction with the database possible
+
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    server.app.db.db_interaction

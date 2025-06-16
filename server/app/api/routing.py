@@ -91,9 +91,8 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
               On failure, returns {"Error": "Could not perform measurement, DNS or IP not reachable."}
 
     Raises:
-        HTTPException:
-            - 400 If the `server` field is empty or no response
-            - 503 If we could not get client IP address or our server's IP address.
+        HTTPException: 400 – If the `server` field is empty or there is no response.
+        HTTPException: 503 – If the client IP address or the server's IP address could not be retrieved.
 
     """
     server = payload.server

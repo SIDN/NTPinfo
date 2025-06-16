@@ -1,6 +1,11 @@
 Infrastructure
 ==============
 
+Package Overview
+----------------
+
+This package forms the core of the server-side application. It contains the foundational modules and configuration required to run and maintain the backend system.
+
 Database Configuration
 ----------------------
 
@@ -21,14 +26,6 @@ Application Entrypoint
 ----------------------
 
 .. automodule:: server.app.main
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-Package Contents
-----------------
-
-.. automodule:: server.app
    :members:
    :show-inheritance:
    :undoc-members:

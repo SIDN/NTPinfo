@@ -92,11 +92,8 @@
              
   <section id="database-models">
 <h1>Database Models<a class="headerlink" href="#database-models" title="Link to this heading"></a></h1>
-<section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
-</section>
 <section id="module-server.app.models.Base">
-<span id="server-app-models-base-module"></span><h2>server.app.models.Base module<a class="headerlink" href="#module-server.app.models.Base" title="Link to this heading"></a></h2>
+<span id="base-model"></span><h2>Base model<a class="headerlink" href="#module-server.app.models.Base" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="server.app.models.Base.Base">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">server.app.models.Base.</span></span><span class="sig-name descname"><span class="pre">Base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/models/Base.html#Base"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.models.Base.Base" title="Link to this definition"></a></dt>
@@ -123,7 +120,7 @@ for new <code class="xref py py-class docutils literal notranslate"><span class=
 
 </section>
 <section id="module-server.app.models.CustomError">
-<span id="server-app-models-customerror-module"></span><h2>server.app.models.CustomError module<a class="headerlink" href="#module-server.app.models.CustomError" title="Link to this heading"></a></h2>
+<span id="all-custom-error-models-used"></span><h2>All custom error models used<a class="headerlink" href="#module-server.app.models.CustomError" title="Link to this heading"></a></h2>
 <dl class="py exception">
 <dt class="sig sig-object py" id="server.app.models.CustomError.DNSError">
 <em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">server.app.models.CustomError.</span></span><span class="sig-name descname"><span class="pre">DNSError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'DNS</span> <span class="pre">error</span> <span class="pre">(domain</span> <span class="pre">name</span> <span class="pre">invalid)'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/models/CustomError.html#DNSError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.models.CustomError.DNSError" title="Link to this definition"></a></dt>
@@ -168,170 +165,7 @@ for new <code class="xref py py-class docutils literal notranslate"><span class=
 
 </section>
 <section id="module-server.app.models.Measurement">
-<span id="server-app-models-measurement-module"></span><h2>server.app.models.Measurement module<a class="headerlink" href="#module-server.app.models.Measurement" title="Link to this heading"></a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="server.app.models.Measurement.IPAddress">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">server.app.models.Measurement.</span></span><span class="sig-name descname"><span class="pre">IPAddress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/models/Measurement.html#IPAddress"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.models.Measurement.IPAddress" title="Link to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TypeDecorator</span></code></p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="server.app.models.Measurement.IPAddress.cache_ok">
-<span class="sig-name descname"><span class="pre">cache_ok</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Optional[bool]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#server.app.models.Measurement.IPAddress.cache_ok" title="Link to this definition"></a></dt>
-<dd><p>Indicate if statements using this <code class="xref py py-class docutils literal notranslate"><span class="pre">ExternalType</span></code> are “safe to
-cache”.</p>
-<p>The default value <code class="docutils literal notranslate"><span class="pre">None</span></code> will emit a warning and then not allow caching
-of a statement which includes this type.   Set to <code class="docutils literal notranslate"><span class="pre">False</span></code> to disable
-statements using this type from being cached at all without a warning.
-When set to <code class="docutils literal notranslate"><span class="pre">True</span></code>, the object’s class and selected elements from its
-state will be used as part of the cache key.  For example, using a
-<code class="xref py py-class docutils literal notranslate"><span class="pre">TypeDecorator</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MyType</span><span class="p">(</span><span class="n">TypeDecorator</span><span class="p">):</span>
-    <span class="n">impl</span> <span class="o">=</span> <span class="n">String</span>
-
-    <span class="n">cache_ok</span> <span class="o">=</span> <span class="kc">True</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">choices</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">choices</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">choices</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">internal_only</span> <span class="o">=</span> <span class="kc">True</span>
-</pre></div>
-</div>
-<p>The cache key for the above type would be equivalent to:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">MyType</span><span class="p">([</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">_static_cache_key</span>
-<span class="go">(&lt;class &#39;__main__.MyType&#39;&gt;, (&#39;choices&#39;, (&#39;a&#39;, &#39;b&#39;, &#39;c&#39;)))</span>
-</pre></div>
-</div>
-<p>The caching scheme will extract attributes from the type that correspond
-to the names of parameters in the <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> method.  Above, the
-“choices” attribute becomes part of the cache key but “internal_only”
-does not, because there is no parameter named “internal_only”.</p>
-<p>The requirements for cacheable elements is that they are hashable
-and also that they indicate the same SQL rendered for expressions using
-this type every time for a given cache value.</p>
-<p>To accommodate for datatypes that refer to unhashable structures such
-as dictionaries, sets and lists, these objects can be made “cacheable”
-by assigning hashable structures to the attributes whose names
-correspond with the names of the arguments.  For example, a datatype
-which accepts a dictionary of lookup values may publish this as a sorted
-series of tuples.   Given a previously un-cacheable type as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">LookupType</span><span class="p">(</span><span class="n">UserDefinedType</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;a custom type that accepts a dictionary as a parameter.</span>
-
-<span class="sd">    this is the non-cacheable version, as &quot;self.lookup&quot; is not</span>
-<span class="sd">    hashable.</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lookup</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">lookup</span> <span class="o">=</span> <span class="n">lookup</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_col_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;VARCHAR(255)&quot;</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">bind_processor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span> <span class="o">...</span>  <span class="c1"># works with &quot;self.lookup&quot; ...</span>
-</pre></div>
-</div>
-<p>Where “lookup” is a dictionary.  The type will not be able to generate
-a cache key:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">type_</span> <span class="o">=</span> <span class="n">LookupType</span><span class="p">({</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">type_</span><span class="o">.</span><span class="n">_static_cache_key</span>
-<span class="go">&lt;stdin&gt;:1: SAWarning: UserDefinedType LookupType({&#39;a&#39;: 10, &#39;b&#39;: 20}) will not</span>
-<span class="go">produce a cache key because the ``cache_ok`` flag is not set to True.</span>
-<span class="go">Set this flag to True if this type object&#39;s state is safe to use</span>
-<span class="go">in a cache key, or False to disable this warning.</span>
-<span class="go">symbol(&#39;no_cache&#39;)</span>
-</pre></div>
-</div>
-<p>If we <strong>did</strong> set up such a cache key, it wouldn’t be usable. We would
-get a tuple structure that contains a dictionary inside of it, which
-cannot itself be used as a key in a “cache dictionary” such as SQLAlchemy’s
-statement cache, since Python dictionaries aren’t hashable:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># set cache_ok = True</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">type_</span><span class="o">.</span><span class="n">cache_ok</span> <span class="o">=</span> <span class="kc">True</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># this is the cache key it would generate</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">key</span> <span class="o">=</span> <span class="n">type_</span><span class="o">.</span><span class="n">_static_cache_key</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">key</span>
-<span class="go">(&lt;class &#39;__main__.LookupType&#39;&gt;, (&#39;lookup&#39;, {&#39;a&#39;: 10, &#39;b&#39;: 20}))</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># however this key is not hashable, will fail when used with</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># SQLAlchemy statement cache</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">some_cache</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="s2">&quot;some sql value&quot;</span><span class="p">}</span>
-<span class="go">Traceback (most recent call last): File &quot;&lt;stdin&gt;&quot;, line 1,</span>
-<span class="go">in &lt;module&gt; TypeError: unhashable type: &#39;dict&#39;</span>
-</pre></div>
-</div>
-<p>The type may be made cacheable by assigning a sorted tuple of tuples
-to the “.lookup” attribute:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">LookupType</span><span class="p">(</span><span class="n">UserDefinedType</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;a custom type that accepts a dictionary as a parameter.</span>
-
-<span class="sd">    The dictionary is stored both as itself in a private variable,</span>
-<span class="sd">    and published in a public variable as a sorted tuple of tuples,</span>
-<span class="sd">    which is hashable and will also return the same value for any</span>
-<span class="sd">    two equivalent dictionaries.  Note it assumes the keys and</span>
-<span class="sd">    values of the dictionary are themselves hashable.</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">cache_ok</span> <span class="o">=</span> <span class="kc">True</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lookup</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_lookup</span> <span class="o">=</span> <span class="n">lookup</span>
-
-        <span class="c1"># assume keys/values of &quot;lookup&quot; are hashable; otherwise</span>
-        <span class="c1"># they would also need to be converted in some way here</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">lookup</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">((</span><span class="n">key</span><span class="p">,</span> <span class="n">lookup</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">lookup</span><span class="p">))</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_col_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;VARCHAR(255)&quot;</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">bind_processor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dialect</span><span class="p">):</span> <span class="o">...</span>  <span class="c1"># works with &quot;self._lookup&quot; ...</span>
-</pre></div>
-</div>
-<p>Where above, the cache key for <code class="docutils literal notranslate"><span class="pre">LookupType({&quot;a&quot;:</span> <span class="pre">10,</span> <span class="pre">&quot;b&quot;:</span> <span class="pre">20})</span></code> will be:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">LookupType</span><span class="p">({</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">})</span><span class="o">.</span><span class="n">_static_cache_key</span>
-<span class="go">(&lt;class &#39;__main__.LookupType&#39;&gt;, (&#39;lookup&#39;, ((&#39;a&#39;, 10), (&#39;b&#39;, 20))))</span>
-</pre></div>
-</div>
-<div class="versionadded">
-<p><span class="versionmodified added">Added in version 1.4.14: </span>- added the <code class="docutils literal notranslate"><span class="pre">cache_ok</span></code> flag to allow
-some configurability of caching for <code class="xref py py-class docutils literal notranslate"><span class="pre">TypeDecorator</span></code> classes.</p>
-</div>
-<div class="versionadded">
-<p><span class="versionmodified added">Added in version 1.4.28: </span>- added the <code class="xref py py-class docutils literal notranslate"><span class="pre">ExternalType</span></code> mixin which
-generalizes the <code class="docutils literal notranslate"><span class="pre">cache_ok</span></code> flag to both the <code class="xref py py-class docutils literal notranslate"><span class="pre">TypeDecorator</span></code>
-and <code class="xref py py-class docutils literal notranslate"><span class="pre">UserDefinedType</span></code> classes.</p>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><span class="xref std std-ref">sql_caching</span></p>
-</div>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="server.app.models.Measurement.IPAddress.impl">
-<span class="sig-name descname"><span class="pre">impl</span></span><a class="headerlink" href="#server.app.models.Measurement.IPAddress.impl" title="Link to this definition"></a></dt>
-<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">INET</span></code></p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="server.app.models.Measurement.IPAddress.load_dialect_impl">
-<span class="sig-name descname"><span class="pre">load_dialect_impl</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dialect</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/models/Measurement.html#IPAddress.load_dialect_impl"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.models.Measurement.IPAddress.load_dialect_impl" title="Link to this definition"></a></dt>
-<dd><p>Wraps the INET type into an IPAddress type, which becomes a String for SQLite (test db), which doesn’t support INET.
-:type dialect: <span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Dialect</span></code></span>
-:param dialect: dialect to use (PostgreSQL for prod / dev, SQLite for tests).
-:type dialect: Dialect</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>INET or String, based on dialect type.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>TypeEngine</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
+<span id="measurement-model"></span><h2>Measurement model<a class="headerlink" href="#module-server.app.models.Measurement" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="server.app.models.Measurement.Measurement">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">server.app.models.Measurement.</span></span><span class="sig-name descname"><span class="pre">Measurement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/models/Measurement.html#Measurement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.models.Measurement.Measurement" title="Link to this definition"></a></dt>
@@ -445,7 +279,7 @@ and <code class="xref py py-class docutils literal notranslate"><span class="pre
 
 </section>
 <section id="module-server.app.models.Time">
-<span id="server-app-models-time-module"></span><h2>server.app.models.Time module<a class="headerlink" href="#module-server.app.models.Time" title="Link to this heading"></a></h2>
+<span id="time-model"></span><h2>Time model<a class="headerlink" href="#module-server.app.models.Time" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="server.app.models.Time.Time">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">server.app.models.Time.</span></span><span class="sig-name descname"><span class="pre">Time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/server/app/models/Time.html#Time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#server.app.models.Time.Time" title="Link to this definition"></a></dt>
@@ -497,9 +331,6 @@ and <code class="xref py py-class docutils literal notranslate"><span class="pre
 
 </dd></dl>
 
-</section>
-<section id="module-server.app.models">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-server.app.models" title="Link to this heading"></a></h2>
 </section>
 </section>
 

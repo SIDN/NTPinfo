@@ -167,9 +167,8 @@
 <span class="sd">              On failure, returns {&quot;Error&quot;: &quot;Could not perform measurement, DNS or IP not reachable.&quot;}</span>
 
 <span class="sd">    Raises:</span>
-<span class="sd">        HTTPException:</span>
-<span class="sd">            - 400 If the `server` field is empty or no response</span>
-<span class="sd">            - 503 If we could not get client IP address or our server&#39;s IP address.</span>
+<span class="sd">        HTTPException: 400 – If the `server` field is empty or there is no response.</span>
+<span class="sd">        HTTPException: 503 – If the client IP address or the server&#39;s IP address could not be retrieved.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">server</span> <span class="o">=</span> <span class="n">payload</span><span class="o">.</span><span class="n">server</span>

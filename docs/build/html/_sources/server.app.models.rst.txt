@@ -1,10 +1,7 @@
 Database Models
 =========================
 
-Submodules
-----------
-
-server.app.models.Base module
+Base model
 -----------------------------
 
 .. automodule:: server.app.models.Base
@@ -12,7 +9,7 @@ server.app.models.Base module
    :show-inheritance:
    :undoc-members:
 
-server.app.models.CustomError module
+All custom error models used
 ------------------------------------
 
 .. automodule:: server.app.models.CustomError
@@ -20,15 +17,16 @@ server.app.models.CustomError module
    :show-inheritance:
    :undoc-members:
 
-server.app.models.Measurement module
+Measurement model
 ------------------------------------
 
 .. automodule:: server.app.models.Measurement
    :members:
    :show-inheritance:
+   :exclude-members: IPAddress
    :undoc-members:
 
-server.app.models.Time module
+Time model
 -----------------------------
 
 .. automodule:: server.app.models.Time
@@ -36,10 +34,3 @@ server.app.models.Time module
    :show-inheritance:
    :undoc-members:
 
-Module contents
----------------
-
-.. automodule:: server.app.models
-   :members:
-   :show-inheritance:
-   :undoc-members:

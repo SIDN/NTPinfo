@@ -81,14 +81,10 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">server.app.models.Time</span><span class="w"> </span><span class="kn">import</span> <span class="n">Time</span>
 
 
-<div class="viewcode-block" id="IPAddress">
-<a class="viewcode-back" href="../../../../server.app.models.html#server.app.models.Measurement.IPAddress">[docs-agendas]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">IPAddress</span><span class="p">(</span><span class="n">TypeDecorator</span><span class="p">):</span>
     <span class="n">impl</span> <span class="o">=</span> <span class="n">INET</span>
     <span class="n">cache_ok</span> <span class="o">=</span> <span class="kc">True</span>
 
-<div class="viewcode-block" id="IPAddress.load_dialect_impl">
-<a class="viewcode-back" href="../../../../server.app.models.html#server.app.models.Measurement.IPAddress.load_dialect_impl">[docs-agendas]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">load_dialect_impl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dialect</span><span class="p">:</span> <span class="n">Dialect</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TypeEngine</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            Wraps the INET type into an IPAddress type, which becomes a String for SQLite (test db), which doesn&#39;t support INET.</span>
@@ -99,9 +95,7 @@
 <span class="sd">            &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">dialect</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;sqlite&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">dialect</span><span class="o">.</span><span class="n">type_descriptor</span><span class="p">(</span><span class="n">String</span><span class="p">())</span>
-        <span class="k">return</span> <span class="n">dialect</span><span class="o">.</span><span class="n">type_descriptor</span><span class="p">(</span><span class="n">INET</span><span class="p">())</span></div>
-</div>
-
+        <span class="k">return</span> <span class="n">dialect</span><span class="o">.</span><span class="n">type_descriptor</span><span class="p">(</span><span class="n">INET</span><span class="p">())</span>
 
 
 <div class="viewcode-block" id="Measurement">

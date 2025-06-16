@@ -1,9 +1,6 @@
 Data Transfer Objects
 =======================
 
-Submodules
-----------
-
 API Request/Response Models
 ---------------------------
 MeasurementRequest
@@ -100,14 +97,6 @@ ProbeData
 ^^^^^^^^^
 
 .. automodule:: server.app.dtos.ProbeData
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: server.app.dtos
    :members:
    :show-inheritance:
    :undoc-members:
