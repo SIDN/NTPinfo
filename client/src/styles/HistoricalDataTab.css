@@ -22,7 +22,7 @@ a {
 }
 
 .historical-data-tab h2 {
-    color: var(--clr-font-white);
+    color: var(--text-white);
     font-size: 2em;
     margin-bottom: 1em;
 }
@@ -62,7 +62,7 @@ a {
     gap: 0.5em;
     font-size: 1.4em;
     font-weight: 500;
-    color: var(--clr-font-white);
+    color: var(--text-white);
 }
 
 .radio-measurement-label {
@@ -71,7 +71,7 @@ a {
     gap: 0.5em;
     font-size: 1.4em;
     font-weight: 500;
-    color: var(--clr-font-white);
+    color: var(--text-white);
 }
 
 .checkbox-custom-label input{
@@ -135,7 +135,7 @@ a {
 }
 
 .server-stats h3 {
-    color: var(--clr-font-white);
+    color: var(--text-white);
     font-size: 1.1em;
     margin: 0;
 }
@@ -155,13 +155,13 @@ a {
 }
 
 .stat-label {
-    color: var(--clr-font-white);
+    color: var(--text-white);
     opacity: 0.8;
     font-size: 0.85em;
 }
 
 .stat-value {
-    color: var(--clr-font-white);
+    color: var(--text-white);
     font-size: 1em;
     font-weight: 500;
 }
