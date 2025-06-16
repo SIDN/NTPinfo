@@ -197,6 +197,57 @@ const DrawConnectingLines = ({probes, measurementNtpServers, intersectionNtpServ
   return null
 }
 
+const LegendControl = () => {
+  const map = useMap()
+  const legendRef = useRef<any>(null)
+
+  useEffect(() => {
+    const script = document.createElement("script")
+    script.src = "/leaflet-legend/leaflet.legend.js"
+
+    const link = document.createElement("link")
+    link.rel = "stylesheet"
+    link.href = "/leaflet-legend/leaflet.legend.css"
+
+    const cleanup = () => {
+      if (legendRef.current) {
+        map.removeControl(legendRef.current)
+        legendRef.current = null
+      }
+      document.head.removeChild(link)
+      document.body.removeChild(script)
+    }
+
+    script.onload = () => {
+      if (legendRef.current) return // already added
+
+      const legend = (L.control as any).legend({
+        position: "bottomleft", opacity: "0.0", symbolWidth: "30", symbolHeight: "30",
+        legends: [
+          { label: "  NTP Servers", type: "image", url: ntpServerImg },
+          { label: "  Failing NTP Servers", type: "image", url: unavailableNtpImg },
+          { label: "  Vantage Point", type: "image", url: vantagePointImg },
+          { label: "  < 15 ms RTT", type: "image", url: greenProbeImg },
+          { label: "  < 40 ms RTT", type: "image", url: yellowProbeImg },
+          { label: "  < 150 ms RTT", type: "image", url: redProbeImg },
+          { label: "  > 150 ms RTT", type: "image", url: darkRedProbeImg },
+          { label: "  No Response", type: "image", url: grayProbeImg }
+        ]
+      })
+
+      legend.addTo(map)
+      legendRef.current = legend
+    }
+
+    document.body.appendChild(script)
+    document.head.appendChild(link)
+
+    return cleanup
+  }, [map])
+
+  return null
+}
+
 /**
  * Function returning an icon with a specific color depeding on the RTT measured by a specific probe
  * Cutoff values set similarly to RIPE
@@ -391,7 +442,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
   const probe_locations = probes?.map(x => x.probe_location) ?? []
   const icons = probes?.map(x => getIconByRTT(x.measurementData.RTT, x.got_results)) ?? []
     return (
-      <div style={{height: '500px', width: '100%'}}>
+      <div className='map-container' style={{height: '500px', width: '100%', padding: '10px'}}>
         <h2>{statusMessage}</h2>
         {isAnycast && <h2>This server uses Anycast. Server Geolocation might be inaccurate</h2>}
         <MapContainer style={{height: '100%', width: '100%'}}>
@@ -461,6 +512,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
               <FitMapBounds probes={probe_locations} ripeNtpServers={ripeOnlyLocations.map(x=>x.location)} measurementNtpServers = {ntpOnlyLocations.map(x=>x.location)}
                   intersectionNtpServers={intersectedLocations.map(x=>x.location)} unavailableNtpServers={failedLocations.map(x=>x.location)}
                   vantagePoint={vantagePointInfo?.[0] ?? null}/>
+              <LegendControl/>
               {vantagePointInfo &&
               <>
                 <Marker position = {vantagePointInfo[0]} icon = {vantagePointIcon}>
@@ -475,16 +527,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
                   vantagePoint={vantagePointInfo[0]}/>
               </>}
         </MapContainer>
-          <div style={{display: "flex", gap: "10px", alignItems: "center"}}>
-            <div><img src = {ntpServerImg} className="logo"/>: NTP Servers</div>
-            <div><img src = {unavailableNtpImg} className="logo"/>: Failing NTP Servers</div>
-            <div><img src = {vantagePointImg} className="logo"/>: Vantage Point</div>
-            <div><img src = {greenProbeImg} className="logo"/>: &lt; 15 ms RTT</div>
-            <div><img src = {yellowProbeImg} className="logo"/>: &lt; 40 ms RTT</div>
-            <div><img src = {redProbeImg} className="logo"/>: &lt; 150 ms RTT</div>
-            <div><img src = {darkRedProbeImg} className="logo"/>: &gt; 150 ms RTT</div>
-            <div><img src = {grayProbeImg} className="logo"/>: No response</div>
-          </div>
+        <div style={{height:'20px'}}></div>
       </div>
     )
 }
