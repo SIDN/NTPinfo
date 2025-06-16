@@ -10,7 +10,6 @@ MeasurementRequest
    :members:
    :show-inheritance:
    :exclude-members: model_config
-   :undoc-members:
 
 NtpMeasurementResponse
 ^^^^^^^^^^^^^^^^^^^^^^^

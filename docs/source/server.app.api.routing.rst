@@ -1,4 +1,4 @@
-/
+Root /
 --------------
 
 Root endpoint for basic service health check

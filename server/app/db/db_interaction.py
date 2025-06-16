@@ -108,7 +108,8 @@ def dict_to_measurement(entry: dict[str, Any]) -> NtpMeasurement:
         ntp_server_ip = ip_address(entry['ntp_server_ip'])
         ntp_server_country_code = get_country_for_ip(entry['ntp_server_ip'])
         ntp_server_coordinates = get_coordinates_for_ip(entry['ntp_server_ip'])
-        server_info = NtpServerInfo(ntp_version=entry['ntp_version'], ntp_server_ip=ntp_server_ip, ntp_server_name=entry['ntp_server_name'],
+        server_info = NtpServerInfo(ntp_version=entry['ntp_version'], ntp_server_ip=ntp_server_ip,
+                                    ntp_server_name=entry['ntp_server_name'],
                                     ntp_server_location=ServerLocation(ntp_server_country_code, ntp_server_coordinates),
                                     ntp_server_ref_parent_ip=ntp_ref_parent_ip, ref_name=entry['ref_name'])
         extra_details = NtpExtraDetails(PreciseTime(entry['root_delay'], entry['root_delay_prec']),
@@ -133,10 +134,10 @@ def rows_to_measurements(rows: list[Row[tuple[Measurement, Time]]]) -> list[NtpM
     Converts a list of Measurement-Time row tuples into NtpMeasurement objects.
 
     Args:
-        rows (list[Row[tuple[Measurement, Time]]]): List of database rows containing Measurement and Time data.
+        rows (list[Row[tuple[Measurement, Time]]]): List of database rows containing Measurement and Time data
 
     Returns:
-        list[NtpMeasurement]: A list of NtpMeasurement objects created from the row data.
+        list[NtpMeasurement]: A list of NtpMeasurement objects created from the row data
     """
     return [dict_to_measurement(d) for d in rows_to_dicts(rows)]
 
@@ -146,20 +147,22 @@ def insert_measurement(measurement: NtpMeasurement, session: Session) -> None:
     Inserts a new NTP measurement into the database.
 
     This function stores both the raw timestamps (in the `times` table) and the
-    processed measurement data (in the `measurements` table). It uses a connection pool
-    for efficiency and wraps operations in a transaction to ensure atomicity.
+    processed measurement data (in the `measurements` table).
+    It wraps operations in a single transaction to ensure consistency and atomicity.
+    If any insert fails, the transaction is rolled back.
 
     Args:
         measurement (NtpMeasurement): The measurement data to store.
         session (Session): The currently active database session.
+
+    Raises:
+        DatabaseInsertError: If inserting the measurement or timestamps fails
 
     Notes:
         - Timestamps are stored with both second and fractional parts.
         - A foreign key (`time_id`) is used to link `measurements` to the `times` table.
         - Any failure within the transaction block results in automatic rollback.
 
-    Raises:
-        DatabaseInsertError: If inserting the measurement or timestamps fails
     """
     try:
         time = Time(
@@ -214,10 +217,10 @@ def get_measurements_timestamps_ip(session: Session, ip: IPv4Address | IPv6Addre
         - The timestamp range (`client_sent` field) between `start` and `end`
 
     Args:
-        session (Session): The currently active database session.
-        ip (IPv4Address | IPv6Address): The IP address of the NTP server.
-        start (PreciseTime): The start of the time range to filter on.
-        end (PreciseTime): The end of the time range to filter on.
+        session (Session): The currently active database session
+        ip (IPv4Address | IPv6Address): The IP address of the NTP server
+        start (PreciseTime): The start of the time range to filter on
+        end (PreciseTime): The end of the time range to filter on
 
     Returns:
         list[dict]: A list of measurement records (as dictionaries), each including:
