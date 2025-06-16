@@ -1,20 +1,19 @@
 from fastapi import HTTPException, APIRouter, Request, Depends
 
 from datetime import datetime, timezone
-from typing import Any, Optional, Generator
+from typing import Any, Optional
 from fastapi.responses import JSONResponse
 
 from sqlalchemy.orm import Session
 
 from server.app.utils.location_resolver import get_country_for_ip, get_coordinates_for_ip
-from server.app.utils.ip_utils import client_ip_fetch
+from server.app.utils.ip_utils import client_ip_fetch, get_server_ip_if_possible, get_server_ip
 from server.app.models.CustomError import DNSError, MeasurementQueryError
 from server.app.utils.ip_utils import ip_to_str
 from server.app.models.CustomError import InputError, RipeMeasurementError
-from server.app.utils.ip_utils import get_server_ip
 from server.app.db_config import get_db
 
-from server.app.services.api_services import fetch_ripe_data
+from server.app.services.api_services import fetch_ripe_data, override_desired_ip_type_if_input_is_ip
 from server.app.services.api_services import perform_ripe_measurement
 from server.app.rate_limiter import limiter
 from server.app.dtos.MeasurementRequest import MeasurementRequest
@@ -43,13 +42,15 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
 
     This endpoint receives a JSON payload containing the server to be measured.
     It uses the `measure()` function to perform the NTP synchronization measurement,
-    and formats the result using `get_format()`.
+    and formats the result using `get_format()`. User can choose whether they want to measure IPv4 of IPv6,
+    but this will take effect only for domain names. If user inputs an IP, we will measure the type of that IP.
 
     This endpoint is also limited to 5 requests per minute to prevent abuse and reduce server load.
 
     Args:
         payload (MeasurementRequest): A Pydantic model containing:
             - server (str): IP address (IPv4/IPv6) or domain name of the NTP server.
+            - ipv6_measurement (bool): True if the type of IPs that we want to measure is IPv6. False otherwise.
         request (Request): The Request object that gives you the IP of the client.
         session (Session): The currently active database session.
 
@@ -60,15 +61,28 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
     Raises:
         HTTPException:
             - 400 If the `server` field is empty or no response
+            - 422 If the server cannot perform the desired IP type (IPv4 or IPv6) measurements,
+              or if the domain name could not be resolved.
             - 503 If we could not get client IP address or our server's IP address.
 
     """
     server = payload.server
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided.")
-    client_ip: Optional[str] = client_ip_fetch(request=request)
+
+    wanted_ip_type = 6 if payload.ipv6_measurement else 4
+    # Override it if we received an IP, not a domain name:
+    # In case the input is an IP and not a domain name, then "wanted_ip_type" will be ignored and the IP type of the IP will be used.
+    wanted_ip_type = override_desired_ip_type_if_input_is_ip(server, wanted_ip_type)
+
+    # get the client IP (if possible the same type as wanted_ip_type)
+    client_ip: Optional[str] = client_ip_fetch(request=request, wanted_ip_type=wanted_ip_type)
+    # for IPv6 measurements, we need to communicate using IPv6. (we need to have the same protocol as the target)
+    this_server_ip_strict = get_server_ip(wanted_ip_type)  # strict means we want exactly this type
+    if this_server_ip_strict is None: # which means we cannot perform this type of NTP measurements from our server
+        raise HTTPException(status_code=422, detail=f"Our server cannot perform IPv{wanted_ip_type} measurements currently. Try the other IP type.")
     try:
-        response = measure(server, session, client_ip)
+        response = measure(server, wanted_ip_type, session, client_ip)
         # print(response)
         if response is not None:
             new_format = []
@@ -170,8 +184,7 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
     Args:
         payload (MeasurementRequest): A Pydantic model that includes:
             - server (str): The IP address or domain name of the target server
-            - jitter_flag (bool, optional): Whether to calculate jitter
-            - measurements_no (int, optional): Number of measurements
+            - ipv6_measurement (bool): True if the type of IPs that we want to measure is IPv6. False otherwise.
         request (Request): The FastAPI request object, used to extract the client IP address
 
     Returns:
@@ -183,26 +196,29 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
 
     Raises:
         HTTPException:
-            - 400: If the `server` field is empty
+            - 400: If the `server` field is invalid
             - 500: If the RIPE measurement could not be initiated
             - 502: If the RIPE measurement was initiated but failed
             - 503: If we could not get client IP address or our server's IP address
     """
     server = payload.server
+    wanted_ip_type = 6 if payload.ipv6_measurement else 4
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'dn' must be provided")
 
-    client_ip: Optional[str] = client_ip_fetch(request=request)
+    client_ip: Optional[str] = client_ip_fetch(request=request, wanted_ip_type=wanted_ip_type)
+    print("client IP is: ", client_ip)
     try:
-        measurement_id = perform_ripe_measurement(server, client_ip=client_ip)
+        measurement_id = perform_ripe_measurement(server, client_ip=client_ip, wanted_ip_type=wanted_ip_type)
+        this_server_ip = get_server_ip_if_possible(wanted_ip_type) # this does not affect the measurement
         return JSONResponse(
             status_code=200,
             content={
                 "measurement_id": measurement_id,
-                "vantage_point_ip": ip_to_str(get_server_ip()),
+                "vantage_point_ip": ip_to_str(this_server_ip),
                 "vantage_point_location": {
-                    "country_code": get_country_for_ip(str(get_server_ip())),
-                    "coordinates": get_coordinates_for_ip(str(get_server_ip()))
+                    "country_code": get_country_for_ip(ip_to_str(this_server_ip)),
+                    "coordinates": get_coordinates_for_ip(ip_to_str(this_server_ip))
                 },
                 "status": "started",
                 "message": "You can fetch the result at /measurements/ripe/{measurement_id}",

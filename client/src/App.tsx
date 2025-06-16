@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Sidebar from './components/Sidebar';
-import Hero from './components/Hero';
 import HomeTab from './tabs/HomeTab';
 import CompareTab from './tabs/CompareTab';
 import HistoricalDataTab from './tabs/HistoricalDataTab';
@@ -21,14 +20,16 @@ function App() {
     measured: false,
     selMeasurement: 'offset',
     measurementId: null,
-    vantagePointIp: null,
+    vantagePointInfo: null,
     allNtpMeasurements: null,
     ripeMeasurementResp: null,          // map
     ripeMeasurementStatus: null,        // map
+    ipv6Selected: false
   };
   const [homeCache, setHomeCache] = useState<HomeCacheState>(initialCache);
 
   return (
+    
     <div className="app-layout">
       <Sidebar selectedTab={selectedTab} setSelectedTab={setSelectedTab} open={sidebarOpen} setOpen={setSidebarOpen} />
       <main className={`app-content${!sidebarOpen ? ' with-sidebar-collapsed' : ''}`}>

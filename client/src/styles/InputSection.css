@@ -22,11 +22,36 @@
   color: var(--clr-font-dark);
   outline: none;
 }
+.input-bar input {
+  flex-grow: 1;
+  border: none;
+  border-radius: inherit;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  background-color: transparent;
+  color: var(--clr-font-dark);
+  outline: none;
+}
 
 .input-bar input::placeholder {
   color: var(--clr-input-placeholder);
 }
+.input-bar input::placeholder {
+  color: var(--clr-input-placeholder);
+}
 
+.input-bar button {
+  background-color: var(--clr-red-2);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
 .input-bar button {
   background-color: var(--clr-red-2);
   color: white;
@@ -45,7 +70,16 @@
   opacity: 0.7;
   cursor: auto;
 }
+.input-bar button:disabled {
+  background-color: var(--clr-red-2);
+  opacity: 0.7;
+  cursor: auto;
+}
 
+.input-bar button:disabled:hover {
+  background-color: var(--clr-red-2);
+  cursor: auto;
+}
 .input-bar button:disabled:hover {
   background-color: var(--clr-red-2);
   cursor: auto;
@@ -54,7 +88,12 @@
 .input-bar button:hover {
   background-color: var(--clr-red-3);
 }
+.input-bar button:hover {
+  background-color: var(--clr-red-3);
+}
 
+.input-section {
+  /* position: relative;
 .input-section {
   /* position: relative;
     margin-top: 6rem;
@@ -64,6 +103,15 @@
   width: 100%;
 }
 
+.input-bar-text {
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--clr-font-white);
+  margin-bottom: 0.5rem;
+  text-align: left;
+  /* border: 1px solid red; */
+  width: 100%;
+}
 .input-bar-text {
   font-size: 1.3rem;
   font-weight: 500;
@@ -119,10 +167,31 @@
   border-radius: 8px;
   transition: all 0.2s ease;
 }
+.ip-options label {
+  padding: 0.35rem 1.25rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  user-select: none;
+  color: var(--clr-font-muted, #9fa4b9);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
 
 .ip-options input[type="radio"]:checked + label {
   background: var(--clr-btn-selected-purple, #020718);
   color: var(--clr-font-white, #fff);
+}
+
+.ip-options input[type="radio"]:focus + label {
+  outline: 2px solid var(--clr-btn-selected-purple);
+  outline-offset: 2px;
+}
+
+.ip-options {
+  margin-left: auto;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .ip-options input[type="radio"]:focus + label {

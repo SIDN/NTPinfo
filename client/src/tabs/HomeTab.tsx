@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { HomeCacheState } from '../utils/types' // new import for caching result
 import '../styles/HomeTab.css'
 import InputSection from '../components/InputSection.tsx'
@@ -20,6 +20,7 @@ import { Measurement } from '../utils/types.ts'
 
 import 'leaflet/dist/leaflet.css'
 import { triggerRipeMeasurement } from '../hooks/triggerRipeMeasurement.ts'
+import ConsentPopup from '../components/ConsentPopup.tsx'
 
 // interface HomeTabProps {
 //     onVisualizationDataChange: (data: Map<string, NTPData[]> | null) => void;
@@ -41,13 +42,21 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     measurementId,
     vantagePointInfo,
     allNtpMeasurements,
+    ipv6Selected
   } = cache;
 
   // still local UI state
 
   // helper to update only the fields we touch
-  const updateCache = (partial: Partial<HomeCacheState>) =>
-    setCache(prev => ({ ...prev, ...partial }))
+  const updateCache = useCallback(
+  (partial: Partial<HomeCacheState>) =>
+    setCache(prev => ({ ...prev, ...partial })),
+  [setCache]
+  );
+
+  const handleIPv6Toggle = (value: boolean) => {
+  updateCache({ ipv6Selected: value });
+  };
   //
   // states we need to define
   //
@@ -64,7 +73,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
   //Varaibles to log and use API hooks
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
   const {fetchData: fetchHistoricalData} = useFetchHistoricalIPData()
-  const {triggerMeasurement, error: triggerRipeError} = triggerRipeMeasurement()
+  const {triggerMeasurement} = triggerRipeMeasurement()
   const {
     result: ripeMeasurementResp,
     status: ripeMeasurementStatus,
@@ -184,11 +193,12 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
 
   return (
     <div>
+    <ConsentPopup/>
     <Hero />
     {/* The main container for the app, containing the input section, results and graph, and the map */}
     <div className="app-container">
       <div className="input-wrapper">
-        <InputSection onClick={handleInput} loading={apiDataLoading} />
+        <InputSection onClick={handleInput} loading={apiDataLoading} ipv6Selected={ipv6Selected} onIPv6Toggle={handleIPv6Toggle} />
       </div>
       {/* <h3 id="disclaimer">DISCLAIMER: Your IP may be used to get a RIPE probe close to you for the most accurate data. Your IP will not be stored.</h3> */}
         <div className="result-text">

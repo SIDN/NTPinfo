@@ -4,11 +4,13 @@ import React, { useState } from 'react';
 interface InputProps {
     onClick: (query: string, useIPv6: boolean) => void;
     loading: boolean;
+    ipv6Selected: boolean;
+    onIPv6Toggle: (value: boolean) => void;
 }
 
-const InputSection: React.FC<InputProps> = ({ onClick, loading }) => {
+const InputSection: React.FC<InputProps> = ({ onClick, loading, ipv6Selected, onIPv6Toggle }) => {
     const [query, setQuery] = useState('');
-    const [useIPv6, setUseIPv6] = useState(false)
+    const useIPv6 = ipv6Selected;
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setQuery(event.target.value);
     };
@@ -46,7 +48,7 @@ const InputSection: React.FC<InputProps> = ({ onClick, loading }) => {
                         name="ip-version"
                         id="ipv4"
                         checked={!useIPv6}
-                        onChange={() => setUseIPv6(false)}
+                        onChange={() => onIPv6Toggle(false)}
                     />
                     <label htmlFor="ipv4">IPv4</label>
 
@@ -55,7 +57,7 @@ const InputSection: React.FC<InputProps> = ({ onClick, loading }) => {
                         name="ip-version"
                         id="ipv6"
                         checked={useIPv6}
-                        onChange={() => setUseIPv6(true)}
+                        onChange={() => onIPv6Toggle(true)}
                     />
                     <label htmlFor="ipv6">IPv6</label>
                 </form>

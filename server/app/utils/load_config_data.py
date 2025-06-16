@@ -1,7 +1,7 @@
-import math
+import ipaddress
 import os
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, cast, Optional
 import yaml
 from dotenv import load_dotenv
 
@@ -207,6 +207,33 @@ def get_edns_default_servers() -> list[str]:
         raise ValueError("edns 'default_order_of_edns_servers' cannot be empty")
     return edns["default_order_of_edns_servers"]
 
+def get_ipv4_edns_server() -> Optional[str]:
+    """
+    This method returns the first IPv4 EDNS server available in the config.
+    It returns None if no IPv4 EDNS server is available.
+    """
+    for ip_str in get_edns_default_servers():
+        try:
+            ip = ipaddress.ip_address(ip_str)
+            if isinstance(ip, ipaddress.IPv4Address):
+                return ip_str
+        except Exception:
+            continue
+    return None
+
+def get_ipv6_edns_server() -> Optional[str]:
+    """
+    This method returns the first IPv6 EDNS server available in the config.
+    It returns None if no IPv6 EDNS server is available.
+    """
+    for ip_str in get_edns_default_servers():
+        try:
+            ip = ipaddress.ip_address(ip_str)
+            if isinstance(ip, ipaddress.IPv6Address):
+                return ip_str
+        except Exception:
+            continue
+    return None
 
 def get_edns_timeout_s() -> float | int:
     """

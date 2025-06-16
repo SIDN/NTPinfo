@@ -4,7 +4,7 @@ import pytest
 
 from server.app.utils.load_config_data import get_mask_ipv4, get_mask_ipv6
 from server.app.utils.ip_utils import ref_id_to_ip_or_name, get_ip_family, get_area_of_ip, get_ip_network_details, \
-    ip_to_str, is_this_ip_anycast, randomize_ip
+    ip_to_str, is_this_ip_anycast, randomize_ip, get_server_ip_if_possible
 
 
 def test_ip_to_str():
@@ -73,6 +73,25 @@ def test_get_ip_network_details_exception(mock_get_asn, mock_get_country, mock_g
     assert country is None
     assert area is None
 
+
+@patch("server.app.utils.ip_utils.get_server_ip")
+def test_get_server_ip_if_possible_normal(mock_get_server_ip):
+    mock_get_server_ip.side_effect = ["3.4.5.6", "2a06:93c0::24"]
+    assert get_server_ip_if_possible(4) == "3.4.5.6"
+
+    mock_get_server_ip.reset_mock()
+    assert get_server_ip_if_possible(6) == "2a06:93c0::24"
+
+@patch("server.app.utils.ip_utils.get_server_ip")
+def test_get_server_ip_if_possible_exception(mock_get_server_ip):
+    mock_get_server_ip.side_effect = [None, Exception("fail")]
+
+    assert get_server_ip_if_possible(6) is None
+
+    mock_get_server_ip.reset_mock()
+    mock_get_server_ip.side_effect = [None, "3.4.5.6"]
+
+    assert get_server_ip_if_possible(6) == "3.4.5.6"
 
 def test_is_this_ip_anycast_input_errors():
     assert is_this_ip_anycast(None) is False

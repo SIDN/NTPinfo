@@ -1,0 +1,48 @@
+@import "../index.css";
+.popup {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.popup::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: black;
+  opacity: 0.7; /* Adjust darkness level */
+  z-index: -1;
+}
+.popup-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--bg-clr-secondary);
+  padding: 2rem 4rem;
+  gap: 2rem;
+  border-radius: var(--radius);
+  font-size: 1.2rem;
+}
+
+.popup-card > h2 {
+  color: var(--clr-font-white);
+}
+
+.popup-card > p {
+  color: var(--clr-font-white);
+  font-weight: 600;
+}
+
+.popup-card > button {
+  background-color: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  font-size: 1.2rem;
+  margin-top: 3rem;
+  border: none;
+}
+
+.popup-card > button:hover {
+  background-color: var(--clr-btn-selected-purple);
+}

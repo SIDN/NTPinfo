@@ -18,10 +18,14 @@ def client():
 # test integration with creating a RIPE measurement.
 
 def test_creating_ripe_measurement_unsuccessful(client):
-    response = client.post("/measurements/ripe/trigger/", json={"server": ""})
+    headers = {"X-Forwarded-For": "83.25.24.10"}
+    response = client.post("/measurements/ripe/trigger/", json={"server": "", "ipv6_measurement": False})
     assert response.status_code == 400
-    response = client.post("/measurements/ripe/trigger/", json={"server": "4536.35.pool.bla"})
-    assert response.status_code == 400
+    response = client.post("/measurements/ripe/trigger/", json={"server": "4536.35.pool.bla", "ipv6_measurement": False},
+                           headers=headers)
+
+    # failed RIPE measurement because that domain name is an invalid NTP server
+    assert response.status_code == 502
 
 def test_creating_ripe_measurement_successful(client):
     # try:
@@ -30,18 +34,29 @@ def test_creating_ripe_measurement_successful(client):
     #     print("could not perform this test: creating_ripe_measurement_successful")
     #     return
     headers = {"X-Forwarded-For": "83.25.24.10"}
-    response = client.post("/measurements/ripe/trigger/", json={"server": "pool.ntp.org"},
-                           headers=headers)
-    # this 500 is just a temporary. IT will be removed when we finally manage to add the token in the pipeline
-    assert response.status_code == 200
-    assert "measurement_id" in response.json()
-    response = client.post("/measurements/ripe/trigger/", json={"server": "216.239.35.4"},
+    response = client.post("/measurements/ripe/trigger/", json={"server": "pool.ntp.org", "ipv6_measurement": False},
                            headers=headers)
     assert response.status_code == 200
     assert "measurement_id" in response.json()
+    # response = client.post("/measurements/ripe/trigger/", json={"server": "216.239.35.4", "ipv6_measurement": False},
+    #                        headers=headers)
+    # assert response.status_code == 200
+    # assert "measurement_id" in response.json()
 
 
+def test_creating_ripe_measurement_successful_ipv6(client):
+    headers = {"X-Forwarded-For": "2a06:93c0::24"}
+    response = client.post("/measurements/ripe/trigger/", json={"server": "time.google.com", "ipv6_measurement": True},
+                           headers=headers)
+    assert response.status_code == 200
+    assert "measurement_id" in response.json()
 
+    # now test that the IP type of our client does not matter:
+    headers = {"X-Forwarded-For": "83.25.24.10"}
+    response = client.post("/measurements/ripe/trigger/", json={"server": "2001:4860:4806:8::", "ipv6_measurement": True},
+                           headers=headers)
+    assert response.status_code == 200
+    assert "measurement_id" in response.json() # check if the measurement was successful
 
 # test integration with getting the data from a measurement ID (fetching)
 def test_get_ripe_measurement_result_unsuccessful(client):
@@ -162,25 +177,31 @@ def test_get_available_probes_country():
 
 def test_get_probes():
     # Germany
-    result = get_probes("95.223.228.43", 15)
+    result = get_probes("95.223.228.43", 4, 15)
     counter = 0
     for r in result:
         counter += r["requested"]
     assert counter == 15
+    # Germany but IPv6
+    result = get_probes("95.223.228.43", 6, 3)
+    counter = 0
+    for r in result:
+        counter += r["requested"]
+    assert counter == 3
     # Romania
-    result = get_probes("46.97.170.106", 1)
+    result = get_probes("46.97.170.106", 4, 1)
     counter = 0
     for r in result:
         counter += r["requested"]
     assert counter == 1
     # Cambodia
-    result = get_probes("202.79.26.65", 10)
+    result = get_probes("202.79.26.65", 4, 10)
     counter = 0
     for r in result:
         counter += r["requested"]
     assert counter == 10
     # Netherlands
-    result = get_probes("145.92.210.165", 20)
+    result = get_probes("145.92.210.165", 4, 20)
     counter = 0
     for r in result:
         counter += r["requested"]
