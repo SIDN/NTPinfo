@@ -398,9 +398,3 @@ def randomize_ip(ip: IPv4Address | IPv6Address) -> IPv4Address | IPv6Address | N
     except InputError as e:
         print(f"IP cannot be randomized. {e}")
         return None
-
-print(get_server_ip(4))
-print(get_server_ip(6))
-# print(try_converting_ip("2001:610:450:41::18f",4))
-# print(try_converting_ip("145.126.193.143",6))
-print(is_private_ip("127.0.0.1"))

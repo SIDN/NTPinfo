@@ -197,14 +197,7 @@ def edns_response_to_ips(response: dns.message.Message, client_ip: str, wanted_i
 #example of usage:
 # dn = "time.apple.com"
 # client = "88.31.57.92"
-# ans = domain_name_to_ip_close_to_client(dn, client )
-# print(ans)
-# print([get_country_from_ip(x) for x in ans])
-#print([get_country_from_ip(x) for x in domain_name_to_ip_close_to_client(dn, client_ip,16)])
-#print(domain_name_to_ip_close_to_client(dn, client_ip,24))
 #dig +short +subnet=83.25.24.10/24 pool.ntp.org @50.116.32.247
-# print("By default: ")
-# print(domain_name_to_ip_default(dn))
 #Cehia: 85.161.47.136
 #Poland: 83.25.24.10
 #Spain: 88.31.57.92
