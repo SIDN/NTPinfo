@@ -1,6 +1,8 @@
 import ipaddress
 from datetime import datetime, timezone
 from ipaddress import IPv4Address, IPv6Address
+from typing import Optional
+
 import dns.name
 
 def is_valid_domain_name(domain_name: str) -> bool:
@@ -19,15 +21,17 @@ def is_valid_domain_name(domain_name: str) -> bool:
     except Exception:
         return False
 
-def is_ip_address(ip_str: str) -> str | None:
+def is_ip_address(ip_str: Optional[str]) -> str | None:
     """
     It verifies if the given string is a valid IPv4 or IPv6 address. If not, it returns None.
 
     Args:
-        ip_str (str): ip address
+        ip_str (Optional[str]): ip address
     Returns:
         str | None
     """
+    if ip_str is None:
+        return None
     try:
         ip = ipaddress.ip_address(ip_str)
         if isinstance(ip, ipaddress.IPv4Address):

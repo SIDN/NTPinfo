@@ -8,6 +8,7 @@ class MeasurementRequest(BaseModel):
 
     Attributes:
         server (str): The IP address or domain name of the NTP server to be measured.
+        ipv6_measurement (bool): True if the type of IPs that we want to measure is IPv6. False otherwise.
     """
     server: str
     ipv6_measurement: bool = False

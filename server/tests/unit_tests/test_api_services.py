@@ -79,7 +79,7 @@ def test_measure_with_ip(mock_measure_ip, mock_measure_domain, mock_insert, mock
     mock_measure_ip.return_value = fake_measurement
     fake_session = MagicMock(spec=Session)
     mock_jitter.return_value = (0.5, 1)
-    result = measure("192.168.1.1", fake_session)
+    result = measure("192.168.1.1", 4, fake_session)
 
     assert result == [(fake_measurement, 0.5, 1)]
     mock_measure_ip.assert_called_once_with("192.168.1.1")
@@ -99,10 +99,10 @@ def test_measure_with_domain(mock_measure_ip, mock_measure_domain, mock_insert, 
     mock_measure_ip.return_value = None
     mock_jitter.return_value = (0, 1)
     fake_session = MagicMock(spec=Session)
-    result = measure("pool.ntp.org", fake_session)
+    result = measure("pool.ntp.org", 4, fake_session)
 
     assert result == [(fake_measurement, 0, 1)]
-    mock_measure_domain.assert_called_once_with("pool.ntp.org", None)
+    mock_measure_domain.assert_called_once_with("pool.ntp.org", None, 4)
     mock_insert.assert_called_once_with(fake_measurement, mock_insert.call_args[0][1])  # pool
     mock_measure_ip.assert_not_called()
 
@@ -115,11 +115,11 @@ def test_measure_with_invalid_ip(mock_measure_ip, mock_measure_domain, mock_inse
     mock_measure_ip.return_value = None
     mock_measure_domain.return_value = [fake_measurement]
     fake_session = MagicMock(spec=Session)
-    result = measure("not.an.ip", fake_session)
+    result = measure("not.an.ip", 4, fake_session)
 
     assert result is None
     mock_measure_ip.assert_not_called()
-    mock_measure_domain.assert_called_once_with("not.an.ip", None)
+    mock_measure_domain.assert_called_once_with("not.an.ip", None, 4)
     mock_insert.assert_not_called()
 
 
@@ -130,11 +130,11 @@ def test_measure_with_unresolvable_input(mock_measure_ip, mock_measure_domain, m
     mock_measure_ip.return_value = None
     mock_measure_domain.return_value = None
     fake_session = MagicMock(spec=Session)
-    result = measure("not.an.ip", fake_session)
+    result = measure("not.an.ip", 4, fake_session)
 
     assert result is None
     mock_measure_ip.assert_not_called()
-    mock_measure_domain.assert_called_once_with("not.an.ip", None)
+    mock_measure_domain.assert_called_once_with("not.an.ip", None, 4)
     mock_insert.assert_not_called()
 
 
@@ -157,7 +157,7 @@ def test_measure_with_jitter(mock_jitter, mock_measure_ip, mock_measure_domain, 
     mock_measure_ip.return_value = fake_measurement
     mock_jitter.return_value = 0.75, 4
     fake_session = MagicMock(spec=Session)
-    result = measure("192.168.1.1", session=fake_session, measurement_no=7)
+    result = measure("192.168.1.1", 4, session=fake_session, measurement_no=7)
 
     assert result == [(fake_measurement, 0.75, 4)]
     mock_measure_ip.assert_called_once_with("192.168.1.1")
@@ -173,11 +173,11 @@ def test_measure_with_exception(mock_measure_ip, mock_measure_domain, mock_inser
     mock_measure_ip.return_value = None
     mock_measure_domain.side_effect = DNSError("DNS failure")
     fake_session = MagicMock(spec=Session)
-    result = measure("invalid.server", fake_session)
+    result = measure("invalid.server", 4, fake_session)
 
     assert result is None
     mock_measure_ip.assert_not_called()
-    mock_measure_domain.assert_called_once_with("invalid.server", None)
+    mock_measure_domain.assert_called_once_with("invalid.server", None, 4)
     mock_insert.assert_not_called()
 
 
@@ -353,7 +353,7 @@ def test_perform_ripe_measurement_with_dn_with_client_ip(mock_m_ip, mock_m_dn):
     mock_m_ip.return_value = 0
     mock_m_dn.return_value = 123456
 
-    m_id = perform_ripe_measurement("time.some_server.com", "82.211.23.56")
+    m_id = perform_ripe_measurement("time.some_server.com", "82.211.23.56", 4)
 
     mock_m_ip.assert_not_called()
     mock_m_dn.assert_called_once()
@@ -367,7 +367,7 @@ def test_perform_ripe_measurement_with_dn_without_client_ip(mock_m_ip, mock_m_dn
     mock_m_ip.return_value = 0
     mock_m_dn.return_value = 123456
 
-    m_id = perform_ripe_measurement("time.some_server.com", "82.211.23.56")
+    m_id = perform_ripe_measurement("time.some_server.com", "82.211.23.56", 4)
 
     mock_m_ip.assert_not_called()
     mock_m_dn.assert_called_once()
@@ -381,7 +381,7 @@ def test_perform_ripe_measurement_with_ip(mock_m_ip, mock_m_dn):
     mock_m_ip.return_value = 123456
     mock_m_dn.return_value = 0
 
-    m_id = perform_ripe_measurement("18.252.12.124", "82.211.23.56")
+    m_id = perform_ripe_measurement("18.252.12.124", "82.211.23.56", 4)
 
     mock_m_ip.assert_called_once()
     mock_m_dn.assert_not_called()

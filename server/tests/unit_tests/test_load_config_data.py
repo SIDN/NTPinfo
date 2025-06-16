@@ -127,7 +127,7 @@ def test_get_ntp_version_boundaries(mock_config):
 
 # ntp timeout_measurement_s
 @patch("server.app.utils.load_config_data.config", new_callable=dict)
-def test_gget_timeout_measurement_s_ok(mock_config):
+def test_get_timeout_measurement_s_ok(mock_config):
     mock_config["ntp"] = {"timeout_measurement_s": 5}
     assert get_timeout_measurement_s() == 5
     mock_config["ntp"] = {"timeout_measurement_s": 5.2}
@@ -293,6 +293,20 @@ def test_get_edns_default_servers_empty(mock_config):
     mock_config["edns"] = {"default_order_of_edns_servers": []}
     with pytest.raises(ValueError, match="edns 'default_order_of_edns_servers' cannot be empty"):
         get_edns_default_servers()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_edns_default_ipv4(mock_config):
+    mock_config["edns"] = {"default_order_of_edns_servers": ["2501:4860:4806:8::", "3.2.4.5", "2001:4860:4806:7::"]}
+    assert get_ipv4_edns_server() == "3.2.4.5"
+    mock_config["edns"] = {"default_order_of_edns_servers": ["2501:4860:4806:8::", Exception("not found")]}
+    assert get_ipv4_edns_server() is None
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_edns_default_ipv6(mock_config):
+    mock_config["edns"] = {"default_order_of_edns_servers": ["55.2.4.5", "2501:4860:4806:8::", "3.2.4.5", "2001:4860:4806:7::"]}
+    assert get_ipv6_edns_server() == "2501:4860:4806:8::"
+    mock_config["edns"] = {"default_order_of_edns_servers": ["55.2.4.5", Exception("not found"), "55.2.43.5"]}
+    assert get_ipv6_edns_server() is None
 
 # edns edns_timeout_s
 @patch("server.app.utils.load_config_data.config", new_callable=dict)

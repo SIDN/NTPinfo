@@ -1,4 +1,5 @@
 
+
 import ntplib
 from ipaddress import ip_address
 import json
@@ -26,15 +27,16 @@ from server.app.utils.validate import is_ip_address
 
 
 
-def perform_ntp_measurement_domain_name_list(server_name: str = "pool.ntp.org", client_ip: Optional[str] = None,
+def perform_ntp_measurement_domain_name_list(server_name: str, client_ip: Optional[str] = None, wanted_ip_type: int = 4,
                                              ntp_version: int = get_ntp_version()) -> Optional[list[NtpMeasurement]]:
     """
     This method performs a NTP measurement on a NTP server from all the IPs got back from its domain name.
 
     Args:
-        server_name (str): the name of the ntp server
-        client_ip (Optional[str]): the IP address of the client (if given)
-        ntp_version (int): the version of the ntp that you want to use
+        server_name (str): The name of the ntp server.
+        client_ip (Optional[str]): The IP address of the client (if given).
+        wanted_ip_type (int): The IP type that we want to measure.
+        ntp_version (int): The version of the ntp that you want to use.
 
     Returns:
         Optional[list[NtpMeasurement]]: it returns a list of NTP measurement objects or None if there is a timeout
@@ -42,7 +44,7 @@ def perform_ntp_measurement_domain_name_list(server_name: str = "pool.ntp.org", 
     Raises:
         DNSError: If the domain name is invalid or cannot be converted to an IP list
     """
-    domain_ips: list[str] = domain_name_to_ip_list(server_name, client_ip)
+    domain_ips: list[str] = domain_name_to_ip_list(server_name, client_ip, wanted_ip_type)
     # domain_ips contains a list of ips that are good to use.
     resulted_measurements = []
     ok = False
@@ -59,7 +61,7 @@ def perform_ntp_measurement_domain_name_list(server_name: str = "pool.ntp.org", 
                 resulted_measurements.append(r)
                 ok = True
         except Exception as e:
-            print("Error in measure from name:", e)
+            print(f"Error in measure from name on ip {ip_str} :", e)
             empty_measurement = get_non_responding_ntp_measurement(ip_str, server_name, ntp_version)
             resulted_measurements.append(empty_measurement)
             continue
@@ -69,9 +71,7 @@ def perform_ntp_measurement_domain_name_list(server_name: str = "pool.ntp.org", 
 
 def perform_ntp_measurement_ip(server_ip_str: str, ntp_version: int = get_ntp_version()) -> Optional[NtpMeasurement]:
     """
-    This method performs a NTP measurement on a NTP server from its IP address. The "other IPs list" of the
-    measurement will be None.
-    empty list of other IPs of the domain name.
+    This method performs a NTP measurement on a NTP server from its IP address.
 
     Args:
         server_ip_str (str): the ip address of the ntp server in string format
@@ -111,7 +111,9 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
     """
     try:
         vantage_point_ip = None
-        vantage_point_ip_temp = get_server_ip()
+        ip_type = get_ip_family(server_ip_str)
+        # get the same type (We guaranteed before calling this method that it exists)
+        vantage_point_ip_temp = get_server_ip(ip_type)
         if vantage_point_ip_temp is not None:
             vantage_point_ip = vantage_point_ip_temp
         ref_ip, ref_name = ref_id_to_ip_or_name(response.ref_id,
@@ -209,7 +211,7 @@ def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
         return False
 
 
-def perform_ripe_measurement_domain_name(server_name: str, client_ip: str,
+def perform_ripe_measurement_domain_name(server_name: str, client_ip: str, wanted_ip_type: int,
                                          probes_requested: int =
                                          get_ripe_number_of_probes_per_measurement()) -> int:
     """
@@ -220,6 +222,7 @@ def perform_ripe_measurement_domain_name(server_name: str, client_ip: str,
     Args:
         server_name (str): The domain name of the NTP server.
         client_ip (str): The IP address of the NTP server.
+        wanted_ip_type (int): The IP type that we want to measure.
         probes_requested (int): The number of probes requested.
 
     Returns:
@@ -233,13 +236,13 @@ def perform_ripe_measurement_domain_name(server_name: str, client_ip: str,
 
     if probes_requested <= 0:
         raise InputError("Probes requested must be greater than 0.")
-    # domain_ips: list[str] = domain_name_to_ip_list(server_name, client_ip)
-    # same IP family as the client
-    ip_family: int = get_ip_family(client_ip)
+
+    get_ip_family(client_ip) # throws an error if it is invalid
     # we will make an NTP measurement from probes to the domain name.
 
     # measurement settings
-    headers, request_content = get_request_settings(ip_family_of_ntp_server=ip_family, ntp_server=server_name,
+    # we use wanted_ip_type to force to search this type
+    headers, request_content = get_request_settings(ip_family_of_ntp_server=wanted_ip_type, ntp_server=server_name,
                                                     client_ip=client_ip, probes_requested=probes_requested)
     # perform the measurement
     response = requests.post(
@@ -342,8 +345,9 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
     ],
         "is_oneoff": True,
         "bill_to": get_ripe_account_email(),
-        "probes": get_probes(client_ip, probes_requested)  # we want probes close to the client
+        "probes": get_probes(client_ip, ip_family_of_ntp_server, probes_requested)  # we want probes close to the client
     }
+    # pprint.pprint(request_content["probes"])
     return headers, request_content
 # m=perform_ntp_measurement_domain_name("time.google.com")
 # m=perform_ntp_measurement_domain_name("pool.ntp.org","83.25.24.10")
@@ -351,7 +355,22 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
 # import time
 #
 # start = time.time()
-# print(perform_ripe_measurement_domain_name("time.apple.com","145.94.210.165")) #("89.46.74.148"))
+# print(perform_ntp_measurement_ip("2a01:b740:a20:3000::1f2"))
+# print(perform_ntp_measurement_domain_name_list("ntp1.time.nl"))
+# example:
+# print_ntp_measurement(perform_ntp_measurement_ip("2a01:b740:a16:4000::1f2", 4))
+# print_ntp_measurement(perform_ntp_measurement_ip("17.253.6.45", 4))
+# print_ntp_measurement(perform_ntp_measurement_ip("17.253.6.45",  4))
+# print_ntp_measurement(perform_ntp_measurement_ip("17.253.6.45",  4))
+# print_ntp_measurement(perform_ntp_measurement_ip("2620:149:a23:4000::1e2",  4))
+# example to see that they work
+# print_ntp_measurement(perform_ntp_measurement_domain_name_list("time.apple.com", "5a01:c741:a16:4000::1f2", 4, 4)[0])
+# print_ntp_measurement(perform_ntp_measurement_domain_name_list("time.apple.com", "5a01:c741:a16:4000::1f2", 6, 4)[0])
+# print_ntp_measurement(perform_ntp_measurement_domain_name_list("time.apple.com", "17.253.6.45", 4,4)[0])
+# print_ntp_measurement(perform_ntp_measurement_domain_name_list("time.apple.com", "17.253.6.45", 6,4)[0])
+
+# print(perform_ripe_measurement_ip("2a01:b740:a16:4000::1f2","2a01:c741:a16:4000::1f2", 12))
+# print(perform_ripe_measurement_domain_name("time.apple.com","83.25.24.10", 6, 15))
 # end = time.time()
 #
 # print(end - start)
