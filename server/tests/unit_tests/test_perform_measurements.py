@@ -23,10 +23,35 @@ def test_perform_ntp_measurement_domain_name_list(mock_convert, mock_ntpclient_c
     mock_ntp_response = MagicMock()
     mock_client.request.return_value = mock_ntp_response
 
-    result = perform_ntp_measurement_domain_name_list("time.server.nl", "123.45.67.89", 4)
+    result = perform_ntp_measurement_domain_name_list("time.server.nl", "123.45.67.89", 4, 4)
     assert result == [mock_measurement1, mock_measurement3]
     assert mock_convert.call_count == 3
     assert mock_client.request.call_count == 3
+
+
+@patch("server.app.utils.perform_measurements.domain_name_to_ip_list")
+@patch("server.app.utils.perform_measurements.get_timeout_measurement_s")
+@patch("server.app.utils.perform_measurements.ntplib.NTPClient")
+@patch("server.app.utils.perform_measurements.convert_ntp_response_to_measurement")
+def test_perform_ntp_measurement_domain_name_list_want_ipv6(mock_convert, mock_ntpclient_class,
+                                                  mock_timeout, mock_domain_names):
+    mock_domain_names.return_value = ["2a06:93c0::24", "3a06:93c0::24", "2a06:90c0::24"]
+    mock_timeout.return_value = 3.5
+    mock_measurement1 = MagicMock(spec=NtpMeasurement)
+    mock_measurement2 = None
+    mock_measurement3 = MagicMock(spec=NtpMeasurement)
+    mock_convert.side_effect  = [mock_measurement1, mock_measurement2, mock_measurement3]
+    # mock responses from ntplib
+    mock_client = MagicMock()
+    mock_ntpclient_class.return_value = mock_client
+    mock_ntp_response = MagicMock()
+    mock_client.request.return_value = mock_ntp_response
+
+    result = perform_ntp_measurement_domain_name_list("time.server.nl", "123.45.67.89", 6, 4)
+    assert result == [mock_measurement1, mock_measurement3]
+    assert mock_convert.call_count == 3
+    assert mock_client.request.call_count == 3
+
 
 @patch("server.app.utils.perform_measurements.domain_name_to_ip_list")
 @patch("server.app.utils.perform_measurements.get_timeout_measurement_s")
@@ -43,7 +68,7 @@ def test_perform_ntp_measurement_domain_name_list_none(mock_convert, mock_ntpcli
     mock_ntp_response = MagicMock()
     mock_client.request.return_value = mock_ntp_response
 
-    result = perform_ntp_measurement_domain_name_list("time.server.nl", "123.45.67.89", 4)
+    result = perform_ntp_measurement_domain_name_list("time.server.nl", "123.45.67.89", 4, 4)
     assert result is None
     assert mock_convert.call_count == 3
     assert mock_client.request.call_count == 3
@@ -66,7 +91,7 @@ def test_perform_ntp_measurement_domain_name_list_exception(mock_convert, mock_n
     mock_ntp_response = MagicMock()
     mock_client.request.side_effect = [Exception("other message"), mock_ntp_response, mock_ntp_response]
 
-    result = perform_ntp_measurement_domain_name_list("time.server.nl", "123.45.67.89", 4)
+    result = perform_ntp_measurement_domain_name_list("time.server.nl", "123.45.67.89", 4, 4)
     assert result == [get_non_responding_ntp_measurement("3.4.5.6", "time.server.nl", 4),
                       get_non_responding_ntp_measurement("12.34.123.90", "time.server.nl", 4), mock_measurement3]
     assert mock_convert.call_count == 2
@@ -202,7 +227,20 @@ def test_perform_ripe_measurement_domain_name_normal(mock_settings, mock_post):
     mock_response.json.return_value = {"measurements": [85439]}
     mock_post.return_value = mock_response
 
-    result = perform_ripe_measurement_domain_name("time.apple.com", "2.3.4.5", 10)
+    result = perform_ripe_measurement_domain_name("time.apple.com", "2.3.4.5", 4, 10)
+
+    assert result == 85439
+
+
+@patch("server.app.utils.perform_measurements.requests.post")
+@patch("server.app.utils.perform_measurements.get_request_settings")
+def test_perform_ripe_measurement_domain_name_normal_want_ipv6(mock_settings, mock_post):
+    mock_settings.return_value = ({"Authorization": "Key"}, {"some": 36, "other": "other"})
+    mock_response = MagicMock()
+    mock_response.json.return_value = {"measurements": [85439]}
+    mock_post.return_value = mock_response
+
+    result = perform_ripe_measurement_domain_name("time.apple.com", "2.3.4.5", 6, 10)
 
     assert result == 85439
 
@@ -215,25 +253,27 @@ def test_perform_ripe_measurement_domain_name_try_catch(mock_settings, mock_post
     mock_post.return_value = mock_response
 
     with pytest.raises(RipeMeasurementError, match="not found"):
-        perform_ripe_measurement_domain_name("time.apple.com", "2.3.4.5", 10)
+        perform_ripe_measurement_domain_name("time.apple.com", "2.3.4.5", 4, 10)
 
     mock_response2 = MagicMock()
     mock_response2.json.return_value = {"something": "error, not found"}
     mock_post.return_value = mock_response2
     with pytest.raises(RipeMeasurementError, match=r"Ripe measurement failed:.*"):
-        perform_ripe_measurement_domain_name("time.apple.com", "2.3.4.5", 10)
+        perform_ripe_measurement_domain_name("time.apple.com", "2.3.4.5", 4, 10)
 
 @patch("server.app.utils.perform_measurements.requests.post")
 @patch("server.app.utils.perform_measurements.get_request_settings")
 def test_perform_ripe_measurement_domain_name_exceptions(mock_settings, mock_post):
     # invalid "probes requested"
     with pytest.raises(InputError):
-        perform_ripe_measurement_domain_name("ntp.pool.org", "2.3.4.5", -1)
+        perform_ripe_measurement_domain_name("ntp.pool.org", "2.3.4.5", 4, -1)
     with pytest.raises(InputError):
-        perform_ripe_measurement_domain_name("ntp.pool.org", "2.3.4.5", 0)
+        perform_ripe_measurement_domain_name("ntp.pool.org", "2.3.4.5", 4, 0)
+    with pytest.raises(InputError):
+        perform_ripe_measurement_domain_name("ntp.pool.org", "2.3.4.5", 6, 0)
     # invalid client ip
     with pytest.raises(InputError):
-        perform_ripe_measurement_domain_name("ntp.pool.org", "blabla", 3)
+        perform_ripe_measurement_domain_name("ntp.pool.org", "blabla", 4, 3)
 
 
 @patch("server.app.utils.perform_measurements.requests.post")

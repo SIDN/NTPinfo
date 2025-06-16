@@ -6,7 +6,7 @@ from server.app.dtos.NtpMainDetails import NtpMainDetails
 from server.app.dtos.NtpServerInfo import NtpServerInfo
 from server.app.dtos.NtpTimestamps import NtpTimestamps
 from server.app.dtos.ProbeData import ServerLocation
-from server.app.utils.ip_utils import get_server_ip, ip_to_str
+from server.app.utils.ip_utils import get_server_ip, ip_to_str, get_ip_family
 from server.app.utils.location_resolver import get_country_for_ip, get_coordinates_for_ip
 from server.app.utils.load_config_data import get_nr_of_measurements_for_jitter, get_ntp_version
 from server.app.db.db_interaction import get_measurements_for_jitter_ip
@@ -131,7 +131,9 @@ def get_non_responding_ntp_measurement(server_ip_str: str, server_name: Optional
         - The location and reference information is generated using available utility functions based on IP.
     """
     vantage_point_ip = None
-    vantage_point_ip_temp = get_server_ip()
+    ip_type = get_ip_family(server_ip_str)
+    # get the same type
+    vantage_point_ip_temp = get_server_ip(ip_type)
     if vantage_point_ip_temp is not None:
         vantage_point_ip = vantage_point_ip_temp
     server_ip = ip_address(server_ip_str)
@@ -139,7 +141,7 @@ def get_non_responding_ntp_measurement(server_ip_str: str, server_name: Optional
         ntp_version=ntp_version,
         ntp_server_ip=server_ip,
         ntp_server_name=server_name,
-        ntp_server_ref_parent_ip=ip_address("0.0.0.0"),
+        ntp_server_ref_parent_ip=ip_address("0.0.0.0"), # if you change this value, change it also in "measure"
         ref_name="",
         ntp_server_location=ServerLocation(country_code=get_country_for_ip(ip_to_str(server_ip)),
                                            coordinates=get_coordinates_for_ip(ip_to_str(server_ip)))

@@ -28,7 +28,7 @@ def test_get_probes_all_good(mock_get_prefix_from_ip, mock_get_network_details, 
     mock_get_prefix_from_ip.return_value = "80.211.224.0/20"
     mock_get_network_details.return_value = ("AS15169", "IT", "West")
 
-    probes_result = get_probes("80.211.238.247", 10)
+    probes_result = get_probes("80.211.238.247", 4, 10)
 
     answer = [{'requested': 10, 'type': 'probes', 'value': '345,11,22,33,45,55,66,77,88,99'}
               ]
@@ -54,7 +54,40 @@ def test_get_probes_some_found_from_first_try(mock_get_prefix_from_ip, mock_get_
     mock_get_prefix_from_ip.return_value = None
     mock_get_network_details.return_value = ("AS15169", "IT", None)
 
-    probes_result = get_probes("80.211.238.247", 5)
+    probes_result = get_probes("80.211.238.247", 4, 5)
+    mock_get_multiple_attributes.assert_called_with(client_ip="80.211.238.247", current_probes_set=set(), ip_asn="AS15169",
+                                            ip_prefix=None, ip_country="IT", ip_family=4,
+                                            probes_requested=5)
+
+    assert mock_get_multiple_attributes.call_count == 1
+    assert mock_get_best_single.call_count == 0
+    answer = [{'requested': 5, 'type': 'probes', 'value': '11,22,33,45,55'}]
+    assert probes_result == answer
+
+
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
+@patch("server.app.utils.ripe_probes.get_probes_by_ids")
+@patch("server.app.utils.ripe_probes.get_best_probes_with_multiple_attributes")
+@patch("server.app.utils.ripe_probes.get_best_probes_matched_by_single_attribute")
+@patch("server.app.utils.ripe_probes.get_ip_network_details")
+@patch("server.app.utils.ripe_probes.get_prefix_from_ip")
+def test_get_probes_some_found_from_first_try_ipv4_ask_ipv6(mock_get_prefix_from_ip, mock_get_network_details, mock_get_best_single,
+                                              mock_get_multiple_attributes, mock_get_probes_by_ids, mock_geolocation):
+    mock_geolocation.return_value = (1.0, 1.0)
+    mock_get_multiple_attributes.return_value = (0, {11, 22, 33, 45, 55})
+    mock_get_best_single.return_value = (2, {345, 11, 22, 33, 45, 55, 66, 77, 88, 99})
+    mock_get_probes_by_ids.return_value = {
+        'requested': 5,
+        'type': 'probes',
+        'value': '11,22,33,45,55'
+    }
+    mock_get_prefix_from_ip.return_value = "80.211.224.0/20"
+    mock_get_network_details.return_value = ("AS15169", "IT", None)
+
+    probes_result = get_probes("80.211.238.247", 6, 5)
+    mock_get_multiple_attributes.assert_called_with(client_ip="80.211.238.247", current_probes_set=set(), ip_asn="AS15169",
+                                            ip_prefix=None, ip_country="IT", ip_family=6,
+                                            probes_requested=5)
 
     assert mock_get_multiple_attributes.call_count == 1
     assert mock_get_best_single.call_count == 0
@@ -82,9 +115,74 @@ def test_get_probes_area(mock_get_prefix_from_ip, mock_get_network_details, mock
     mock_get_prefix_from_ip.return_value = "80.211.224.0/20"
     mock_get_network_details.return_value = ("AS15169", "IT", "West")
 
-    probes_result = get_probes("80.211.238.247", 10)
+    probes_result = get_probes("80.211.238.247", 4, 10)
     mock_get_best_single.assert_called_with(client_ip="80.211.238.247", current_probes_set={345}, ip_asn="AS15169",
                                             ip_prefix="80.211.224.0/20", ip_country="IT", ip_family=4,
+                                            probes_requested=9)
+
+    answer = [{'requested': 8, 'type': 'probes', 'value': '345,11,22,33,45,55,66,77'},
+              {'requested': 2, 'type': 'area', 'value': 'West'}]
+    assert probes_result == answer
+
+
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
+@patch("server.app.utils.ripe_probes.get_probes_by_ids")
+@patch("server.app.utils.ripe_probes.get_best_probes_with_multiple_attributes")
+@patch("server.app.utils.ripe_probes.get_best_probes_matched_by_single_attribute")
+@patch("server.app.utils.ripe_probes.get_ip_network_details")
+@patch("server.app.utils.ripe_probes.get_prefix_from_ip")
+def test_get_probes_area_ipv4_ask_ipv6(mock_get_prefix_from_ip, mock_get_network_details, mock_get_best_single,
+                         mock_get_multiple_attributes, mock_get_probes_by_ids, mock_geolocation):
+    mock_geolocation.return_value = (1.0, 1.0)
+    mock_get_multiple_attributes.return_value = (9, {345})
+    mock_get_best_single.return_value = (2, {345, 11, 22, 33, 45, 55, 66, 77})
+    mock_get_probes_by_ids.return_value = {
+        'requested': 8,
+        'type': 'probes',
+        'value': '345,11,22,33,45,55,66,77'
+    }
+
+    mock_get_prefix_from_ip.return_value = "80.211.224.0/20"
+    mock_get_network_details.return_value = ("AS15169", "IT", "West")
+
+    probes_result = get_probes("80.211.238.247", 6, 10)
+    mock_get_best_single.assert_called_with(client_ip="80.211.238.247", current_probes_set={345}, ip_asn="AS15169",
+                                            ip_prefix=None, ip_country="IT", ip_family=6,
+                                            probes_requested=9)
+
+    answer = [{'requested': 8, 'type': 'probes', 'value': '345,11,22,33,45,55,66,77'},
+              {'requested': 2, 'type': 'area', 'value': 'West'}]
+    assert probes_result == answer
+
+
+@patch("server.app.utils.ripe_probes.get_coordinates_for_ip")
+@patch("server.app.utils.ripe_probes.get_probes_by_ids")
+@patch("server.app.utils.ripe_probes.get_best_probes_with_multiple_attributes")
+@patch("server.app.utils.ripe_probes.get_best_probes_matched_by_single_attribute")
+@patch("server.app.utils.ripe_probes.get_ip_network_details")
+@patch("server.app.utils.ripe_probes.get_prefix_from_ip")
+def test_get_probes_area_ipv6_ask_ipv4(mock_get_prefix_from_ip, mock_get_network_details, mock_get_best_single,
+                         mock_get_multiple_attributes, mock_get_probes_by_ids, mock_geolocation):
+    mock_geolocation.return_value = (1.0, 1.0)
+    mock_get_multiple_attributes.return_value = (9, {345})
+    mock_get_best_single.return_value = (2, {345, 11, 22, 33, 45, 55, 66, 77})
+    mock_get_probes_by_ids.return_value = {
+        'requested': 8,
+        'type': 'probes',
+        'value': '345,11,22,33,45,55,66,77'
+    }
+
+    mock_get_prefix_from_ip.return_value = "2a06:93c0::/48"
+    mock_get_network_details.return_value = ("AS15169", "IT", "West")
+
+    probes_result = get_probes("2a06:93c0::24", 4, 10)
+
+    mock_get_multiple_attributes.assert_called_with(client_ip="2a06:93c0::24", current_probes_set=set(),
+                                                    ip_asn="AS15169",
+                                                    ip_prefix=None, ip_country="IT", ip_family=4,
+                                                    probes_requested=10)
+    mock_get_best_single.assert_called_with(client_ip="2a06:93c0::24", current_probes_set={345}, ip_asn="AS15169",
+                                            ip_prefix=None, ip_country="IT", ip_family=4,
                                             probes_requested=9)
 
     answer = [{'requested': 8, 'type': 'probes', 'value': '345,11,22,33,45,55,66,77'},
@@ -112,7 +210,7 @@ def test_get_probes_random(mock_get_prefix_from_ip, mock_get_network_details, mo
     mock_get_prefix_from_ip.return_value = "80.211.224.0/20"
     mock_get_network_details.return_value = ("AS15169", "IT", None)
 
-    probes_result = get_probes("80.211.238.247", 10)
+    probes_result = get_probes("80.211.238.247", 4, 10)
     mock_get_best_single.assert_called_with(client_ip="80.211.238.247", current_probes_set={345}, ip_asn="AS15169",
                                             ip_prefix="80.211.224.0/20", ip_country="IT", ip_family=4,
                                             probes_requested=9)
@@ -137,7 +235,7 @@ def test_get_probes_only_area(mock_get_prefix_from_ip, mock_get_network_details,
     mock_get_prefix_from_ip.return_value = "80.211.224.0/20"
     mock_get_network_details.return_value = ("AS15169", "IT", "West")
 
-    probes_result = get_probes("80.211.238.247", 11)
+    probes_result = get_probes("80.211.238.247", 4, 11)
     mock_get_multiple_attributes.assert_called_once()
     mock_get_best_single.assert_called_once()
     mock_get_probes_by_ids.assert_not_called()

@@ -1,6 +1,6 @@
 ntp:
   version: 4
-  timeout_measurement_s: 6  # in seconds
+  timeout_measurement_s: 7  # in seconds
   number_of_measurements_for_calculating_jitter: 8
 
 
@@ -11,7 +11,8 @@ edns:
     # The others are used in case the first one cannot solve the domain name
     - "8.8.8.8"
     - "1.1.1.1"
-  edns_timeout_s: 2 # in seconds
+    - "2001:4860:4860::8888"
+  edns_timeout_s: 3 # in seconds
 
 
 ripe_atlas:
