@@ -221,11 +221,12 @@ a {
 
 .historical-radio-toggle{
     display: inline-flex;
-    background: var(--bg-clr-secondary);
+    background: #1e293b;
     border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 12px;
+    border-radius: var(--radius);
     padding: 2px;
     gap: 0;
+    box-shadow: var(--shadow);
 }
 
 .historical-radio-toggle input[type="radio"]{
@@ -240,14 +241,15 @@ a {
     font-size: 0.95rem;
     cursor: pointer;
     user-select: none;
-    color: var(--clr-font-muted, #9fa4b9);
+    color: var(--text-white, #9fa4b9);
     border-radius: 8px;
     transition: all 0.2s ease;
 }
 
 .historical-radio-toggle input[type="radio"]:checked + label{
-    background: var(--clr-btn-selected-purple, #020718);
-    color: var(--clr-font-white, #fff);
+    background: var(--bg-primary);
+    color: var(--text-white);
+    border-radius: 6px;
 }
 
 .historical-radio-toggle input[type="radio"]:focus + label{
@@ -259,4 +261,16 @@ a {
     margin-left: auto;
     display: flex;
     justify-content: flex-end;
+}
+
+@media screen and (max-width: 768px) {
+    .graph-statistics-container {
+        margin: 0;
+        padding: 0;
+    }
+
+    /* .form-row {
+        flex-direction: column;
+        align-items: flex-start;
+    } */
 }
