@@ -26,18 +26,18 @@ function CompareTab() {
 
     const handleCompare = async (servers: string[]) => {
         setErrMessage(null)
-        
+
         for (const sv of servers)
             if (sv.trim().length == 0) {
                 setErrMessage("Please fill in all servers")
                 return
             }
-                
+
         const trimmed = servers.map(s => s.trim())
         const serverSet = [...new Set(trimmed)];
         setLoading(true)
         setShowData(false)
-        
+
         const startDate = dateFormatConversion(Date.now() - 86400000);
         const endDate = dateFormatConversion(Date.now());
         const map = new Map<string, NTPData[]>();
@@ -60,7 +60,7 @@ function CompareTab() {
             updated.splice(index, 1);
             setServers(updated);
     }
-    
+
     const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSelMeasurement(event.target.value as Measurement);
     }
@@ -102,7 +102,7 @@ function CompareTab() {
             </div>
             ))}
             </div>
-            
+
         <button className="add-rm-btn add" type="button" onClick={addServerInput}>+</button>
 
         <TimeInput
@@ -148,7 +148,12 @@ function CompareTab() {
 
 
                  <div className="chart-wrapper">
-                <LineChart data = {data} selectedMeasurement={selMeasurement} selectedOption={selOption} legendDisplay={true}/>
+                <LineChart
+                    data = {data}
+                    selectedMeasurement={selMeasurement}
+                    selectedOption={selOption}
+                    customRange={{ from: customFrom, to: customTo }}
+                    legendDisplay={true}/>
                 </div>
 
             </div>)) ||
