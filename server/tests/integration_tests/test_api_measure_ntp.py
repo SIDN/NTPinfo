@@ -1,6 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
 
+from server.app.utils.validate import is_ip_address
+from server.app.utils.domain_name_to_ip import domain_name_to_ip_close_to_client
 from server.app.main import create_app
 
 
@@ -26,3 +28,19 @@ def test_read_data_measurement_wrong_server(client):
     # depends on our server IP. It either fails because of this, or because the measurement failed
     # So be careful, do not remove 422 unless you are 100% sure your machine has IPv6 support
     assert response.status_code == 422 or response.status_code == 400
+
+
+def test_domain_name_to_dns(client):
+    # we want ipv4
+    result = domain_name_to_ip_close_to_client("time.google.com", "88.25.24.10", 4)
+    assert result is not None
+    # assert they are ipv4
+    for ip in result:
+        assert is_ip_address(ip) == "ipv4"
+
+    # we want ipv6
+    result = domain_name_to_ip_close_to_client("time.google.com", "88.25.24.10", 6)
+    assert result is not None
+    # assert they are ipv6
+    for ip in result:
+        assert is_ip_address(ip) == "ipv6"

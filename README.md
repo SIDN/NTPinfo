@@ -122,17 +122,27 @@ To set up and run the backend server, follow these steps:
 
 4. **Download the max mind and BGP tools databases, and schedule running this file once every day**:
 
-    This will initialise the local dbs for geolocation and detecting anycast.
+    This will initialise the local dbs for geolocation and detecting anycast, and will schedule downloading them every day at 1 AM.
     Be sure that you are in the root folder, and `.env` file has all variables.
 
     ```bash
     cd ..
-    ./update_geolite_and_bgptools_dbs.sh
+    crontab -e
+    0 1 * * * /bin/bash /full_path_to/update_geolite_and_bgptools_dbs.sh >> /full_path_to/update_geolite_and_bgptools_dbs.log 2>&1
+    ```
+   But replace `/full_path_to` with the output of running :
+   ```bash 
+    pwd
+    ```
+   Or if you want to manually run it without scheduling:
+    ```bash
+      ./update_geolite_and_bgptools_dbs.sh
     ```
 
    **Common errors**:
    - If you run `update_geolite_and_bgptools_dbs.sh` from Linux or WSL, the file `.env` may contain invisible Windows carriage return characters and this may make the `.sh` script to fail. You can see them using `cat -A .env`. Look for any "^M"
        at the end of lines. You can remove them by running this command: `dos2unix .env`. This should solve the problem.
+   - If you are using Linux or WSL and you received `/bin/bash^M: bad interpreter: No such file or directory` then it may mean that your script has Windows-style line endings (CRLF, \r\n) instead of Unix-style (LF, \n)
    - If downloading the Geolite databases fails, consider that downloading them has a daily limit per account. (This limit is only for geolite databases)
 
     **Notes**:

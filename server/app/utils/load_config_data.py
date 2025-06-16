@@ -319,6 +319,8 @@ def get_anycast_prefixes_v4_url() -> str:
     bgp_tools = config["bgp_tools"]
     if "anycast_prefixes_v4_url" not in bgp_tools:
         raise ValueError("bgp_tools 'anycast_prefixes_v4_url' is missing")
+    if not isinstance(bgp_tools["anycast_prefixes_v4_url"], str):
+        raise ValueError("bgp_tools 'anycast_prefixes_v4_url' must be a 'str'")
     return bgp_tools["anycast_prefixes_v4_url"]
 
 
@@ -334,6 +336,8 @@ def get_anycast_prefixes_v6_url() -> str:
     bgp_tools = config["bgp_tools"]
     if "anycast_prefixes_v6_url" not in bgp_tools:
         raise ValueError("bgp_tools 'anycast_prefixes_v6_url' is missing")
+    if not isinstance(bgp_tools["anycast_prefixes_v6_url"], str):
+        raise ValueError("bgp_tools 'anycast_prefixes_v6_url' must be a 'str'")
     return bgp_tools["anycast_prefixes_v6_url"]
 
 
@@ -393,7 +397,7 @@ def get_max_mind_path_asn() -> str:
     absolute_path = (server_dir / relative_path).resolve()
     return str(absolute_path)
 
-def check_geolite_account_id_and_key() -> None:
+def check_geolite_account_id_and_key() -> bool:
     """
     This function checks that we have the account id and key set.
     Only Warnings
@@ -402,6 +406,9 @@ def check_geolite_account_id_and_key() -> None:
     ans = os.getenv('ACCOUNT_ID')
     if ans is None:
         print("WARNING! ACCOUNT_ID environment variable not set")
+        return False
     ans = os.getenv('LICENSE_KEY')
     if ans is None:
         print("WARNING! LICENSE_KEY environment variable not set")
+        return False
+    return True
