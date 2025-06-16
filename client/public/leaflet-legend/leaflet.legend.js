@@ -1,3 +1,7 @@
+//Code used from https://github.com/ptma/Leaflet.Legend
+//Original license: MIT License
+//Author: John Jin (ptma@163.com)
+
 (function (factory, window) {
     // define an AMD module that relies on 'leaflet'
     if (typeof define === "function" && define.amd) {
