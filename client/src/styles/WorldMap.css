@@ -12,3 +12,20 @@ body {
     margin-right: 6px;
     display: inline-block;
 }
+
+.map-container{
+    padding: '15px';
+}
+
+.leaflet-legend-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  white-space: nowrap !important;
+}
+
+.leaflet-legend-item img {
+  width: 30px !important;
+  height: 30px !important;
+  object-fit: contain !important;
+}
