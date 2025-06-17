@@ -15,6 +15,12 @@ h2#not-found {
   align-items: stretch;
 }
 
+@media (max-width: 700px) {
+  .results-section {
+    padding-inline: 0rem;
+  }
+}
+
 .result-box {
   grid-area: summary;
   height: 100%;
@@ -35,12 +41,18 @@ h2#not-found {
   display: flex;
   justify-content: space-between;
   font-size: 1rem;
+  /* white-space: nowrap; */
+  overflow: hidden;
 }
 
 .metric span:last-child {
   font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
   font-feature-settings: "tnum";
   font-variant-numeric: tabular-nums;
+  /* text-overflow: ellipsis;
+  overflow: hidden;
+  min-width: 0; */
+  margin-left: 2rem;
 }
 
 .status-line {
@@ -53,13 +65,12 @@ h2#not-found {
   color: var(--clr-font-white);
   font-weight: 600;
   padding-inline: 0.25rem;
-  /* white-space: nowrap; */
-  /* overflow: hidden; */
-  /* text-overflow: ellipsis; */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  white-space: nowrap;
 }
 .result-and-title {
   display: flex;

@@ -105,12 +105,12 @@ body {
   width: 100%;
 }
 
-.results-and-graph {
+/* .results-and-graph {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
   padding: 1rem;
-}
+} */
 
 .result-text {
   font-size: 1.7rem;
@@ -119,46 +119,6 @@ body {
   margin-left: 1rem;
   margin-bottom: 1rem;
   margin-top: 1rem;
-}
-
-.download-buttons {
-  display: flex;
-  align-items: center;
-  padding-left: 2rem;
-  gap: 1rem;
-}
-/*
-.graphs {
-  display: flex;
-  gap: 1rem;
-  flex: 2 1 50%;
-} */
-
-.graph-box {
-  /* flex: 1; */
-  /* height: 150px; */
-  /* display: flex; */
-  /* align-items: center; */
-  /* justify-content: center; */
-  /* font-weight: bold; */
-  /* color: white; */
-  /* width: 500px; */
-
-  /* margin-left: 1rem; */
-  /* grid-area: summary; */
-  /* height: auto; */
-  /* width: 600px; */
-  /* color: var(--clr-font-white); */
-  /* font-weight: bold; */
-  /* border-radius: 8px; */
-  /* padding: 1rem; */
-  /* display: flex; */
-  /* flex-direction: column; */
-  /* gap: 0.8rem; */
-}
-
-.graph-box canvas {
-  /* max-height: 200px; */
 }
 
 .map-box {

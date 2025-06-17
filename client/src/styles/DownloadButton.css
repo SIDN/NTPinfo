@@ -17,6 +17,11 @@
     box-shadow: var(--shadow);
 }
 
+/* @media (max-width: 700px) {
+    .download-btn {
+    }
+} */
+
 .download-btn:focus, .download-btn:hover {
     background-color: var(--clr-btn-selected-purple);
 }

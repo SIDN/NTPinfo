@@ -416,6 +416,14 @@ p.error {
     font-size: 0.85rem;
     padding: 0.25rem 0.75rem;
   }
+
+  .compare-tab form {
+    padding-left: 0;
+  }
+
+  .compare-tab {
+    padding: 0.5rem;
+  }
 }
 
 @media screen and (min-width: 2000px) {

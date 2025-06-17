@@ -69,12 +69,18 @@
 }
 
 .results-and-graph {
-  /* display: flex; */
   gap: 1rem;
   flex-wrap: wrap;
-  padding: 0.5rem;
+  padding: 1rem;
   align-items: flex-start;
   width: 100%;
+  align-items: stretch;
+}
+
+@media (min-width: 700px) {
+  .results-and-graph {
+    display: flex;
+  }
 }
 
 .result-text p {
@@ -83,14 +89,28 @@
   text-align: left;
   font-weight: 500;
   padding: 0;
+  padding-left: 1rem;
+}
+
+@media (max-width: 700px) {
+  .result-text p {
+    padding-left: 0;
+  }
 }
 
 .download-buttons {
   display: flex;
   align-items: center;
   /* justify-content: space-evenly; */
-  padding-left: 1.25rem;
+  padding-left: 2rem;
   gap: 1rem;
+}
+
+@media (max-width: 700px) {
+  .download-buttons {
+    padding-left: 0.3rem;
+    padding-top: 0.5rem;
+  }
 }
 
 .graphs {
@@ -131,6 +151,14 @@
   gap: 0.75rem;
 
   border: 1px solid var(--border-color);
+}
+
+@media (max-width: 700px) {
+  .graph-box {
+    padding: 0.5rem;
+    margin-left: 0;
+    margin-right: 0;
+  }
 }
 
 .graph-box canvas {
@@ -176,12 +204,12 @@
 .result-box {
   box-shadow: var(--shadow);
 }
-.results-and-graph {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  padding: 0.5rem;
-  align-items: stretch;
+
+
+@media (max-width: 700px) {
+  .results-and-graph {
+    padding: 0.25rem;
+  }
 }
 
 .radio-toggle {
