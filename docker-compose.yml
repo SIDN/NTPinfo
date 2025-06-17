@@ -10,6 +10,10 @@ services:
       - pgdata:/var/lib/postgresql/data
     ports:
       - "15432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      retries: 5
 
   backend:
     build:
@@ -17,8 +21,10 @@ services:
       dockerfile: server/Dockerfile
     env_file:
       - .env
+    #    command: bash -c "echo DB_NAME is $DB_NAME && sleep 3600"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "8000:8000"
 

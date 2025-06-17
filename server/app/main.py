@@ -13,10 +13,6 @@ from server.app.rate_limiter import limiter
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-import os
-
-print("RIPE TOKEN:", os.getenv("ripe_api_token"))
-
 
 def create_app(dev: bool = True) -> FastAPI:
     """
