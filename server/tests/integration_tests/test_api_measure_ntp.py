@@ -14,6 +14,17 @@ def client():
     yield client
     app.state.limiter.reset()
 
+# test measuremenst from our server
+
+def test_read_data_measurement_server_success(client):
+    headers = {"X-Forwarded-For": "83.25.24.10"}
+    response1 = client.post("/measurements/", json={"server": "time.apple.com", "ipv6_measurement": False},
+                                headers=headers)
+    response2 = client.post("/measurements/", json={"server": "time.apple.com", "ipv6_measurement": True},
+                                headers=headers)
+    assert response1.status_code in {200, 400, 422}
+    assert response2.status_code in {200, 400, 422}
+
 def test_read_data_measurement_wrong_server(client):
     headers = {"X-Forwarded-For": "83.25.24.10"}
 
@@ -29,7 +40,7 @@ def test_read_data_measurement_wrong_server(client):
     # So be careful, do not remove 422 unless you are 100% sure your machine has IPv6 support
     assert response.status_code == 422 or response.status_code == 400
 
-
+# test that querying the DNS works
 def test_domain_name_to_dns(client):
     # we want ipv4
     result = domain_name_to_ip_close_to_client("time.google.com", "88.25.24.10", 4)

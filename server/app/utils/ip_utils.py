@@ -256,11 +256,11 @@ def client_ip_fetch(request: Request, wanted_ip_type: int) -> str | None:
 
     Args:
         request (Request): The FastAPI Request object, containing information
-                           about the incoming client request
-        wanted_ip_type (int): The type of IP address that you want to get. (4 or 6)
+                           about the incoming client request.
+        wanted_ip_type (int): The type of IP address that you want to get (4 or 6).
 
     Returns:
-        str | None: The determined IP address of the client (or a fallback server IP)
+        str | None: The determined IP address of the client (or a fallback server IP).
 
     Raises:
          HTTPException:
@@ -330,7 +330,7 @@ def is_private_ip(ip_str: str) -> bool:
 def is_this_ip_anycast(searched_ip: Optional[str]) -> bool:
     """
     This method checks whether an IP address is anycast or not, by searching in the local anycast prefix databases.
-    This method would never throw an exception. (If the databases don't exist, it will return False)
+    This method would never throw an exception (If the databases don't exist, it will return False).
 
     Args:
         searched_ip (Optional[str]): The IP address to check.
@@ -360,9 +360,8 @@ def is_this_ip_anycast(searched_ip: Optional[str]) -> bool:
                     else:
                         whole_network = ipaddress.IPv6Network(line, strict=False)
                     if ip in whole_network:
-                        print(line)
                         return True
-                except Exception as e:
+                except Exception:
                     continue
         return False
     except Exception as e:
@@ -378,7 +377,7 @@ def randomize_ip(ip: IPv4Address | IPv6Address) -> IPv4Address | IPv6Address | N
         ip (IPv4Address | IPv6Address): The IPv4 or IPv6 address to randomize.
 
     Returns:
-        IPv4Address | IPv6Address: A new IPv4 or IPv6 address with the same network bits and randomized host bits.
+        IPv4Address | IPv6Address | None: A new IPv4 or IPv6 address with the same network bits and randomized host bits.
     """
     try:
         if get_ip_family(str(ip)) == 4:
