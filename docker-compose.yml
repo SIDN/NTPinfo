@@ -25,6 +25,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    environment:
+      UPDATE_CRON_SCHEDULE: ${UPDATE_CRON_SCHEDULE}
+      ACCOUNT_ID: ${ACCOUNT_ID}
+      LICENSE_KEY: ${LICENSE_KEY}
     ports:
       - "8000:8000"
 

@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # Load variables from .env
-if [ -f .env ]; then
-  export $(grep -v '^#' .env | xargs)
-else
-  echo "Missing .env file!"
-  exit 1
-fi
+#if [ -f .env ]; then
+#  export $(grep -v '^#' .env | xargs)
+#else
+#  echo "Missing .env file!"
+#  exit 1
+#fi
 
-TARGET_DIR="./server"
-CONFIG_FILE="./server/server_config.yaml"
+TARGET_DIR="/app/server"
+CONFIG_FILE="/app/server/server_config.yaml"
 
 # load from server_config the urls for anycast dbs
 # you search for variable "anycast_prefixes_v4_url" in the config
