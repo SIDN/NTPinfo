@@ -11,7 +11,7 @@ def load_config() -> dict[str, Any]:
     It loads the config from a YAML file.
 
     Raises:
-        FileNotFoundError: If the config file does not exist.
+        FileNotFoundError: If the config file does not exist
     """
     current_dir = os.path.dirname(os.path.abspath(__file__))
     config_path = os.path.join(current_dir, "..", "..", "server_config.yaml")
@@ -33,7 +33,7 @@ def verify_if_config_is_set() -> bool:
     It will return true if everything is fine, else it will rise an exception,
 
     Raises:
-        ValueError: If the config file does not have all the required variables or some of them are invalid.
+        ValueError: If the config file does not have all the required variables or some of them are invalid
     """
     # verify from .env (the secrets)
     get_ipinfo_lite_api_token()
@@ -60,7 +60,7 @@ def get_ipinfo_lite_api_token() -> str:
     This function returns the IPinfo Lite API token.
 
     Raises:
-        ValueError: If no IPinfo Lite API token is found.
+        ValueError: If no IPinfo Lite API token is found
     """
     ans = os.getenv('IPINFO_LITE_API_TOKEN')
     if ans is not None:
@@ -73,7 +73,7 @@ def get_ripe_account_email() -> str:
     This function returns the RIPE Atlas account email. (one that has enough credits)
 
     Raises:
-        ValueError: If the RIPE Atlas account email is not set.
+        ValueError: If the RIPE Atlas account email is not set
     """
     ans = os.getenv('ripe_account_email')
     if ans is not None:
@@ -86,7 +86,7 @@ def get_ripe_api_token() -> str:
     This function returns the RIPE Atlas API token.
 
     Raises:
-        ValueError: If the RIPE Atlas API token is not set.
+        ValueError: If the RIPE Atlas API token is not set
     """
     ans = os.getenv('ripe_api_token')
     if ans is not None:
@@ -99,7 +99,7 @@ def get_ntp_version() -> int:
     This method returns the ntp version that we use in measurements.
 
     Raises:
-        ValueError: If the ntp version has not been correctly set.
+        ValueError: If the ntp version has not been correctly set
     """
     if "ntp" not in config:
         raise ValueError("ntp section is missing")
@@ -118,7 +118,7 @@ def get_timeout_measurement_s() -> float | int:
     This method returns the timeout for an NTP measurement.
 
     Raises:
-        ValueError: If the ntp version has not been correctly set.
+        ValueError: If the ntp version has not been correctly set
     """
     if "ntp" not in config:
         raise ValueError("ntp section is missing")
@@ -137,7 +137,7 @@ def get_nr_of_measurements_for_jitter() -> int:
     This method returns the number of measurement requested for calculating the jitter.
 
     Raises:
-        ValueError: If this variable has not been correctly set.
+        ValueError: If this variable has not been correctly set
     """
     if "ntp" not in config:
         raise ValueError("ntp section is missing")
@@ -156,7 +156,7 @@ def get_mask_ipv4() -> int:
     This method returns the mask we use for ipv4 IPs.
 
     Raises:
-        ValueError: If this variable has not been correctly set.
+        ValueError: If this variable has not been correctly set
     """
     if "edns" not in config:
         raise ValueError("edns section is missing")
@@ -175,7 +175,7 @@ def get_mask_ipv6() -> int:
     This method returns the mask we use for ipv6 IPs.
 
     Raises:
-        ValueError: If this variable has not been correctly set.
+        ValueError: If this variable has not been correctly set
     """
     if "edns" not in config:
         raise ValueError("edns section is missing")
@@ -194,7 +194,7 @@ def get_edns_default_servers() -> list[str]:
     This method returns the default list of EDNS servers. (in the order of their priorities)
 
     Raises:
-        ValueError: If this variable has not been correctly set.
+        ValueError: If this variable has not been correctly set
     """
     if "edns" not in config:
         raise ValueError("edns section is missing")
@@ -206,6 +206,7 @@ def get_edns_default_servers() -> list[str]:
     if len(edns["default_order_of_edns_servers"]) == 0:
         raise ValueError("edns 'default_order_of_edns_servers' cannot be empty")
     return edns["default_order_of_edns_servers"]
+
 
 def get_ipv4_edns_server() -> Optional[str]:
     """
@@ -221,6 +222,7 @@ def get_ipv4_edns_server() -> Optional[str]:
             continue
     return None
 
+
 def get_ipv6_edns_server() -> Optional[str]:
     """
     This method returns the first IPv6 EDNS server available in the config.
@@ -235,12 +237,13 @@ def get_ipv6_edns_server() -> Optional[str]:
             continue
     return None
 
+
 def get_edns_timeout_s() -> float | int:
     """
     This method returns the timeout for the EDNS query request.
 
     Raises:
-        ValueError: If this variable has not been correctly set.
+        ValueError: If this variable has not been correctly set
     """
     if "edns" not in config:
         raise ValueError("edns section is missing")
@@ -259,7 +262,7 @@ def get_ripe_timeout_per_probe_ms() -> float | int:
     This method returns the timeout that a probe has to receive an answer from a measurement.
 
     Raises:
-        ValueError: If this variable has not been correctly set.
+        ValueError: If this variable has not been correctly set
     """
     if "ripe_atlas" not in config:
         raise ValueError("ripe_atlas section is missing")
@@ -279,7 +282,7 @@ def get_ripe_packets_per_probe() -> int:
     It will send "packets_per_probe" queries for that NTP server. (see RIPE Atlas documentation for more information)
 
     Raises:
-        ValueError: If this variable has not been correctly set.
+        ValueError: If this variable has not been correctly set
     """
     if "ripe_atlas" not in config:
         raise ValueError("ripe_atlas section is missing")
@@ -298,7 +301,7 @@ def get_ripe_number_of_probes_per_measurement() -> int:
     This method returns the number of probes requested and desired for a measurement.
 
     Raises:
-        ValueError: If this variable has not been correctly set.
+        ValueError: If this variable has not been correctly set
     """
     if "ripe_atlas" not in config:
         raise ValueError("ripe_atlas section is missing")

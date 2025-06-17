@@ -1,5 +1,3 @@
-
-
 import ntplib
 from ipaddress import ip_address
 import json
@@ -26,17 +24,16 @@ from server.app.dtos.PreciseTime import PreciseTime
 from server.app.utils.validate import is_ip_address
 
 
-
 def perform_ntp_measurement_domain_name_list(server_name: str, client_ip: Optional[str] = None, wanted_ip_type: int = 4,
                                              ntp_version: int = get_ntp_version()) -> Optional[list[NtpMeasurement]]:
     """
     This method performs a NTP measurement on a NTP server from all the IPs got back from its domain name.
 
     Args:
-        server_name (str): The name of the ntp server.
-        client_ip (Optional[str]): The IP address of the client (if given).
-        wanted_ip_type (int): The IP type that we want to measure.
-        ntp_version (int): The version of the ntp that you want to use.
+        server_name (str): The name of the ntp server
+        client_ip (Optional[str]): The IP address of the client (if given)
+        wanted_ip_type (int): The IP type that we want to measure
+        ntp_version (int): The version of the ntp that you want to use
 
     Returns:
         Optional[list[NtpMeasurement]]: it returns a list of NTP measurement objects or None if there is a timeout
@@ -104,10 +101,10 @@ def convert_ntp_response_to_measurement(response: ntplib.NTPStats, server_ip_str
         response (ntplib.NTPStats): the NTP response to convert
         server_ip_str (str): the ip address of the ntp server in string format
         server_name (Optional[str]): the name of the ntp server
-        ntp_version (int): the version of the ntp that you want to use.
+        ntp_version (int): the version of the ntp that you want to use
 
     Returns:
-        Optional[NtpMeasurement]: it returns a NTP measurement object if converting was successful.
+        Optional[NtpMeasurement]: it returns a NTP measurement object if converting was successful
     """
     try:
         vantage_point_ip = None
@@ -166,7 +163,7 @@ def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
         It prints the ntp measurement in a human-readable format and returns True if the printing was successful.
 
         Args:
-            measurement (NtpMeasurement): the NtpMeasurement object.
+            measurement (NtpMeasurement): the NtpMeasurement object
     """
     try:
         print("=== NTP Measurement ===")
@@ -220,24 +217,24 @@ def perform_ripe_measurement_domain_name(server_name: str, client_ip: str, wante
     measurement by looking at the measurement ID)
 
     Args:
-        server_name (str): The domain name of the NTP server.
-        client_ip (str): The IP address of the NTP server.
-        wanted_ip_type (int): The IP type that we want to measure.
-        probes_requested (int): The number of probes requested.
+        server_name (str): The domain name of the NTP server
+        client_ip (str): The IP address of the NTP server
+        wanted_ip_type (int): The IP type that we want to measure
+        probes_requested (int): The number of probes requested
 
     Returns:
         int: It returns the ID of the measurement and the list of IPs of the domain name.
-                               You can find in the measurement what IP it used.
+                               You can find in the measurement what IP it used
 
     Raises:
-        InputError: If the conversion could not be performed.
-        RipeMeasurementError: If the ripe measurement could not be performed.
+        InputError: If the conversion could not be performed
+        RipeMeasurementError: If the ripe measurement could not be performed
     """
 
     if probes_requested <= 0:
         raise InputError("Probes requested must be greater than 0.")
 
-    get_ip_family(client_ip) # throws an error if it is invalid
+    get_ip_family(client_ip)  # throws an error if it is invalid
     # we will make an NTP measurement from probes to the domain name.
 
     # measurement settings
@@ -269,16 +266,16 @@ def perform_ripe_measurement_ip(ntp_server_ip: str, client_ip: str,
     This method performs a RIPE measurement and returns the ID of the measurement.
 
     Args:
-        ntp_server_ip (str): The NTP server IP.
-        client_ip (str): The IP of the client.
-        probes_requested (int): The number of probes requested.
+        ntp_server_ip (str): The NTP server IP
+        client_ip (str): The IP of the client
+        probes_requested (int): The number of probes requested
 
     Returns:
-        int: The ID of the measurement.
+        int: The ID of the measurement
 
     Raises:
         InputError: If the NTP server IP is not valid, probe requested is negative
-        RipeMeasurementError: If the ripe measurement could not be performed.
+        RipeMeasurementError: If the ripe measurement could not be performed
     """
 
     if probes_requested <= 0:
@@ -313,19 +310,20 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
                          probes_requested: int = get_ripe_number_of_probes_per_measurement()) -> tuple[dict, dict]:
     """
     This method gets the RIPE measurement settings for the performing a RIPE measurement.
+
     Args:
-        ip_family_of_ntp_server (int): The IP family of the NTP server. (4 or 6)
+        ip_family_of_ntp_server (int): The IP family of the NTP server (4 or 6)
         ntp_server (str): The NTP server IP address or domain name
         client_ip (str): The IP address of the client
-        probes_requested (int): The number of probes requested.
+        probes_requested (int): The number of probes requested
 
     Returns:
-        tuple[dict,dict]: Returns the RIPE measurement settings for the performing a RIPE measurement.
+        tuple[dict,dict]: Returns the RIPE measurement settings for the performing a RIPE measurement
 
     Raises:
-        InputError: If the input is invalid.
-        RipeMeasurementError: If the ripe measurement could not be performed.
-        ValueError: If some variable in env is not correctly set.
+        InputError: If the input is invalid
+        RipeMeasurementError: If the ripe measurement could not be performed
+        ValueError: If some variable in env is not correctly set
     """
     headers = {
         "Authorization": f"Key {get_ripe_api_token()}",

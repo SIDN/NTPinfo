@@ -5,6 +5,7 @@ import geoip2.database
 from server.app.utils.load_config_data import get_max_mind_path_asn
 from server.app.utils.load_config_data import get_max_mind_path_country, get_max_mind_path_city
 
+
 def get_coordinates_for_ip(client_ip: Optional[str]) -> tuple[float, float]:
     """
     Retrieves the geographical location (latitude and longitude) of a given IP address
@@ -39,7 +40,7 @@ def get_country_for_ip(client_ip: Optional[str]) -> Optional[str]:
     """
     Retrieves the country code of a given IP address using the MaxMind GeoLite2-Country database.
     If the country code cannot be determined due to missing data, database issues, or
-    the IP not being found, it returns None
+    the IP not being found, it returns None.
 
     Args:
         client_ip (Optional[str]): The IP address of the client to geolocate
@@ -62,7 +63,7 @@ def get_continent_for_ip(client_ip: Optional[str]) -> Optional[str]:
     """
     Retrieves the continent code of a given IP address using the MaxMind GeoLite2-Country database.
     If the continent code cannot be determined due to missing data, database issues, or
-    the IP not being found, it returns None
+    the IP not being found, it returns None.
 
     Args:
         client_ip (Optional[str]): The IP address of the client to geolocate
@@ -85,7 +86,7 @@ def get_asn_for_ip(client_ip: str) -> Optional[str]:
     """
     Retrieves the asn of a given IP address using the MaxMind GeoLite2-ASN database.
     If the asn cannot be determined due to missing data, database issues, or
-    the IP not being found, it returns None
+    the IP not being found, it returns None.
 
     Args:
         client_ip (str): The IP address of the client to geolocate
