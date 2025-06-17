@@ -112,6 +112,7 @@ a {
 @media screen and (max-width: 480px) {
     .hero {
         padding: 0.5rem;
+        height: max(3rem, 3vw);
     }
 
     .text-hero > h1 {
@@ -127,7 +128,7 @@ a {
     }
 
     .ntpinfo-logo {
-        height: 2.5rem;
+        height: 3rem;
     }
 
     .text-hero {

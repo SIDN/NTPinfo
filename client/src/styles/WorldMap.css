@@ -15,6 +15,18 @@ body {
 
 .map-container{
     padding: '15px';
+    position: relative;
+    z-index: 1;
+    margin-left: 2%;
+    margin-right: 2%;
+}
+
+.leaflet-container {
+    z-index: 1;
+}
+
+.leaflet-control {
+    z-index: 2;
 }
 
 .leaflet-legend-item {

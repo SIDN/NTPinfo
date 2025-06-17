@@ -7,7 +7,7 @@ import triangleRed from '../assets/triangle-red-svgrepo-com.png'
 import linkIcon from '../assets/link-svgrepo-com.png'
 import LoadingSpinner from './LoadingSpinner.tsx'
 
-function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} : 
+function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
     {data : NTPData | null, ripeData: RIPEData | null, err : Error | null, httpStatus: number, ripeErr: Error | null, ripeStatus: RipeStatus}) {
 
     const [statusMessage, setStatusMessage] = useState<string>("")
@@ -63,7 +63,7 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
         <>
             <div className="results-section">
                 <div className="result-and-title">
-                    <div className="res-label">From Our NTP Client (Netherlands)
+                    <div className="res-label">From our NTP Client (Netherlands)
                         <div className="tooltip-container">
                         <span className="tooltip-icon">?</span>
                         <div className="tooltip-text">
@@ -110,15 +110,16 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="measurement-link"
+                                    style={{textDecoration:'underline'}}
                                 >
                                     {ripeData.measurement_id}
-                                    <img src={linkIcon} alt="external link" style={{width:'14px',verticalAlign:'middle',marginLeft:'4px'}} />
+                                    <img src={linkIcon} alt="external link" style={{width:'14px',verticalAlign:'middle',marginLeft:'4px',transform:'translateY(-1px)'}} />
                                 </a>
                             ) : 'N/A'}
                         </span></div>
-                    </div>)) || 
+                    </div>)) ||
                     ((ripeStatus === "pending" || ripeStatus === "partial_results")&& (<LoadingSpinner size="medium"/>)) ||
-                    (ripeStatus === "timeout" && (<p className="ripe-err">RIPE measurement timed out</p>)) || 
+                    (ripeStatus === "timeout" && (<p className="ripe-err">RIPE measurement timed out</p>)) ||
                     (ripeStatus === "error" && (<p className="ripe-err">RIPE measurement failed</p>))}
                 </div>
 

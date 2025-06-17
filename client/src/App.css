@@ -114,7 +114,7 @@ body {
 
 .result-text {
   font-size: 1.7rem;
-  color: var(--clr-font-white);
+  color: var(--text-white);
   text-align: left;
   margin-left: 1rem;
   margin-bottom: 1rem;
@@ -134,7 +134,7 @@ body {
   padding: 1rem 2rem;
   font-weight: 700;
   font-size: 1.25rem;
-  color: var(--clr-font-white);
+  color: var(--text-white);
 }
 .ip-list a {
   text-decoration: underline;

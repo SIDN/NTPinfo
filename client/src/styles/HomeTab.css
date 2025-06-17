@@ -119,7 +119,7 @@
   flex: 1 1 50%;
   /* min-width: 50%; */
   height: 100%;
-  margin-top: 2.5rem;
+  margin-top: 2.4rem;
   max-width: 500px;
 }
 
@@ -191,6 +191,7 @@
   font-size: 1.25rem;
   color: var(--clr-font-white);
 }
+
 .ip-list a {
   text-decoration: underline;
 }
@@ -200,11 +201,6 @@
   align-items: center;
   gap: 0.5rem;
 }
-
-.result-box {
-  box-shadow: var(--shadow);
-}
-
 
 @media (max-width: 700px) {
   .results-and-graph {
