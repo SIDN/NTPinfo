@@ -69,10 +69,9 @@
 }
 
 .results-and-graph {
-  gap: 1rem;
+  /* gap: 1rem; */
   flex-wrap: wrap;
   padding: 1rem;
-  align-items: flex-start;
   width: 100%;
   align-items: stretch;
 }
@@ -80,6 +79,7 @@
 @media (min-width: 700px) {
   .results-and-graph {
     display: flex;
+    padding: 0.25rem;
   }
 }
 
@@ -101,14 +101,14 @@
 .download-buttons {
   display: flex;
   align-items: center;
-  /* justify-content: space-evenly; */
-  padding-left: 2rem;
+  padding-left: 1.75rem;
+  margin-top: 0.5rem;
   gap: 1rem;
 }
 
 @media (max-width: 700px) {
   .download-buttons {
-    padding-left: 0.3rem;
+    padding-left: 1rem;
     padding-top: 0.5rem;
   }
 }
@@ -136,15 +136,15 @@
   /* min-height: 300px; */
   width: min(600px, 100%);
 
-  margin-left: 1rem;
+  margin-left: 1.5rem;
   margin-right: 1rem;
+  margin-top: 0;
   grid-area: summary;
   background-color: var(--bg-secondary);
   color: var(--txt-white);
   font-weight: bold;
   border-radius: 8px;
-  padding: 1rem;
-  margin-top: 0;
+  padding: 0.7rem;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -200,12 +200,6 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-@media (max-width: 700px) {
-  .results-and-graph {
-    padding: 0.25rem;
-  }
 }
 
 .radio-toggle {
