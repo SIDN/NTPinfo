@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import {useEffect, useCallback } from 'react'
 import { HomeCacheState } from '../utils/types' // new import for caching result
 import '../styles/HomeTab.css'
 import InputSection from '../components/InputSection.tsx'
@@ -15,11 +15,11 @@ import {downloadJSON, downloadCSV} from '../utils/downloadFormats.ts'
 import WorldMap from '../components/WorldMap.tsx'
 import Hero from '../components/Hero';
 
-import { NTPData, RIPEData } from '../utils/types.ts'
+import { NTPData} from '../utils/types.ts'
 import { Measurement } from '../utils/types.ts'
 
 import 'leaflet/dist/leaflet.css'
-import { triggerRipeMeasurement } from '../hooks/triggerRipeMeasurement.ts'
+import { useTriggerRipeMeasurement } from '../hooks/useTriggerRipeMeasurement.ts'
 import ConsentPopup from '../components/ConsentPopup.tsx'
 
 // interface HomeTabProps {
@@ -42,6 +42,8 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     measurementId,
     vantagePointInfo,
     allNtpMeasurements,
+    ripeMeasurementResp,
+    ripeMeasurementStatus,
     ipv6Selected
   } = cache;
 
@@ -73,20 +75,20 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
   //Varaibles to log and use API hooks
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
   const {fetchData: fetchHistoricalData} = useFetchHistoricalIPData()
-  const {triggerMeasurement} = triggerRipeMeasurement()
+  const {triggerMeasurement} = useTriggerRipeMeasurement()
   const {
-    result: ripeMeasurementResp,
-    status: ripeMeasurementStatus,
+    result: fetchedRIPEData,
+    status: fetchedRIPEStatus,
     error: ripeMeasurementError
   } = useFetchRIPEData(measurementId)
 
   useEffect(() => {
-    if (!ripeMeasurementStatus) return;
+    if (!ripeMeasurementStatus || ripeMeasurementStatus === "complete") return;
     updateCache({
-      ripeMeasurementResp,
-      ripeMeasurementStatus,
+      ripeMeasurementResp: fetchedRIPEData,
+      ripeMeasurementStatus: fetchedRIPEStatus,
     });
-  }, [ripeMeasurementResp, ripeMeasurementStatus, updateCache]);
+  }, [ripeMeasurementResp, ripeMeasurementStatus, updateCache, fetchedRIPEData, fetchedRIPEStatus]);
 
 
   //
@@ -113,6 +115,8 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
       measurementId: null,
       measured: false,
       ntpData: null,
+      ripeMeasurementResp: null,
+      ripeMeasurementStatus: null,
       chartData: null,
     })
 
@@ -156,7 +160,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
       chartData,
       allNtpMeasurements: apiMeasurementResp ?? null,
       ripeMeasurementResp: null,          // clear old map
-      ripeMeasurementStatus: null,        //  “     ”
+      ripeMeasurementStatus: undefined,        //  “     ”
     })
 
     /**
@@ -178,7 +182,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
       vantagePointInfo: [ripeTriggerResp?.parsedData.coordinates, ripeTriggerResp?.parsedData.vantage_point_ip],
       measurementId: ripeTriggerResp?.parsedData.measurementId ?? null,
       ripeMeasurementResp: null,          // will be filled by hook
-      ripeMeasurementStatus: 'loading',
+      ripeMeasurementStatus: 'pending',
     })
   }
 

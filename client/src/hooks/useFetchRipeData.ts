@@ -16,16 +16,18 @@ import { transformJSONDataToRIPEData } from "../utils/transformJSONDataToRIPEDat
  */
 export const useFetchRIPEData = (measurementId: string | null, intervalMs = 3000) => {
     const [result, setResult] = useState<RIPEData[] | null>(null)
-    const [status, setStatus] = useState<RipeStatus>("pending")
+    const [status, setStatus] = useState<RipeStatus | null>("pending")
     const [error, setError] = useState<Error | null>(null)
 
-    // @ts-ignore
-    const intervalRef = useRef<NodeJS.Timeout | null>(null)
-    // @ts-ignore
-    const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+    const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const prevMeasurementId = useRef<string | null>(null)
     useEffect(() => {
-        
+        const prev = prevMeasurementId.current
+        if (prev === measurementId) 
+            return
+            
+        prevMeasurementId.current = measurementId
         if (intervalRef.current) {
             clearInterval(intervalRef.current)
             intervalRef.current = null
@@ -78,7 +80,7 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 3000
                     if (intervalRef.current) clearInterval(intervalRef.current)
                 } else {
                     setError(err)
-                    setStatus("error")
+                    setStatus(null)
                     if (intervalRef.current) clearInterval(intervalRef.current)
                 }
             }
@@ -92,7 +94,7 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 3000
             if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current)
             controller.abort()
         }
-    }, [measurementId])
+    }, [measurementId, intervalMs])
 
     return {result, status, error}
 }

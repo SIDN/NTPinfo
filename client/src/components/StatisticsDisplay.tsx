@@ -12,8 +12,8 @@ interface StatisticsDisplayProps {
 const StatisticsDisplay: React.FC<StatisticsDisplayProps> = ({
   data,
   selectedMeasurement,
-  selectedOption,
-  customRange,
+  //selectedOption,
+  //customRange,
 }) => {
   if (!data) return null;
 

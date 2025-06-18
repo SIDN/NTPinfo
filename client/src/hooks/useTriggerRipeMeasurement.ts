@@ -8,7 +8,7 @@ import { RIPEResp } from "../utils/types"
      * @returns the data returned by the call as RIPEResp, which contains the measurement id and vantage point ip
      * the loading status of the trigger call, the error that was caught in case of a bug, and a function to call the trigger function directly
      */
-export const triggerRipeMeasurement = () => {
+export const useTriggerRipeMeasurement = () => {
     const [data, setData] = useState<RIPEResp | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<Error | null>(null)
