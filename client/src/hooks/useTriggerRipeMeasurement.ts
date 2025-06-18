@@ -12,8 +12,8 @@ export const useTriggerRipeMeasurement = () => {
     const [data, setData] = useState<RIPEResp | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<Error | null>(null)
-    
     const triggerMeasurement = async (payload: {server: string, ipv6_measurement: boolean}) => {
+
         setLoading(true)
         setError(null)
         try {
@@ -29,13 +29,17 @@ export const useTriggerRipeMeasurement = () => {
             const parsedData = {measurementId, vantage_point_ip, coordinates}
             setData(parsedData)
             return {parsedData}
-        } catch (err: any) {
-            setError(err)
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError(err)
+            } else {
+                setError(new Error("An unknown error occurred"))
+            }
             return null
         } finally {
             setLoading(false)
         }
     };
-    
+
     return {data, loading, error, triggerMeasurement}
 }

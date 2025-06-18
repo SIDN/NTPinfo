@@ -1,5 +1,17 @@
 @import "../index.css";
 
+.app-container {
+  /* background-color: var(--bg-clr-primary); */
+  /* background: linear-gradient(to bottom, var(--bg-primary), var(--bg-secondary)); */
+  flex: 1 0 auto;
+  min-height: 0;
+  overflow-y: hidden;
+  overflow-x: hidden;
+  padding-bottom: 2.5rem; /* ensures content never overlaps footer */
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .open-popup-btn {
   display: flex;
   border-radius: 15px;
@@ -55,6 +67,7 @@
   padding-bottom: 0;
   font-weight: 600;
 }
+
 .input-wrapper {
   margin-top: 0;
   margin-left: 1rem;
@@ -63,12 +76,18 @@
 }
 
 .results-and-graph {
-  /* display: flex; */
-  gap: 1rem;
+  /* gap: 1rem; */
   flex-wrap: wrap;
-  padding: 0.5rem;
-  align-items: flex-start;
+  padding: 1rem;
   width: 100%;
+  align-items: stretch;
+}
+
+@media (min-width: 700px) {
+  .results-and-graph {
+    display: flex;
+    padding: 0.25rem;
+  }
 }
 
 .result-text p {
@@ -77,57 +96,83 @@
   text-align: left;
   font-weight: 500;
   padding: 0;
+  padding-left: 1rem;
+}
+
+@media (max-width: 700px) {
+  .result-text p {
+    padding-left: 0;
+  }
 }
 
 .download-buttons {
   display: flex;
   align-items: center;
-  /* justify-content: space-evenly; */
-  padding-left: 1.25rem;
+  padding-left: 1.75rem;
+  margin-top: 0.5rem;
   gap: 1rem;
+}
+
+@media (max-width: 700px) {
+  .download-buttons {
+    padding-left: 1rem;
+    padding-top: 0.5rem;
+  }
 }
 
 .graphs {
   /* display: flex; */
   gap: 1rem;
   flex: 1 1 50%;
-  min-width: 50%;
+  /* min-width: 50%; */
   height: 100%;
-  margin-top: 2.5rem;
+  margin-top: 2.4rem;
+  max-width: 500px;
 }
 
 .graph-box {
   /* flex: 1; */
-  background-color: #2a2a3c;
   display: flex;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
   font-weight: bold;
   color: white;
   width: 100%;
   box-shadow: var(--shadow);
   height: 100%;
-  min-height: 300px;
+  /* min-height: 300px; */
+  width: min(600px, 100%);
 
-  margin-left: 1rem;
+  margin-left: 1.5rem;
+  margin-right: 1rem;
+  margin-top: 0;
   grid-area: summary;
-  background-color: var(--bg-clr-secondary);
-  color: var(--clr-font-white);
+  background-color: var(--bg-secondary);
+  color: var(--txt-white);
   font-weight: bold;
   border-radius: 8px;
-  padding: 1rem;
-  margin-top: 0;
+  padding: 0.7rem;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  margin-left: 0;
   gap: 0.75rem;
+
+  border: 1px solid var(--border-color);
+}
+
+@media (max-width: 700px) {
+  .graph-box {
+    padding: 0.5rem;
+    margin-left: 0;
+    margin-right: 0;
+  }
 }
 
 .graph-box canvas {
-  max-height: none;
+  /* max-height: none; */
   height: 100%;
   flex: 1;
+  /* max-height: 400px; */
 }
 
 .map-box {
@@ -153,6 +198,7 @@
   font-size: 1.25rem;
   color: var(--clr-font-white);
 }
+
 .ip-list a {
   text-decoration: underline;
 }
@@ -163,25 +209,14 @@
   gap: 0.5rem;
 }
 
-.result-box {
-  box-shadow: var(--shadow);
-}
-
-.results-and-graph {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  padding: 0.5rem;
-  align-items: stretch;
-}
-
 .radio-toggle {
   display: inline-flex;
-  background: var(--bg-clr-secondary);
+  background: var(--bg-secondary);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  border-radius: var(--radius);
   padding: 2px;
   gap: 0;
+  border: 1px solid var(--border-color);
 }
 
 .radio-toggle input[type="radio"] {
@@ -209,4 +244,65 @@
 .radio-toggle input[type="radio"]:focus + label {
   outline: 2px solid var(--clr-btn-selected-purple);
   outline-offset: 2px;
+}
+
+.home-footer {
+  flex-shrink: 0;
+  margin-top: 0;
+  padding: 1rem;
+  text-align: center;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-secondary, #181c2f);
+  z-index: 10;
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  /* flex-wrap: wrap; */
+}
+
+.footer-content a {
+  height: 24px;
+  width: auto;
+}
+
+.powered-by {
+  color: var(--clr-font-muted, #9fa4b9);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.ripe-logo {
+  height: 24px;
+  width: auto;
+  filter: brightness(0.8);
+  transition: filter 0.2s ease;
+}
+
+.ripe-logo:hover {
+  filter: brightness(1);
+}
+
+@media (max-width: 700px) {
+  .home-footer {
+    margin-top: 1.5rem;
+    padding: 0.75rem;
+  }
+
+  .footer-content {
+    gap: 0.5rem;
+  }
+
+  .ripe-logo {
+    height: 20px;
+  }
+}
+
+.home-tab-outer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
