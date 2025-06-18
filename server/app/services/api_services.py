@@ -176,6 +176,7 @@ def override_desired_ip_type_if_input_is_ip(target_server: str, wanted_ip_type: 
     Args:
         target_server (str): The server we want to measure (domain name or IP address)
         wanted_ip_type (int): The IP type the user said they wanted to measure.
+
     Returns:
         int: The IP type of the server in case the server input is IP, otherwise the wanted_ip_type unmodified.
     """
@@ -203,9 +204,12 @@ def measure(server: str, wanted_ip_type: int, session: Session, client_ip: Optio
         measurement_no (int): How many extra measurements to perform if the jitter_flag is True.
 
     Returns:
-        list[tuple[NtpMeasurement, float | None, int]] | None:
+        list[tuple[NtpMeasurement, float, int]] | None:
             - A list of pairs with a populated `NtpMeasurement` object if the measurement is successful, and the jitter.
             - `None` if an exception occurs during the measurement process.
+
+    Raises:
+        DNSError: If the domain name is invalid, or it could not be resolved.
 
     Notes:
         - If the server string is empty or improperly formatted, this may raise exceptions internally,

@@ -358,7 +358,6 @@ def is_this_ip_anycast(searched_ip: Optional[str]) -> bool:
                     else:
                         whole_network = ipaddress.IPv6Network(line, strict=False)
                     if ip in whole_network:
-                        print(line)
                         return True
                 except Exception:
                     continue
