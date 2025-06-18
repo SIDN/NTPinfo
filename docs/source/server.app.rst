@@ -1,5 +1,5 @@
 Application Architecture
-==================
+========================
 
 Package Overview
 ----------------

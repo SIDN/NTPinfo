@@ -209,23 +209,24 @@ def insert_measurement(measurement: NtpMeasurement, session: Session) -> None:
 def get_measurements_timestamps_ip(session: Session, ip: IPv4Address | IPv6Address | None, start: PreciseTime,
                                    end: PreciseTime) -> list[NtpMeasurement]:
     """
-    Fetches measurements for a specific IP address within a precise time range.
+    Fetch measurements for a specific IP address within a precise time range.
 
     This function queries the `measurements` table, joined with the `times` table,
     and filters the results by:
-        - The NTP server IP (`ntp_server_ip`).
-        - The timestamp range (`client_sent` field) between `start` and `end`.
+    - The NTP server IP (`ntp_server_ip`)
+    - The timestamp range (`client_sent` field) between `start` and `end`
 
     Args:
         session (Session): The currently active database session.
-        ip (IPv4Address | IPv6Address): The IP address of the NTP server.
+        ip (IPv4Address | IPv6Address | None): The IP address of the NTP server.
         start (PreciseTime): The start of the time range to filter on.
         end (PreciseTime): The end of the time range to filter on.
 
     Returns:
-        list[dict]: A list of measurement records (as dictionaries), each including:
-            - Measurement metadata (IP, version, stratum, etc.).
-            - Timing data (client/server send/receive with fractions).
+        list[dict]: A list of measurement records. Each record includes:
+            - IP, version, stratum
+            - client/server send/receive timestamps with fractional parts
+            - other measurement metadata
 
     Raises:
         MeasurementQueryError: If the database query fails.

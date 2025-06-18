@@ -346,7 +346,7 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
                  {
                      "status": "complete",
                      "message": "Measurement has been completed.",
-                     "results": <ripe_data>
+                     "results": "<ripe_data>"
                  }
 
             - If the measurement is still in progress with partial data (HTTP 206):
@@ -356,7 +356,7 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
                  {
                      "status": "partial_results",
                      "message": "Measurement is still in progress. These are partial results.",
-                     "results": <ripe_data>
+                     "results": "<ripe_data>"
                  }
 
             - If the measurement has not produced results yet (HTTP 202):

@@ -27,10 +27,10 @@ Fetching data based on IP
 Fetching data based on domain name
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. autofunction::  server.app.db.db_interaction.get_measurements_timestamps_dn
+.. autofunction:: server.app.db.db_interaction.get_measurements_timestamps_dn
 
 Fetching measurements for jitter calculation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. autofunction::  server.app.db.db_interaction.get_measurements_for_jitter_ip
+.. autofunction:: server.app.db.db_interaction.get_measurements_for_jitter_ip
 

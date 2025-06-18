@@ -22,7 +22,8 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.viewcode',
     'sphinx_autodoc_typehints',
-    'sphinxcontrib.openapi'
+    'sphinxcontrib.openapi',
+    'sphinx.ext.coverage',
 ]
 
 templates_path = ['_templates']
@@ -37,4 +38,9 @@ html_static_path = ['_static']
 
 
 def setup(app):
+    """
+    Sphinx extension setup function.
+
+    Adds custom CSS file for additional theming.
+    """
     app.add_css_file("custom.css")
