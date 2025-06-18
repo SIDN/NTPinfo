@@ -19,7 +19,7 @@ import { NTPData, RIPEData } from '../utils/types.ts'
 import { Measurement } from '../utils/types.ts'
 
 import 'leaflet/dist/leaflet.css'
-import { triggerRipeMeasurement } from '../hooks/triggerRipeMeasurement.ts'
+import { useTriggerRipeMeasurement } from '../hooks/useTriggerRipeMeasurement.ts'
 import ConsentPopup from '../components/ConsentPopup.tsx'
 
 // interface HomeTabProps {
@@ -73,7 +73,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
   //Varaibles to log and use API hooks
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
   const {fetchData: fetchHistoricalData} = useFetchHistoricalIPData()
-  const {triggerMeasurement} = triggerRipeMeasurement()
+  const {triggerMeasurement} = useTriggerRipeMeasurement()
   const {
     result: ripeMeasurementResp,
     status: ripeMeasurementStatus,

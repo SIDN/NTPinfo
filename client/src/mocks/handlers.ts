@@ -422,7 +422,7 @@ export const handlers = [
         message?: string;
         detail?: string;
     }>(
-        '/measurements/ripe/trigger/', async ({request: req}) => {
+        'http://localhost:8000/measurements/ripe/trigger/', async ({request: req}) => {
             const {server} = await req.json()
             if (server === "time.apple.com"){
                 return HttpResponse.json({

@@ -131,7 +131,7 @@ describe('useFetchHistoricalIPData', () => {
         expect(result.current.error).toBeNull()
         expect(result.current.data).toEqual(expected)
     })
-     it('fetches and sets historical measurement data correctly', async () => {
+    it('handles historical measurement error correctly', async () => {
         const { result } = renderHook(() => useFetchHistoricalIPData())
 
         await act(async () => {

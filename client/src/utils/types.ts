@@ -55,9 +55,9 @@ export type RIPEData = {
  * Data type for the RIPE measurement trigger response
  */
 export type RIPEResp = {
-  measurementId: number
-  vantage_point_ip: string
-  coordinates: LatLngTuple
+  measurementId: string | null
+  vantage_point_ip: string | null
+  coordinates: LatLngTuple | null
 }
 
 /**
