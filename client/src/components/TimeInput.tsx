@@ -13,7 +13,7 @@ export function TimeInput({options, selectedOption, customFrom, customTo,
         onSelectionChange, onFromChange, onToChange
 }: TimeInputProps) {
 
-   
+
     return (
     <div className="time-input">
         <div className = "time-dropdown label-and-input">

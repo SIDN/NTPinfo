@@ -113,3 +113,31 @@
   z-index: 999;
   transition: opacity 0.2s ease;
 }
+
+@media screen and (max-width: 768px) {
+  .sidebar.closed {
+    width: 40px;
+  }
+  .sidebar.open {
+    width: 180px;
+  }
+
+  .sidebar .sidebar__icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  .sidebar__label {
+    font-size: 0.875rem;
+    line-height: 18px;
+  }
+
+  .sidebar__item,
+  .sidebar__toggle {
+    padding: 0.75rem 0.75rem;
+    min-height: 20px;
+    justify-content: flex-start;
+    align-items: center;
+  }
+}

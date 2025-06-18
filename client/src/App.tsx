@@ -29,11 +29,10 @@ function App() {
   const [homeCache, setHomeCache] = useState<HomeCacheState>(initialCache);
 
   return (
-    
+
     <div className="app-layout">
       <Sidebar selectedTab={selectedTab} setSelectedTab={setSelectedTab} open={sidebarOpen} setOpen={setSidebarOpen} />
       <main className={`app-content${!sidebarOpen ? ' with-sidebar-collapsed' : ''}`}>
-        {/* <Hero /> */}
         {/* {selectedTab === 1 && <HomeTab onVisualizationDataChange={setVisualizationData} />} */}
         {selectedTab === 1 && (
           <HomeTab

@@ -18,7 +18,7 @@ import '../styles/WorldMap.css'
 /**
  * Standard code added for the proper functioning of the default icon when using Leaflet with Vite
  */
-delete (L.Icon.Default.prototype as any)._getIconUrl
+delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl
 
 L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
@@ -114,7 +114,7 @@ type LocationInfo = {
  * @param measurementNtpServer the geolocation of the NTP server that the vantage point measured on
  * @param vantagePoint the geolocation of the vantage point that the measurement was taken from
  */
-const FitMapBounds = ({probes, ripeNtpServers, measurementNtpServers, intersectionNtpServers, unavailableNtpServers, vantagePoint}: {probes: LatLngTuple[] | null, 
+const FitMapBounds = ({probes, ripeNtpServers, measurementNtpServers, intersectionNtpServers, unavailableNtpServers, vantagePoint}: {probes: LatLngTuple[] | null,
   ripeNtpServers: LatLngTuple[], measurementNtpServers: LatLngTuple[], intersectionNtpServers: LatLngTuple[], unavailableNtpServers: LatLngTuple[], vantagePoint: LatLngTuple | null}) => {
   const map = useMap()
   const userInteracted = useRef(false)
@@ -134,7 +134,7 @@ const FitMapBounds = ({probes, ripeNtpServers, measurementNtpServers, intersecti
       map.off('zoomstart', onZoomOrMove)
       map.off('dragstart', onZoomOrMove)
     }
-  }, [map])
+  }, [map, vantagePoint])
 
   useEffect(() => {
     if (userInteracted.current) return
@@ -161,7 +161,7 @@ const FitMapBounds = ({probes, ripeNtpServers, measurementNtpServers, intersecti
     }
     window.addEventListener('resize', handleWindowResize)
     return () => {window.removeEventListener('resize', handleWindowResize)}
-  }, [map, probes, ripeNtpServers, measurementNtpServers, intersectionNtpServers, unavailableNtpServers])
+  }, [map, probes, ripeNtpServers, measurementNtpServers, intersectionNtpServers, unavailableNtpServers, vantagePoint])
 
   return null
 }
@@ -174,7 +174,7 @@ const FitMapBounds = ({probes, ripeNtpServers, measurementNtpServers, intersecti
  * @param measurementNtpServer the geolocation of the NTP server that the vantage point measured on
  * @param vantagePoint the geolocation of the vantage point that the measurement was taken from
  */
-const DrawConnectingLines = ({probes, measurementNtpServers, intersectionNtpServers, unavailableNtpServers, vantagePoint}: {probes: RIPEData[] | null, 
+const DrawConnectingLines = ({probes, measurementNtpServers, intersectionNtpServers, unavailableNtpServers, vantagePoint}: {probes: RIPEData[] | null,
   measurementNtpServers: LatLngTuple[], intersectionNtpServers: LatLngTuple[], unavailableNtpServers: LatLngTuple[], vantagePoint: LatLngTuple}) => {
   const map = useMap()
 
@@ -192,14 +192,14 @@ const DrawConnectingLines = ({probes, measurementNtpServers, intersectionNtpServ
     probes.map(x => {
       L.polyline([x.probe_location,x.measurementData.coordinates], {color: 'blue', opacity: 0.8, weight: 1}).addTo(map)
     })
-  },[map, probes, measurementNtpServers, intersectionNtpServers, unavailableNtpServers])
+  },[map, probes, measurementNtpServers, intersectionNtpServers, unavailableNtpServers, vantagePoint])
 
   return null
 }
 
 const LegendControl = () => {
   const map = useMap()
-  const legendRef = useRef<any>(null)
+  const legendRef = useRef<L.Control | null>(null)
 
   useEffect(() => {
     const script = document.createElement("script")
@@ -221,7 +221,7 @@ const LegendControl = () => {
     script.onload = () => {
       if (legendRef.current) return // already added
 
-      const legend = (L.control as any).legend({
+      const legend = (L.control as unknown as { legend: (opts: object) => L.Control }).legend({
         position: "bottomleft", opacity: "0.0", symbolWidth: "30", symbolHeight: "30",
         legends: [
           { label: "  NTP Servers", type: "image", url: ntpServerImg },
@@ -236,7 +236,7 @@ const LegendControl = () => {
       })
 
       legend.addTo(map)
-      legendRef.current = legend
+      legendRef.current = legend as L.Control
     }
 
     document.body.appendChild(script)
@@ -280,7 +280,7 @@ const stringifyRTTAndOffset = (value: number): string => {
  * Used a base tile map offered by Carto, specifically the Dark Matter basemap
  * Shows the status of the map(loading, finished, error)
  * Each probe is shown on the map with an icon of a different color depending on the RTT measured by it
- * Besides this, the vantage point and the NTP server(s) are also shown 
+ * Besides this, the vantage point and the NTP server(s) are also shown
  * The NTP server that the RIPE probes measured on is compared with the whole list of NTP servers measured by the vantage point
  * If one of the NTP servers measured by the vantage point is the same as the one used for the RIPE measurement, only one NTP server will appear on the map
  * Each probe has a popup which shows the following:
@@ -299,7 +299,7 @@ const stringifyRTTAndOffset = (value: number): string => {
  * It also has a line between the vantage point and the NTP server it measured on
  * The map's zoom get automatically readjusted depending on the size of the map on the page
  * @param probes Data of all the measured probes, as an array of RIPEData values
- * @param status the current status of the polling of the RIPE measurements 
+ * @param status the current status of the polling of the RIPE measurements
  * @returns a WorldMap component showing all probes, the NTP server and relevant values for all of them
  */
 export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}: MapComponentProps) {
@@ -329,7 +329,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
         } else {
           ntpLocations.set(locStr, { location: ntp.coordinates, ip: ntp.ip, server_name: ntp.server_name })
         }
-      } 
+      }
 
       setNtpOnlyLocations(Array.from(ntpLocations.values()))
       setFailedLocations(Array.from(failedLocations.values()))
@@ -357,7 +357,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
 
     if (!probes || !ntpServers) return
 
-    const probeIPMap = new Map<String, RIPEData>()
+    const probeIPMap = new Map<string, RIPEData>()
 
     const ripeLocations = new Map<string, LocationInfo>()
     const ntpLocations = new Map<string, LocationInfo>()
@@ -371,7 +371,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
       probeIPMap.set(ip, probe)
       ripeLocations.set(locStr, { location: loc, ip, server_name })
     }
-    
+
     const probeIps = new Set(probeIPMap.keys())
     const inMeasurements = ntpServers.filter(x => !probeIps.has(x.ip))
     const unavailable = inMeasurements.filter(x => x.RTT === -1)
@@ -418,7 +418,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
     if (!probes || !ntpServers) return
 
     setIsAnycast(probes.some(x => x.measurementData.is_anycast === true) || ntpServers.some(x => x.is_anycast === true))
-  })
+  }, [probes, ntpServers])
 
   /**
    * Effect to dynamically update the status shown depening on the progress of the RIPE measurement
@@ -429,7 +429,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
       setNtpOnlyLocations([])
       setIntersectedLocations([])
       setFailedLocations([])
-      return 
+      return
     } else if (status === "partial_results"){
       setStatusMessage("Map Loading...")
     } else if(status === "complete" || status === "timeout") {
@@ -446,13 +446,13 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
         <h2>{statusMessage}</h2>
         {isAnycast && <h2>This server uses Anycast. Server Geolocation might be inaccurate</h2>}
         <MapContainer style={{height: '100%', width: '100%'}}>
-            <TileLayer 
+            <TileLayer
                 url = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                 attribution= '&copy; <a href="https://carto.com/">CARTO</a>'
                 subdomains={['a', 'b', 'c', 'd']}
                 maxZoom={19}
             />
-            
+
             {probes && (
             <>
               {probe_locations.map((pos, index) => (<Marker key = {index} position = {pos} icon = {icons[index]}>
