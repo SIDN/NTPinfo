@@ -87,7 +87,7 @@ build_docs:
   stage: docs
   script:
     - source venv/bin/activate
-    - pip install sphinx sphinx-rtd-theme
+    - pip install sphinx sphinx-rtd-theme sphinx-autodoc-typehints sphinxcontrib-openapi
     - cd docs
     - make html
   artifacts:
@@ -104,5 +104,8 @@ pages:
   artifacts:
     paths:
       - public
-#  rules:
-#    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  #    expire_in: 1 week
+  #  rules:
+  #    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  dependencies:
+    - build_docs
