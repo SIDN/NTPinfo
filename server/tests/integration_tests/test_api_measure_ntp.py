@@ -14,7 +14,7 @@ def client():
     yield client
     app.state.limiter.reset()
 
-# test measuremenst from our server
+# test measurements from our server
 
 def test_read_data_measurement_server_success(client):
     headers = {"X-Forwarded-For": "83.25.24.10"}
@@ -22,8 +22,11 @@ def test_read_data_measurement_server_success(client):
                                 headers=headers)
     response2 = client.post("/measurements/", json={"server": "time.apple.com", "ipv6_measurement": True},
                                 headers=headers)
-    assert response1.status_code in {200, 400, 422}
-    assert response2.status_code in {200, 400, 422}
+    # assert there was no problem from our back-end. We cannot directly check if it is 200 because
+    # the NTP server could refuse to answer, or our server may not have both IPv4 or IPv6 addresses, or our
+    # rate limiting could block this test.
+    assert response1.status_code < 500
+    assert response2.status_code < 500
 
 def test_read_data_measurement_wrong_server(client):
     headers = {"X-Forwarded-For": "83.25.24.10"}
