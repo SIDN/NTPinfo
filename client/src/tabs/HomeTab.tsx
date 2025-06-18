@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useEffect, useCallback } from 'react'
 import { HomeCacheState } from '../utils/types' // new import for caching result
 import '../styles/HomeTab.css'
 import InputSection from '../components/InputSection.tsx'
@@ -13,14 +13,15 @@ import { useFetchRIPEData } from '../hooks/useFetchRipeData.ts'
 import { dateFormatConversion } from '../utils/dateFormatConversion.ts'
 import {downloadJSON, downloadCSV} from '../utils/downloadFormats.ts'
 import WorldMap from '../components/WorldMap.tsx'
-import Hero from '../components/Hero';
+import Header from '../components/Header.tsx';
 
-import { NTPData, RIPEData } from '../utils/types.ts'
+import { NTPData } from '../utils/types.ts'
 import { Measurement } from '../utils/types.ts'
 
 import 'leaflet/dist/leaflet.css'
-import { triggerRipeMeasurement } from '../hooks/triggerRipeMeasurement.ts'
+import { useTriggerRipeMeasurement } from '../hooks/triggerRipeMeasurement.ts'
 import ConsentPopup from '../components/ConsentPopup.tsx'
+import ripeLogo from '../assets/ripe_ncc_white.png'
 
 // interface HomeTabProps {
 //     onVisualizationDataChange: (data: Map<string, NTPData[]> | null) => void;
@@ -56,7 +57,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
 
   const handleIPv6Toggle = (value: boolean) => {
   updateCache({ ipv6Selected: value });
-  };  
+  };
   //
   // states we need to define
   //
@@ -73,7 +74,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
   //Varaibles to log and use API hooks
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
   const {fetchData: fetchHistoricalData} = useFetchHistoricalIPData()
-  const {triggerMeasurement} = triggerRipeMeasurement()
+  const {triggerMeasurement} = useTriggerRipeMeasurement()
   const {
     result: ripeMeasurementResp,
     status: ripeMeasurementStatus,
@@ -156,7 +157,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
       chartData,
       allNtpMeasurements: apiMeasurementResp ?? null,
       ripeMeasurementResp: null,          // clear old map
-      ripeMeasurementStatus: null,        //  “     ”
+      ripeMeasurementStatus: null,        //  "     "
     })
 
     /**
@@ -192,9 +193,9 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     updateCache({ selMeasurement: e.target.value as Measurement })
 
   return (
-    <div>
+    <div className="home-tab-outer">
     <ConsentPopup/>
-    <Hero />
+    <Header />
     {/* The main container for the app, containing the input section, results and graph, and the map */}
     <div className="app-container">
       <div className="input-wrapper">
@@ -211,9 +212,9 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         </div>
         {/* The main page shown after the main measurement is done */}
       {(ntpData && !apiDataLoading && (<div className="results-and-graph">
-        <ResultSummary data={ntpData} 
-                       ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null} 
-                       err={apiErrorLoading} 
+        <ResultSummary data={ntpData}
+                       ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null}
+                       err={apiErrorLoading}
                        httpStatus={respStatus}
                        ripeErr={ripeMeasurementError}
                        ripeStatus={ripeMeasurementStatus}/>
@@ -246,8 +247,8 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
             <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day" legendDisplay={false}/>
           </div>
         </div>
-      </div>)) || (!ntpData && !apiDataLoading && measured && 
-      <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus} 
+      </div>)) || (!ntpData && !apiDataLoading && measured &&
+      <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}
       ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null} ripeErr={ripeMeasurementError} ripeStatus={ripeMeasurementStatus}/>)}
 
       {/*Buttons to download results in JSON and CSV format as well as open a popup displaying historical data*/}
@@ -269,6 +270,14 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         </div>
         )}
     </div>
+    <footer className="home-footer">
+      <div className="footer-content">
+        <span className="powered-by">Powered by</span>
+        <a href="https://ripe.net" target="_blank" rel="noopener noreferrer" aria-label="RIPE NCC">
+          <img src={ripeLogo} alt="RIPE NCC" className="ripe-logo" />
+        </a>
+      </div>
+    </footer>
     </div>
     );
 }

@@ -1,5 +1,5 @@
 import '../styles/DownloadButton.css'
-function DownloadButton({ name, onclick }:{ name: String, onclick: (data : Object) => void; }) {
+function DownloadButton({ name, onclick }:{ name: string, onclick: (data : object) => void; }) {
 
     return (
         <>
