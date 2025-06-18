@@ -5,7 +5,7 @@ import { transformJSONDataToRIPEData } from '../../utils/transformJSONDataToRIPE
 describe("transform JSON Data to NTP Data", () => {
     test("tranform to NTP Data", () => {
     const fetchedData = {
-        ntp_verison: 4,
+        ntp_version: 4,
         offset: 0.001,
         rtt: 0.001,
         stratum: 2,
@@ -35,7 +35,7 @@ describe("transform JSON Data to NTP Data", () => {
 
     const res = transformJSONDataToNTPData(fetchedData)
 
-    expect(res?.ntp_version).toBe(fetchedData.ntp_verison)
+    expect(res?.ntp_version).toBe(fetchedData.ntp_version)
     expect(res?.offset).toBeCloseTo(fetchedData.offset * 1000, 3)
     expect(res?.RTT).toBeCloseTo(fetchedData.rtt * 1000, 3)
     expect(res?.stratum).toBe(fetchedData.stratum)
@@ -71,7 +71,7 @@ describe("transform JSON Data to NTP Data", () => {
 describe('transform JSON Data to RIPE Data', () => {
     test("tranform to RIPE Data Success", () => {
     const input = {
-    ntp_verison: 4,
+    ntp_version: 4,
     vantage_point_ip: "192.0.2.50",
     ntp_server_ip: "192.0.2.1",
     ntp_server_name: "ntp.example.com",
