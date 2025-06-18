@@ -264,6 +264,11 @@
   /* flex-wrap: wrap; */
 }
 
+.footer-content a {
+  height: 24px;
+  width: auto;
+}
+
 .powered-by {
   color: var(--clr-font-muted, #9fa4b9);
   font-size: 0.9rem;

@@ -273,7 +273,9 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     <footer className="home-footer">
       <div className="footer-content">
         <span className="powered-by">Powered by</span>
-        <img src={ripeLogo} alt="RIPE NCC" className="ripe-logo" />
+        <a href="https://ripe.net" target="_blank" rel="noopener noreferrer" aria-label="RIPE NCC">
+          <img src={ripeLogo} alt="RIPE NCC" className="ripe-logo" />
+        </a>
       </div>
     </footer>
     </div>
