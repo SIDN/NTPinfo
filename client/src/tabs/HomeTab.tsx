@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useEffect, useCallback } from 'react'
 import { HomeCacheState } from '../utils/types' // new import for caching result
 import '../styles/HomeTab.css'
 import InputSection from '../components/InputSection.tsx'
@@ -15,11 +15,11 @@ import {downloadJSON, downloadCSV} from '../utils/downloadFormats.ts'
 import WorldMap from '../components/WorldMap.tsx'
 import Header from '../components/Header.tsx';
 
-import { NTPData, RIPEData } from '../utils/types.ts'
+import { NTPData } from '../utils/types.ts'
 import { Measurement } from '../utils/types.ts'
 
 import 'leaflet/dist/leaflet.css'
-import { triggerRipeMeasurement } from '../hooks/triggerRipeMeasurement.ts'
+import { useTriggerRipeMeasurement } from '../hooks/triggerRipeMeasurement.ts'
 import ConsentPopup from '../components/ConsentPopup.tsx'
 import ripeLogo from '../assets/ripe_ncc_white.png'
 
@@ -74,7 +74,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
   //Varaibles to log and use API hooks
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
   const {fetchData: fetchHistoricalData} = useFetchHistoricalIPData()
-  const {triggerMeasurement} = triggerRipeMeasurement()
+  const {triggerMeasurement} = useTriggerRipeMeasurement()
   const {
     result: ripeMeasurementResp,
     status: ripeMeasurementStatus,

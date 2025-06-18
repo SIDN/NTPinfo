@@ -40,7 +40,7 @@ body {
 }
 
 .leaflet-legend-item img {
-  width: 30px !important;
-  height: 30px !important;
+  width: 25px !important;
+  height: 25px !important;
   object-fit: contain !important;
 }

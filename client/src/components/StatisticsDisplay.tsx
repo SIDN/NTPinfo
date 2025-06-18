@@ -5,15 +5,11 @@ import { Measurement } from '../utils/types';
 interface StatisticsDisplayProps {
   data: Map<string, NTPData[]> | null;
   selectedMeasurement: Measurement;
-  selectedOption: string;
-  customRange?: { from: string; to: string };
 }
 
 const StatisticsDisplay: React.FC<StatisticsDisplayProps> = ({
   data,
   selectedMeasurement,
-  selectedOption,
-  customRange,
 }) => {
   if (!data) return null;
 

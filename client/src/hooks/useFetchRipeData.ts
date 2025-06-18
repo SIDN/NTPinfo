@@ -19,13 +19,13 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 3000
     const [status, setStatus] = useState<RipeStatus>("pending")
     const [error, setError] = useState<Error | null>(null)
 
-    // @ts-ignore
+    // @ts-expect-error: NodeJS.Timeout type for setInterval in browser
     const intervalRef = useRef<NodeJS.Timeout | null>(null)
-    // @ts-ignore
+    // @ts-expect-error: NodeJS.Timeout type for setTimeout in browser
     const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     useEffect(() => {
-        
+
         if (intervalRef.current) {
             clearInterval(intervalRef.current)
             intervalRef.current = null
@@ -86,13 +86,13 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 3000
 
         intervalRef.current = setInterval(fetchResult, intervalMs)
         fetchResult()
-        
+
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current)
             if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current)
             controller.abort()
         }
-    }, [measurementId])
+    }, [measurementId, intervalMs])
 
     return {result, status, error}
 }
