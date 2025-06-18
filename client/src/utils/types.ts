@@ -11,8 +11,8 @@ export type NTPData = {
   is_anycast: boolean
   country_code: string // add
   coordinates: LatLngTuple
-  ntp_server_ref_parent_ip: string
-  ref_id: string // add
+  ntp_server_ref_parent_ip: string | null
+  ref_id: string
   client_sent_time: [number,number]
   server_recv_time: [number,number]
   server_sent_time: [number,number]
@@ -41,9 +41,9 @@ export type Measurement = "RTT" | "offset"
  */
 export type RIPEData = {
   measurementData : NTPData
-  probe_addr_v4: string
-  probe_addr_v6: string
-  probe_id: number
+  probe_addr_v4: string | null
+  probe_addr_v6: string | null
+  probe_id: string
   probe_country: string
   probe_location: LatLngTuple
   time_to_result: number
@@ -55,9 +55,9 @@ export type RIPEData = {
  * Data type for the RIPE measurement trigger response
  */
 export type RIPEResp = {
-  measurementId: number
-  vantage_point_ip: string
-  coordinates: LatLngTuple
+  measurementId: string | null
+  vantage_point_ip: string | null
+  coordinates: LatLngTuple | null
 }
 
 /**

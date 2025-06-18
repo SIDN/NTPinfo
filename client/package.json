@@ -8,9 +8,12 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test": "vitest run --coverage",
+    "test:integration": "vitest run src/tests/integration_tests --coverage",
+    "test:unit": "vitest run src/tests/unit_tests --coverage",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@testing-library/react": "^16.3.0",
     "@types/leaflet": "^1.9.18",
     "axios": "^1.9.0",
     "chart.js": "^4.4.9",
@@ -33,6 +36,7 @@
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
     "jsdom": "^26.1.0",
+    "msw": "^2.10.2",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.26.1",
     "vite": "^6.3.1",
