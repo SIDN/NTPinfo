@@ -4,7 +4,7 @@ import { NTPData } from "../utils/types.ts"
 import { transformJSONDataToNTPData } from "../utils/transformJSONDataToNTPData.ts"
 
 export const useFetchIPData = () => {
-    const [data, setData] = useState<NTPData | null>(null)
+    const [data, setData] = useState<NTPData[] | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<Error | null>(null)
     const [httpStatus, setHttpStatus] = useState<number>(200)
@@ -16,7 +16,7 @@ export const useFetchIPData = () => {
      * @param payload the server that will be measured
      * @returns the data received from the measurement as NTPData, or null, the loading, error and HTTP status of the call, and a function to initiate the measurement
      */
-    const fetchData = async (endpoint: string, payload: {server: string}) => {
+    const fetchData = async (endpoint: string, payload: {server: string, ipv6_measurement: boolean}) => {
         setLoading(true);
         setError(null);
         try {

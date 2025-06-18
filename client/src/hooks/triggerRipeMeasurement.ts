@@ -13,7 +13,7 @@ export const triggerRipeMeasurement = () => {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<Error | null>(null)
     
-    const triggerMeasurement = async (payload: {server: string}) => {
+    const triggerMeasurement = async (payload: {server: string, ipv6_measurement: boolean}) => {
         setLoading(true)
         setError(null)
         try {

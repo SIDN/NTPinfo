@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
-import { calculateStatus } from '../utils/calculateStatus'
-import { NTPData } from '../utils/types'
+import { calculateStatus } from '../../utils/calculateStatus'
+import { NTPData } from '../../utils/types'
 test('Passing Data', () => {
     const data: NTPData = {
         ntp_version: 4,

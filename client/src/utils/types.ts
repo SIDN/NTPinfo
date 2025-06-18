@@ -11,7 +11,7 @@ export type NTPData = {
   is_anycast: boolean
   country_code: string
   coordinates: LatLngTuple
-  ntp_server_ref_parent_ip: string
+  ntp_server_ref_parent_ip: string | null
   ref_id: string
   client_sent_time: [number,number]
   server_recv_time: [number,number]

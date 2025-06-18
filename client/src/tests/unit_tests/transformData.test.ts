@@ -1,6 +1,6 @@
 import { expect, test, describe } from 'vitest'
-import { transformJSONDataToNTPData } from '../utils/transformJSONDataToNTPData'
-import { transformJSONDataToRIPEData } from '../utils/transformJSONDataToRIPEData'
+import { transformJSONDataToNTPData } from '../../utils/transformJSONDataToNTPData'
+import { transformJSONDataToRIPEData } from '../../utils/transformJSONDataToRIPEData'
 
 describe("transform JSON Data to NTP Data", () => {
     test("tranform to NTP Data", () => {
