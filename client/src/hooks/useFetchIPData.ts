@@ -39,7 +39,7 @@ export const useFetchIPData = () => {
         } finally {
             setLoading(false)
         }
-    };
+    }
     
     return {data, loading, error, httpStatus, fetchData}
 }
