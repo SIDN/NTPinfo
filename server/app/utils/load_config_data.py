@@ -35,7 +35,6 @@ def verify_if_config_is_set() -> bool:
         ValueError: If the config file does not have all the required variables or some of them are invalid.
     """
     # verify from .env (the secrets)
-    get_ipinfo_lite_api_token()
     get_ripe_account_email()
     get_ripe_api_token()
 
@@ -50,21 +49,16 @@ def verify_if_config_is_set() -> bool:
     get_ripe_timeout_per_probe_ms()
     get_ripe_packets_per_probe()
     get_ripe_number_of_probes_per_measurement()
+    get_anycast_prefixes_v4_url()
+    get_anycast_prefixes_v6_url()
+    get_max_mind_path_city()
+    get_max_mind_path_country()
+    get_max_mind_path_asn()
+
+    check_geolite_account_id_and_key()
     # everything is fine
     return True
 
-
-def get_ipinfo_lite_api_token() -> str:
-    """
-    This function returns the IPinfo Lite API token.
-
-    Raises:
-        ValueError: If no IPinfo Lite API token is found.
-    """
-    ans = os.getenv('IPINFO_LITE_API_TOKEN')
-    if ans is not None:
-        return ans
-    raise ValueError('IPINFO_LITE_API_TOKEN environment variable not set')
 
 
 def get_ripe_account_email() -> str:
@@ -314,26 +308,75 @@ def get_ripe_number_of_probes_per_measurement() -> int:
     return ripe_atlas["number_of_probes_per_measurement"]
 
 
+# bgp_tools
+def get_anycast_prefixes_v4_url() -> str:
+    """
+    This method returns the URL prefixes for anycast IPv4 servers.
+
+    Raises:
+        ValueError: If this variable has not been correctly set.
+    """
+    if "bgp_tools" not in config:
+        raise ValueError("bgp_tools section is missing")
+    bgp_tools = config["bgp_tools"]
+    if "anycast_prefixes_v4_url" not in bgp_tools:
+        raise ValueError("bgp_tools 'anycast_prefixes_v4_url' is missing")
+    if not isinstance(bgp_tools["anycast_prefixes_v4_url"], str):
+        raise ValueError("bgp_tools 'anycast_prefixes_v4_url' must be a 'str'")
+    return bgp_tools["anycast_prefixes_v4_url"]
+
+
+def get_anycast_prefixes_v6_url() -> str:
+    """
+    This method returns the URL prefixes for anycast IPv6 servers.
+
+    Raises:
+        ValueError: If this variable has not been correctly set.
+    """
+    if "bgp_tools" not in config:
+        raise ValueError("bgp_tools section is missing")
+    bgp_tools = config["bgp_tools"]
+    if "anycast_prefixes_v6_url" not in bgp_tools:
+        raise ValueError("bgp_tools 'anycast_prefixes_v6_url' is missing")
+    if not isinstance(bgp_tools["anycast_prefixes_v6_url"], str):
+        raise ValueError("bgp_tools 'anycast_prefixes_v6_url' must be a 'str'")
+    return bgp_tools["anycast_prefixes_v6_url"]
+
+
 def get_max_mind_path_city() -> str:
     """
     This method returns the path to the max_mind city database used for geolocation.
+
+    Raises:
+        ValueError: If this variable has not been correctly set.
     """
+    if "max_mind" not in config:
+        raise ValueError("max_mind section is missing")
+    max_mind = config["max_mind"]
+    if "path_city" not in max_mind:
+        raise ValueError("max_mind 'path_city' is missing")
     # This assumes this file is in server/app/utils/
     server_dir = Path(__file__).resolve().parent.parent.parent
-    relative_path = config["max_mind"]["path_city"]
+    relative_path = max_mind["path_city"]
     absolute_path = (server_dir / relative_path).resolve()
     return str(absolute_path)
 
 
-# verify_if_config_is_set()
-
 def get_max_mind_path_country() -> str:
     """
     This method returns the path to the max_mind country database used for geolocation.
+
+    Raises:
+        ValueError: If this variable has not been correctly set.
     """
+    if "max_mind" not in config:
+        raise ValueError("max_mind section is missing")
+    max_mind = config["max_mind"]
+    if "path_country" not in max_mind:
+        raise ValueError("max_mind 'path_country' is missing")
     # This assumes this file is in server/app/utils/
     server_dir = Path(__file__).resolve().parent.parent.parent
-    relative_path = config["max_mind"]["path_country"]
+    relative_path = max_mind["path_country"]
     absolute_path = (server_dir / relative_path).resolve()
     return str(absolute_path)
 
@@ -341,9 +384,33 @@ def get_max_mind_path_country() -> str:
 def get_max_mind_path_asn() -> str:
     """
     This method returns the path to the max_mind ASN database used for geolocation.
+
+    Raises:
+        ValueError: If this variable has not been correctly set.
     """
+    if "max_mind" not in config:
+        raise ValueError("max_mind section is missing")
+    max_mind = config["max_mind"]
+    if "path_asn" not in max_mind:
+        raise ValueError("max_mind 'path_asn' is missing")
     # This assumes this file is in server/app/utils/
     server_dir = Path(__file__).resolve().parent.parent.parent
-    relative_path = config["max_mind"]["path_asn"]
+    relative_path = max_mind["path_asn"]
     absolute_path = (server_dir / relative_path).resolve()
     return str(absolute_path)
+
+def check_geolite_account_id_and_key() -> bool:
+    """
+    This function checks that we have the account id and key set.
+    Only Warnings
+
+    """
+    ans = os.getenv('ACCOUNT_ID')
+    if ans is None:
+        print("WARNING! ACCOUNT_ID environment variable not set")
+        return False
+    ans = os.getenv('LICENSE_KEY')
+    if ans is None:
+        print("WARNING! LICENSE_KEY environment variable not set")
+        return False
+    return True

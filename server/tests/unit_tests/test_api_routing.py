@@ -230,13 +230,22 @@ def test_read_root(test_client):
     assert response.json() == {"Hello": "World"}
 
 
+# @patch("server.app.api.routing.Depends")
 @patch("server.app.api.routing.get_server_ip")
 @patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
 @patch("server.app.services.api_services.insert_measurement")
 @patch("server.app.services.api_services.is_ip_address")
-def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_measurement, mock_get_server_ip, test_client):
+def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_measurement, mock_get_server_ip,
+                                       test_client):
+    mock_db = MagicMock()
+
+    # Override FastAPI dependency
+    app = create_app(dev=False)
+    app.dependency_overrides[get_db] = mock_db
+    client = TestClient(app)
     mock_is_ip.return_value = None
     measurement = mock_measurement()
+    # mock_depends.return_value = MagicMock()
     mock_get_server_ip.return_value = "234.22.41.9"
 
     mock_perform_measurement.return_value = [measurement]
@@ -250,6 +259,7 @@ def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_mea
     assert response.json()["measurement"][0]["jitter"] == 0
     mock_perform_measurement.assert_called_with("pool.ntp.org", "83.25.24.10", 4)
     mock_insert.assert_called_once_with(measurement, mock_insert.call_args[0][1])
+    client.close()
 
 @patch("server.app.api.routing.get_server_ip")
 @patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")
@@ -260,8 +270,7 @@ def test_read_data_measurement_missing_measurement_no(mock_is_ip, mock_insert, m
     mock_is_ip.return_value = None
     measurement = mock_measurement()
     mock_get_server_ip.return_value = "234.22.41.9"
-    mock_perform_measurement.return_value = (measurement, ["83.25.24.10"])
-
+    mock_perform_measurement.return_value = measurement
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = test_client.post("/measurements/", json={"server": "pool.ntp.org", "ipv6_measurement": False},
                                 headers=headers)
@@ -466,7 +475,13 @@ def test_historic_data_ip_rate_limiting(mock_human_date_to_ntp, mock_is_ip, mock
         assert data[1]["poll"] == 5
 
     assert mock_get_ip.call_count == 5
-
+    # 5 more
+    for _ in range(3):
+        response = test_client.get("/measurements/history/", params={
+            "server": "192.168.1.1",
+            "start": (end - timedelta(minutes=10)).isoformat(),
+            "end": end.isoformat()
+        })
     calls_before_6th = mock_get_ip.call_count
     response = test_client.get("/measurements/history/", params={
         "server": "192.168.1.1",
