@@ -89,7 +89,7 @@ def domain_name_to_ip_close_to_client(domain_name: str, client_ip: str, wanted_i
         Optional[list[str]]: A list of IPs of the domain name or None if the domain name is not valid.
 
     Raises:
-        Exception: If the client IP is invalid
+        Exception: If the client IP is invalid.
     """
     if not is_valid_domain_name(domain_name):
         return None
@@ -194,22 +194,3 @@ def edns_response_to_ips(response: dns.message.Message, client_ip: str, wanted_i
                     if a is not None:
                         ips += a
     return ips
-#example of usage:
-# dn = "time.apple.com"
-# client = "88.31.57.92"
-# ans = domain_name_to_ip_close_to_client(dn, client )
-# print(ans)
-# print([get_country_from_ip(x) for x in ans])
-#print([get_country_from_ip(x) for x in domain_name_to_ip_close_to_client(dn, client_ip,16)])
-#print(domain_name_to_ip_close_to_client(dn, client_ip,24))
-#dig +short +subnet=83.25.24.10/24 pool.ntp.org @50.116.32.247
-# print("By default: ")
-# print(domain_name_to_ip_default(dn))
-#Cehia: 85.161.47.136
-#Poland: 83.25.24.10
-#Spain: 88.31.57.92
-#US: 8.31.57.92
-#time.google.com, time.windows.com, time.aws.com, time.cloudflare.com, and pool.ntp.org.
-# print(domain_name_to_ip_list("time.apple.com", "83.25.24.10", 6))#2a01:b740:a20:3000::1f2"))
-# print(domain_name_to_ip_list("time.apple.com", "2a01:b740:a20:3000::1f2", 4))
-# print(domain_name_to_ip_close_to_client("time.google.com", "83.25.24.10", 6))

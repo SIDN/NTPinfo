@@ -88,7 +88,7 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 3000
 
         intervalRef.current = setInterval(fetchResult, intervalMs)
         fetchResult()
-        
+
         return () => {
             if (intervalRef.current) clearInterval(intervalRef.current)
             if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current)
