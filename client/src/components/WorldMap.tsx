@@ -161,7 +161,7 @@ const FitMapBounds = ({probes, ripeNtpServers, measurementNtpServers, intersecti
     }
     window.addEventListener('resize', handleWindowResize)
     return () => {window.removeEventListener('resize', handleWindowResize)}
-  }, [map, probes, ripeNtpServers, measurementNtpServers, intersectionNtpServers, unavailableNtpServers])
+  }, [map, probes, ripeNtpServers, measurementNtpServers, intersectionNtpServers, unavailableNtpServers, vantagePoint])
 
   return null
 }
@@ -192,7 +192,7 @@ const DrawConnectingLines = ({probes, measurementNtpServers, intersectionNtpServ
     probes.map(x => {
       L.polyline([x.probe_location,x.measurementData.coordinates], {color: 'blue', opacity: 0.8, weight: 1}).addTo(map)
     })
-  },[map, probes, measurementNtpServers, intersectionNtpServers, unavailableNtpServers])
+  },[map, probes, measurementNtpServers, intersectionNtpServers, unavailableNtpServers, vantagePoint])
 
   return null
 }
@@ -357,7 +357,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
 
     if (!probes || !ntpServers) return
 
-    const probeIPMap = new Map<String, RIPEData>()
+    const probeIPMap = new Map<string, RIPEData>()
 
     const ripeLocations = new Map<string, LocationInfo>()
     const ntpLocations = new Map<string, LocationInfo>()
@@ -418,7 +418,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
     if (!probes || !ntpServers) return
 
     setIsAnycast(probes.some(x => x.measurementData.is_anycast === true) || ntpServers.some(x => x.is_anycast === true))
-  })
+  }, [probes, ntpServers])
 
   /**
    * Effect to dynamically update the status shown depening on the progress of the RIPE measurement

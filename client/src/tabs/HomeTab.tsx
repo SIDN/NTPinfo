@@ -42,6 +42,8 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     measurementId,
     vantagePointInfo,
     allNtpMeasurements,
+    ripeMeasurementResp,
+    ripeMeasurementStatus,
     ipv6Selected
   } = cache;
 
@@ -75,18 +77,18 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
   const {fetchData: fetchHistoricalData} = useFetchHistoricalIPData()
   const {triggerMeasurement} = useTriggerRipeMeasurement()
   const {
-    result: ripeMeasurementResp,
-    status: ripeMeasurementStatus,
+    result: fetchedRIPEData,
+    status: fetchedRIPEStatus,
     error: ripeMeasurementError
   } = useFetchRIPEData(measurementId)
 
   useEffect(() => {
-    if (!ripeMeasurementStatus) return;
+    if (!ripeMeasurementStatus || ripeMeasurementStatus === "complete") return;
     updateCache({
-      ripeMeasurementResp,
-      ripeMeasurementStatus,
+      ripeMeasurementResp: fetchedRIPEData,
+      ripeMeasurementStatus: fetchedRIPEStatus,
     });
-  }, [ripeMeasurementResp, ripeMeasurementStatus, updateCache]);
+  }, [ripeMeasurementResp, ripeMeasurementStatus, updateCache, fetchedRIPEData, fetchedRIPEStatus]);
 
 
   //
@@ -113,6 +115,8 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
       measurementId: null,
       measured: false,
       ntpData: null,
+      ripeMeasurementResp: null,
+      ripeMeasurementStatus: null,
       chartData: null,
     })
 

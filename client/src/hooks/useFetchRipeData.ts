@@ -21,9 +21,13 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 3000
 
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
     const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
+    const prevMeasurementId = useRef<string | null>(null)
     useEffect(() => {
-        
+        const prev = prevMeasurementId.current
+        if (prev === measurementId) 
+            return
+            
+        prevMeasurementId.current = measurementId
         if (intervalRef.current) {
             clearInterval(intervalRef.current)
             intervalRef.current = null
