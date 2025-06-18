@@ -3,6 +3,13 @@
 .app-container {
   /* background-color: var(--bg-clr-primary); */
   /* background: linear-gradient(to bottom, var(--bg-primary), var(--bg-secondary)); */
+  flex: 1 0 auto;
+  min-height: 0;
+  overflow-y: hidden;
+  overflow-x: hidden;
+  padding-bottom: 2.5rem; /* ensures content never overlaps footer */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .open-popup-btn {
@@ -237,4 +244,60 @@
 .radio-toggle input[type="radio"]:focus + label {
   outline: 2px solid var(--clr-btn-selected-purple);
   outline-offset: 2px;
+}
+
+.home-footer {
+  flex-shrink: 0;
+  margin-top: 0;
+  padding: 1rem;
+  text-align: center;
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-secondary, #181c2f);
+  z-index: 10;
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  /* flex-wrap: wrap; */
+}
+
+.powered-by {
+  color: var(--clr-font-muted, #9fa4b9);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.ripe-logo {
+  height: 24px;
+  width: auto;
+  filter: brightness(0.8);
+  transition: filter 0.2s ease;
+}
+
+.ripe-logo:hover {
+  filter: brightness(1);
+}
+
+@media (max-width: 700px) {
+  .home-footer {
+    margin-top: 1.5rem;
+    padding: 0.75rem;
+  }
+
+  .footer-content {
+    gap: 0.5rem;
+  }
+
+  .ripe-logo {
+    height: 20px;
+  }
+}
+
+.home-tab-outer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }

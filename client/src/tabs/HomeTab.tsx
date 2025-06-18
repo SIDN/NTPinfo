@@ -21,6 +21,7 @@ import { Measurement } from '../utils/types.ts'
 import 'leaflet/dist/leaflet.css'
 import { triggerRipeMeasurement } from '../hooks/triggerRipeMeasurement.ts'
 import ConsentPopup from '../components/ConsentPopup.tsx'
+import ripeLogo from '../assets/ripe_ncc_white.png'
 
 // interface HomeTabProps {
 //     onVisualizationDataChange: (data: Map<string, NTPData[]> | null) => void;
@@ -156,7 +157,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
       chartData,
       allNtpMeasurements: apiMeasurementResp ?? null,
       ripeMeasurementResp: null,          // clear old map
-      ripeMeasurementStatus: null,        //  “     ”
+      ripeMeasurementStatus: null,        //  "     "
     })
 
     /**
@@ -192,7 +193,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     updateCache({ selMeasurement: e.target.value as Measurement })
 
   return (
-    <div>
+    <div className="home-tab-outer">
     <ConsentPopup/>
     <Hero />
     {/* The main container for the app, containing the input section, results and graph, and the map */}
@@ -269,6 +270,12 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         </div>
         )}
     </div>
+    <footer className="home-footer">
+      <div className="footer-content">
+        <span className="powered-by">Powered by</span>
+        <img src={ripeLogo} alt="RIPE NCC" className="ripe-logo" />
+      </div>
+    </footer>
     </div>
     );
 }
