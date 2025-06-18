@@ -1,6 +1,5 @@
 import '../styles/ResultSummary.css'
 import { NTPData, RIPEData, RipeStatus } from '../utils/types.ts'
-import { calculateStatus } from '../utils/calculateStatus.ts'
 import { useState, useEffect } from 'react'
 import triangleGreen from '../assets/triangle-green-svgrepo-com.png'
 import triangleRed from '../assets/triangle-red-svgrepo-com.png'
@@ -30,9 +29,6 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
 
     if (data == null)
         return <h2 id="not-found">{err ? `Error ${httpStatus}: ${statusMessage}` : `Unknown error occurred`}</h2>
-
-
-    const status = data ? calculateStatus(data) : null
 
     // Helper to determine which icon to show for a metric
     function getMetricIcons(ntpValue: number | undefined, ripeValue: number | undefined, lowerIsBetter = true) {
