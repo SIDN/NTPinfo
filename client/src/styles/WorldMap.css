@@ -24,6 +24,8 @@ body {
 .leaflet-container {
     z-index: 1;
     background: #262626 !important;
+    border-radius: var(--radius) !important;
+    border: 1px solid var(--border-color) !important;
 }
 
 .leaflet-control {
