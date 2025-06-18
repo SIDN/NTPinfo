@@ -6,7 +6,7 @@ import { TimeInput } from '../components/TimeInput'
 import LoadingSpinner from '../components/LoadingSpinner'
 import { NTPData, Measurement } from '../utils/types'
 import LineChart from '../components/LineGraph'
-import Hero from '../components/Header';
+import Header from '../components/Header';
 import scaleUnbalancedIcon from '../assets/scale-unbalanced-svgrepo-com.png'
 
 function CompareTab() {
@@ -73,9 +73,8 @@ function CompareTab() {
 
     return (
         <div>
-            <Hero />
+            <Header />
         <div className="compare-tab">
-            {/* <Hero /> */}
             <div className="compare-input">
                 <p>Enter the names or IPs of the NTP servers you want to compare.</p>
                 <p>Click the "+" button to add more.</p>

@@ -13,7 +13,7 @@ import { useFetchRIPEData } from '../hooks/useFetchRipeData.ts'
 import { dateFormatConversion } from '../utils/dateFormatConversion.ts'
 import {downloadJSON, downloadCSV} from '../utils/downloadFormats.ts'
 import WorldMap from '../components/WorldMap.tsx'
-import Hero from '../components/Header.tsx';
+import Header from '../components/Header.tsx';
 
 import { NTPData, RIPEData } from '../utils/types.ts'
 import { Measurement } from '../utils/types.ts'
@@ -195,7 +195,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
   return (
     <div className="home-tab-outer">
     <ConsentPopup/>
-    <Hero />
+    <Header />
     {/* The main container for the app, containing the input section, results and graph, and the map */}
     <div className="app-container">
       <div className="input-wrapper">

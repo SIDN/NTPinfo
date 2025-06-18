@@ -3,7 +3,7 @@ import { NTPData } from '../utils/types.ts';
 import LineChart from '../components/LineGraph';
 import { Measurement } from '../utils/types.ts';
 import { TimeInput } from '../components/TimeInput.tsx';
-import Hero from '../components/Header.tsx';
+import Header from '../components/Header.tsx';
 import StatisticsDisplay from '../components/StatisticsDisplay';
 import '../styles/HistoricalDataTab.css';
 
@@ -31,7 +31,7 @@ const HistoricalDataTab: React.FC<HistoricalDataTabProps> = ({ data }) => {
 
   return (
     <div className="historical-data-tab">
-      <Hero />
+      <Header />
       <div className="form-row">
         <TimeInput
           options={dropdown.options}
