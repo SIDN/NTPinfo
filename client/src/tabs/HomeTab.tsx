@@ -13,7 +13,7 @@ import { useFetchRIPEData } from '../hooks/useFetchRipeData.ts'
 import { dateFormatConversion } from '../utils/dateFormatConversion.ts'
 import {downloadJSON, downloadCSV} from '../utils/downloadFormats.ts'
 import WorldMap from '../components/WorldMap.tsx'
-import Hero from '../components/Hero';
+import Hero from '../components/Header.tsx';
 
 import { NTPData, RIPEData } from '../utils/types.ts'
 import { Measurement } from '../utils/types.ts'

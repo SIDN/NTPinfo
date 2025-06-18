@@ -6,7 +6,7 @@ import { TimeInput } from '../components/TimeInput'
 import LoadingSpinner from '../components/LoadingSpinner'
 import { NTPData, Measurement } from '../utils/types'
 import LineChart from '../components/LineGraph'
-import Hero from '../components/Hero';
+import Hero from '../components/Header';
 import scaleUnbalancedIcon from '../assets/scale-unbalanced-svgrepo-com.png'
 
 function CompareTab() {

@@ -3,7 +3,7 @@ import { NTPData } from '../utils/types.ts';
 import LineChart from '../components/LineGraph';
 import { Measurement } from '../utils/types.ts';
 import { TimeInput } from '../components/TimeInput.tsx';
-import Hero from '../components/Hero';
+import Hero from '../components/Header.tsx';
 import StatisticsDisplay from '../components/StatisticsDisplay';
 import '../styles/HistoricalDataTab.css';
 

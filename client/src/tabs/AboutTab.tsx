@@ -1,6 +1,6 @@
 import React from 'react';
 import '../styles/AboutTab.css';
-import Hero from '../components/Hero';
+import Hero from '../components/Header';
 import DataAnalysis from '../assets/chart-svgrepo-com.png';
 import Visualization from '../assets/graph-svgrepo-com.png';
 import Comparison from '../assets/scale-unbalanced-svgrepo-com.png';

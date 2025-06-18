@@ -1,8 +1,8 @@
-import '../styles/Hero.css'
+import '../styles/Header.css'
 import github from '../assets/github-svgrepo-com.png'
 import NTPinfoLogo from '../assets/NTPinfo.png'
 
-function Hero() {
+function Header() {
     return (
         <div className="hero">
             <div className="text-hero">
@@ -23,4 +23,4 @@ function Hero() {
     );
 }
 
-export default Hero
+export default Header
