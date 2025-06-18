@@ -6,7 +6,7 @@ class NtpMainDetails:
     """
     Represents the main measurements reported by an NTP server.
     
-    Fields:
+    Attributes:
         offset (float): Clock offset between the client and server, in seconds
         rtt (float): Round-trip delay for NTP packet exchange, in seconds
         stratum (int): Stratum level of the serve

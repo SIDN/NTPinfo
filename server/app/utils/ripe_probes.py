@@ -555,7 +555,7 @@ def consume_probes(probes_requested: int, current_probes_set: set[int], probes_i
 
     Returns:
         tuple[int, set[int]]: - The remained number of probes still to find.
-                              - The updated set of probes that we will use in the measurement.
+        - The updated set of probes that we will use in the measurement.
     """
     if probes_requested < 0:
         raise InputError("Probes_requested cannot be negative")

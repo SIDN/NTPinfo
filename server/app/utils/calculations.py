@@ -25,7 +25,7 @@ def calculate_jitter_from_measurements(session: Session, initial_measurement: Nt
     Calculates the NTP jitter based on a set of previous measurements and one initial reference measurement.
 
     This function computes the jitter by calculating the standard deviation of the offsets
-    from a given initial measurement and a number of most recent measurements from the same NTP server
+    from a given initial measurement and a number of most recent measurements from the same NTP server.
 
     Args:
         session (Session): The active SQLAlchemy database session
@@ -118,17 +118,17 @@ def get_non_responding_ntp_measurement(server_ip_str: str, server_name: Optional
     as non-responding on the map.
 
     Args:
-        server_ip_str (str): The IP address of the NTP server that failed to respond.
-        server_name (Optional[str]): The hostname of the NTP server, if available.
-        ntp_version (int): The version of the NTP protocol to report (default is based on system config).
+        server_ip_str (str): The IP address of the NTP server that failed to respond
+        server_name (Optional[str]): The hostname of the NTP server, if available
+        ntp_version (int): The version of the NTP protocol to report (default is based on system config)
 
     Returns:
-        NtpMeasurement: An `NtpMeasurement` object filled with placeholder values indicating failure.
+        NtpMeasurement: An `NtpMeasurement` object filled with placeholder values indicating failure
 
     Notes:
-        - The `offset`, `rtt`, `stratum`, and other time-related fields are set to -1 or equivalent.
-        - The `vantage_point_ip` is determined from the local server. If not resolvable, it defaults to 0.0.0.0.
-        - The location and reference information is generated using available utility functions based on IP.
+        - The `offset`, `rtt`, `stratum`, and other time-related fields are set to -1 or equivalent
+        - The `vantage_point_ip` is determined from the local server. If not resolvable, it defaults to 0.0.0.0
+        - The location and reference information is generated using available utility functions based on IP
     """
     vantage_point_ip = None
     ip_type = get_ip_family(server_ip_str)
@@ -141,7 +141,7 @@ def get_non_responding_ntp_measurement(server_ip_str: str, server_name: Optional
         ntp_version=ntp_version,
         ntp_server_ip=server_ip,
         ntp_server_name=server_name,
-        ntp_server_ref_parent_ip=ip_address("0.0.0.0"), # if you change this value, change it also in "measure"
+        ntp_server_ref_parent_ip=ip_address("0.0.0.0"),  # if you change this value, change it also in "measure"
         ref_name="",
         ntp_server_location=ServerLocation(country_code=get_country_for_ip(ip_to_str(server_ip)),
                                            coordinates=get_coordinates_for_ip(ip_to_str(server_ip)))

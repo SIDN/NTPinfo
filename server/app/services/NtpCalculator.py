@@ -14,10 +14,10 @@ class NtpCalculator:
         Calculates the clock offset between client and server using NTP timestamps.
         Uses the formula  ((t2 - t1) + (t3 - t4)) / 2
         
-        args:
+        Args:
         timestamps (NtpTimestamps): A single NTP timestamps object, containing data about the 4 key timestamps
  
-        returns:
+        Returns:
             float: Clock offset in seconds
         """
         # a = t2 - t1
@@ -25,7 +25,7 @@ class NtpCalculator:
             timestamps.server_recv_time.seconds - timestamps.client_sent_time.seconds,
             timestamps.server_recv_time.fraction - timestamps.client_sent_time.fraction
         )
-        #b = t3 - t4
+        # b = t3 - t4
         b = PreciseTime(
             timestamps.server_sent_time.seconds - timestamps.client_recv_time.seconds,
             timestamps.server_sent_time.fraction - timestamps.client_recv_time.fraction

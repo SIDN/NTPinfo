@@ -27,14 +27,14 @@ def check_all_measurements_scheduled(measurement_id: str) -> bool:
     it returns False
 
     Args:
-        measurement_id (str): The ID of the RIPE Atlas measurement to check
+        measurement_id (str): The ID of the RIPE Atlas measurement to check.
 
     Returns:
-        bool: True if all requested probes have been scheduled, False otherwise
+        bool: True if all requested probes have been scheduled, False otherwise.
 
     Raises:
         ValueError: If the RIPE API returns an error or if the probe count data
-                    is missing or invalid
+                    is missing or invalid.
     """
     url = f"https://atlas.ripe.net/api/v2/measurements/{measurement_id}/"
 
@@ -66,22 +66,22 @@ def check_all_measurements_done(measurement_id: str, measurement_req: int) -> st
     how much time has passed since the measurement started.
 
     Parameters:
-        measurement_id (str): RIPE Atlas measurement ID
-        measurement_req (int): The number of probes expected for the measurement to be considered complete
+        measurement_id (str): RIPE Atlas measurement ID.
+        measurement_req (int): The number of probes expected for the measurement to be considered complete.
 
     Returns:
         str:
-            - "Complete": All expected probes have responded or the measurement is stopped
-            - "Ongoing": The measurement is still in progress and has not exceeded the timeout threshold
-            - "Timeout": The measurement did not complete within the allowed time window
+            - "Complete": All expected probes have responded or the measurement is stopped.
+            - "Ongoing": The measurement is still in progress and has not exceeded the timeout threshold.
+            - "Timeout": The measurement did not complete within the allowed time window.
 
     Raises:
-        - RipeMeasurementError: If there are errors with the response from ripe, either not received or malformed
+        RipeMeasurementError: If there are errors with the response from ripe, either not received or malformed.
 
     Notes:
         - If the difference between the current time and the measurement's start time exceeds the configured time in seconds,
-          and the measurement is not yet complete, it is considered "Timeout"
-        - This function assumes a successful HTTP response from the RIPE API; if not, it will raise an exception
+          and the measurement is not yet complete, it is considered "Timeout".
+        - This function assumes a successful HTTP response from the RIPE API; if not, it will raise an exception.
     """
     url = f"https://atlas.ripe.net/api/v2/measurements/{measurement_id}/"
 
@@ -130,14 +130,13 @@ def get_data_from_ripe_measurement(measurement_id: str) -> list[dict[str, Any]]:
     returns the parsed JSON response as a list of dictionaries.
 
     Args:
-        measurement_id (str): The RIPE Atlas measurement ID to fetch results for
+        measurement_id (str): The RIPE Atlas measurement ID to fetch results for.
 
     Returns:
-        list[dict[str, Any]]: A list of measurement result entries as dictionaries
+        list[dict[str, Any]]: A list of measurement result entries as dictionaries.
 
     Raises:
-        RipeMeasurementError: If the HTTP request fails or the response cannot be parsed as JSON
-        or the answer is not a list of dicts
+        RipeMeasurementError: If the HTTP request fails or the response cannot be parsed as JSON or the answer is not a list of dicts.
 
     Notes:
         - Requires the `RIPE_KEY` environment variable to be set with a valid API key.
@@ -177,13 +176,13 @@ def get_probe_data_from_ripe_by_id(probe_id: str) -> dict[str, Any]:
     stored in the RIPE_KEY environment variable.
 
     Args:
-        probe_id (str): The ID of the RIPE Atlas probe to fetch information for
+        probe_id (str): The ID of the RIPE Atlas probe to fetch information for.
 
     Returns:
         dict[str, Any]: A dictionary containing metadata about the probe
 
     Raises:
-        RipeMeasurementError: If the HTTP request fails or the response is not valid JSON
+        RipeMeasurementError: If the HTTP request fails or the response is not valid JSON.
 
     Notes:
         - Requires the `RIPE_KEY` environment variable to be set with a valid API key.
@@ -215,10 +214,10 @@ def parse_probe_data(probe_response: dict) -> ProbeData:
     country code, and coordinates from the API response.
 
     Args:
-        probe_response (dict): The raw dictionary response from the RIPE Atlas probe lookup API
+        probe_response (dict): The raw dictionary response from the RIPE Atlas probe lookup API.
 
     Returns:
-        ProbeData: The data about the probe
+        ProbeData: Parsed information including the probe's ID, IP addresses, country code, and location.
 
     Notes:
         - If an error is present in the response, a default `ProbeData` with dummy values is returned.
@@ -265,7 +264,7 @@ def is_failed_measurement(entry: dict[str, Any]) -> bool:
     which typically indicates a failed probe response.
 
     Args:
-        entry (dict[str, Any]): A dictionary representing a single measurement entry from the RIPE API
+        entry (dict[str, Any]): A dictionary representing a single measurement entry from the RIPE API.
 
     Returns:
         bool: True if all entries in the result indicate failure, False otherwise.
@@ -283,10 +282,10 @@ def successful_measurement(entry: dict[str, Any]) -> int | None:
     lowest absolute offset value is considered the most successful.
 
     Args:
-        entry (dict[str, Any]): A dictionary representing a single measurement entry from the RIPE API
+        entry (dict[str, Any]): A dictionary representing a single measurement entry from the RIPE API.
 
     Returns:
-        int | None: The index of the result entry with the lowest offset, or None if no valid entries exist
+        int | None: The index of the result entry with the lowest offset, or None if no valid entries exist.
     """
     result = entry.get("result", [])
     min_offset = float("inf")
@@ -314,12 +313,16 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
       - Extracts NTP-related server and timing information.
       - Converts timestamps and metrics into structured internal representations.
       - Adds probe-specific metadata fetched from the RIPE API.
+      - Returns a status string indicating whether all measurements have been processed.
 
     Args:
-        data_measurement (list[dict]): A list of dictionaries representing raw measurement entries from the RIPE Atlas API
+        data_measurement (list[dict]): A list of dictionaries representing raw measurement entries from the RIPE Atlas API.
 
     Returns:
-        list[RipeMeasurement]: A list of parsed and structured RipeMeasurement objects.
+        tuple[list[RipeMeasurement], str]:
+            - A list of parsed and structured `RipeMeasurement` objects.
+            - A status string returned by `check_all_measurements_done`, indicating
+              whether all expected measurements are present and complete.
 
     Notes:
         - Measurements that are marked as failed are still processed, but filled with default values.
