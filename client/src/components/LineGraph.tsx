@@ -15,6 +15,7 @@ ChartJS.defaults.color = 'rgba(239,246,238,1)'
 import { NTPData } from '../utils/types.ts'
 import { Measurement } from '../utils/types.ts'
 import 'chartjs-adapter-date-fns';
+import { ChartDataset } from 'chart.js';
 
 type ChartInputData = {
     data: Map<string, NTPData[]> | null
@@ -125,7 +126,8 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
   const SAMPLE_DENSITY = 100;  // data points reduction factor
 
   const axisMs = endPoint.getTime() - startingPoint.getTime();
-  const datasets: any[] = [];
+  // const datasets: any[] = [];
+  const datasets: ChartDataset<'line', { x: string; y: number }[]>[] = [];
   const thresholdMs =
         SAMPLE_DENSITY > 0 && axisMs > 0
           ? axisMs / SAMPLE_DENSITY
@@ -154,7 +156,7 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
     });
   }
 
-  const yValues: number[] = datasets.flatMap(ds => ds.data.map((p: any) => p.y));
+  const yValues: number[] = datasets.flatMap(ds => ds.data.map(p => p.y));
   let minY = 0, maxY = 1;
   if (yValues.length) {
     const minV = Math.min(...yValues);

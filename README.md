@@ -76,8 +76,8 @@ To set up and run the backend server, follow these steps:
           version: 4
           timeout_measurement_s: 7  # in seconds
           number_of_measurements_for_calculating_jitter: 8
-        
-        
+
+
         edns:
           mask_ipv4: 24 # bits
           mask_ipv6: 56 # bits
@@ -87,17 +87,17 @@ To set up and run the backend server, follow these steps:
             - "1.1.1.1"
             - "2001:4860:4860::8888"
           edns_timeout_s: 3 # in seconds
-        
-        
+
+
         ripe_atlas:
           timeout_per_probe_ms: 4000
           packets_per_probe: 3
           number_of_probes_per_measurement: 3
-        
+
         bgp_tools:
           anycast_prefixes_v4_url: "https://raw.githubusercontent.com/bgptools/anycast-prefixes/master/anycatch-v4-prefixes.txt"
           anycast_prefixes_v6_url: "https://raw.githubusercontent.com/bgptools/anycast-prefixes/master/anycatch-v6-prefixes.txt"
-        
+
         max_mind: # see load_config_data if you want to change the path
           path_city: "GeoLite2-City.mmdb"
           path_country: "GeoLite2-Country.mmdb"
@@ -131,7 +131,7 @@ To set up and run the backend server, follow these steps:
     0 1 * * * /bin/bash /full_path_to/update_geolite_and_bgptools_dbs.sh >> /full_path_to/update_geolite_and_bgptools_dbs.log 2>&1
     ```
    But replace `/full_path_to` with the output of running :
-   ```bash 
+   ```bash
     pwd
     ```
    Or if you want to manually run it without scheduling:
@@ -274,7 +274,7 @@ The helper functions for transforming data and  the global types used can all be
     | ```fetchData```  | A function for initiating the GET request                    |
 
 
-3. **triggerRipeMeasurement**
+3. **useTriggerRipeMeasurement**
 
     This hook is what send the trigger for the RIPE measurement to be started.
 
@@ -298,7 +298,7 @@ The helper functions for transforming data and  the global types used can all be
 
     It perfoms **polling** on the backend's endpoint to regularly update the data it receives.
     This is beacuse RIPE doesn't offer all the data at once, instead slowly sending the measurements from the probes its done.
-    It has an adjustable polling rate from the method signature. 
+    It has an adjustable polling rate from the method signature.
     Since the polling may begin before the RIPE measurement is ready, in the case it receives HTTP 405 from the backend (Method not allowed),
     it has a separate timer to retry after.
     The polling continues until there is an error, the measurement is complete, the measurement times out, or until a new one begins.
