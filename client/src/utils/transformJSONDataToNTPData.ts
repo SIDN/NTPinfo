@@ -12,7 +12,7 @@ export const transformJSONDataToNTPData = (fetchedData: any): NTPData | null => 
         return null
     
     return {
-        ntp_version: fetchedData.ntp_verison,
+        ntp_version: fetchedData.ntp_version,
         vantage_point_ip: fetchedData.vantage_point_ip,
         ip: fetchedData.ntp_server_ip,
         server_name: fetchedData.ntp_server_name,
@@ -38,4 +38,4 @@ export const transformJSONDataToNTPData = (fetchedData: any): NTPData | null => 
         nr_measurements_jitter: fetchedData.nr_measurements_jitter,
         time: (fetchedData.client_sent_time.seconds - 2208988800) * 1000
     }
-};
+}

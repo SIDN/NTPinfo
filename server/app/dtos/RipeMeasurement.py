@@ -10,7 +10,7 @@ class RipeMeasurement:
     """
     Represents the complete set of information retrieved from a RipeMeasurement.
 
-    Fields:
+    Attributes:
         measurement_id (int): ID of the measurement from RIPE Atlas
         ntp_measurement (NtpMeasurement): The NTP measurement data
         probe_data (ProbeData): Data related to the probe
@@ -34,4 +34,3 @@ class RipeMeasurement:
             raise TypeError(f"time_to_result must be float or int, got {type(self.time_to_result).__name__}")
         if not isinstance(self.ref_id, str):
             raise TypeError(f"ref_id must be str, got {type(self.ref_id).__name__}")
-

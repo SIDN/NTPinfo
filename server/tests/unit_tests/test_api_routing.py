@@ -1,11 +1,10 @@
-import time
 from unittest.mock import patch, MagicMock
 import pytest
 from fastapi.testclient import TestClient
 from ipaddress import IPv4Address, ip_address
 
-from sqlalchemy import create_engine, StaticPool, Engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import Engine
+from sqlalchemy.orm import sessionmaker
 
 from server.app.utils.load_config_data import get_rate_limit_per_client_ip
 from server.app.dtos.ProbeData import ServerLocation
@@ -228,7 +227,9 @@ def mock_fetch_ripe_data_result():
 def test_read_root(test_client):
     response = test_client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"Hello": "World"}
+    assert "<title>NTPInfo API</title>" in response.text
+    assert "Welcome to the NTPInfo API" in response.text
+    assert "interactive docs" in response.text
 
 
 # @patch("server.app.api.routing.Depends")
@@ -261,6 +262,7 @@ def test_read_data_measurement_success(mock_is_ip, mock_insert, mock_perform_mea
     mock_perform_measurement.assert_called_with("pool.ntp.org", "83.25.24.10", 4)
     mock_insert.assert_called_once_with(measurement, mock_insert.call_args[0][1])
     client.close()
+
 
 @patch("server.app.api.routing.get_server_ip")
 @patch("server.app.services.api_services.perform_ntp_measurement_domain_name_list")

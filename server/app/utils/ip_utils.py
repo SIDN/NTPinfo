@@ -170,7 +170,7 @@ def get_server_ip(wanted_ip_type: int) -> IPv4Address | IPv6Address | None:
         wanted_ip_type (int): The type of IP address we are looking for.
 
     Returns:
-        Optional[IPv4Address | IPv6Address]: The server's external IP address
+        Optional[IPv4Address | IPv6Address]: The server's external IP address.
         as an IPv4Address or IPv6Address object, or None if detection fails.
     """
     # use a dummy connection to get the outward-facing IP (IPv4 or IPv6 connection)
@@ -263,8 +263,7 @@ def client_ip_fetch(request: Request, wanted_ip_type: int) -> str | None:
         str | None: The determined IP address of the client (or a fallback server IP).
 
     Raises:
-         HTTPException:
-            - 503: If neither the client's IP from headers/request nor the fallback server IP can be successfully resolved.
+         HTTPException: 503: If neither the client's IP from headers/request nor the fallback server IP can be successfully resolved.
     """
     try:
         client_ip = request.headers.get("X-Forwarded-For", request.client.host if request.client is not None else None)
@@ -359,6 +358,7 @@ def is_this_ip_anycast(searched_ip: Optional[str]) -> bool:
                     else:
                         whole_network = ipaddress.IPv6Network(line, strict=False)
                     if ip in whole_network:
+                        print(line)
                         return True
                 except Exception:
                     continue
