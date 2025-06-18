@@ -8,6 +8,14 @@
 #  exit 1
 #fi
 
+
+# Load environment for cron
+if [ -f /etc/cron.env ]; then
+  set -a
+  . /etc/cron.env
+  set +a
+fi
+
 TARGET_DIR="/app/server"
 CONFIG_FILE="/app/server/server_config.yaml"
 
@@ -39,29 +47,32 @@ download_anycast_db() {
 }
 
 download_and_extract() {
-  DB_NAME=$1
-  echo "Downloading ${DB_NAME}..."
-  curl -O -J -L -u "$ACCOUNT_ID:$LICENSE_KEY" "https://download.maxmind.com/geoip/databases/${DB_NAME}/download?suffix=tar.gz"
+#  DB_NAME=$1
+#  echo "Downloading ${DB_NAME}..."
+#  curl -O -J -L -u "$ACCOUNT_ID:$LICENSE_KEY" "https://download.maxmind.com/geoip/databases/${DB_NAME}/download?suffix=tar.gz"
 
-  echo "Extracting ${DB_NAME}..."
-  tar -xzf ${DB_NAME}_*.tar.gz
+  echo "This is the account id: ${ACCOUNT_ID}"
+  echo "This is the license jey: ${LICENSE_KEY}"
 
-  EXTRACTED_DIR=$(tar -tzf ${DB_NAME}_*.tar.gz | head -1 | cut -f1 -d"/")
-  MMDB_FILE=$(find "$EXTRACTED_DIR" -name "*.mmdb" | head -n 1)
-
-  if [ -z "$MMDB_FILE" ]; then
-    echo "Error: .mmdb file not found for ${DB_NAME}."
-    return 1
-  fi
-
-  echo "Moving .mmdb to ${TARGET_DIR}/${DB_NAME}.mmdb"
-  mv "$MMDB_FILE" "${TARGET_DIR}/${DB_NAME}.mmdb"
-
-  echo "Cleaning up..."
-  rm ${DB_NAME}_*.tar.gz
-  rm -r "$EXTRACTED_DIR"
-
-  echo "${DB_NAME}.mmdb update complete!"
+#  echo "Extracting ${DB_NAME}..."
+#  tar -xzf ${DB_NAME}_*.tar.gz
+#
+#  EXTRACTED_DIR=$(tar -tzf ${DB_NAME}_*.tar.gz | head -1 | cut -f1 -d"/")
+#  MMDB_FILE=$(find "$EXTRACTED_DIR" -name "*.mmdb" | head -n 1)
+#
+#  if [ -z "$MMDB_FILE" ]; then
+#    echo "Error: .mmdb file not found for ${DB_NAME}."
+#    return 1
+#  fi
+#
+#  echo "Moving .mmdb to ${TARGET_DIR}/${DB_NAME}.mmdb"
+#  mv "$MMDB_FILE" "${TARGET_DIR}/${DB_NAME}.mmdb"
+#
+#  echo "Cleaning up..."
+#  rm ${DB_NAME}_*.tar.gz
+#  rm -r "$EXTRACTED_DIR"
+#
+#  echo "${DB_NAME}.mmdb update complete!"
 }
 
 download_anycast_db "anycast-v4-prefixes.txt" "$URL_V4"

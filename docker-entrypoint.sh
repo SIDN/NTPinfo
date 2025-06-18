@@ -7,7 +7,7 @@ echo "${LICENSE_KEY}"
 
 echo "ACCOUNT_ID=${ACCOUNT_ID}" > /etc/cron.env
 echo "LICENSE_KEY=${LICENSE_KEY}" >> /etc/cron.env
-echo "" >> /etc/cron.env
+echo "PATH=${PATH}" >> /etc/cron.env
 
 chmod 644 /etc/cron.env
 
@@ -24,6 +24,5 @@ touch /var/log/cron.log
 # start cron in background
 cron
 
-/app/update.sh
 # run fastapi app
 exec uvicorn server.app.main:create_app --factory --host 0.0.0.0 --port 8000
