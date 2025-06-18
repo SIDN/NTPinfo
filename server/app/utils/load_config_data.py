@@ -161,8 +161,11 @@ def get_rate_limit_per_client_ip() -> str:
     r = ntp["rate_limit_per_client_ip"]
 
     if "/" not in r:
-        raise ValueError("ntp 'rate_limit_per_client_ip' must contain 2 parts, separated by '/'")
-    number, unit = r.split("/")
+        raise ValueError("ntp 'rate_limit_per_client_ip' must contain 2 parts, separated by a '/'")
+    try:
+        number, unit = r.split("/")
+    except Exception:
+            raise ValueError("ntp 'rate_limit_per_client_ip' is in invalid format")
     if number.isdigit() is False:  # check whether all characters are digits
         raise ValueError("ntp 'rate_limit_per_client_ip' must have first part an integer")
     unit = unit.lower()
