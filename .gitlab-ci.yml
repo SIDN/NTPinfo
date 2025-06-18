@@ -99,6 +99,7 @@ build_docs:
 
 pages:
   stage: docs
+  needs: [ build_docs ]
   script:
     - mv docs/build/html public
   artifacts:
@@ -107,5 +108,5 @@ pages:
   #    expire_in: 1 week
   #  rules:
   #    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-  dependencies:
-    - build_docs
+#  dependencies:
+#    - build_docs
