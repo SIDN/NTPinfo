@@ -40,3 +40,6 @@ venv/
 /server/GeoLite2-City.mmdb
 /server/GeoLite2-ASN.mmdb
 /server/GeoLite2-Country.mmdb
+
+#Sphynx docs
+/docs/build/

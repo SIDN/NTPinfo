@@ -312,7 +312,6 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
                          probes_requested: int = get_ripe_number_of_probes_per_measurement()) -> tuple[dict, dict]:
     """
     This method gets the RIPE measurement settings for the performing a RIPE measurement.
-
     Args:
         ip_family_of_ntp_server (int): The IP family of the NTP server. (4 or 6)
         ntp_server (str): The NTP server IP address or domain name.
