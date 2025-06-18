@@ -75,7 +75,7 @@ export interface HomeCacheState {
   vantagePointInfo: [LatLngTuple,string] | null
   allNtpMeasurements: NTPData[] | null
   ripeMeasurementResp: RIPEData[] | null
-  ripeMeasurementStatus: string | null     // 'loading' | 'complete' | ...
+  ripeMeasurementStatus: RipeStatus | null    // 'pending' | 'complete' | ...
   ipv6Selected: boolean
 }
 

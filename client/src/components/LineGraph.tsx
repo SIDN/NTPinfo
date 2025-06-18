@@ -90,7 +90,6 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
   //
   // format X axis labels based on which time interval is selected
   //
-  // let formatter: (date: Date) => string
   // start and end points, these can be modified for custom intervals
   let startingPoint = new Date(now)
   let endPoint = new Date(now)
@@ -99,34 +98,28 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
   let customFmt = '';
 
   switch (selectedOption) {
-    case "Last Hour": {
-      // formatter = (d) => d.toLocaleTimeString([], { hour: "numeric", minute: "numeric" })
+    case "Last Hour":
       startingPoint.setHours(now.getHours() - 1)
-      break;
-    }
-    case "Last Day": {
-      // formatter = (d) => d.toLocaleTimeString([], { hour: "numeric" })
+      break
+    case "Last Day":
       startingPoint.setDate(now.getDate() - 1)
-      break;
-    }
-    case "Last Week": {
-      // formatter = (d) => d.toLocaleDateString([], { day: "2-digit", month: "short"})
+      break
+    case "Last Week":
       startingPoint.setDate(now.getDate() - 7)
-      break;
-    }
+      break
     case "Custom": {
       if (customRange?.from) startingPoint = new Date(customRange.from);
       if (customRange?.to)   endPoint     = new Date(customRange.to);
 
       const { unit, fmt } = unitForSpan(endPoint.getTime() - startingPoint.getTime());
 
-      // formatter      = (d: Date) => d.toLocaleString();
       customTimeUnit = unit;
       customFmt      = fmt;
       break;
     }
     default:
-      // formatter = (d) => d.toLocaleTimeString()
+      break;
+
   }
 
   /*SAMPLE_DENSITY represents the approximate maximum number of points that can be displayed on the graph */
