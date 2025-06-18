@@ -10,7 +10,7 @@ RUN pip install -r requirements.txt
 
 COPY server/ ./server
 
-COPY update_geolite_and_bgptools_dbs.sh /app/update.sh
+COPY update.sh /app/update.sh
 RUN chmod +x /app/update.sh
 
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
