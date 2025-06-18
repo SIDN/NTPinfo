@@ -83,26 +83,26 @@ server_tests:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-#build_docs:
-#  stage: docs
-#  script:
-#    - source venv/bin/activate
-#    - pip install sphinx sphinx-rtd-theme
-#    - cd docs
-#    - make html
-#  artifacts:
-#    paths:
-#      - docs/build/html
-#    expire_in: 1 week
+build_docs:
+  stage: docs
+  script:
+    - source venv/bin/activate
+    - pip install sphinx sphinx-rtd-theme
+    - cd docs
+    - make html
+  artifacts:
+    paths:
+      - docs/build/html
+    expire_in: 1 week
 #  rules:
 #    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-#pages:
-#  stage: docs
-#  script:
-#    - mv docs/build/html public
-#  artifacts:
-#    paths:
-#      - public
+pages:
+  stage: docs
+  script:
+    - mv docs/build/html public
+  artifacts:
+    paths:
+      - public
 #  rules:
 #    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
