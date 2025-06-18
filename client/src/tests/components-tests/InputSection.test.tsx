@@ -51,7 +51,7 @@ describe('InputSection', () => {
     fireEvent.change(input, { target: { value: 'time.apple.com  ' } }); // spaces so trim is tested as well
     fireEvent.click(button);
 
-    expect(onClick).toHaveBeenCalledWith('time.apple.com ', true);
+    expect(onClick).toHaveBeenCalledWith('time.apple.com', true);
   });
 
   test('Trigger onClick on Enter', () => {
@@ -98,7 +98,6 @@ describe('InputSection', () => {
 
     const ipv4Radio = screen.getByLabelText('IPv4');
     fireEvent.click(ipv4Radio);
-    console.log(onIPv6Toggle.mock.calls);
     expect(onIPv6Toggle).toHaveBeenCalledWith(false);
     
   });
