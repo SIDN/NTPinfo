@@ -428,8 +428,10 @@ def get_max_mind_path_asn() -> str:
 def check_geolite_account_id_and_key() -> bool:
     """
     This function checks that we have the account id and key set.
-    Only Warnings
+    Only Warnings. It does not raise errors.
 
+    Returns:
+        bool: True if we have the account id and key set.
     """
     ans = os.getenv('ACCOUNT_ID')
     if ans is None:

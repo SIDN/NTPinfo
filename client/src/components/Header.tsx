@@ -1,11 +1,11 @@
-import '../styles/Hero.css'
+import '../styles/Header.css'
 import github from '../assets/github-svgrepo-com.png'
 import NTPinfoLogo from '../assets/NTPinfo.png'
 
-function Hero() {
+function Header() {
     return (
-        <div className="hero">
-            <div className="text-hero">
+        <div className="header">
+            <div className="text-header">
                 <img src={NTPinfoLogo} alt="NTPinfo Logo" className="ntpinfo-logo" />
                 <h1 id="title">NTPinfo</h1>
                 {/* <p>A tool to evaluate the accuracy of publicly available NTP servers</p> */}
@@ -13,8 +13,8 @@ function Hero() {
             <nav className="navbar">
                 {/* <a href="#" aria-label="About">About</a> */}
                 <div className="img-and-text">
-                    <a href="https://youtu.be/dQw4w9WgXcQ?si=wQTya5-1b1EyxcU8" target="_blank" rel="noopener noreferrer" aria-label="GitHub Repository">Github</a>
-                    <a href="https://youtu.be/dQw4w9WgXcQ?si=wQTya5-1b1EyxcU8" target="_blank" rel="noopener noreferrer" aria-label="GitHub Repository">
+                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="GitHub Repository">Github</a>
+                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="GitHub Repository">
                         <img src={github} alt="GitHub Logo" />
                     </a>
                 </div>
@@ -23,4 +23,4 @@ function Hero() {
     );
 }
 
-export default Hero
+export default Header
