@@ -55,7 +55,7 @@ To set up and run the backend server, follow these steps:
 
 ---
 
-2. **Create a `.env` file** in the `root` directory with your database credentials in the following format:
+2. **Create a `.env` file** in the `root` directory with your accounts credentials in the following format:
 
     ```dotenv
     DB_NAME={db_name}
@@ -69,12 +69,12 @@ To set up and run the backend server, follow these steps:
     ACCOUNT_ID={geolite account id}
     LICENSE_KEY={geolite key}
     ```
-   Besides, the config file for the server is `server/server_config.yaml` and it contains the following variables:
+   Besides, the config file with public data for the server is `server/server_config.yaml` and it contains the following variables:
 
       ```yaml
         ntp:
           version: 4
-          timeout_measurement_s: 6  # in seconds
+          timeout_measurement_s: 7  # in seconds
           number_of_measurements_for_calculating_jitter: 8
 
 
@@ -82,33 +82,27 @@ To set up and run the backend server, follow these steps:
           mask_ipv4: 24 # bits
           mask_ipv6: 56 # bits
           default_order_of_edns_servers: # you can add multiple servers ipv4 or ipv6. The first one has the highest priority.
-          # The others are used in case the first one cannot solve the domain name
+            # The others are used in case the first one cannot solve the domain name
             - "8.8.8.8"
             - "1.1.1.1"
-          edns_timeout_s: 2 # in seconds
+            - "2001:4860:4860::8888"
+          edns_timeout_s: 3 # in seconds
 
 
         ripe_atlas:
-          timeout_per_probe_ms: 2000
+          timeout_per_probe_ms: 4000
           packets_per_probe: 3
-          number_of_probes_per_measurement: 35
-          max_probes_per_measurement: 100
-          probes_wanted_percentages: [0.33, 0.30, 0.27, 0.10, 0.0] # exactly 5 values and their sum must be 1 (100%)
+          number_of_probes_per_measurement: 3
 
         bgp_tools:
           anycast_prefixes_v4_url: "https://raw.githubusercontent.com/bgptools/anycast-prefixes/master/anycatch-v4-prefixes.txt"
           anycast_prefixes_v6_url: "https://raw.githubusercontent.com/bgptools/anycast-prefixes/master/anycatch-v6-prefixes.txt"
 
-        max_mind:
+        max_mind: # see load_config_data if you want to change the path
           path_city: "GeoLite2-City.mmdb"
           path_country: "GeoLite2-Country.mmdb"
           path_asn: "GeoLite2-ASN.mmdb"
       ```
-    After this, you would need to run `update_geolite_and_bgptools_dbs.sh` to initialise the local dbs for geolocation and detecting anycast.
-
-    **Common errors**:
-    - If you run `update_geolite_and_bgptools_dbs.sh` from Linux or WSL, the file `.env` may contain invisible Windows carriage return characters and this may make the `.sh` script to fail. You can see them using `cat -A .env`. Look for any "^M"
-   at the end of lines. You can remove them by running this command: `dos2unix .env`. This should solve the problem.
 
    **Note**:
     - Ensure PostgreSQL is running and accessible with the credentials provided in the `.env` file.
@@ -126,12 +120,43 @@ To set up and run the backend server, follow these steps:
 
 ---
 
-4. **Run the server**:
+4. **Download the max mind and BGP tools databases, and schedule running this file once every day**:
+
+    This will initialise the local dbs for geolocation and detecting anycast, and will schedule downloading them every day at 1 AM.
+    Be sure that you are in the root folder, and `.env` file has all variables.
 
     ```bash
-    uvicorn server.app.main:app --reload
+    cd ..
+    crontab -e
+    0 1 * * * /bin/bash /full_path_to/update_geolite_and_bgptools_dbs.sh >> /full_path_to/update_geolite_and_bgptools_dbs.log 2>&1
+    ```
+   But replace `/full_path_to` with the output of running :
+   ```bash
+    pwd
+    ```
+   Or if you want to manually run it without scheduling:
+    ```bash
+      ./update_geolite_and_bgptools_dbs.sh
     ```
 
+   **Common errors**:
+   - If you run `update_geolite_and_bgptools_dbs.sh` from Linux or WSL, the file `.env` may contain invisible Windows carriage return characters and this may make the `.sh` script to fail. You can see them using `cat -A .env`. Look for any "^M"
+       at the end of lines. You can remove them by running this command: `dos2unix .env`. This should solve the problem.
+   - If you are using Linux or WSL and you received `/bin/bash^M: bad interpreter: No such file or directory` then it may mean that your script has Windows-style line endings (CRLF, \r\n) instead of Unix-style (LF, \n)
+   - If downloading the Geolite databases fails, consider that downloading them has a daily limit per account. (This limit is only for geolite databases)
+
+    **Notes**:
+    - Be sure to schedule running this file once every day.
+
+---
+
+5. **Run the server**:
+
+    ```bash
+    uvicorn server.app.main:create_app --reload --factory
+    ```
+
+    You should see the server running now!
 ### Client
 
 #### Client Setup and Running
@@ -221,6 +246,7 @@ The helper functions for transforming data and  the global types used can all be
     It parses the JSON received from the backend my using the method ```transformJSONDataToNTPData```.
 
     It returns a **5-tuple**:
+
     | Return value     | Description                                                  |
     |------------------|--------------------------------------------------------------|
     | ```data```       | An array of NTP results                                      |
@@ -239,6 +265,7 @@ The helper functions for transforming data and  the global types used can all be
     It parses the JSON received from the backend my using the method ```transformJSONDataToNTPData```.
 
     It returns a **4-tuple**:
+
     | Return value     | Description                                                  |
     |------------------|--------------------------------------------------------------|
     | ```data```       | An array of NTP results                                      |
@@ -257,6 +284,7 @@ The helper functions for transforming data and  the global types used can all be
     It parses the JSON received in place, since it a simple response.
 
     It returns a **4-tuple**:
+
     | Return value     | Description                                                  |
     |------------------|--------------------------------------------------------------|
     | ```data```       | The response of the trigger as ```RIPERest```                |
@@ -277,12 +305,14 @@ The helper functions for transforming data and  the global types used can all be
     In the case of the new measurement beggining, the previous polling call is cancelled in order to prevent interleaving and other issues.
 
     It returns a **3-tuple** consisting of:
-    | Return value     | Description                                                  |
-    |------------------|--------------------------------------------------------------|
-    | ```result```     | An array of RIPE results                                     |
-    | ```status```     | compound type indicating the current state of the measurement|
-    | ```error```      | Error object if one occured                                  |
-    - The compound type used for indicating the status is:  ```"pending" | "partial_results" | "complete" | "timeout" | "error"```
+
+    | Return value | Description                                                  |
+    |--------------|--------------------------------------------------------------|
+    | ```result``` | An array of RIPE results                                     |
+    | ```status``` | compound type indicating the current state of the measurement|
+    | ```error```  | Error object if one occured                                  |
+
+- The compound type used for indicating the status is:  ```"pending" | "partial_results" | "complete" | "timeout" | "error"```
 
 5. **useIpInfo**
 
@@ -297,6 +327,7 @@ The helper functions for transforming data and  the global types used can all be
     This type is not saved in ```client\utils``` since it is not widely used like the other types there
 
     It returns a **5-tuple**:
+
     | Return value     | Description                                                  |
     |------------------|--------------------------------------------------------------|
     | ```data```       | Geolocation data fetched as ```IpInfoData```                 |
