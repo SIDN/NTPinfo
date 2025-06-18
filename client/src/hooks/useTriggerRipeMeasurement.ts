@@ -29,12 +29,8 @@ export const useTriggerRipeMeasurement = () => {
             const parsedData = {measurementId, vantage_point_ip, coordinates}
             setData(parsedData)
             return {parsedData}
-        } catch (err: unknown) {
-            if (err instanceof Error) {
-                setError(err)
-            } else {
-                setError(new Error("An unknown error occurred"))
-            }
+        } catch (err: any) {
+            setError(err)
             return null
         } finally {
             setLoading(false)

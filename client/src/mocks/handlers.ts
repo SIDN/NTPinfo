@@ -449,8 +449,8 @@ export const handlers = [
             }
         }
     ),
-    http.get<{measurement_id: string},{}, { status: string, message: string, results: any[]}>(
-        'measurements/ripe/:measurement_id', ({params}) => {
+    http.get<{measurement_id: string}, never, { status: string, message: string, results: any[]} | {detail: string}>(
+        'http://localhost:8000/measurements/ripe/:measurement_id', ({params}) => {
             const measurementId = params.measurement_id
             const mockRipeMeasurement = {
                 "status": "complete",
@@ -647,30 +647,44 @@ export const handlers = [
                     }
                 ]
             }
-            const measurementVariations = new Map<string, Partial<typeof mockRipeMeasurement>>([
-                ["1",{status: "complete", message: "Measurement complete"}],
-                ["2",{status: "partial_results", message: "Measurement ongoing"}],
-                ["3",{status: "timeout", message: "Measurement timed out"}]
-            ])
-            const variation = measurementVariations.get(measurementId)
-            const measurement = {...mockRipeMeasurement,...variation}
-
-            return HttpResponse.json({status:measurement.status, message: measurement.message, results: [measurement]}, {status: 200})
-        }
-    ),
-    http.get<{ measurementId: string }, {}, any>(
-        '/measurements/ripe/:measurementId',({ params }) => {
-            const id = params.measurementId;
-
-            if (id === 'failed') {
+            if(measurementId === "failed-retry") {
                 return HttpResponse.json(
                     {
                     detail:
-                        "RIPE call failed: Network error while checking measurement status: 405 Client Error: Method Not Allowed for url: https://atlas.ripe.net/api/v2/measurements/-1/. Try again later!",
+                        "Measurement retry",
                     },
                     { status: 405 }
                 )
             }
+            if (measurementId === 'failed-error') {
+                return HttpResponse.json(
+                    {
+                    detail:
+                        "Measurement failed",
+                    },
+                    { status: 500 }
+                )
+            }
+            if (measurementId === 'failed-timeout') {
+                return HttpResponse.json(
+                    {
+                    detail:
+                        "Measurement failed",
+                    },
+                    { status: 504 }
+                )
+            }
+            const measurementVariations = new Map<string, Partial<typeof mockRipeMeasurement>>([
+                ["1",{status: "complete", message: "Measurement complete"}],
+                ["2",{status: "partial_results", message: "Measurement ongoing"}],
+                ["3",{status: "timeout", message: "Measurement timed out"}],
+                ["4",{status: "pending", message: "Measurement pending"}],
+                ["5",{status: "error", message: "Measurement error"}],
+            ])
+            const variation = measurementVariations.get(measurementId)
+            const measurement = {...mockRipeMeasurement,...variation}
+
+            return HttpResponse.json({status:measurement.status, message: measurement.message, results: measurement.results}, {status: 200})
         }
     )
 ]

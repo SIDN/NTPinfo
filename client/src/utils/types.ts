@@ -41,9 +41,9 @@ export type Measurement = "RTT" | "offset"
  */
 export type RIPEData = {
   measurementData : NTPData
-  probe_addr_v4: string
-  probe_addr_v6: string
-  probe_id: number
+  probe_addr_v4: string | null
+  probe_addr_v6: string | null
+  probe_id: string
   probe_country: string
   probe_location: LatLngTuple
   time_to_result: number
