@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from server.app.utils.ip_utils import is_this_ip_anycast
 from server.app.utils.perform_measurements import perform_ntp_measurement_domain_name_list
 from server.app.utils.ip_utils import get_server_ip
-from server.app.models.CustomError import InputError, RipeMeasurementError
+from server.app.models.CustomError import InputError, RipeMeasurementError, DNSError
 from server.app.utils.load_config_data import get_nr_of_measurements_for_jitter
 from server.app.utils.calculations import calculate_jitter_from_measurements, human_date_to_ntp_precise_time
 from server.app.utils.ip_utils import ip_to_str
@@ -225,8 +225,8 @@ def measure(server: str, wanted_ip_type: int, session: Session, client_ip: Optio
                 nr_jitter_measurements = 0
                 insert_measurement(m, session)
                 result = calculate_jitter_from_measurements(session, m, measurement_no)
-                if result is not None:
-                    jitter, nr_jitter_measurements = result
+                # if result is not None:
+                jitter, nr_jitter_measurements = result
                 return [(m, jitter, nr_jitter_measurements)]
             # the measurement failed
             print("The ntp server " + server + " is not responding.")
@@ -244,12 +244,15 @@ def measure(server: str, wanted_ip_type: int, session: Session, client_ip: Optio
                     nr_jitter_measurements = 0
                     insert_measurement(m, session)
                     result = calculate_jitter_from_measurements(session, m, measurement_no)
-                    if result is not None:
-                        jitter, nr_jitter_measurements = result
+                    # if result is not None:
+                    jitter, nr_jitter_measurements = result
                     m_results.append((m, jitter, nr_jitter_measurements))
                 return m_results
             print("The ntp server " + server + " is not responding.")
             return None
+    except DNSError as e:
+        print("Performing measurement error message:", e)
+        raise e
     except Exception as e:
         print("Performing measurement error message:", e)
         return None

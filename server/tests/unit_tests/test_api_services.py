@@ -173,9 +173,9 @@ def test_measure_with_exception(mock_measure_ip, mock_measure_domain, mock_inser
     mock_measure_ip.return_value = None
     mock_measure_domain.side_effect = DNSError("DNS failure")
     fake_session = MagicMock(spec=Session)
-    result = measure("invalid.server", 4, fake_session)
 
-    assert result is None
+    with pytest.raises(DNSError):
+        measure("invalid.server", 4, fake_session)
     mock_measure_ip.assert_not_called()
     mock_measure_domain.assert_called_once_with("invalid.server", None, 4)
     mock_insert.assert_not_called()

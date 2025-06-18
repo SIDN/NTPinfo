@@ -103,7 +103,7 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
         raise e
     except DNSError as e:
         print(e)
-        raise HTTPException(status_code=422, detail="Domain name cannot be resolved.")
+        raise HTTPException(status_code=422, detail="Domain name is invalid or cannot be resolved.")
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}.")
