@@ -8,7 +8,7 @@ class NtpTimestamps:
     The four key timestamps used in NTP (Network Time Protocol) exchange
     between a client and a server
 
-    Fields:
+    Attributes:
         client_sent_time (PreciseTime): Time when the request was sent by the client (t1)
         server_recv_time (PreciseTime): Time when the request was received by the server (t2)
         server_sent_time (PreciseTime): Time when the response was sent by the server (t3)

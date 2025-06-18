@@ -200,6 +200,7 @@ def print_ntp_measurement(measurement: NtpMeasurement) -> bool:
         extra = measurement.extra_details
         print(f"Root Delay:            {ntplib._to_time(extra.root_delay.seconds, extra.root_delay.fraction)}")
         print(f"Last Sync Time:        {ntp_precise_time_to_human_date(extra.ntp_last_sync_time)}")
+        print(f"Poll:                  {extra.poll}")
         print(f"Leap:                  {extra.leap}")
 
         print("=========================")
@@ -311,7 +312,6 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
                          probes_requested: int = get_ripe_number_of_probes_per_measurement()) -> tuple[dict, dict]:
     """
     This method gets the RIPE measurement settings for the performing a RIPE measurement.
-
     Args:
         ip_family_of_ntp_server (int): The IP family of the NTP server. (4 or 6)
         ntp_server (str): The NTP server IP address or domain name.
@@ -348,15 +348,8 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
     }
     # pprint.pprint(request_content["probes"])
     return headers, request_content
-# import time
-#
-# start = time.time()
-# example:
-# print_ntp_measurement(perform_ntp_measurement_ip("2a01:b740:a16:4000::1f2", 4))
-# print_ntp_measurement(perform_ntp_measurement_ip("17.253.6.45", 4))
-# print_ntp_measurement(perform_ntp_measurement_ip("17.253.6.45",  4))
-# print_ntp_measurement(perform_ntp_measurement_ip("17.253.6.45",  4))
-# print_ntp_measurement(perform_ntp_measurement_ip("2620:149:a23:4000::1e2",  4))
+
+# print_ntp_measurement(perform_ntp_measurement_ip("2606:4700:f1::123",  4))
 # example to see that they work
 # print_ntp_measurement(perform_ntp_measurement_domain_name_list("time.apple.com", "5a01:c741:a16:4000::1f2", 4, 4)[0])
 # print_ntp_measurement(perform_ntp_measurement_domain_name_list("time.apple.com", "5a01:c741:a16:4000::1f2", 6, 4)[0])
@@ -365,6 +358,3 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
 
 # print(perform_ripe_measurement_ip("2a01:b740:a16:4000::1f2","2a01:c741:a16:4000::1f2", 12))
 # print(perform_ripe_measurement_domain_name("time.apple.com","83.25.24.10", 6, 15))
-# end = time.time()
-
-# print(end - start)

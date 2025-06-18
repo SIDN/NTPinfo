@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+from server.app.utils.location_resolver import get_asn_for_ip
 from server.app.utils.ip_utils import is_this_ip_anycast
 from server.app.utils.perform_measurements import perform_ntp_measurement_domain_name_list
 from server.app.utils.ip_utils import get_server_ip
@@ -42,7 +43,6 @@ def get_format(measurement: NtpMeasurement, jitter: Optional[float] = None,
             - Extra details (root delay, last sync time, leap indicator)
     """
     return {
-        # "vantage": ip_to_str(measurement.vantage_point_ip),
         "ntp_version": measurement.server_info.ntp_version,
         "vantage_point_ip": ip_to_str(measurement.vantage_point_ip),
         "ntp_server_ip": ip_to_str(measurement.server_info.ntp_server_ip),
@@ -81,6 +81,7 @@ def get_format(measurement: NtpMeasurement, jitter: Optional[float] = None,
         "root_delay": NtpCalculator.calculate_float_time(measurement.extra_details.root_delay),
         "poll": measurement.extra_details.poll,
         "root_dispersion": NtpCalculator.calculate_float_time(measurement.extra_details.root_dispersion),
+        "asn_ntp_server": get_asn_for_ip(str(measurement.server_info.ntp_server_ip)),
         "ntp_last_sync_time": {
             "seconds": measurement.extra_details.ntp_last_sync_time.seconds,
             "fraction": measurement.extra_details.ntp_last_sync_time.fraction
@@ -115,15 +116,15 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
     probe_location: Optional[ServerLocation] = measurement.probe_data.probe_location
     return {
         "ntp_version": measurement.ntp_measurement.server_info.ntp_version,
+        "vantage_point_ip": ip_to_str(measurement.ntp_measurement.vantage_point_ip),
         "ripe_measurement_id": measurement.measurement_id,
         "ntp_server_ip": ip_to_str(measurement.ntp_measurement.server_info.ntp_server_ip),
+        "ntp_server_name": measurement.ntp_measurement.server_info.ntp_server_name,
         "ntp_server_location": {
             "ip_is_anycast": is_this_ip_anycast(ip_to_str(measurement.ntp_measurement.server_info.ntp_server_ip)),
             "country_code": measurement.ntp_measurement.server_info.ntp_server_location.country_code,
             "coordinates": measurement.ntp_measurement.server_info.ntp_server_location.coordinates
         },
-        "ntp_server_name": measurement.ntp_measurement.server_info.ntp_server_name,
-        "vantage_point_ip": ip_to_str(measurement.ntp_measurement.vantage_point_ip),
         "probe_addr": {
             "ipv4": ip_to_str(measurement.probe_data.probe_addr[0]),
             "ipv6": ip_to_str(measurement.probe_data.probe_addr[1])
@@ -140,14 +141,8 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
         "root_delay": NtpCalculator.calculate_float_time(measurement.ntp_measurement.extra_details.root_delay),
         "root_dispersion": NtpCalculator.calculate_float_time(
             measurement.ntp_measurement.extra_details.root_dispersion),
+        "asn_ntp_server": get_asn_for_ip(str(measurement.ntp_measurement.server_info.ntp_server_ip)),
         "ref_id": measurement.ref_id,
-        "probe_count_per_type": {
-            'asn': 9,
-            'prefix': 1,
-            'country': 26,
-            'area': 4,
-            'random': 0
-        },
         "result": [
             {
                 "client_sent_time": {
@@ -287,7 +282,6 @@ def fetch_historic_data_with_timestamps(server: str, start: datetime, end: datet
     # print(end_pt)
     # start_pt = PreciseTime(450, 20)
     # end_pt = PreciseTime(1200, 100)
-    # raw_data = get_measurements_timestamps_ip(pool, ip, start_pt, end_pt)
     measurements = []
     if is_ip_address(server) is not None:
         measurements = get_measurements_timestamps_ip(session, parse_ip(server), start_pt, end_pt)
@@ -306,10 +300,10 @@ def fetch_ripe_data(measurement_id: str) -> tuple[list[dict], str]:
     standardized dictionary format.
 
     Args:
-        measurement_id (str): The unique ID of the RIPE Atlas measurement to fetch
+        measurement_id (str): The unique ID of the RIPE Atlas measurement to fetch.
 
     Returns:
-        list[dict]: A list of dictionaries, each representing a formatted NTP measurement
+        list[dict]: A list of dictionaries, each representing a formatted NTP measurement.
     """
     measurements, status = parse_data_from_ripe_measurement(get_data_from_ripe_measurement(measurement_id))
     measurements_formated = []
@@ -332,14 +326,14 @@ def perform_ripe_measurement(ntp_server: str, client_ip: Optional[str], wanted_i
         wanted_ip_type (int): The IP type that we want to measure. (4 or 6)
 
     Returns:
-        str: The RIPE measurement ID (as a string)
+        str: The RIPE measurement ID. (as a string)
 
     Raises:
         Exception: If the server string is invalid or the measurement failed.
     """
     # use our server as the client if the client IP is not provided
     if client_ip is None:
-        client_ip = ip_to_str(get_server_ip())
+        client_ip = ip_to_str(get_server_ip(wanted_ip_type))
         if client_ip is None:
             raise InputError("Could not determine IP address of neither server nor client")
     try:
@@ -353,7 +347,7 @@ def perform_ripe_measurement(ntp_server: str, client_ip: Optional[str], wanted_i
         raise e
     except RipeMeasurementError as e:
         raise e
-    except Exception as e:  # TODO
+    except Exception as e:
         raise ValueError(e)
 
 
@@ -365,12 +359,12 @@ def check_ripe_measurement_scheduled(measurement_id: str) -> bool:
     all requested probes have been scheduled for the given RIPE measurement ID.
 
     Args:
-        measurement_id (str): The ID of the RIPE measurement to check
+        measurement_id (str): The ID of the RIPE measurement to check.
 
     Returns:
-        bool: True if all requested probes are scheduled, False otherwise
+        bool: True if all requested probes are scheduled, False otherwise.
 
     Raises:
-        ValueError: If the RIPE API returns an error or unexpected data
+        ValueError: If the RIPE API returns an error or unexpected data.
     """
     return check_all_measurements_scheduled(measurement_id=measurement_id)
