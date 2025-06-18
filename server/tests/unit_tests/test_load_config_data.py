@@ -1,6 +1,5 @@
 import pytest
-from unittest.mock import patch, MagicMock
-
+from unittest.mock import patch, MagicMock, call
 from server.app.utils.load_config_data import *
 
 @patch("server.app.utils.load_config_data.os.path.exists")
@@ -9,6 +8,12 @@ def test_load_config(mock):
     with pytest.raises(FileNotFoundError):
         load_config()
 
+@patch("server.app.utils.load_config_data.check_geolite_account_id_and_key")
+@patch("server.app.utils.load_config_data.get_max_mind_path_asn")
+@patch("server.app.utils.load_config_data.get_max_mind_path_country")
+@patch("server.app.utils.load_config_data.get_max_mind_path_city")
+@patch("server.app.utils.load_config_data.get_anycast_prefixes_v6_url")
+@patch("server.app.utils.load_config_data.get_anycast_prefixes_v4_url")
 @patch("server.app.utils.load_config_data.get_ripe_number_of_probes_per_measurement")
 @patch("server.app.utils.load_config_data.get_ripe_packets_per_probe")
 @patch("server.app.utils.load_config_data.get_ripe_timeout_per_probe_ms")
@@ -21,12 +26,11 @@ def test_load_config(mock):
 @patch("server.app.utils.load_config_data.get_ntp_version")
 @patch("server.app.utils.load_config_data.get_ripe_api_token")
 @patch("server.app.utils.load_config_data.get_ripe_account_email")
-@patch("server.app.utils.load_config_data.get_ipinfo_lite_api_token")
-def test_verify_if_config_is_set(mock_ipinfo_lite_api_token, mock_ripe_account_email, mock_ripe_api_token, mock_ntp_version,
+def test_verify_if_config_is_set(mock_ripe_account_email, mock_ripe_api_token, mock_ntp_version,
                                  mock_timeout_measurement_s, mock_nr_of_measurements_for_jitter, mock_mask_ipv4, mock_mask_ipv6,
                                  mock_edns_default_servers, mock_timeout_s, mock_ripe_timeout_per_probe_ms, mock_ripe_packets_per_probe,
-                                 mock_ripe_number_of_probes_per_measurement):
-    mock_ipinfo_lite_api_token.return_value = "s"
+                                 mock_ripe_number_of_probes_per_measurement, mock_anycast_4, mock_anycast_6, mock_city, mock_country,
+                                 mock_asn, mock_geolite_account):
     mock_ripe_account_email.return_value = "e@email.com"
     mock_ripe_api_token.return_value = "e"
     mock_ntp_version.return_value = 4
@@ -39,9 +43,14 @@ def test_verify_if_config_is_set(mock_ipinfo_lite_api_token, mock_ripe_account_e
     mock_ripe_timeout_per_probe_ms.return_value = 2
     mock_ripe_packets_per_probe.return_value = 2
     mock_ripe_number_of_probes_per_measurement.return_value = 1
+    mock_anycast_4.return_value = "link"
+    mock_anycast_6.return_value = "link"
+    mock_city.return_value = "link"
+    mock_country.return_value = "link"
+    mock_asn.return_value = "link"
+    mock_geolite_account.return_value = True
 
     verify_if_config_is_set()
-    mock_ipinfo_lite_api_token.assert_called_once()
     mock_ripe_account_email.assert_called_once()
     mock_ripe_api_token.assert_called_once()
     mock_ntp_version.assert_called_once()
@@ -55,17 +64,6 @@ def test_verify_if_config_is_set(mock_ipinfo_lite_api_token, mock_ripe_account_e
     mock_ripe_packets_per_probe.assert_called_once()
     mock_ripe_number_of_probes_per_measurement.assert_called_once()
 
-@patch("server.app.utils.load_config_data.os.getenv")
-def test_get_ipinfo_lite_api_token(mock):
-    mock.return_value = "token"
-    assert get_ipinfo_lite_api_token() == "token"
-    mock.assert_called_with("IPINFO_LITE_API_TOKEN")
-
-    # None -> Exception
-    mock.return_value = None
-    with pytest.raises(ValueError):
-        get_ipinfo_lite_api_token()
-    mock.assert_called_with("IPINFO_LITE_API_TOKEN")
 
 @patch("server.app.utils.load_config_data.os.getenv")
 def test_get_ripe_account_email(mock):
@@ -445,3 +443,87 @@ def test_get_ripe_number_of_probes_per_measurement_boundaries(mock_config):
     mock_config["ripe_atlas"] = {"number_of_probes_per_measurement": 1}
     assert get_ripe_number_of_probes_per_measurement() == 1
 
+# bgp tools
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_anycast_prefixes_v4_url(mock_config):
+    mock_config["ripe_atlas"] = {"number_of_probes_per_measurement": -1}
+    with pytest.raises(ValueError, match="bgp_tools section is missing"):
+        get_anycast_prefixes_v4_url()
+    mock_config["bgp_tools"] = {"blabla": -1}
+    with pytest.raises(ValueError, match="bgp_tools 'anycast_prefixes_v4_url' is missing"):
+        get_anycast_prefixes_v4_url()
+    mock_config["bgp_tools"] = {"anycast_prefixes_v4_url": -1}
+    with pytest.raises(ValueError, match="bgp_tools 'anycast_prefixes_v4_url' must be a 'str'"):
+        get_anycast_prefixes_v4_url()
+    mock_config["bgp_tools"] = {"anycast_prefixes_v4_url": "link"}
+    assert get_anycast_prefixes_v4_url() == "link"
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_anycast_prefixes_v6_url(mock_config):
+    mock_config["ripe_atlas"] = {"bla": -1}
+    with pytest.raises(ValueError, match="bgp_tools section is missing"):
+        get_anycast_prefixes_v6_url()
+    mock_config["bgp_tools"] = {"blabla": -1}
+    with pytest.raises(ValueError, match="bgp_tools 'anycast_prefixes_v6_url' is missing"):
+        get_anycast_prefixes_v6_url()
+    mock_config["bgp_tools"] = {"anycast_prefixes_v6_url": -1}
+    with pytest.raises(ValueError, match="bgp_tools 'anycast_prefixes_v6_url' must be a 'str'"):
+        get_anycast_prefixes_v6_url()
+    mock_config["bgp_tools"] = {"anycast_prefixes_v6_url": "link"}
+    assert get_anycast_prefixes_v6_url() == "link"
+
+#max mind
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_max_mind_path_city(mock_config):
+    mock_config["ripe_atlas"] = {"bla": -1}
+    with pytest.raises(ValueError, match="max_mind section is missing"):
+        get_max_mind_path_city()
+    mock_config["max_mind"] = {"bla": -1}
+    with pytest.raises(ValueError, match="max_mind 'path_city' is missing"):
+        get_max_mind_path_city()
+    mock_config["max_mind"] = {"path_city": "link"}
+    assert isinstance(get_max_mind_path_city(), str)
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_max_mind_path_country(mock_config):
+    mock_config["ripe_atlas"] = {"bla": -1}
+    with pytest.raises(ValueError, match="max_mind section is missing"):
+        get_max_mind_path_country()
+    mock_config["max_mind"] = {"bla": -1}
+    with pytest.raises(ValueError, match="max_mind 'path_country' is missing"):
+        get_max_mind_path_country()
+    mock_config["max_mind"] = {"path_country": "link"}
+    assert isinstance(get_max_mind_path_country(), str)
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_max_mind_path_asn(mock_config):
+    mock_config["ripe_atlas"] = {"bla": -1}
+    with pytest.raises(ValueError, match="max_mind section is missing"):
+        get_max_mind_path_asn()
+    mock_config["max_mind"] = {"bla": -1}
+    with pytest.raises(ValueError, match="max_mind 'path_asn' is missing"):
+        get_max_mind_path_asn()
+    mock_config["max_mind"] = {"path_asn": "link"}
+    assert isinstance(get_max_mind_path_asn(), str)
+
+
+@patch("server.app.utils.load_config_data.os.getenv")
+def test_check_geolite_account_id_and_key(mock):
+    mock.side_effect = [None, "something"]
+    assert check_geolite_account_id_and_key() == False
+    mock.assert_called_with("ACCOUNT_ID")
+
+    mock.reset_mock()
+    mock.side_effect = ["something", None]
+    assert check_geolite_account_id_and_key() == False
+    assert mock.call_args_list == [call("ACCOUNT_ID"), call("LICENSE_KEY")]
+
+    mock.reset_mock()
+    mock.side_effect = ["something", "else"]
+    assert check_geolite_account_id_and_key() == True
+    assert mock.call_args_list == [call("ACCOUNT_ID"), call("LICENSE_KEY")]
+    # None -> Exception
+    # mock.return_value = None
+    # with pytest.raises(ValueError):
+    #     get_ripe_account_email()
+    # mock.assert_called_with("ripe_account_email")

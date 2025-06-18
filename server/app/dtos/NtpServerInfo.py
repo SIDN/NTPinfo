@@ -12,16 +12,16 @@ class NtpServerInfo:
     Attributes:
         ntp_version (int): The version of NTP the user chose to use (backwards compatible)
         ntp_server_ip (IPv4Address | IPv6Address | None): The IP of the server, either in IPv4 or IPv6 format
-        ntp_server_name (str): The name of the server
-        ntp_server_ref_parent_ip (None | IPv4Address | IPv6Address): The IP of the parent server (it is None if it is a root server)
-        ref_name (str): The name of the parent (reference) server or None if we can only get the IP
+        ntp_server_name (str | None): The name of the server
+        ntp_server_ref_parent_ip (IPv4Address | IPv6Address | None): The IP of the parent server (it is None if it is a root server)
+        ref_name (str | None): The name of the parent (reference) server or None if we can only get the IP
     """
     ntp_version: int
     ntp_server_ip: IPv4Address | IPv6Address | None
     ntp_server_location: ServerLocation
     ntp_server_name: str | None
     ntp_server_ref_parent_ip: IPv4Address | IPv6Address | None
-    ref_name: None | str
+    ref_name: str | None
 
     def __post_init__(self) -> None:
         if not isinstance(self.ntp_server_ip, IPv4Address | IPv6Address | None):

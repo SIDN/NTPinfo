@@ -28,7 +28,7 @@ def get_probes(client_ip: str, ip_family_of_ntp_server: int,
         list[dict]: The list of probes that we will use for the measurement.
 
     Raises:
-        InputError: If the client IP address is invalid
+        InputError: If the client IP address is invalid.
     """
     # get the details. (this will take around 150-200ms)
     ip_family: int = get_ip_family(client_ip)
@@ -76,8 +76,7 @@ def get_probes(client_ip: str, ip_family_of_ntp_server: int,
 
 
 def get_best_probes_with_multiple_attributes(client_ip: str, current_probes_set: set[int], ip_asn: Optional[str],
-                                             ip_prefix: Optional[str], ip_country: Optional[str],
-                                             ip_family: int,
+                                             ip_prefix: Optional[str], ip_country: Optional[str], ip_family: int,
                                              probes_requested: int = get_ripe_number_of_probes_per_measurement()) -> \
         tuple[int, set[int]]:
     """
@@ -121,8 +120,7 @@ def get_best_probes_with_multiple_attributes(client_ip: str, current_probes_set:
 
 
 def get_best_probes_matched_by_single_attribute(client_ip: str, current_probes_set: set[int], ip_asn: Optional[str],
-                                                ip_prefix:
-                                                Optional[str], ip_country: Optional[str], ip_family: int,
+                                                ip_prefix: Optional[str], ip_country: Optional[str], ip_family: int,
                                                 probes_requested: int = get_ripe_number_of_probes_per_measurement()) \
         -> tuple[int, set[int]]:
     """
@@ -132,9 +130,9 @@ def get_best_probes_matched_by_single_attribute(client_ip: str, current_probes_s
     Args:
         client_ip (str): The IP address of the client.
         current_probes_set (set[int]): The set of probes that we will use for the measurement. (to be sure that we do not include duplicates)
-        ip_asn (int): The ASN of the NTP server IP address.
-        ip_prefix (str): The prefix of the NTP server IP address.
-        ip_country (str): The country of the NTP server IP address.
+        ip_asn (Optional[str]): The ASN of the NTP server IP address.
+        ip_prefix (Optional[str]): The prefix of the NTP server IP address.
+        ip_country (Optional[str]): The country of the NTP server IP address.
         ip_family (int): The family of the NTP server IP address. (4 or 6)
         probes_requested (int): The number of probes that we still need to request.
 
@@ -182,10 +180,10 @@ def get_probes_by_ids(probe_ids: list[int]) -> dict:
             probe_ids (list[int]): The IDs of the probes.
 
         Returns:
-            dict: the selected probes
+            dict: The selected probes.
 
         Raises:
-            InputError: If the input is invalid
+            InputError: If the input is invalid.
         """
     if len(probe_ids) == 0:
         raise InputError("probe_ids cannot be empty")
@@ -205,14 +203,14 @@ def get_asn_probes(ip_asn: Optional[str | int], n: int) -> dict:
     This method selects n probes that belong to the same ASN network.
 
     Args:
-        ip_asn (str|int): the ASN network
-        n (int): number of probes to select
+        ip_asn (Optional[str | int]): The ASN network.
+        n (int): The number of probes to select.
 
     Returns:
-        dict: the selected probes
+        dict: The selected probes.
 
     Raises:
-        InputError: if the ASN network is None
+        InputError: If the ASN network is None.
     """
     if ip_asn is None:
         raise InputError("ip_asn cannot be None")
@@ -226,17 +224,17 @@ def get_asn_probes(ip_asn: Optional[str | int], n: int) -> dict:
 
 def get_prefix_probes(ip_prefix: Optional[str], n: int) -> dict:
     """
-    This method selects n probes that belong to the same ASN network.
+    This method selects n probes that has this prefix.
 
     Args:
-        ip_prefix (str): the IP prefix family
-        n (int): number of probes to select
+        ip_prefix (Optional[str]): The IP prefix family.
+        n (int): The number of probes to select.
 
     Returns:
-        dict: the selected probes
+        dict: The selected probes.
 
     Raises:
-        InputError: if the IP prefix is None
+        InputError: If the IP prefix is None.
     """
     if ip_prefix is None:
         raise InputError("ip_prefix cannot be None")
@@ -253,14 +251,14 @@ def get_country_probes(ip_country_code: Optional[str], n: int) -> dict:
     This method selects n probes that belong to the same country.
 
     Args:
-        ip_country_code (str): the country code
-        n (int): number of probes to select
+        ip_country_code (Optional[str]): The country code.
+        n (int): The number of probes to select.
 
     Returns:
-        dict: the selected probes
+        dict: The selected probes.
 
     Raises:
-        InputError: if the country code is None
+        InputError: If the country code is None.
     """
     if ip_country_code is None:
         raise InputError("ip_country_code cannot be None")
@@ -274,17 +272,17 @@ def get_country_probes(ip_country_code: Optional[str], n: int) -> dict:
 
 def get_area_probes(area: Optional[str], n: int) -> dict:
     """
-    This method selects n random probes from all over the world.
+    This method selects n probes from this area.
 
     Args:
-        area (str): The area of the probes
-        n (int): number of probes to select
+        area (Optional[str]): The area of the probes.
+        n (int): The number of probes to select.
 
     Returns:
-        dict: the selected probes
+        dict: The selected probes.
 
     Raises:
-        InputError: If area is not valid
+        InputError: If area is not valid.
     """
     if area is None:
         raise InputError("area cannot be None")
@@ -301,10 +299,10 @@ def get_random_probes(n: int) -> dict:
     This method selects n random probes from all over the world.
 
     Args:
-        n (int): number of probes to select
+        n (int): The number of probes to select.
 
     Returns:
-        dict: the selected probes
+        dict: The selected probes.
     """
     return get_area_probes("WW", n)
 
@@ -316,15 +314,15 @@ def get_available_probes_asn_and_prefix(client_ip: str, ip_asn: str, ip_prefix: 
 
     Args:
         client_ip (str): The IP address of the client.
-        ip_asn (str): the ASN of the searched network
-        ip_prefix(str): the prefix of the respective IP
-        ip_type (str): the IP type (ipv4 or ipv6). (not case-sensitive)
+        ip_asn (str): The ASN of the searched network.
+        ip_prefix(str): The prefix of the respective IP.
+        ip_type (str): The IP type (ipv4 or ipv6). (not case-sensitive)
 
     Returns:
-        list[int]: A list with the ids of the available probes
+        list[int]: A list with the ids of the available probes.
 
     Raises:
-        Exception: If the input is invalid
+        Exception: If the input is invalid.
     """
     try:
         ip_asn_number = int(ip_asn.lstrip("AS").lstrip("as"))
@@ -357,20 +355,20 @@ def get_available_probes_asn_and_prefix(client_ip: str, ip_asn: str, ip_prefix: 
 
 def get_available_probes_asn_and_country(client_ip: str, ip_asn: str, ip_country_code: str, ip_type: str) -> list[int]:
     """
-    This method gets the probes available on RIPE Atlas that has the same ASN and prefix as the client IP.
+    This method gets the probes available on RIPE Atlas that has the same ASN and country as the client IP.
     These probes should also support ipv4 or ipv6, it depends on the type.
 
     Args:
         client_ip (str): The IP address of the client.
-        ip_asn (str): the ASN of the searched network
-        ip_country_code(str): the country code of the respective IP
-        ip_type (str): the IP type (ipv4 or ipv6). (not case-sensitive)
+        ip_asn (str): The ASN of the searched network.
+        ip_country_code(str): The country code of the respective IP.
+        ip_type (str): The IP type (ipv4 or ipv6). (not case-sensitive)
 
     Returns:
-        list[int]: A list with the ids of the available probes
+        list[int]: A list with the ids of the available probes.
 
     Raises:
-        Exception: If the input is invalid
+        Exception: If the input is invalid.
     """
     try:
         ip_asn_number = int(ip_asn.lstrip("AS").lstrip("as"))
@@ -416,14 +414,14 @@ def get_available_probes_asn(client_ip: str, ip_asn: str, ip_type: str) -> list[
 
     Args:
         client_ip (str): The IP address of the client.
-        ip_asn (str): the ASN of the searched network
-        ip_type (str): the IP type (ipv4 or ipv6). (not case-sensitive)
+        ip_asn (str): The ASN of the searched network.
+        ip_type (str): The IP type (ipv4 or ipv6). (not case-sensitive)
 
     Returns:
-        list[int]: A list with the ids of the available probes
+        list[int]: A list with the ids of the available probes.
 
     Raises:
-        Exception: If the input is invalid
+        Exception: If the input is invalid.
     """
     # in wsl, this command would be for example:
     # ripe-atlas probe-search --prefix NL --status 1 --tag system-ipv4-works
@@ -460,14 +458,14 @@ def get_available_probes_prefix(client_ip: str, ip_prefix: str, ip_type: str) ->
 
     Args:
         client_ip (str): The IP address of the client.
-        ip_prefix (str): the ip_prefix of the searched network
-        ip_type (str): the IP type (ipv4 or ipv6). It should be lowercase.
+        ip_prefix (str): The ip_prefix of the searched network.
+        ip_type (str): The IP type (ipv4 or ipv6). It should be lowercase.
 
     Returns:
-        list[int]: A list with the ids of the available probes
+        list[int]: A list with the ids of the available probes.
 
     Raises:
-        Exception: If the input is invalid
+        Exception: If the input is invalid.
     """
     # in wsl, this command would be for example:
     # ripe-atlas probe-search --prefix NL --status 1 --tag system-ipv4-works
@@ -501,14 +499,14 @@ def get_available_probes_country(client_ip: str, country_code: str, ip_type: str
 
     Args:
         client_ip (str): The IP address of the client.
-        country_code (str): the country code
-        ip_type (str): the IP type (ipv4 or ipv6). It should be lowercase.
+        country_code (str): The country code.
+        ip_type (str): The IP type (ipv4 or ipv6). It should be lowercase.
 
     Returns:
-        list[int]: A list with the ids of the available probes
+        list[int]: A list with the ids of the available probes.
 
     Raises:
-        Exception: If the input is invalid
+        Exception: If the input is invalid.
     """
     # in wsl, this command would be for example:
     # ripe-atlas probe-search --country NL --status 1 --tag system-ipv4-works
@@ -557,7 +555,7 @@ def consume_probes(probes_requested: int, current_probes_set: set[int], probes_i
 
     Returns:
         tuple[int, set[int]]: - The remained number of probes still to find.
-                              - The updated set of probes that we will use in the measurement.
+        - The updated set of probes that we will use in the measurement.
     """
     if probes_requested < 0:
         raise InputError("Probes_requested cannot be negative")
@@ -573,8 +571,6 @@ def consume_probes(probes_requested: int, current_probes_set: set[int], probes_i
     # print(c)
     return probes_requested, current_probes_set
 
-# prefixx = get_prefix_from_ip("89.46.74.148")
-# print(prefixx)
 # import time
 # start = time.time()
 # ipp="2a06:93c0::24"#"145.94.210.165"
