@@ -54,7 +54,7 @@ def get_ip_family(ip_str: Optional[str]) -> int:
     it returns 6 if we have an IPv6 address. Otherwise, it raises an exception.
 
     Args:
-        ip_str: The IP address
+        ip_str (Optional[str]): The IP address
 
     Returns:
         int: The ip family or an exception if we do not get an IP address
@@ -100,7 +100,7 @@ def get_area_of_ip(ip_country: Optional[str], ip_continent: Optional[str]) -> st
         ip_continent (Optional[str]): The continent code of the IP address.
 
     Returns:
-        str: The area of an IP address
+        str: The area of an IP address.
     """
     # default is WW (world wide)
     if ip_continent is None or ip_country is None:
@@ -130,7 +130,7 @@ def get_prefix_from_ip(ip_str: str) -> Optional[str]:
         ip_str: The ip address.
 
     Returns:
-        str: the prefix of an IP address.
+        Optional[str]: the prefix of an IP address.
     """
     try:
         ip_str_to_ask = ip_to_str(randomize_ip(ip_address(ip_str)))
@@ -159,7 +159,7 @@ def ip_to_str(ip: Optional[IPv4Address | IPv6Address]) -> Optional[str]:
     return str(ip) if ip is not None else None
 
 
-def get_server_ip(wanted_ip_type: int=4) -> IPv4Address | IPv6Address | None:
+def get_server_ip(wanted_ip_type: int) -> IPv4Address | IPv6Address | None:
     """
     It determines the public IP address of this server by opening a dummy UDP socket
     connection to DNS (taken from the config). It has fallbacks to ipify.org. If you want IPv4,
@@ -170,7 +170,7 @@ def get_server_ip(wanted_ip_type: int=4) -> IPv4Address | IPv6Address | None:
         wanted_ip_type (int): The type of IP address we are looking for.
 
     Returns:
-        Optional[Union[IPv4Address, IPv6Address]]: The server's external IP address
+        Optional[IPv4Address | IPv6Address]: The server's external IP address
         as an IPv4Address or IPv6Address object, or None if detection fails.
     """
     # use a dummy connection to get the outward-facing IP (IPv4 or IPv6 connection)
@@ -307,8 +307,7 @@ def try_converting_ip(client_ip: Optional[str], wanted_ip_type: int) -> Optional
         new_ip = dns.resolver.resolve(client_domain_name, rdtype)
         return str(new_ip[0])
     except Exception as e:
-        # It failed. Return the original IP
-        # print(e)
+        # It failed. Return the original IP address
         return client_ip
 
 def is_private_ip(ip_str: str) -> bool:
@@ -365,7 +364,7 @@ def is_this_ip_anycast(searched_ip: Optional[str]) -> bool:
                     continue
         return False
     except Exception as e:
-        print(f"Error (safe) in is anycast: {e}")
+        print(f"Error (safe) in is_anycast: {e}")
         return False
 
 
