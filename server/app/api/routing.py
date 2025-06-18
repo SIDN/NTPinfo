@@ -1,11 +1,12 @@
 from fastapi import HTTPException, APIRouter, Request, Depends
 
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Optional
 from fastapi.responses import JSONResponse
 
 from sqlalchemy.orm import Session
 
+from server.app.utils.load_config_data import get_rate_limit_per_client_ip
 from server.app.utils.location_resolver import get_country_for_ip, get_coordinates_for_ip
 from server.app.utils.ip_utils import client_ip_fetch, get_server_ip_if_possible, get_server_ip
 from server.app.models.CustomError import DNSError, MeasurementQueryError
@@ -34,7 +35,7 @@ def read_root() -> dict[str, str]:
 
 
 @router.post("/measurements/")
-@limiter.limit("5/second")
+@limiter.limit(get_rate_limit_per_client_ip())
 async def read_data_measurement(payload: MeasurementRequest, request: Request,
                                 session: Session = Depends(get_db)) -> JSONResponse:
     """
@@ -45,7 +46,7 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
     and formats the result using `get_format()`. User can choose whether they want to measure IPv4 of IPv6,
     but this will take effect only for domain names. If user inputs an IP, we will measure the type of that IP.
 
-    This endpoint is also limited to 5 requests per minute to prevent abuse and reduce server load.
+    This endpoint is also limited to <`see config file`> to prevent abuse and reduce server load.
 
     Args:
         payload (MeasurementRequest): A Pydantic model containing:
@@ -109,7 +110,7 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
 
 
 @router.get("/measurements/history/")
-@limiter.limit("5/second")
+@limiter.limit(get_rate_limit_per_client_ip())
 async def read_historic_data_time(server: str,
                                   start: datetime, end: datetime, request: Request,
                                   session: Session = Depends(get_db)) -> JSONResponse:
@@ -120,7 +121,7 @@ async def read_historic_data_time(server: str,
     `fetch_historic_data_with_timestamps()` function. It can optionally filter results
     based on a time range (start and end datetime).
 
-    This endpoint is also limited to 5 requests per minute to prevent abuse and reduce server load.
+    This endpoint is also limited to <`see config file`> to prevent abuse and reduce server load.
 
     Args:
         server (str): IP address or domain name of the NTP server.
@@ -169,7 +170,7 @@ async def read_historic_data_time(server: str,
 
 
 @router.post("/measurements/ripe/trigger/")
-@limiter.limit("5/second")
+@limiter.limit(get_rate_limit_per_client_ip())
 async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request) -> JSONResponse:
     """
     Trigger a RIPE Atlas NTP measurement for a specified server.
@@ -179,7 +180,7 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
     is triggered, it returns a measurement ID which can later be used to fetch
     the result using the `/measurements/ripe/{measurement_id}` endpoint.
 
-    This endpoint is also limited to 5 requests per minute to prevent abuse and reduce server load.
+    This endpoint is also limited to <`see config file`> to prevent abuse and reduce server load.
 
     Args:
         payload (MeasurementRequest): A Pydantic model that includes:
@@ -237,7 +238,7 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
 
 
 @router.get("/measurements/ripe/{measurement_id}")
-@limiter.limit("5/second")
+@limiter.limit(get_rate_limit_per_client_ip())
 async def get_ripe_measurement_result(measurement_id: str, request: Request) -> JSONResponse:
     """
     Retrieve the results of a previously triggered RIPE Atlas measurement.
@@ -247,7 +248,7 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
     the data accordingly. If the results are not yet ready, it informs the client
     that the measurement is still pending.
 
-    This endpoint is also limited to 5 requests per minute to prevent abuse and reduce server load.
+    This endpoint is also limited to <`see config file`> to prevent abuse and reduce server load.
 
     Args:
         measurement_id (str): The ID of the RIPE measurement to fetch
