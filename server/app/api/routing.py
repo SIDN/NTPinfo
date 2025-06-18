@@ -82,20 +82,20 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
     Args:
         payload (MeasurementRequest):
             A Pydantic model containing:
-                - server (str): IP address (IPv4/IPv6) or domain name of the NTP server
-                - ipv6_measurement (bool): True if the type of IPs that we want to measure is IPv6. False otherwise
-        request (Request): The Request object that gives you the IP of the client
-        session (Session): The currently active database session
+                - server (str): IP address (IPv4/IPv6) or domain name of the NTP server.
+                - ipv6_measurement (bool): True if the type of IPs that we want to measure is IPv6. False otherwise.
+        request (Request): The Request object that gives you the IP of the client.
+        session (Session): The currently active database session.
 
     Returns:
-        JSONResponse: A json response containing a list of formatted measurements under "measurements"
+        JSONResponse: A json response containing a list of formatted measurements under "measurements".
 
     Raises:
-        HTTPException: 400 - If the `server` field is empty or no response
+        HTTPException: 400 - If the `server` field is empty or no response.
         HTTPException: 422 - If the server cannot perform the desired IP type (IPv4 or IPv6) measurements,
-              or if the domain name could not be resolved
-        HTTPException: 503 - If we could not get client IP address or our server's IP address
-        HTTPException: 500 - If an unexpected server error occurs
+              or if the domain name could not be resolved.
+        HTTPException: 503 - If we could not get client IP address or our server's IP address.
+        HTTPException: 500 - If an unexpected server error occurs.
 
     Notes:
         - This endpoint is also limited to 5 requests per second to prevent abuse and reduce server load.
@@ -173,18 +173,18 @@ async def read_historic_data_time(server: str,
     based on a time range (start and end datetime).
 
     Args:
-        server (str): IP address or domain name of the NTP server
-        start (datetime, optional): Start timestamp for data filtering
-        end (datetime, optional): End timestamp for data filtering
-        request (Request): Request object for making the limiter work
-        session (Session): The currently active database session
+        server (str): IP address or domain name of the NTP server.
+        start (datetime, optional): Start timestamp for data filtering.
+        end (datetime, optional): End timestamp for data filtering.
+        request (Request): Request object for making the limiter work.
+        session (Session): The currently active database session.
 
     Returns:
-        JSONResponse: A json response containing a list of formatted measurements under "measurements"
+        JSONResponse: A json response containing a list of formatted measurements under "measurements".
 
     Raises:
-        HTTPException: 400 - If `server` parameter is empty, or the start and end dates are badly formatted (e.g., `start >= end`, `end` in future)
-        HTTPException: 500 - If there's an internal server error, such as a database access issue (`MeasurementQueryError`) or any other unexpected server-side exception
+        HTTPException: 400 - If `server` parameter is empty, or the start and end dates are badly formatted (e.g., `start >= end`, `end` in future).
+        HTTPException: 500 - If there's an internal server error, such as a database access issue (`MeasurementQueryError`) or any other unexpected server-side exception.
 
     Notes:
         - This endpoint is also limited to 5 requests per minute to prevent abuse and reduce server load.
@@ -245,22 +245,22 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
     Args:
         payload (MeasurementRequest):
             A Pydantic model that includes:
-                - server (str): The IP address or domain name of the target server
-                - ipv6_measurement (bool): True if the type of IPs that we want to measure is IPv6. False otherwise
-        request (Request): The FastAPI request object, used to extract the client IP address
+                - server (str): The IP address or domain name of the target server.
+                - ipv6_measurement (bool): True if the type of IPs that we want to measure is IPv6. False otherwise.
+        request (Request): The FastAPI request object, used to extract the client IP address.
 
     Returns:
         JSONResponse: A json response containing:
-            - measurement_id (str): The ID of the triggered RIPE measurement
-            - status (str): Status message ("started")
-            - message (str): Instructions on how to retrieve the result
-            - ip_list (list[str]): List of ips for ntp server
+            - measurement_id (str): The ID of the triggered RIPE measurement.
+            - status (str): Status message ("started").
+            - message (str): Instructions on how to retrieve the result.
+            - ip_list (list[str]): List of ips for ntp server.
 
     Raises:
-        HTTPException: 400 - If the `server` field is invalid
-        HTTPException: 500 - If the RIPE measurement could not be initiated
-        HTTPException: 502 - If the RIPE measurement was initiated but failed
-        HTTPException: 503 - If we could not get client IP address or our server's IP address
+        HTTPException: 400 - If the `server` field is invalid.
+        HTTPException: 500 - If the RIPE measurement could not be initiated.
+        HTTPException: 502 - If the RIPE measurement was initiated but failed.
+        HTTPException: 503 - If we could not get client IP address or our server's IP address.
 
     Notes:
         - This endpoint is also limited to 5 requests per minute to prevent abuse and reduce server load.
@@ -333,8 +333,8 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
     that the measurement is still pending, or that partial results have been returned.
 
     Args:
-        measurement_id (str): The ID of the RIPE measurement to fetch
-        request (Request): The FastAPI Request object (used for rate limiting)
+        measurement_id (str): The ID of the RIPE measurement to fetch.
+        request (Request): The FastAPI Request object (used for rate limiting).
 
     Returns:
         JSONResponse: A JSON-formatted HTTP response containing the measurement status and results:
@@ -375,8 +375,8 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
                  }
 
     Raises:
-        HTTPException: 405 - If the RIPE API request fails (e.g., network or service error)
-        HTTPException: 500 - If an unexpected internal error occurs during processing
+        HTTPException: 405 - If the RIPE API request fails (e.g., network or service error).
+        HTTPException: 500 - If an unexpected internal error occurs during processing.
 
     Notes:
         - A measurement is considered "complete" only when all requested probes have responded.

@@ -25,11 +25,11 @@ def row_to_dict(m: Measurement, t: Time) -> dict[str, Any]:
     Converts a Measurement and Time SQLAlchemy row into a dictionary.
 
     Args:
-        m (Measurement): The measurement row containing NTP measurement data
-        t (Time): The time row containing timestamp data for the measurement
+        m (Measurement): The measurement row containing NTP measurement data.
+        t (Time): The time row containing timestamp data for the measurement.
 
     Returns:
-        dict[str, Any]: A dictionary representation of the combined measurement and timestamp data
+        dict[str, Any]: A dictionary representation of the combined measurement and timestamp data.
     """
     return {
         "id": m.id,
@@ -67,10 +67,10 @@ def rows_to_dicts(rows: list[Row[tuple[Measurement, Time]]]) -> list[dict[str, A
     Converts a list of Measurement-Time row tuples into a list of dictionaries.
 
     Args:
-        rows (list[Row[tuple[Measurement, Time]]]): List of database rows containing Measurement and Time
+        rows (list[Row[tuple[Measurement, Time]]]): List of database rows containing Measurement and Time.
 
     Returns:
-        list[dict[str, Any]]: A list of dictionaries where each dictionary contains combined data from Measurement and Time
+        list[dict[str, Any]]: A list of dictionaries where each dictionary contains combined data from Measurement and Time.
     """
     return [row_to_dict(row.Measurement, row.Time) for row in rows]
 
@@ -80,13 +80,13 @@ def dict_to_measurement(entry: dict[str, Any]) -> NtpMeasurement:
     Converts a dictionary representation of a measurement into an NtpMeasurement object.
 
     Args:
-        entry (dict[str, Any]): A dictionary containing the keys needed to construct an NtpMeasurement object
+        entry (dict[str, Any]): A dictionary containing the keys needed to construct an NtpMeasurement object.
 
     Returns:
-        NtpMeasurement: A fully constructed NtpMeasurement using the provided data
+        NtpMeasurement: A fully constructed NtpMeasurement using the provided data.
 
     Raises:
-        InvalidMeasurementDataError: If required keys are missing or construction fails due to invalid types/values
+        InvalidMeasurementDataError: If required keys are missing or construction fails due to invalid types/values.
     """
 
     required_keys = [
@@ -134,10 +134,10 @@ def rows_to_measurements(rows: list[Row[tuple[Measurement, Time]]]) -> list[NtpM
     Converts a list of Measurement-Time row tuples into NtpMeasurement objects.
 
     Args:
-        rows (list[Row[tuple[Measurement, Time]]]): List of database rows containing Measurement and Time data
+        rows (list[Row[tuple[Measurement, Time]]]): List of database rows containing Measurement and Time data.
 
     Returns:
-        list[NtpMeasurement]: A list of NtpMeasurement objects created from the row data
+        list[NtpMeasurement]: A list of NtpMeasurement objects created from the row data.
     """
     return [dict_to_measurement(d) for d in rows_to_dicts(rows)]
 
@@ -156,7 +156,7 @@ def insert_measurement(measurement: NtpMeasurement, session: Session) -> None:
         session (Session): The currently active database session.
 
     Raises:
-        DatabaseInsertError: If inserting the measurement or timestamps fails
+        DatabaseInsertError: If inserting the measurement or timestamps fails.
 
     Notes:
         - Timestamps are stored with both second and fractional parts.
@@ -213,22 +213,22 @@ def get_measurements_timestamps_ip(session: Session, ip: IPv4Address | IPv6Addre
 
     This function queries the `measurements` table, joined with the `times` table,
     and filters the results by:
-        - The NTP server IP (`ntp_server_ip`)
-        - The timestamp range (`client_sent` field) between `start` and `end`
+        - The NTP server IP (`ntp_server_ip`).
+        - The timestamp range (`client_sent` field) between `start` and `end`.
 
     Args:
-        session (Session): The currently active database session
-        ip (IPv4Address | IPv6Address): The IP address of the NTP server
-        start (PreciseTime): The start of the time range to filter on
-        end (PreciseTime): The end of the time range to filter on
+        session (Session): The currently active database session.
+        ip (IPv4Address | IPv6Address): The IP address of the NTP server.
+        start (PreciseTime): The start of the time range to filter on.
+        end (PreciseTime): The end of the time range to filter on.
 
     Returns:
         list[dict]: A list of measurement records (as dictionaries), each including:
-            - Measurement metadata (IP, version, stratum, etc.)
-            - Timing data (client/server send/receive with fractions)
+            - Measurement metadata (IP, version, stratum, etc.).
+            - Timing data (client/server send/receive with fractions).
 
     Raises:
-        MeasurementQueryError: If the database query fails
+        MeasurementQueryError: If the database query fails.
     """
     try:
         query = (
@@ -250,7 +250,7 @@ def get_measurements_timestamps_dn(session: Session, dn: str, start: PreciseTime
     """
     Fetches measurements for a specific domain name within a precise time range.
 
-    Similar to `get_measurements_timestamps_ip`, but filters by `ntp_server_name`
+    Similar to `get_measurements_timestamps_ip`, but filters by `ntp_server_name`.
     instead of `ntp_server_ip`.
 
     Args:
@@ -265,7 +265,7 @@ def get_measurements_timestamps_dn(session: Session, dn: str, start: PreciseTime
             - Timing data (client/server send/receive with precision)
 
     Raises:
-        MeasurementQueryError: If the database query fails
+        MeasurementQueryError: If the database query fails.
     """
     try:
         query = (
@@ -293,7 +293,7 @@ def get_measurements_for_jitter_ip(session: Session, ip: IPv4Address | IPv6Addre
     Args:
         session (Session): The currently active database session.
         ip (IPv4Address | IPv6Address): The IP address of the NTP server.
-        number (int): The number of measurements to get
+        number (int): The number of measurements to get.
 
     Returns:
         list[dict]: A list of measurement records (as dictionaries), each including
@@ -301,7 +301,7 @@ def get_measurements_for_jitter_ip(session: Session, ip: IPv4Address | IPv6Addre
             - Timing data (client/server send/receive with fractions)
 
     Raises:
-        MeasurementQueryError: If the database query fails
+        MeasurementQueryError: If the database query fails.
     """
     try:
         query = (
