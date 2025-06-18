@@ -211,8 +211,7 @@ export const handlers = [
             const start = url.searchParams.get('start')
             const end = url.searchParams.get('end')
 
-            const mockHistoricalMeasurement = {
-                "measurements": [
+            const mockHistoricalMeasurement = [
                     {
                     "ntp_version": 4,
                     "vantage_point_ip": "145.90.49.147",
@@ -402,18 +401,17 @@ export const handlers = [
                     "nr_measurements_jitter": 0
                     }
                 ]
-            }
 
             if (start && end){
                 const startDate = new Date(start)
                 const endDate = new Date(end)
-                if(startDate < endDate)
+                if(startDate > endDate)
                     return HttpResponse.json({
                         "detail": "'start' must be earlier than 'end'"
                     },{status:400})
             }
 
-            return HttpResponse.json({measurements: [mockHistoricalMeasurement]}, {status: 200})
+            return HttpResponse.json({measurements: mockHistoricalMeasurement}, {status: 200})
         }
     ),
     http.post<{}, {server: string, ipv6_measurement: boolean}, {

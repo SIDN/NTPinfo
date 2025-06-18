@@ -5,13 +5,6 @@ import { vi } from 'vitest'
 import { NTPData } from '../../utils/types'
 import axios from 'axios'
 
-vi.mock('./transformJSONDataToNTPData', () => ({
-  transformJSONDataToNTPData: (data: any) => {
-    console.log('Mock transformJSONDataToNTPData called with:', data);
-    return { ...data, transformed: true }
-  },
-}))
-
 describe('useFetchIPData', () => {
     it('fetches and sets measurement data correctly', async () => {
         const { result } = renderHook(() => useFetchIPData())
