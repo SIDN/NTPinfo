@@ -50,6 +50,7 @@ def verify_if_config_is_set() -> bool:
     get_ripe_timeout_per_probe_ms()
     get_ripe_packets_per_probe()
     get_ripe_number_of_probes_per_measurement()
+    get_ripe_server_timeout()
     get_anycast_prefixes_v4_url()
     get_anycast_prefixes_v6_url()
     get_max_mind_path_city()
@@ -59,7 +60,6 @@ def verify_if_config_is_set() -> bool:
     check_geolite_account_id_and_key()
     # everything is fine
     return True
-
 
 
 def get_ripe_account_email() -> str:
@@ -144,6 +144,7 @@ def get_nr_of_measurements_for_jitter() -> int:
         raise ValueError("ntp 'number_of_measurements_for_calculating_jitter' must be > 0")
     return ntp["number_of_measurements_for_calculating_jitter"]
 
+
 def get_rate_limit_per_client_ip() -> str:
     """
     This method returns the rate limit for queries per client IP to our server.
@@ -165,13 +166,14 @@ def get_rate_limit_per_client_ip() -> str:
     try:
         number, unit = r.split("/")
     except Exception:
-            raise ValueError("ntp 'rate_limit_per_client_ip' is in invalid format")
+        raise ValueError("ntp 'rate_limit_per_client_ip' is in invalid format")
     if number.isdigit() is False:  # check whether all characters are digits
         raise ValueError("ntp 'rate_limit_per_client_ip' must have first part an integer")
     unit = unit.lower()
     if unit not in {"second", "minute"}:
         raise ValueError("ntp 'rate_limit_per_client_ip' unit must be either 'second' or 'minute'")
     return r
+
 
 def get_mask_ipv4() -> int:
     """
@@ -229,6 +231,7 @@ def get_edns_default_servers() -> list[str]:
         raise ValueError("edns 'default_order_of_edns_servers' cannot be empty")
     return edns["default_order_of_edns_servers"]
 
+
 def get_ipv4_edns_server() -> Optional[str]:
     """
     This method returns the first IPv4 EDNS server available in the config.
@@ -243,6 +246,7 @@ def get_ipv4_edns_server() -> Optional[str]:
             continue
     return None
 
+
 def get_ipv6_edns_server() -> Optional[str]:
     """
     This method returns the first IPv6 EDNS server available in the config.
@@ -256,6 +260,7 @@ def get_ipv6_edns_server() -> Optional[str]:
         except Exception:
             continue
     return None
+
 
 def get_edns_timeout_s() -> float | int:
     """
@@ -332,6 +337,25 @@ def get_ripe_number_of_probes_per_measurement() -> int:
     if ripe_atlas["number_of_probes_per_measurement"] <= 0:
         raise ValueError("ripe_atlas 'number_of_probes_per_measurement' must be > 0")
     return ripe_atlas["number_of_probes_per_measurement"]
+
+
+def get_ripe_server_timeout() -> int:
+    """
+    This method returns the timeout (seconds) that the server has to get data from RIPE Atlas.
+
+    Raises:
+        ValueError: If this variable has not been correctly set.
+    """
+    if "ripe_atlas" not in config:
+        raise ValueError("ripe_atlas section is missing")
+    ripe_atlas = config["ripe_atlas"]
+    if "server_timeout" not in ripe_atlas:
+        raise ValueError("ripe_atlas 'server_timeout' is missing")
+    if not isinstance(ripe_atlas["server_timeout"], int):
+        raise ValueError("ripe_atlas 'server_timeout' must be an 'int' in s")
+    if ripe_atlas["server_timeout"] <= 0:
+        raise ValueError("ripe_atlas 'server_timeout' must be > 0")
+    return ripe_atlas["server_timeout"]
 
 
 # bgp_tools
@@ -424,6 +448,7 @@ def get_max_mind_path_asn() -> str:
     relative_path = max_mind["path_asn"]
     absolute_path = (server_dir / relative_path).resolve()
     return str(absolute_path)
+
 
 def check_geolite_account_id_and_key() -> bool:
     """
