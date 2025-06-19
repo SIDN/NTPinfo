@@ -102,21 +102,21 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
                                     <div className="tooltip-text">
                                     The status of the NTP server, calculated with the offset<br/> 
                                     of our measurement and the offset of the RIPE Probe.<br/>
-                                    Both offsets are less than 100ms
+                                    Both offsets are less than {import.meta.env.VITE_STATUS_THRESHOLD}ms
                                     </div>
                                 }
                                 {serverStatus === "CAUTION" && 
                                     <div className="tooltip-text">
                                     The status of the NTP server, calculated with the offset<br/> 
                                     of our measurement and the offset of the RIPE Probe.<br/>
-                                    One of the offsets is mpre than 100ms
+                                    One of the offsets is mpre than {import.meta.env.VITE_STATUS_THRESHOLD}ms
                                     </div>
                                 }
                                 {serverStatus === "FAILING" && 
                                     <div className="tooltip-text">
                                     The status of the NTP server, calculated with the offset<br/> 
                                     of our measurement and the offset of the RIPE Probe.<br/>
-                                    Both offsets are more than 100ms
+                                    Both offsets are more than {import.meta.env.VITE_STATUS_THRESHOLD}ms
                                     </div>
                                 }
                                 {serverStatus === null && 
