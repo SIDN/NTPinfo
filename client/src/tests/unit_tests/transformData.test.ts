@@ -30,7 +30,8 @@ describe("transform JSON Data to NTP Data", () => {
             country_code: "FR",
             ip_is_anycast: false
         },
-        nr_measurements_jitter: 16
+        nr_measurements_jitter: 16,
+        asn_ntp_server: "6185",
     }
 
     const res = transformJSONDataToNTPData(fetchedData)
@@ -61,6 +62,7 @@ describe("transform JSON Data to NTP Data", () => {
     expect(res?.coordinates[1]).toBe(fetchedData.ntp_server_location.coordinates[1])
     expect(res?.country_code).toBe(fetchedData.ntp_server_location.country_code)
     expect(res?.is_anycast).toBe(fetchedData.ntp_server_location.ip_is_anycast)
+    expect(res?.asn_ntp_server).toBe(fetchedData.asn_ntp_server)
 })
 
     test("Return null on null input", () => {
@@ -79,6 +81,7 @@ describe('transform JSON Data to RIPE Data', () => {
     precision: -20,
     root_dispersion: 0.1,
     root_delay: 0.05,
+    asn_ntp_server: "6185",
     poll: 6,
     ref_id: "GPS",
     probe_addr: { ipv4: "203.0.113.5", ipv6: "2001:db8::5" },
@@ -136,6 +139,7 @@ describe('transform JSON Data to RIPE Data', () => {
   expect(result!.measurementData.jitter).toBe(-1)
   expect(result!.measurementData.nr_measurements_jitter).toBe(-1)
   expect(result!.measurementData.time).toBe((3792998400 - 2208988800) * 1000)
+  expect(result!.measurementData.asn_ntp_server).toBe("6185")
 
   expect(result!.probe_addr_v4).toBe("203.0.113.5")
   expect(result!.probe_addr_v6).toBe("2001:db8::5")
