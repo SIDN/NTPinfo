@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
-import { downloadJSON, downloadCSV } from '../utils/downloadFormats'
-import type { NTPData, RIPEData } from '../utils/types'
+import { downloadJSON, downloadCSV } from '../../utils/downloadFormats'
+import type { NTPData, RIPEData } from '../../utils/types'
 
 describe('Test Download Formats', () => {
   const mockCreateObjectURL = vi.fn(() => 'blob:http://localhost/blobid')

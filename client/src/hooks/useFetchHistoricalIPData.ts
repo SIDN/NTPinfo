@@ -34,7 +34,7 @@ export const useFetchHistoricalIPData = () => {
         } finally {
             setLoading(false)
         }
-    };
+    }
     
     return {data, loading, error, fetchData}
 };

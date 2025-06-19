@@ -76,11 +76,12 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 3000
                         fetchResult()
                     }, 5000)
                 } else if (axios.isAxiosError(err) && err.response?.status === 504) {
+                    setError(err)
                     setStatus("timeout")
                     if (intervalRef.current) clearInterval(intervalRef.current)
                 } else {
                     setError(err)
-                    setStatus(null)
+                    setStatus("error")
                     if (intervalRef.current) clearInterval(intervalRef.current)
                 }
             }

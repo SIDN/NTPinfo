@@ -68,7 +68,6 @@ def parse_ip(ip_str: str) -> IPv4Address | IPv6Address | None:
     Parses and validates a string as an IPv4 or IPv6 address.
 
     Attempts to interpret the provided string as a valid IP address using `ipaddress.ip_address()`.
-    If successful, prints the IP and its version. If invalid, prints an error message.
 
     Args:
         ip_str (str): The IP address in string format (e.g., "192.168.0.1" or "::1").
@@ -80,8 +79,8 @@ def parse_ip(ip_str: str) -> IPv4Address | IPv6Address | None:
     """
     try:
         ip = ipaddress.ip_address(ip_str)
-        print(f"Valid IP: {ip} (Version {ip.version})")
+        # print(f"Valid IP: {ip} (Version {ip.version})")
         return ip
     except ValueError:
-        print("Invalid IP address")
+        # print("Invalid IP address")
         return None

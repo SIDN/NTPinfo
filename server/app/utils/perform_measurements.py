@@ -312,7 +312,6 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
                          probes_requested: int = get_ripe_number_of_probes_per_measurement()) -> tuple[dict, dict]:
     """
     This method gets the RIPE measurement settings for the performing a RIPE measurement.
-
     Args:
         ip_family_of_ntp_server (int): The IP family of the NTP server. (4 or 6)
         ntp_server (str): The NTP server IP address or domain name.
@@ -347,11 +346,9 @@ def get_request_settings(ip_family_of_ntp_server: int, ntp_server: str, client_i
         "bill_to": get_ripe_account_email(),
         "probes": get_probes(client_ip, ip_family_of_ntp_server, probes_requested)  # we want probes close to the client
     }
-    # pprint.pprint(request_content["probes"])
     return headers, request_content
 
-# print_ntp_measurement(perform_ntp_measurement_ip("2606:4700:f1::123",  4))
-# example to see that they work
+# example to see how you use them
 # print_ntp_measurement(perform_ntp_measurement_domain_name_list("time.apple.com", "5a01:c741:a16:4000::1f2", 4, 4)[0])
 # print_ntp_measurement(perform_ntp_measurement_domain_name_list("time.apple.com", "5a01:c741:a16:4000::1f2", 6, 4)[0])
 # print_ntp_measurement(perform_ntp_measurement_domain_name_list("time.apple.com", "17.253.6.45", 4,4)[0])
