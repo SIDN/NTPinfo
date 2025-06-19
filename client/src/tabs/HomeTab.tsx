@@ -46,7 +46,8 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     ripeMeasurementResp,
     ripeMeasurementStatus,
     ipv6Selected,
-    isLoading
+    isLoading,
+    measurementSessionActive
   } = cache;
 
   // still local UI state
@@ -89,6 +90,17 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     updateCache({ isLoading: apiDataLoading });
   }, [apiDataLoading, updateCache]);
 
+  // End measurement session when RIPE measurements complete or fail
+  useEffect(() => {
+    if (measurementSessionActive && ripeMeasurementStatus) {
+      if (ripeMeasurementStatus === 'complete' ||
+          ripeMeasurementStatus === 'timeout' ||
+          ripeMeasurementStatus === 'error') {
+        updateCache({ measurementSessionActive: false });
+      }
+    }
+  }, [ripeMeasurementStatus, measurementSessionActive, updateCache]);
+
   useEffect(() => {
     if (!ripeMeasurementStatus || ripeMeasurementStatus === "complete") return;
     updateCache({
@@ -116,7 +128,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     // setNtpData(null)
     // setChartData(null)
 
-    // Reset cached values for a fresh run
+    // Reset cached values for a fresh run and start measurement session
     updateCache({
       measurementId: null,
       measured: false,
@@ -124,6 +136,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
       ripeMeasurementResp: null,
       ripeMeasurementStatus: null,
       chartData: null,
+      measurementSessionActive: true  // Start measurement session
     })
 
     /**
@@ -140,6 +153,20 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
      */
     const fullurlMeasurementData = `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/`
     const apiMeasurementResp = await fetchMeasurementData(fullurlMeasurementData, payload)
+
+    // If main measurement failed, end the session
+    if (!apiMeasurementResp) {
+      updateCache({
+        measured: true,
+        ntpData: null,
+        chartData: null,
+        allNtpMeasurements: null,
+        ripeMeasurementResp: null,
+        ripeMeasurementStatus: 'error',
+        measurementSessionActive: false  // End session
+      })
+      return
+    }
 
     /**
      * Get data from past day from historical data endpoint to chart in the graph.
@@ -167,6 +194,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
       allNtpMeasurements: apiMeasurementResp ?? null,
       ripeMeasurementResp: null,          // clear old map
       ripeMeasurementStatus: undefined,        //  "     "
+      measurementSessionActive: true      // Keep session active for RIPE measurements
     })
 
     /**
@@ -183,13 +211,26 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     const ripeTriggerResp = await triggerMeasurement(ripePayload)
     // setVantagePointIp(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.vantage_point_ip)
     // setMeasurementId(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.measurementId)
-    updateCache({
-      //vantagePointInfo: ripeTriggerResp?.parsedData.coordinates && ripeTriggerResp?.parsedData.vantage_point_ip ? [ripeTriggerResp.parsedData.coordinates, ripeTriggerResp.parsedData.vantage_point_ip] : null,
-      vantagePointInfo: [ripeTriggerResp?.parsedData.coordinates, ripeTriggerResp?.parsedData.vantage_point_ip],
-      measurementId: ripeTriggerResp?.parsedData.measurementId ?? null,
-      ripeMeasurementResp: null,          // will be filled by hook
-      ripeMeasurementStatus: 'pending',
-    })
+
+    if (ripeTriggerResp === null) {
+      // If RIPE measurement trigger failed, end the session
+      updateCache({
+        vantagePointInfo: null,
+        measurementId: null,
+        ripeMeasurementResp: null,
+        ripeMeasurementStatus: 'error',
+        measurementSessionActive: false  // End session
+      })
+    } else {
+      updateCache({
+        //vantagePointInfo: ripeTriggerResp?.parsedData.coordinates && ripeTriggerResp?.parsedData.vantage_point_ip ? [ripeTriggerResp.parsedData.coordinates, ripeTriggerResp.parsedData.vantage_point_ip] : null,
+        vantagePointInfo: [ripeTriggerResp?.parsedData.coordinates, ripeTriggerResp?.parsedData.vantage_point_ip],
+        measurementId: ripeTriggerResp?.parsedData.measurementId ?? null,
+        ripeMeasurementResp: null,          // will be filled by hook
+        ripeMeasurementStatus: 'pending',
+        measurementSessionActive: true      // Keep session active
+      })
+    }
   }
 
   /**

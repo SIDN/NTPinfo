@@ -25,14 +25,13 @@ function App() {
     ripeMeasurementResp: null,          // map
     ripeMeasurementStatus: null,        // map
     ipv6Selected: false,
-    isLoading: false
+    isLoading: false,
+    measurementSessionActive: false
   };
   const [homeCache, setHomeCache] = useState<HomeCacheState>(initialCache);
 
   // Check if any measurement is currently running
-  const isMeasurementRunning = homeCache.isLoading ||
-                              homeCache.ripeMeasurementStatus === 'pending' ||
-                              homeCache.ripeMeasurementStatus === 'partial_results';
+  const isMeasurementRunning = homeCache.measurementSessionActive;
 
   return (
 

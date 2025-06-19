@@ -59,7 +59,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedTab, setSelectedTab, open, se
 
         {isMeasurementRunning && open && (
           <div className="sidebar__measurement-notice">
-            <span>Measurement in progress...</span>
+            <span>Measurement session in progress...</span>
           </div>
         )}
 
@@ -71,7 +71,7 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedTab, setSelectedTab, open, se
               onClick={() => handleTabClick(id)}
               aria-current={selectedTab === id ? 'page' : undefined}
               disabled={isMeasurementRunning && selectedTab !== id}
-              title={isMeasurementRunning && selectedTab !== id ? 'Please wait for measurement to complete' : undefined}
+              title={isMeasurementRunning && selectedTab !== id ? 'Please wait for measurement session to complete' : undefined}
             >
               {icon}
               {open && <span className="sidebar__label">{label}</span>}
