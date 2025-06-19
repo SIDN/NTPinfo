@@ -2,6 +2,8 @@ ntp:
   version: 4
   timeout_measurement_s: 7  # in seconds
   number_of_measurements_for_calculating_jitter: 8
+  # this field has a strict format: "<d>/<s>" where <d> is an integer and <s> is "second" or "minute"
+  rate_limit_per_client_ip: "5/second" # it is recommended to use 5/second or at least 2/second
 
 
 edns:
