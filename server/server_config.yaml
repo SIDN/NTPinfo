@@ -21,6 +21,7 @@ ripe_atlas:
   timeout_per_probe_ms: 4000
   packets_per_probe: 3
   number_of_probes_per_measurement: 3
+  server_timeout: 60
 
 bgp_tools:
   anycast_prefixes_v4_url: "https://raw.githubusercontent.com/bgptools/anycast-prefixes/master/anycatch-v4-prefixes.txt"
