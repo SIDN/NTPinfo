@@ -78,7 +78,8 @@ describe('HomeTab', () => {
         leap: 0,
         jitter: 0.321,
         nr_measurements_jitter: 5,
-        time: 1687000000
+        time: 1687000000,
+        asn_ntp_server: "6541"
     }   
 
     const mockRIPEData: RIPEData = {
@@ -107,11 +108,12 @@ describe('HomeTab', () => {
             leap: 0,
             jitter: 0.210,
             nr_measurements_jitter: 6,
-            time: 1687000050.223456
+            time: 1687000050.223456,
+            asn_ntp_server: "6541"
         },
         probe_addr_v4: "198.51.100.45",
         probe_addr_v6: "::1",
-        probe_id: 24567,
+        probe_id: "24567",
         probe_country: "DE",
         probe_location: [50.1109, 8.6821],
         time_to_result: 3.75,

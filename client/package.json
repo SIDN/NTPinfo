@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "test": "vitest run --coverage",
+    "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
+    "test": "vitest run src/tests/ --coverage",
     "test:ui": "vitest --ui",
     "test:integration": "vitest run src/tests/integration_tests --coverage",
     "test:unit": "vitest run src/tests/unit_tests --coverage",
