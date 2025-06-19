@@ -5,9 +5,12 @@ import triangleGreen from '../assets/triangle-green-svgrepo-com.png'
 import triangleRed from '../assets/triangle-red-svgrepo-com.png'
 import linkIcon from '../assets/link-svgrepo-com.png'
 import LoadingSpinner from './LoadingSpinner.tsx'
+import { calculateStatus } from '../utils/calculateStatus.ts'
 
 function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} : 
     {data : NTPData | null, ripeData: RIPEData | null, err : Error | null, httpStatus: number, ripeErr: Error | null, ripeStatus: RipeStatus | null}) {
+
+    const [serverStatus, setServerStatus] = useState<string | null>(null)
 
     const [statusMessage, setStatusMessage] = useState<string>("")
     useEffect(() => {
@@ -29,6 +32,14 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
 
     if (data == null)
         return <h2 id="not-found">{err ? `Error ${httpStatus}: ${statusMessage}` : `Unknown error occurred`}</h2>
+
+    useEffect(() => {
+        if((ripeStatus === "complete") && ripeData){
+            setServerStatus(calculateStatus(data,ripeData))
+        }
+        else
+            setServerStatus(null)
+    },[data,ripeData,ripeStatus])
 
     // Helper to determine which icon to show for a metric
     function getMetricIcons(ntpValue: number | undefined, ripeValue: number | undefined, lowerIsBetter = true) {
@@ -80,6 +91,43 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
                         <div className="metric"><span title='The total round-trip delay to the primary reference source'>Root delay</span><span>{data?.root_delay !== undefined ? data.root_delay : 'N/A'}</span></div>
                         <div className="metric"><span title='The poll interval used by the probe during the measurement'>Poll interval</span><span>{data?.poll !== undefined ? `${Math.pow(2, data.poll)} s` : 'N/A'}</span></div>
                         <div className="metric"><span title='An estimate of the maximum error due to clock frequency stability'>Root dispersion</span><span>{data?.root_dispersion !== undefined ? `${(data.root_dispersion).toFixed(10)} s` : 'N/A'}</span></div>
+                        <div className="metric"><span>ASN</span><span>{data?.asn_ntp_server !== undefined ? data.asn_ntp_server : "N/A"}</span></div>
+                        <div className="status-line">
+                            <span className="status-label">STATUS:&nbsp;</span>
+                            <span className={`status-value ${serverStatus?.toLowerCase()}`}>{serverStatus}</span>
+                            {ripeStatus === "complete" && (
+                            <div className="tooltip-container">
+                                <span className="tooltip-icon">?</span>
+                                {serverStatus === "PASSING" && 
+                                    <div className="tooltip-text">
+                                    The status of the NTP server, calculated with the offset<br/> 
+                                    of our measurement and the offset of the RIPE Probe.<br/>
+                                    Both offsets are less than {import.meta.env.VITE_STATUS_THRESHOLD}ms
+                                    </div>
+                                }
+                                {serverStatus === "CAUTION" && 
+                                    <div className="tooltip-text">
+                                    The status of the NTP server, calculated with the offset<br/> 
+                                    of our measurement and the offset of the RIPE Probe.<br/>
+                                    One of the offsets is mpre than {import.meta.env.VITE_STATUS_THRESHOLD}ms
+                                    </div>
+                                }
+                                {serverStatus === "FAILING" && 
+                                    <div className="tooltip-text">
+                                    The status of the NTP server, calculated with the offset<br/> 
+                                    of our measurement and the offset of the RIPE Probe.<br/>
+                                    Both offsets are more than {import.meta.env.VITE_STATUS_THRESHOLD}ms
+                                    </div>
+                                }
+                                {serverStatus === null && 
+                                    <div className="tooltip-text">
+                                    The status of the NTP server, calculated with the offset<br/> 
+                                    of our measurement and the offset of the RIPE Probe.<br/>
+                                    There was an error in one of the measurements
+                                    </div>
+                                }
+                            </div>)}
+                        </div>
                     </div>
                 </div>
                 <div className="result-and-title">
@@ -92,7 +140,8 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
                         </div>
                     </div>
                     { ((ripeStatus === "complete") &&
-                    (<div className="result-box" id="ripe-details">
+                    (
+                    <div className="result-box" id="ripe-details">
                         <div className="metric"><span title='The difference between the time reported by the like an NTP server and your local clock'>Offset</span><span>{ripeData?.measurementData.offset !== undefined ? `${(ripeData.measurementData.offset).toFixed(3)} ms` : 'N/A'} {offsetIconRIPE && <img src={offsetIconRIPE} alt="offset performance" style={{width:'14px',verticalAlign:'middle'}}/>}</span></div>
                         <div className="metric"><span title='The total time taken for a request to travel from the client to the server and back.'>Round-trip time</span><span>{ripeData?.measurementData.RTT !== undefined ? `${(ripeData.measurementData.RTT).toFixed(3)} ms` : 'N/A'} {rttIconRIPE && <img src={rttIconRIPE} alt="rtt performance" style={{width:'14px',verticalAlign:'middle'}}/>}</span></div>
                         <div className="metric"><span title='The variability in delay times between successive NTP messages, calculated as std. dev. of offsets'>Jitter</span><span>{'N/A'}</span></div>
@@ -105,6 +154,7 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
                         <div className="metric"><span title='The total round-trip delay to the primary reference source'>Root delay</span><span>{ripeData?.measurementData.root_delay !== undefined ? ripeData.measurementData.root_delay : 'N/A'}</span></div>
                         <div className="metric"><span title='The poll interval used by the probe during the measurement'>Poll interval</span><span>{ripeData?.measurementData.poll !== undefined ? `${ripeData.measurementData.poll} s` : 'N/A'}</span></div>
                         <div className="metric"><span title='An estimate of the maximum error due to clock frequency stability'>Root dispersion</span><span>{ripeData?.measurementData.root_dispersion !== undefined ? `${(ripeData.measurementData.root_dispersion).toFixed(10)} s` : 'N/A'}</span></div>
+                        <div className="metric"><span>ASN</span><span>{ripeData?.measurementData.asn_ntp_server !== undefined ? ripeData.measurementData.asn_ntp_server : 'N/A' }</span></div>
                         <div className="metric"><span>Measurement ID</span><span>
                             {ripeData?.measurement_id ? (
                                 <a
