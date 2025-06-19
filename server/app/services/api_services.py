@@ -4,7 +4,7 @@ from server.app.utils.location_resolver import get_asn_for_ip
 from server.app.utils.ip_utils import is_this_ip_anycast
 from server.app.utils.perform_measurements import perform_ntp_measurement_domain_name_list
 from server.app.utils.ip_utils import get_server_ip
-from server.app.models.CustomError import InputError, RipeMeasurementError
+from server.app.models.CustomError import InputError, RipeMeasurementError, DNSError
 from server.app.utils.load_config_data import get_nr_of_measurements_for_jitter
 from server.app.utils.calculations import calculate_jitter_from_measurements, human_date_to_ntp_precise_time
 from server.app.utils.ip_utils import ip_to_str
@@ -116,15 +116,15 @@ def get_ripe_format(measurement: RipeMeasurement) -> dict[str, Any]:
     probe_location: Optional[ServerLocation] = measurement.probe_data.probe_location
     return {
         "ntp_version": measurement.ntp_measurement.server_info.ntp_version,
+        "vantage_point_ip": ip_to_str(measurement.ntp_measurement.vantage_point_ip),
         "ripe_measurement_id": measurement.measurement_id,
         "ntp_server_ip": ip_to_str(measurement.ntp_measurement.server_info.ntp_server_ip),
+        "ntp_server_name": measurement.ntp_measurement.server_info.ntp_server_name,
         "ntp_server_location": {
             "ip_is_anycast": is_this_ip_anycast(ip_to_str(measurement.ntp_measurement.server_info.ntp_server_ip)),
             "country_code": measurement.ntp_measurement.server_info.ntp_server_location.country_code,
             "coordinates": measurement.ntp_measurement.server_info.ntp_server_location.coordinates
         },
-        "ntp_server_name": measurement.ntp_measurement.server_info.ntp_server_name,
-        "vantage_point_ip": ip_to_str(measurement.ntp_measurement.vantage_point_ip),
         "probe_addr": {
             "ipv4": ip_to_str(measurement.probe_data.probe_addr[0]),
             "ipv6": ip_to_str(measurement.probe_data.probe_addr[1])
@@ -176,6 +176,7 @@ def override_desired_ip_type_if_input_is_ip(target_server: str, wanted_ip_type: 
     Args:
         target_server (str): The server we want to measure (domain name or IP address)
         wanted_ip_type (int): The IP type the user said they wanted to measure.
+
     Returns:
         int: The IP type of the server in case the server input is IP, otherwise the wanted_ip_type unmodified.
     """
@@ -203,9 +204,12 @@ def measure(server: str, wanted_ip_type: int, session: Session, client_ip: Optio
         measurement_no (int): How many extra measurements to perform if the jitter_flag is True.
 
     Returns:
-        list[tuple[NtpMeasurement, float | None, int]] | None:
+        list[tuple[NtpMeasurement, float, int]] | None:
             - A list of pairs with a populated `NtpMeasurement` object if the measurement is successful, and the jitter.
             - `None` if an exception occurs during the measurement process.
+
+    Raises:
+        DNSError: If the domain name is invalid, or it could not be resolved.
 
     Notes:
         - If the server string is empty or improperly formatted, this may raise exceptions internally,
@@ -220,8 +224,8 @@ def measure(server: str, wanted_ip_type: int, session: Session, client_ip: Optio
                 nr_jitter_measurements = 0
                 insert_measurement(m, session)
                 result = calculate_jitter_from_measurements(session, m, measurement_no)
-                if result is not None:
-                    jitter, nr_jitter_measurements = result
+                # if result is not None:
+                jitter, nr_jitter_measurements = result
                 return [(m, jitter, nr_jitter_measurements)]
             # the measurement failed
             print("The ntp server " + server + " is not responding.")
@@ -239,12 +243,15 @@ def measure(server: str, wanted_ip_type: int, session: Session, client_ip: Optio
                     nr_jitter_measurements = 0
                     insert_measurement(m, session)
                     result = calculate_jitter_from_measurements(session, m, measurement_no)
-                    if result is not None:
-                        jitter, nr_jitter_measurements = result
+                    # if result is not None:
+                    jitter, nr_jitter_measurements = result
                     m_results.append((m, jitter, nr_jitter_measurements))
                 return m_results
             print("The ntp server " + server + " is not responding.")
             return None
+    except DNSError as e:
+        print("Performing measurement error message:", e)
+        raise e
     except Exception as e:
         print("Performing measurement error message:", e)
         return None

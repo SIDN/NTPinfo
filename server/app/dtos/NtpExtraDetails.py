@@ -7,7 +7,7 @@ class NtpExtraDetails:
     """
     Represents additional measurements for a given NTP server. 
 
-    Fields:
+    Attributes:
         root_delay (PreciseTime): Total round-trip delay to the primary reference source
         poll (int): The poll interval (seconds) used by the probe during the measurement
         root_dispersion (PreciseTime): An estimate (seconds) of the maximum error due to clock frequency stability

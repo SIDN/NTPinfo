@@ -1,5 +1,5 @@
 import { expect, test, describe } from 'vitest'
-import { dateFormatConversion } from '../utils/dateFormatConversion'
+import { dateFormatConversion } from '../../utils/dateFormatConversion'
 describe('dateFormatConversion', () => {
   test('Test with time as UTC date', () => {
     const unixTime = Date.UTC(2025, 5, 11, 14, 23, 45) 

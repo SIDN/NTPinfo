@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
-import { downloadJSON, downloadCSV } from '../utils/downloadFormats'
-import type { NTPData, RIPEData } from '../utils/types'
+import { downloadJSON, downloadCSV } from '../../utils/downloadFormats'
+import type { NTPData, RIPEData } from '../../utils/types'
 
 describe('Test Download Formats', () => {
   const mockCreateObjectURL = vi.fn(() => 'blob:http://localhost/blobid')
@@ -54,6 +54,7 @@ describe('Test Download Formats', () => {
     leap: 0,
     jitter: 0.00002,
     nr_measurements_jitter: 12,
+    asn_ntp_server: "6185",
     time: 1718277600.1238
   }
 
@@ -61,7 +62,7 @@ describe('Test Download Formats', () => {
     measurementData: ntpData,
     probe_addr_v4: "203.0.113.10",
     probe_addr_v6: "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
-    probe_id: 42,
+    probe_id: "42",
     probe_country: 'NL',
     probe_location: [52.37, 4.89],
     time_to_result: 69,

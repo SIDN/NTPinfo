@@ -4,6 +4,7 @@ import geoip2.database
 from server.app.utils.load_config_data import get_max_mind_path_asn
 from server.app.utils.load_config_data import get_max_mind_path_country, get_max_mind_path_city
 
+
 def get_coordinates_for_ip(client_ip: Optional[str]) -> tuple[float, float]:
     """
     Retrieves the geographical location (latitude and longitude) of a given IP address

@@ -1,4 +1,5 @@
 import ipaddress
+import re
 from datetime import datetime, timezone
 from ipaddress import IPv4Address, IPv6Address
 from typing import Optional
@@ -68,7 +69,6 @@ def parse_ip(ip_str: str) -> IPv4Address | IPv6Address | None:
     Parses and validates a string as an IPv4 or IPv6 address.
 
     Attempts to interpret the provided string as a valid IP address using `ipaddress.ip_address()`.
-    If successful, prints the IP and its version. If invalid, prints an error message.
 
     Args:
         ip_str (str): The IP address in string format (e.g., "192.168.0.1" or "::1").
@@ -80,8 +80,27 @@ def parse_ip(ip_str: str) -> IPv4Address | IPv6Address | None:
     """
     try:
         ip = ipaddress.ip_address(ip_str)
-        print(f"Valid IP: {ip} (Version {ip.version})")
+        # print(f"Valid IP: {ip} (Version {ip.version})")
         return ip
     except ValueError:
-        print("Invalid IP address")
+        # print("Invalid IP address")
         return None
+
+def sanitize_string(s: Optional[str]) -> Optional[str]:
+    """
+    This method sanitize a string. It removes null characters (\x00) or control characters (\x01-\x1F)
+    or the DEL character (\x7F) from a string. It removes them. We do this because our database does not
+    allow these characters (security concerns). It prints a warning if the string contains such characters.
+
+    Args:
+        s (Optional[str]): The string to sanitize.
+
+    Returns:
+        Optional[str]: The sanitized string, or None if the string is None.
+    """
+    if s is None:
+        return None
+    good_string = re.sub(r'[\x00-\x1F\x7F]', '', s)
+    if good_string != s:
+        print(f"Warning, strange characters detected in {s}. Changed the word to {good_string}")
+    return good_string

@@ -21,6 +21,7 @@ def test_creating_ripe_measurement_unsuccessful(client):
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = client.post("/measurements/ripe/trigger/", json={"server": "", "ipv6_measurement": False})
     assert response.status_code == 400
+    client.app.state.limiter.reset() # reset the rate limit
     response = client.post("/measurements/ripe/trigger/", json={"server": "4536.35.pool.bla", "ipv6_measurement": False},
                            headers=headers)
 
@@ -51,6 +52,7 @@ def test_creating_ripe_measurement_successful_ipv6(client):
     assert response.status_code == 200
     assert "measurement_id" in response.json()
 
+    client.app.state.limiter.reset() # reset the rate limit
     # now test that the IP type of our client does not matter:
     headers = {"X-Forwarded-For": "83.25.24.10"}
     response = client.post("/measurements/ripe/trigger/", json={"server": "2001:4860:4806:8::", "ipv6_measurement": True},

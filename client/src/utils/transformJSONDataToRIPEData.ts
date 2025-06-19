@@ -21,7 +21,7 @@ export const transformJSONDataToRIPEData = (fetchedData: any): RIPEData | null =
     const measurement = fetchedData.result[0]
 
     const measurementData: NTPData = {
-        ntp_version: fetchedData.ntp_verison, //
+        ntp_version: fetchedData.ntp_version, //
         vantage_point_ip: fetchedData.vantage_point_ip,//
         ip: fetchedData.ntp_server_ip,//
         server_name: fetchedData.ntp_server_name, //
@@ -45,6 +45,7 @@ export const transformJSONDataToRIPEData = (fetchedData: any): RIPEData | null =
         leap: -1,
         jitter: -1,
         nr_measurements_jitter: -1,
+        asn_ntp_server: fetchedData.asn_ntp_server,
         time: (measurement.client_sent_time.seconds - 2208988800) * 1000 //measurement
     }
     return{
