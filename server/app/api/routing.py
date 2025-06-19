@@ -109,13 +109,14 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
     # In case the input is an IP and not a domain name, then "wanted_ip_type" will be ignored and the IP type of the IP will be used.
     wanted_ip_type = override_desired_ip_type_if_input_is_ip(server, wanted_ip_type)
 
-    # get the client IP (if possible the same type as wanted_ip_type)
-    client_ip: Optional[str] = client_ip_fetch(request=request, wanted_ip_type=wanted_ip_type)
     # for IPv6 measurements, we need to communicate using IPv6. (we need to have the same protocol as the target)
     this_server_ip_strict = get_server_ip(wanted_ip_type)  # strict means we want exactly this type
     if this_server_ip_strict is None:  # which means we cannot perform this type of NTP measurements from our server
         raise HTTPException(status_code=422,
                             detail=f"Our server cannot perform IPv{wanted_ip_type} measurements currently. Try the other IP type.")
+
+    # get the client IP (the same type as wanted_ip_type)
+    client_ip: Optional[str] = client_ip_fetch(request=request, wanted_ip_type=wanted_ip_type)
     try:
         response = measure(server, wanted_ip_type, session, client_ip)
         # print(response)
