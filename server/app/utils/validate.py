@@ -86,18 +86,20 @@ def parse_ip(ip_str: str) -> IPv4Address | IPv6Address | None:
         # print("Invalid IP address")
         return None
 
-def sanitize_string(s: str) -> str:
+def sanitize_string(s: Optional[str]) -> Optional[str]:
     """
     This method sanitize a string. It removes null characters (\x00) or control characters (\x01-\x1F)
     or the DEL character (\x7F) from a string. It removes them. We do this because our database does not
     allow these characters (security concerns). It prints a warning if the string contains such characters.
 
     Args:
-        s (str): The string to sanitize.
+        s (Optional[str]): The string to sanitize.
 
     Returns:
-        str: The sanitized string.
+        Optional[str]: The sanitized string, or None if the string is None.
     """
+    if s is None:
+        return None
     good_string = re.sub(r'[\x00-\x1F\x7F]', '', s)
     if good_string != s:
         print(f"Warning, strange characters detected in {s}. Changed the word to {good_string}")

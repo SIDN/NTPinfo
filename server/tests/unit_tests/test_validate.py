@@ -39,10 +39,13 @@ def test_is_valid_domain_name():
     assert is_valid_domain_name("aaa") is True
 
 def test_sanitize_string():
+    assert sanitize_string(None) == None
     assert sanitize_string("abv") == "abv"
     assert sanitize_string("") == ""
     assert sanitize_string("a.B\x00vc\x00") == "a.Bvc"
     assert sanitize_string("tb\x0Evc\x1Fz") == "tbvcz"
     assert sanitize_string("\x00ab\x0Evc\x1Fz") == "abvcz"
-    assert sanitize_string("\x00\x00\x11\x0E\x1Fz") == "z"
+    assert sanitize_string("\x00\x00\x11\x0E\x1FZ") == "Z"
     assert sanitize_string("\x00\x00\x11\x0E\x1F") == ""
+    assert sanitize_string("\x00ă\x00\x11ț\x0Eș\x1F") == "ățș"
+    assert sanitize_string("\x00\x00\x11\x0E\x1F\x1F") == ""
