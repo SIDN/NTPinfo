@@ -80,6 +80,7 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
                         <div className="metric"><span title='The total round-trip delay to the primary reference source'>Root delay</span><span>{data?.root_delay !== undefined ? data.root_delay : 'N/A'}</span></div>
                         <div className="metric"><span title='The poll interval used by the probe during the measurement'>Poll interval</span><span>{data?.poll !== undefined ? `${Math.pow(2, data.poll)} s` : 'N/A'}</span></div>
                         <div className="metric"><span title='An estimate of the maximum error due to clock frequency stability'>Root dispersion</span><span>{data?.root_dispersion !== undefined ? `${(data.root_dispersion).toFixed(10)} s` : 'N/A'}</span></div>
+                        <div className="metric"><span>ASN </span><span>{data?.asn_ntp_server !== undefined ? data.asn_ntp_server : "N/A"}</span></div>
                     </div>
                 </div>
                 <div className="result-and-title">
@@ -105,6 +106,7 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
                         <div className="metric"><span title='The total round-trip delay to the primary reference source'>Root delay</span><span>{ripeData?.measurementData.root_delay !== undefined ? ripeData.measurementData.root_delay : 'N/A'}</span></div>
                         <div className="metric"><span title='The poll interval used by the probe during the measurement'>Poll interval</span><span>{ripeData?.measurementData.poll !== undefined ? `${ripeData.measurementData.poll} s` : 'N/A'}</span></div>
                         <div className="metric"><span title='An estimate of the maximum error due to clock frequency stability'>Root dispersion</span><span>{ripeData?.measurementData.root_dispersion !== undefined ? `${(ripeData.measurementData.root_dispersion).toFixed(10)} s` : 'N/A'}</span></div>
+                        <div className="metric"><span>ASN</span><span>{ripeData?.measurementData.asn_ntp_server !== undefined ? ripeData.measurementData.asn_ntp_server : 'N/A' }</span></div>
                         <div className="metric"><span>Measurement ID</span><span>
                             {ripeData?.measurement_id ? (
                                 <a
