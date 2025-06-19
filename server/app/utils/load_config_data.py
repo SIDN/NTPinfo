@@ -144,6 +144,34 @@ def get_nr_of_measurements_for_jitter() -> int:
         raise ValueError("ntp 'number_of_measurements_for_calculating_jitter' must be > 0")
     return ntp["number_of_measurements_for_calculating_jitter"]
 
+def get_rate_limit_per_client_ip() -> str:
+    """
+    This method returns the rate limit for queries per client IP to our server.
+
+    Raises:
+        ValueError: If this variable has not been correctly set.
+    """
+    if "ntp" not in config:
+        raise ValueError("ntp section is missing")
+    ntp = config["ntp"]
+    if "rate_limit_per_client_ip" not in ntp:
+        raise ValueError("ntp 'rate_limit_per_client_ip' is missing")
+    if not isinstance(ntp["rate_limit_per_client_ip"], str):
+        raise ValueError("ntp 'rate_limit_per_client_ip' must be a 'str'")
+    r = ntp["rate_limit_per_client_ip"]
+
+    if "/" not in r:
+        raise ValueError("ntp 'rate_limit_per_client_ip' must contain 2 parts, separated by a '/'")
+    try:
+        number, unit = r.split("/")
+    except Exception:
+            raise ValueError("ntp 'rate_limit_per_client_ip' is in invalid format")
+    if number.isdigit() is False:  # check whether all characters are digits
+        raise ValueError("ntp 'rate_limit_per_client_ip' must have first part an integer")
+    unit = unit.lower()
+    if unit not in {"second", "minute"}:
+        raise ValueError("ntp 'rate_limit_per_client_ip' unit must be either 'second' or 'minute'")
+    return r
 
 def get_mask_ipv4() -> int:
     """

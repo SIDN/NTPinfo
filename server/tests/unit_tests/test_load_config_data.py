@@ -190,6 +190,50 @@ def test_get_nr_of_measurements_for_jitter_boundaries(mock_config):
     mock_config["ntp"] = {"number_of_measurements_for_calculating_jitter": 1}
     assert get_nr_of_measurements_for_jitter() == 1
 
+# ntp rate_limit
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_rate_limit_per_client_ip(mock_config):
+    mock_config["something"] = {"blabla": 5}
+    with pytest.raises(ValueError, match="ntp section is missing"):
+        get_rate_limit_per_client_ip()
+    mock_config["ntp"] = {"blabla": 5}
+    with pytest.raises(ValueError, match="ntp 'rate_limit_per_client_ip' is missing"):
+        get_rate_limit_per_client_ip()
+    mock_config["ntp"] = {"rate_limit_per_client_ip": 5}
+    with pytest.raises(ValueError, match="ntp 'rate_limit_per_client_ip' must be a 'str'"):
+        get_rate_limit_per_client_ip()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_rate_limit_per_client_ip_content_invalid(mock_config):
+    mock_config["ntp"] = {"rate_limit_per_client_ip": "5 second"}
+    with pytest.raises(ValueError, match="ntp 'rate_limit_per_client_ip' must contain 2 parts, separated by a '/'"):
+        get_rate_limit_per_client_ip()
+    mock_config["ntp"] = {"rate_limit_per_client_ip": "/second"}
+    with pytest.raises(ValueError, match="ntp 'rate_limit_per_client_ip' must have first part an integer"):
+        get_rate_limit_per_client_ip()
+    mock_config["ntp"] = {"rate_limit_per_client_ip": "7/seconds"}
+    with pytest.raises(ValueError, match="ntp 'rate_limit_per_client_ip' unit must be either 'second' or 'minute'"):
+        get_rate_limit_per_client_ip()
+    mock_config["ntp"] = {"rate_limit_per_client_ip": "4/second/"}
+    with pytest.raises(ValueError, match="ntp 'rate_limit_per_client_ip' is in invalid format"):
+        get_rate_limit_per_client_ip()
+    mock_config["ntp"] = {"rate_limit_per_client_ip": "5/hour"}
+    with pytest.raises(ValueError, match="ntp 'rate_limit_per_client_ip' unit must be either 'second' or 'minute'"):
+        get_rate_limit_per_client_ip()
+    mock_config["ntp"] = {"rate_limit_per_client_ip": "4/"}
+    with pytest.raises(ValueError, match="ntp 'rate_limit_per_client_ip' unit must be either 'second' or 'minute'"):
+        get_rate_limit_per_client_ip()
+
+@patch("server.app.utils.load_config_data.config", new_callable=dict)
+def test_get_rate_limit_per_client_ip_content_ok(mock_config):
+    mock_config["ntp"] = {"rate_limit_per_client_ip": "5/second"}
+    assert get_rate_limit_per_client_ip() == "5/second"
+
+    mock_config["ntp"] = {"rate_limit_per_client_ip": "40/second"}
+    assert get_rate_limit_per_client_ip() == "40/second"
+
+    mock_config["ntp"] = {"rate_limit_per_client_ip": "11/mInute"}
+    assert get_rate_limit_per_client_ip() == "11/mInute"
 
 # edns mask_ipv4
 @patch("server.app.utils.load_config_data.config", new_callable=dict)

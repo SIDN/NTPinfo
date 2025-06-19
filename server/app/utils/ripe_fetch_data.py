@@ -1,6 +1,5 @@
 import time
 from ipaddress import ip_address, IPv4Address, IPv6Address
-
 import requests
 
 from server.app.utils.location_resolver import get_country_for_ip, get_coordinates_for_ip
