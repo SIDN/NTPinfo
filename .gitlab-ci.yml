@@ -114,6 +114,7 @@ client_tests:
         echo ".env file created"
       else
         echo ".env file already exists, skipping creation"
+      fi
   script:
     - npm run test
   artifacts:
