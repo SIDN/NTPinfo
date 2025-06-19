@@ -61,13 +61,14 @@ To set up and run the backend server, follow these steps:
     DB_NAME={db_name}
     DB_USER=postgres
     DB_PASSWORD=postgres
-    DB_HOST=localhost
+    DB_HOST=localhost (or "db" if you run the project with docker)
     DB_PORT=5432
     IPINFO_LITE_API_TOKEN={API}
     ripe_api_token={ripe API with persmission to perform measurments}
-    ripe_account_email={email of your ripe account}
+    ripe_account_email={email of your ripe account (you need to have credits)}
     ACCOUNT_ID={geolite account id}
     LICENSE_KEY={geolite key}
+    UPDATE_CRON_SCHEDULE=*/1 * * * *
     ```
    Besides, the config file with public data for the server is `server/server_config.yaml` and it contains the following variables:
 
@@ -76,6 +77,7 @@ To set up and run the backend server, follow these steps:
           version: 4
           timeout_measurement_s: 7  # in seconds
           number_of_measurements_for_calculating_jitter: 8
+          server_timeout: 60 # in seconds
 
 
         edns:
@@ -120,10 +122,16 @@ To set up and run the backend server, follow these steps:
 
 ---
 
-4. **Download the max mind and BGP tools databases, and schedule running this file once every day**:
+4. **Prepare the PostgreSQL database**
+
+    You need to create an empty database called "measurements" in PostgreSQL. Do not worry about the tables, everything is handled when you run the server.
+---
+5. **Download the max mind and BGP tools databases, and schedule running this file once every day**
 
     This will initialise the local dbs for geolocation and detecting anycast, and will schedule downloading them every day at 1 AM.
     Be sure that you are in the root folder, and `.env` file has all variables.
+
+    If you want to schedule updating the databases, run this:
 
     ```bash
     cd ..
@@ -134,7 +142,7 @@ To set up and run the backend server, follow these steps:
    ```bash
     pwd
     ```
-   Or if you want to manually run it without scheduling:
+   Or if you want to manually run the script to download the databases without scheduling:
     ```bash
       ./update_geolite_and_bgptools_dbs.sh
     ```
@@ -146,11 +154,11 @@ To set up and run the backend server, follow these steps:
    - If downloading the Geolite databases fails, consider that downloading them has a daily limit per account. (This limit is only for geolite databases)
 
     **Notes**:
-    - Be sure to schedule running this file once every day.
+    - Be sure to schedule running this file once every day, if you want up-to-date information.
 
 ---
 
-5. **Run the server**:
+6. **Run the server (from the root directory)**:
 
     ```bash
     uvicorn server.app.main:create_app --reload --factory
@@ -173,23 +181,30 @@ To set up and run the client, follow these steps:
     npm -v
     ```
 
-  If not, install from https://nodejs.org/
+    If not, install from https://nodejs.org/
 
-2. **Install the dependencies**
+2. **Create `.env` file in client**
 
+    Create a `.env` file in `client` and add the following to the file:
+    ```dotenv
+    VITE_SERVER_HOST_ADDRESS=http://localhost:8000/ # address of our server (back-end)
+    VITE_STATUS_THRESHOLD=1000 # in ms
+    ```    
+
+3. **Install the dependencies**
+
+    Ensure you are in the client folder
     ```bash
     cd ./client
     npm install
     ```
 
-    Ensure you are in the client folder
-
-3. **Running the client**
+4. **Running the client**
 
     ```bash
     npm run dev
     ```
-
+    Everything should be set now!
 #### Global types
 
 The global types that are used across multiple components are stored in ```client\src\utils\types.ts```.

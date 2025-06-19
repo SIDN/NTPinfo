@@ -28,16 +28,16 @@ def calculate_jitter_from_measurements(session: Session, initial_measurement: Nt
     from a given initial measurement and a number of most recent measurements from the same NTP server.
 
     Args:
-        session (Session): The active SQLAlchemy database session
+        session (Session): The active SQLAlchemy database session.
         initial_measurement (NtpMeasurement): The reference measurement not already stored in the database,
-                                              used as the baseline for offset comparison
+                                              used as the baseline for offset comparison.
         no_measurements (int): The number of recent historical measurements to fetch from the database
-                                         for jitter calculation
+                                         for jitter calculation.
 
     Returns:
         tuple[float, int]:
-            - float: The calculated jitter in seconds
-            - int: The actual number of historical measurements used for the calculation
+            - float: The calculated jitter in seconds.
+            - int: The actual number of historical measurements used for the calculation.
     """
     offsets = [NtpCalculator.calculate_offset(initial_measurement.timestamps)]
     last_measurements = get_measurements_for_jitter_ip(session=session,
@@ -55,13 +55,13 @@ def calculate_jitter_from_measurements(session: Session, initial_measurement: Nt
 def ntp_precise_time_to_human_date(t: PreciseTime) -> str:
     """
     Converts a PreciseTime object to a human-readable time string in UTC. (ex:'2025-05-05 14:30:15.123456 UTC')
-    We need to shift from ntp time to unix time so we need to subtract all the seconds from 1900 to 1970
+    We need to shift from ntp time to unix time so we need to subtract all the seconds from 1900 to 1970.
 
     Args:
         t (PreciseTime): The PreciseTime object.
 
     Returns:
-        str: the date in UTC format or empty, depending on whether the PreciseTime object could be converted to UTC.
+        str: The date in UTC format or empty, depending on whether the PreciseTime object could be converted to UTC.
     """
     try:
         timestamp = ntplib._to_time(t.seconds - ntplib.NTP.NTP_DELTA, t.fraction)
@@ -77,10 +77,10 @@ def convert_float_to_precise_time(value: float) -> PreciseTime:
     Converts a float value to a PreciseTime object.
 
     Args:
-        value (float): the float value to convert
+        value (float): The float value to convert.
 
     Returns:
-        a PreciseTime object
+        PreciseTime: A PreciseTime object.
     """
     seconds = int(value)
     fraction = ntplib._to_frac(value)  # by default, a second is split into 2^32 parts
@@ -118,17 +118,17 @@ def get_non_responding_ntp_measurement(server_ip_str: str, server_name: Optional
     as non-responding on the map.
 
     Args:
-        server_ip_str (str): The IP address of the NTP server that failed to respond
-        server_name (Optional[str]): The hostname of the NTP server, if available
-        ntp_version (int): The version of the NTP protocol to report (default is based on system config)
+        server_ip_str (str): The IP address of the NTP server that failed to respond.
+        server_name (Optional[str]): The hostname of the NTP server, if available.
+        ntp_version (int): The version of the NTP protocol to report. (default is based on system config)
 
     Returns:
-        NtpMeasurement: An `NtpMeasurement` object filled with placeholder values indicating failure
+        NtpMeasurement: An `NtpMeasurement` object filled with placeholder values indicating failure.
 
     Notes:
-        - The `offset`, `rtt`, `stratum`, and other time-related fields are set to -1 or equivalent
-        - The `vantage_point_ip` is determined from the local server. If not resolvable, it defaults to 0.0.0.0
-        - The location and reference information is generated using available utility functions based on IP
+        - The `offset`, `rtt`, `stratum`, and other time-related fields are set to -1 or equivalent.
+        - The `vantage_point_ip` is determined from the local server. If not resolvable, it defaults to 0.0.0.0.
+        - The location and reference information is generated using available utility functions based on IP.
     """
     vantage_point_ip = None
     ip_type = get_ip_family(server_ip_str)
