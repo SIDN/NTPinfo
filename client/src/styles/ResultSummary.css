@@ -127,18 +127,29 @@ h2#not-found {
 }
 
 .tooltip-icon {
-  color: var(--clr-input-placeholder);
   border-radius: 50%;
-  border: 2px solid var(--clr-input-placeholder);
   width: 20px;
   height: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 1rem;
+  color: var(--clr-input-placeholder);
+  border: 2px solid var(--clr-input-placeholder);
 }
 
+.tooltip-icon.success {
+  color: var(--clr-input-placeholder);
+  border: 2px solid var(--clr-input-placeholder);
+}
+.tooltip-icon.fail {
+  color: var(--clr-red-2);
+  border: 2px solid var(--clr-red-2);
+}
+#ripe-result:has(.tooltip-icon.fail) > #ripe-details {
+  border: 2px solid var(--clr-red-2);
+}
 .tooltip-text {
   position: absolute;
   visibility: hidden;

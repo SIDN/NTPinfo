@@ -74,7 +74,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
   // const [allNtpMeasurements, setAllNtpMeasurements] = useState<NTPData[] | null>(null)
 
   //Varaibles to log and use API hooks
-  const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
+  const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus, errorMessage: apiErrDetail} = useFetchIPData()
   const {fetchData: fetchHistoricalData} = useFetchHistoricalIPData()
   const {triggerMeasurement} = useTriggerRipeMeasurement()
   const {
@@ -219,6 +219,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         <ResultSummary data={ntpData}
                        ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null}
                        err={apiErrorLoading}
+                       errMessage={apiErrDetail}
                        httpStatus={respStatus}
                        ripeErr={ripeMeasurementError}
                        ripeStatus={ripeMeasurementStatus}/>
@@ -252,7 +253,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
           </div>
         </div>
       </div>)) || (!ntpData && !apiDataLoading && measured &&
-      <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}
+      <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus} errMessage={apiErrDetail}
       ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null} ripeErr={ripeMeasurementError} ripeStatus={ripeMeasurementStatus}/>)}
 
       {/*Buttons to download results in JSON and CSV format as well as open a popup displaying historical data*/}

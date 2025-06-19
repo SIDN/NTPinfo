@@ -73,7 +73,7 @@ describe('ResultSummary', () => {
 
     test('Render results with status code 200', () => {
         render(<ResultSummary data={mockNTPData} ripeData={mockRIPEData} 
-                              err={null} httpStatus={200}
+                              err={null} httpStatus={200} errMessage={null}
                               ripeErr={null} ripeStatus={"complete"}/>)
         
         expect(screen.getByText(/From Our NTP Client/i)).toBeInTheDocument()
@@ -101,7 +101,7 @@ describe('ResultSummary', () => {
 
     test('Show Not found on status code 404', () => {
         render(<ResultSummary data={null} ripeData={mockRIPEData} 
-                              err={new Error()} httpStatus={404}
+                              err={new Error()} httpStatus={404} errMessage={'Domain name or IP address not found'}
                               ripeErr={null} ripeStatus={"complete"}/>)
 
         expect(screen.getByText(/Error 404: Domain name or IP address not found/)).toBeInTheDocument()
@@ -109,7 +109,7 @@ describe('ResultSummary', () => {
 
     test('Show Server Unreachable on status code 400', () => {
         render(<ResultSummary data={null} ripeData={mockRIPEData} 
-                              err={new Error()} httpStatus={400}
+                              err={new Error()} httpStatus={400} errMessage={'Server is not reachable'}
                               ripeErr={null} ripeStatus={"complete"}/>)
 
         expect(screen.getByText(/Error 400: Server is not reachable/)).toBeInTheDocument()
@@ -117,7 +117,7 @@ describe('ResultSummary', () => {
 
     test('Show Rate limiting on status code 429', () => {
         render(<ResultSummary data={null} ripeData={mockRIPEData} 
-                              err={new Error()} httpStatus={429}
+                              err={new Error()} httpStatus={429} errMessage={'Too many requests in a short amount of time'}
                               ripeErr={null} ripeStatus={"complete"}/>)
 
         expect(screen.getByText(/Error 429: Too many requests in a short amount of time/)).toBeInTheDocument()
@@ -125,7 +125,7 @@ describe('ResultSummary', () => {
 
     test('Show DNS unresolvable on status code 422', () => {
         render(<ResultSummary data={null} ripeData={mockRIPEData} 
-                              err={new Error()} httpStatus={422}
+                              err={new Error()} httpStatus={422} errMessage={'Domain name cannot be resolved'}
                               ripeErr={null} ripeStatus={"complete"}/>)
 
         expect(screen.getByText(/Error 422: Domain name cannot be resolved/)).toBeInTheDocument()
@@ -133,7 +133,7 @@ describe('ResultSummary', () => {
 
     test('Show Internal server error on status code 500', () => {
         render(<ResultSummary data={null} ripeData={mockRIPEData} 
-                              err={new Error()} httpStatus={500}
+                              err={new Error()} httpStatus={500} errMessage={'Internal server error occurred'}
                               ripeErr={null} ripeStatus={"complete"}/>)
 
         expect(screen.getByText(/Error 500: Internal server error occurred/)).toBeInTheDocument()
@@ -141,14 +141,14 @@ describe('ResultSummary', () => {
 
     test('Show Unknown error on unknown status code', () => {
         render(<ResultSummary data={null} ripeData={mockRIPEData} 
-                              err={new Error()} httpStatus={111}
+                              err={new Error()} httpStatus={111} errMessage={'Unknown error occurred'}
                               ripeErr={null} ripeStatus={"complete"}/>)
 
-        expect(screen.getByText(/Unknown error occurred/)).toBeInTheDocument()
+        expect(screen.getByText(/Error 111: Unknown error occurred/)).toBeInTheDocument()
     })
     test('Show RIPE Timeout message', () => {
     render(<ResultSummary
-            data={mockNTPData} ripeData={null} err={null}
+            data={mockNTPData} ripeData={null} err={null} errMessage={null}
             httpStatus={200} ripeErr={null} ripeStatus="timeout"
             />
         )
@@ -158,7 +158,7 @@ describe('ResultSummary', () => {
 
     test('Show RIPE Failure message', () => {
     render(<ResultSummary
-            data={mockNTPData} ripeData={null} err={null}
+            data={mockNTPData} ripeData={null} err={null} errMessage={null}
             httpStatus={200} ripeErr={new Error()} ripeStatus="error"
             />
         )
@@ -168,7 +168,7 @@ describe('ResultSummary', () => {
 
     test('Show RIPE loading pending', () => {
         render(<ResultSummary
-            data={mockNTPData} ripeData={null} err={null}
+            data={mockNTPData} ripeData={null} err={null} errMessage={null}
             httpStatus={200} ripeErr={new Error()} ripeStatus="pending"
             />
         )
@@ -179,7 +179,7 @@ describe('ResultSummary', () => {
 
     test('Show RIPE loading partial', () => {
         render(<ResultSummary
-            data={mockNTPData} ripeData={null} err={null}
+            data={mockNTPData} ripeData={null} err={null} errMessage={null}
             httpStatus={200} ripeErr={new Error()} ripeStatus="partial_results"
             />
         )
