@@ -45,7 +45,8 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     allNtpMeasurements,
     ripeMeasurementResp,
     ripeMeasurementStatus,
-    ipv6Selected
+    ipv6Selected,
+    isLoading
   } = cache;
 
   // still local UI state
@@ -83,6 +84,11 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     error: ripeMeasurementError
   } = useFetchRIPEData(measurementId)
 
+  // Update cache when loading state changes
+  useEffect(() => {
+    updateCache({ isLoading: apiDataLoading });
+  }, [apiDataLoading, updateCache]);
+
   useEffect(() => {
     if (!ripeMeasurementStatus || ripeMeasurementStatus === "complete") return;
     updateCache({
@@ -90,7 +96,6 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
       ripeMeasurementStatus: fetchedRIPEStatus,
     });
   }, [ripeMeasurementResp, ripeMeasurementStatus, updateCache, fetchedRIPEData, fetchedRIPEStatus]);
-
 
   //
   //functions for handling state changes
@@ -161,7 +166,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
       chartData,
       allNtpMeasurements: apiMeasurementResp ?? null,
       ripeMeasurementResp: null,          // clear old map
-      ripeMeasurementStatus: undefined,        //  “     ”
+      ripeMeasurementStatus: undefined,        //  "     "
     })
 
     /**

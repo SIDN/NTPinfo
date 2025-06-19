@@ -24,14 +24,26 @@ function App() {
     allNtpMeasurements: null,
     ripeMeasurementResp: null,          // map
     ripeMeasurementStatus: null,        // map
-    ipv6Selected: false
+    ipv6Selected: false,
+    isLoading: false
   };
   const [homeCache, setHomeCache] = useState<HomeCacheState>(initialCache);
+
+  // Check if any measurement is currently running
+  const isMeasurementRunning = homeCache.isLoading ||
+                              homeCache.ripeMeasurementStatus === 'pending' ||
+                              homeCache.ripeMeasurementStatus === 'partial_results';
 
   return (
 
     <div className="app-layout">
-      <Sidebar selectedTab={selectedTab} setSelectedTab={setSelectedTab} open={sidebarOpen} setOpen={setSidebarOpen} />
+      <Sidebar
+        selectedTab={selectedTab}
+        setSelectedTab={setSelectedTab}
+        open={sidebarOpen}
+        setOpen={setSidebarOpen}
+        isMeasurementRunning={isMeasurementRunning}
+      />
       <main className={`app-content${!sidebarOpen ? ' with-sidebar-collapsed' : ''}`}>
         {/* {selectedTab === 1 && <HomeTab onVisualizationDataChange={setVisualizationData} />} */}
         {selectedTab === 1 && (
