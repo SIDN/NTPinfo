@@ -3,6 +3,7 @@ from ipaddress import IPv4Address, IPv6Address, ip_address
 from sqlalchemy import Row
 from sqlalchemy.orm import Session
 
+from server.app.utils.validate import sanitize_string
 from server.app.dtos.ProbeData import ServerLocation
 from server.app.utils.location_resolver import get_country_for_ip, get_coordinates_for_ip
 from server.app.dtos.NtpExtraDetails import NtpExtraDetails
@@ -144,7 +145,8 @@ def rows_to_measurements(rows: list[Row[tuple[Measurement, Time]]]) -> list[NtpM
 
 def insert_measurement(measurement: NtpMeasurement, session: Session) -> None:
     """
-    Inserts a new NTP measurement into the database.
+    Inserts a new NTP measurement into the database. Before inserting, it sanitizes the string fields,
+    because some fields may have a null character at the end which should be removed.
 
     This function stores both the raw timestamps (in the `times` table) and the
     processed measurement data (in the `measurements` table).
@@ -180,16 +182,16 @@ def insert_measurement(measurement: NtpMeasurement, session: Session) -> None:
         measurement_entry = Measurement(
             vantage_point_ip=ip_to_str(measurement.vantage_point_ip),
             ntp_server_ip=ip_to_str(measurement.server_info.ntp_server_ip),
-            ntp_server_name=measurement.server_info.ntp_server_name,
+            ntp_server_name=sanitize_string(measurement.server_info.ntp_server_name),
             ntp_version=measurement.server_info.ntp_version,
-            ntp_server_ref_parent=ip_to_str(measurement.server_info.ntp_server_ref_parent_ip),
-            ref_name=measurement.server_info.ref_name,
+            ntp_server_ref_parent=sanitize_string(ip_to_str(measurement.server_info.ntp_server_ref_parent_ip)),
+            ref_name=sanitize_string(measurement.server_info.ref_name),
             time_id=time.id,
             time_offset=measurement.main_details.offset,
             rtt=measurement.main_details.rtt,
             stratum=measurement.main_details.stratum,
             precision=measurement.main_details.precision,
-            reachability=measurement.main_details.reachability,
+            reachability=sanitize_string(measurement.main_details.reachability),
             root_delay=measurement.extra_details.root_delay.seconds,
             root_delay_prec=measurement.extra_details.root_delay.fraction,
             poll=measurement.extra_details.poll,

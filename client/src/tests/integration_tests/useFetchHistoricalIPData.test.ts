@@ -43,6 +43,7 @@ describe('useFetchHistoricalIPData', () => {
             leap: 0,
             jitter: null,
             nr_measurements_jitter: 0,
+            asn_ntp_server: "6185",
             time: 1749810119000
         },
         {
@@ -70,6 +71,7 @@ describe('useFetchHistoricalIPData', () => {
             leap: 0,
             jitter: null,
             nr_measurements_jitter: 0,
+            asn_ntp_server: "6185",
             time: 1749810119000
         },
         {
@@ -97,6 +99,7 @@ describe('useFetchHistoricalIPData', () => {
             leap: 0,
             jitter: null,
             nr_measurements_jitter: 0,
+            asn_ntp_server: "6185",
             time: 1749810120000
         },
         {
@@ -124,6 +127,7 @@ describe('useFetchHistoricalIPData', () => {
             leap: 0,
             jitter: null,
             nr_measurements_jitter: 0,
+            asn_ntp_server: "6185",
             time: 1749810120000
         }
         ]
