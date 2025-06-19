@@ -95,6 +95,7 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
                         <div className="status-line">
                             <span className="status-label">STATUS:&nbsp;</span>
                             <span className={`status-value ${serverStatus?.toLowerCase()}`}>{serverStatus}</span>
+                            {ripeStatus === "complete" && (
                             <div className="tooltip-container">
                                 <span className="tooltip-icon">?</span>
                                 {serverStatus === "PASSING" && 
@@ -125,7 +126,7 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
                                     There was an error in one of the measurements
                                     </div>
                                 }
-                            </div>
+                            </div>)}
                         </div>
                     </div>
                 </div>
