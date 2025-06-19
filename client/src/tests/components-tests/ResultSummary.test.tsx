@@ -153,7 +153,9 @@ describe('ResultSummary', () => {
             />
         )
 
-        expect(screen.getByText(/RIPE measurement timed out/)).toBeInTheDocument()
+        expect(screen.getByText((content) =>
+            content.includes("RIPE Measurement timed out.")
+        )).toBeInTheDocument();
     })
 
     test('Show RIPE Failure message', () => {
