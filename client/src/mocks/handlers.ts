@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw'
 
 export const handlers = [
-    http.post<{}, {server: string, ipv6_measurement: boolean}, {measurement: any[]} | { detail: string }>(
+    http.post<never, {server: string, ipv6_measurement: boolean}, {measurement: any[]} | { detail: string }>(
         '/measurements/', async ({request: req}) => {
             const body = await req.json()
             const mockMeasurement: any[] = [
@@ -422,7 +422,7 @@ export const handlers = [
             return HttpResponse.json({measurements: mockHistoricalMeasurement}, {status: 200})
         }
     ),
-    http.post<{}, {server: string, ipv6_measurement: boolean}, {
+    http.post<never, {server: string, ipv6_measurement: boolean}, {
         measurement_id?: string;
         vantage_point_ip?: string;
         vantage_point_location?: { country_code: string; coordinates: [number, number] };

@@ -4,7 +4,7 @@ import requests
 
 from server.app.utils.location_resolver import get_country_for_ip, get_coordinates_for_ip
 from server.app.models.CustomError import RipeMeasurementError
-from server.app.utils.load_config_data import get_ripe_api_token
+from server.app.utils.load_config_data import get_ripe_api_token, get_ripe_server_timeout
 from server.app.dtos.PreciseTime import PreciseTime
 from server.app.dtos.NtpExtraDetails import NtpExtraDetails
 from server.app.dtos.NtpMainDetails import NtpMainDetails
@@ -114,7 +114,7 @@ def check_all_measurements_done(measurement_id: str, measurement_req: int) -> st
         return "Timeout"
     else:
         current_time = int(time.time())
-        if (current_time - start_time) > 60:
+        if (current_time - start_time) > get_ripe_server_timeout():
             return "Timeout"
         else:
             return "Ongoing"
