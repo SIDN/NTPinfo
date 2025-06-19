@@ -27,9 +27,11 @@ cache:
   key:
     files:
       - server/requirements.txt
+      - client/package-lock.json
   paths:
     - .cache/pip
     - .cache/wheels
+    - client/node_modules/
 
 before_script:
   - python --version
@@ -48,7 +50,9 @@ typecheck:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-lint:
+# ------------------------------------- BACKEND JOBS -------------------------------
+
+server_lint:
   stage: lint
   script:
     - source venv/bin/activate
@@ -83,6 +87,41 @@ server_tests:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
+# -------------------------------- FRONTEND JOBS  -------------------------------------------
+
+client_lint:
+  stage: lint
+  image: node:20
+  before_script:
+    - cd client
+    - npm ci
+  script:
+    - npm run lint
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+client_tests:
+  stage: test
+  image: node:20
+  before_script:
+    - cd client
+    - npm ci
+    - |
+      if [ ! -f .env ]; then
+        echo "VITE_SERVER_HOST_ADDRESS=http://localhost:8000" > .env
+        echo "VITE_VITE_STATUS_THRESHOLD=1000" >> .env
+        echo ".env file created"
+      else
+        echo ".env file already exists, skipping creation"
+  script:
+    - npm run test
+  artifacts:
+    paths:
+      - client/coverage
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 #build_docs:
 #  stage: docs
 #  script:
