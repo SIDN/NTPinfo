@@ -84,7 +84,7 @@ describe('ResultSummary', () => {
         for (const element of expectedRTT)
             expect(element).toBeInTheDocument()
 
-        const expectedOffset = screen.getAllByText(/Offset/i)
+        const expectedOffset = screen.getAllByText('Offset')
         expect(expectedOffset.length).toBe(2)
         for (const element of expectedOffset)
             expect(element).toBeInTheDocument()
