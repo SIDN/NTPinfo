@@ -21,14 +21,9 @@ services:
       dockerfile: server/Dockerfile
     env_file:
       - .env
-    #    command: bash -c "echo DB_NAME is $DB_NAME && sleep 3600"
     depends_on:
       db:
         condition: service_healthy
-    environment:
-      UPDATE_CRON_SCHEDULE: ${UPDATE_CRON_SCHEDULE}
-      ACCOUNT_ID: ${ACCOUNT_ID}
-      LICENSE_KEY: ${LICENSE_KEY}
     ports:
       - "8000:8000"
 
@@ -36,8 +31,9 @@ services:
     build:
       context: .
       dockerfile: client/Dockerfile
-    env_file:
-      - client/.env
+      args:
+        VITE_SERVER_HOST_ADDRESS: ${VITE_SERVER_HOST_ADDRESS}
+        VITE_STATUS_THRESHOLD: ${VITE_STATUS_THRESHOLD}
     ports:
       - "5173:80"
 

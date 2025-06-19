@@ -6,6 +6,14 @@ RUN npm install
 
 COPY client/ ./
 
+# Define build-time arguments for Vite
+ARG VITE_SERVER_HOST_ADDRESS
+ARG VITE_STATUS_THRESHOLD
+
+# Set them as environment variables so Vite can access them
+ENV VITE_SERVER_HOST_ADDRESS=$VITE_SERVER_HOST_ADDRESS
+ENV VITE_STATUS_THRESHOLD=$VITE_STATUS_THRESHOLD
+
 RUN npm run build
 
 FROM nginx:alpine
