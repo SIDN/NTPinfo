@@ -84,30 +84,30 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
                         <span className="tooltip-icon">?</span>
                         {serverStatus === "PASSING" &&
                             <div className="tooltip-text">
-                            The status of the NTP server, calculated with the offset<br/>
+                            The status of the NTP server, calculated with the offset
                             of our measurement and the offset of the RIPE Probe.<br/>
                             Both offsets are less than {import.meta.env.VITE_STATUS_THRESHOLD} ms.
                             </div>
                         }
                         {serverStatus === "CAUTION" &&
                             <div className="tooltip-text">
-                            The status of the NTP server, calculated with the offset<br/>
+                            The status of the NTP server, calculated with the offset
                             of our measurement and the offset of the RIPE Probe.<br/>
                             One of the offsets is more than {import.meta.env.VITE_STATUS_THRESHOLD} ms.
                             </div>
                         }
                         {serverStatus === "FAILING" &&
                             <div className="tooltip-text">
-                            The status of the NTP server, calculated with the offset<br/>
+                            The status of the NTP server, calculated with the offset
                             of our measurement and the offset of the RIPE Probe.<br/>
                             Both offsets are more than {import.meta.env.VITE_STATUS_THRESHOLD} ms.
                             </div>
                         }
                         {serverStatus === null &&
                             <div className="tooltip-text">
-                            The status of the NTP server, calculated with the offset<br/>
+                            The status of the NTP server, calculated with the offset
                             of our measurement and the offset of the RIPE Probe.<br/>
-                            There was an error in one of the measurements
+                            There was an error in one of the measurements.
                             </div>
                         }
                     </div>)}
