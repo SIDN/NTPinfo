@@ -7,39 +7,31 @@ import linkIcon from '../assets/link-svgrepo-com.png'
 import LoadingSpinner from './LoadingSpinner.tsx'
 import { calculateStatus } from '../utils/calculateStatus.ts'
 
-function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} : 
-    {data : NTPData | null, ripeData: RIPEData | null, err : Error | null, httpStatus: number, ripeErr: Error | null, ripeStatus: RipeStatus | null}) {
+function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus, errMessage} : 
+    {data : NTPData | null, ripeData: RIPEData | null, err : Error | null, httpStatus: number, ripeErr: Error | null, ripeStatus: RipeStatus | null, errMessage: string | null}) {
 
     const [serverStatus, setServerStatus] = useState<string | null>(null)
 
-    const [statusMessage, setStatusMessage] = useState<string>("")
+    const [statusMessage, setStatusMessage] = useState<string | null>("")
     useEffect(() => {
     if (data == null) {
-        if (httpStatus === 429)
-            setStatusMessage("Too many requests in a short amount of time")
-        else if (httpStatus === 404)
-            setStatusMessage("Domain name or IP address not found")
-        else if (httpStatus === 400)
-            setStatusMessage("Server is not reachable")
-        else if (httpStatus === 422)
-            setStatusMessage("Domain name cannot be resolved")
-        else if (httpStatus === 500)
-            setStatusMessage("Internal server error occurred")
-        else if (err)
-            setStatusMessage("Unknown error occurred")
+        setStatusMessage(errMessage)
         }
-    }, [data, httpStatus, err, ripeErr])
+    }, [data, errMessage])
 
     useEffect(() => {
         if((ripeStatus === "complete") && ripeData && data){
             setServerStatus(calculateStatus(data, ripeData))
         }
+        else if (ripeErr) {
+            setServerStatus(null)
+        }
         else
             setServerStatus(null)
-    }, [data,ripeData,ripeStatus])
+    }, [data, ripeData, ripeErr, ripeStatus])
 
     if (data == null)
-        return <h2 id="not-found">{err ? `Error ${httpStatus}: ${statusMessage}` : `Unknown error occurred`}</h2>
+        return <h2 id="not-found">{err && errMessage ? `Error ${httpStatus}: ${statusMessage}` : `Unknown error occurred`}</h2>
 
     
 
@@ -132,16 +124,19 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
                         </div>
                     </div>
                 </div>
-                <div className="result-and-title">
+                <div className="result-and-title" id="ripe-result">
                     <div className="res-label">From the RIPE Atlas probe (Close to you)
                         <div className="tooltip-container">
-                            <span className="tooltip-icon">?</span>
+                        {((ripeStatus === "timeout" || ripeStatus === "error") && <span className="tooltip-icon fail">!</span>) ||
+                        (<span className="tooltip-icon success">?</span>)}
                             <div className="tooltip-text">
+                                {(ripeStatus === "timeout" && <span>RIPE Measurement timed out. <br /> </span>) ||
+                                (ripeStatus === "error" && <span>RIPE Measurement failed. <br /></span>) }
                                 RIPE Atlas tries to choose a probe near the user to perform more accurate measurements. This can take longer.
                             </div>
                         </div>
                     </div>
-                    { ((ripeStatus === "complete") &&
+                    { ((ripeStatus === "complete" || (ripeStatus === "timeout")) &&
                     (
                     <div className="result-box" id="ripe-details">
                         <div className="metric"><span title='The difference between the time reported by the like an NTP server and your local clock'>Offset</span><span>{ripeData?.measurementData.offset !== undefined ? `${(ripeData.measurementData.offset).toFixed(3)} ms` : 'N/A'} {offsetIconRIPE && <img src={offsetIconRIPE} alt="offset performance" style={{width:'14px',verticalAlign:'middle'}}/>}</span></div>
@@ -173,7 +168,6 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
                         </span></div>
                     </div>)) ||
                     ((ripeStatus === "pending" || ripeStatus === "partial_results")&& (<LoadingSpinner size="medium"/>)) ||
-                    (ripeStatus === "timeout" && (<p className="ripe-err">RIPE measurement timed out</p>)) ||
                     (ripeStatus === "error" && (<p className="ripe-err">RIPE measurement failed</p>))}
                 </div>
 

@@ -7,6 +7,7 @@ export const useFetchIPData = () => {
     const [data, setData] = useState<NTPData[] | null>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<Error | null>(null)
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const [httpStatus, setHttpStatus] = useState<number>(200)
     /**
      * send a post request to the back-end for receiving data from the NTP server
@@ -34,6 +35,7 @@ export const useFetchIPData = () => {
         } catch (err: any) {
             console.warn(err)
             setError(err)
+            setErrorMessage(err.response?.data.detail)
             setHttpStatus(err.response?.status)
             return null
         } finally {
@@ -41,5 +43,5 @@ export const useFetchIPData = () => {
         }
     }
     
-    return {data, loading, error, httpStatus, fetchData}
+    return {data, loading, error, errorMessage, httpStatus, fetchData}
 }
