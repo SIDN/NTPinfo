@@ -11,9 +11,10 @@ interface SidebarProps {
   setSelectedTab: (tab: number) => void;
   open: boolean;
   setOpen: (open: boolean) => void;
+  isMeasurementRunning: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ selectedTab, setSelectedTab, open, setOpen }) => {
+const Sidebar: React.FC<SidebarProps> = ({ selectedTab, setSelectedTab, open, setOpen, isMeasurementRunning }) => {
   const navItems = [
     {
       id: 1,
@@ -37,6 +38,13 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedTab, setSelectedTab, open, se
     },
   ];
 
+  const handleTabClick = (tabId: number) => {
+    if (isMeasurementRunning) {
+      return; // Prevent tab switching when measurement is running
+    }
+    setSelectedTab(tabId);
+  };
+
   return (
     <>
       {open && <div className="sidebar__overlay" onClick={() => setOpen(false)} />}
@@ -49,13 +57,21 @@ const Sidebar: React.FC<SidebarProps> = ({ selectedTab, setSelectedTab, open, se
           <img src={hamburgerIcon} alt="Menu" className="sidebar__icon" />
         </button>
 
+        {isMeasurementRunning && open && (
+          <div className="sidebar__measurement-notice">
+            <span>Measurement session in progress...</span>
+          </div>
+        )}
+
         <nav className="sidebar__nav">
           {navItems.map(({ id, label, icon }) => (
             <button
               key={id}
-              className={`sidebar__item ${selectedTab === id ? 'active' : ''}`}
-              onClick={() => setSelectedTab(id)}
+              className={`sidebar__item ${selectedTab === id ? 'active' : ''} ${isMeasurementRunning && selectedTab !== id ? 'disabled' : ''}`}
+              onClick={() => handleTabClick(id)}
               aria-current={selectedTab === id ? 'page' : undefined}
+              disabled={isMeasurementRunning && selectedTab !== id}
+              title={isMeasurementRunning && selectedTab !== id ? 'Please wait for measurement session to complete' : undefined}
             >
               {icon}
               {open && <span className="sidebar__label">{label}</span>}

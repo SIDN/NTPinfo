@@ -78,6 +78,8 @@ export interface HomeCacheState {
   ripeMeasurementResp: RIPEData[] | null
   ripeMeasurementStatus: RipeStatus | null    // 'pending' | 'complete' | ...
   ipv6Selected: boolean
+  isLoading: boolean                    // Track when NTP measurement is loading
+  measurementSessionActive: boolean     // Track when any measurement session is active
 }
 
 export type RipeStatus = "pending" | "partial_results" | "complete" | "timeout" | "error"

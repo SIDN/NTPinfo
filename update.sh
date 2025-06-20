@@ -1,15 +1,25 @@
 #!/bin/bash
 
 # Load variables from .env
-if [ -f .env ]; then
-  export $(grep -v '^#' .env | xargs)
-else
-  echo "Missing .env file!"
-  exit 1
+#if [ -f .env ]; then
+#  export $(grep -v '^#' .env | xargs)
+#else
+#  echo "Missing .env file!"
+#  exit 1
+#fi
+
+
+# Load environment for cron
+if [ -f /etc/cron.env ]; then
+  set -a
+  . /etc/cron.env
+  set +a
 fi
 
-TARGET_DIR="./server"
-CONFIG_FILE="./server/server_config.yaml"
+# this is set-up to be used by the docker image
+
+TARGET_DIR="/app/server"
+CONFIG_FILE="/app/server/server_config.yaml"
 
 # load from server_config the urls for anycast dbs
 # you search for variable "anycast_prefixes_v4_url" in the config
@@ -62,6 +72,7 @@ download_and_extract() {
   rm -r "$EXTRACTED_DIR"
 
   echo "${DB_NAME}.mmdb update complete!"
+  touch "${TARGET_DIR}/${DB_NAME}.mmdb"
 }
 
 download_anycast_db "anycast-v4-prefixes.txt" "$URL_V4"

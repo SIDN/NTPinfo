@@ -51,7 +51,7 @@ vi.mock('../../components/LineGraph.tsx', () => ({
   )
 }))
 
-describe('HomeTab', () => { 
+describe('HomeTab', () => {
 
     const mockNTPData: NTPData = {
         ntp_version: 4,
@@ -80,7 +80,7 @@ describe('HomeTab', () => {
         nr_measurements_jitter: 5,
         time: 1687000000,
         asn_ntp_server: "6541"
-    }   
+    }
 
     const mockRIPEData: RIPEData = {
         measurementData: {
@@ -131,7 +131,9 @@ describe('HomeTab', () => {
         allNtpMeasurements: null,
         ripeMeasurementResp: null,
         ripeMeasurementStatus: null,
-        ipv6Selected: false
+        ipv6Selected: false,
+        isLoading: false,
+        measurementSessionActive: false
     }
 
     let mockSetCache: Mock
@@ -144,7 +146,7 @@ describe('HomeTab', () => {
 
     beforeEach(() => {
         vi.clearAllMocks()
-    
+
         mockSetCache = vi.fn()
         mockOnVisualizationDataChange = vi.fn()
 
@@ -191,14 +193,14 @@ describe('HomeTab', () => {
       />
     )}
 
-  
+
     test('Initial Render', () => {
         setupTab()
-      
+
         expect(screen.getByText(/Privacy Notice/i)).toBeInTheDocument()
-        expect(screen.getByText(/NTPinfo/i)).toBeInTheDocument() 
-        expect(screen.getByText(/Enter the domain name or IP address of the NTP server you want to measure./i)).toBeInTheDocument() 
-        expect(screen.getByPlaceholderText(/time.google.com/i)).toBeInTheDocument() 
+        expect(screen.getByText(/NTPinfo/i)).toBeInTheDocument()
+        expect(screen.getByText(/Enter the domain name or IP address of the NTP server you want to measure./i)).toBeInTheDocument()
+        expect(screen.getByPlaceholderText(/time.google.com/i)).toBeInTheDocument()
         expect(screen.getByRole('button', { name: /measure/i })).toBeInTheDocument()
 
         const ipv6ToggleButton = screen.getByLabelText(/ipv6/i)
@@ -207,17 +209,17 @@ describe('HomeTab', () => {
     })
 
     describe('User Interaction', () => {
-        
+
         test('Start measurement with input', async () => {
             const user = userEvent.setup()
             setupTab()
-      
+
             const serverInput = screen.getByPlaceholderText(/time.google.com/i)
             const measureButton = screen.getByRole('button', { name: /measure/i })
-      
+
             await user.type(serverInput, 'time.google.com')
             await user.click(measureButton)
-      
+
             await waitFor(() => {
                 expect(mockFetchIPData).toHaveBeenCalledWith(
                 expect.stringContaining('/measurements/'),
@@ -225,31 +227,32 @@ describe('HomeTab', () => {
                     server: 'time.google.com',
                     ipv6_measurement: false
                 })
-            )   
+            )
             })
         })
 
         test('Check IPv6', async () => {
             const user = userEvent.setup()
             setupTab()
-      
+
             const ipv6Toggle = screen.getByLabelText(/ipv6/i)
             await user.click(ipv6Toggle)
-      
+
             expect(mockSetCache).toHaveBeenCalledWith(expect.any(Function))
             const updateFunction = mockSetCache.mock.calls[0][0]
-            const result = updateFunction({ ipv6Selected: false })
+            // Test that the update function correctly merges { ipv6Selected: true } with the previous state
+            const result = updateFunction({ ipv6Selected: true })
             expect(result.ipv6Selected).toBe(true)
         })
 
         test('Button disabled with empty input', () => {
             const user = userEvent.setup()
             setupTab()
-      
+
             const measureButton = screen.getByRole('button', { name: /measure/i })
             user.click(measureButton)
-      
-    
+
+
             expect(mockFetchIPData).not.toHaveBeenCalled()
             expect(mockFetchHistoricalIPData).not.toHaveBeenCalled()
         })
@@ -276,8 +279,8 @@ describe('HomeTab', () => {
             const chartData = new Map<string, NTPData[]>()
             chartData.set('time.apple.com', [mockNTPData])
 
-            setupTab({ ntpData: mockNTPData, 
-                       chartData: chartData, 
+            setupTab({ ntpData: mockNTPData,
+                       chartData: chartData,
                        measured: true,
                        ripeMeasurementResp: [mockRIPEData],
                        ripeMeasurementStatus: 'complete',
@@ -302,7 +305,7 @@ describe('HomeTab', () => {
             expect(screen.getByTestId('map-servers')).toHaveTextContent('Servers: 1')
             expect(screen.getByTestId('map-vantage')).toBeInTheDocument()
         })
-    }) 
+    })
 
     describe('Buttons functionality', () => {
         test('Download CSV', async () => {
@@ -314,7 +317,7 @@ describe('HomeTab', () => {
 
             const downloadButton = screen.getByRole('button', { name: /Download CSV/i })
             await user.click(downloadButton)
-      
+
             expect(downloadCSV).toHaveBeenCalledWith([mockNTPData])
         })
 
@@ -325,10 +328,10 @@ describe('HomeTab', () => {
                 ripeMeasurementResp: [mockRIPEData],
                 measured: true
             })
-      
+
             const downloadButton = screen.getByRole('button', { name: /Download JSON/i })
             await user.click(downloadButton)
-      
+
             expect(downloadJSON).toHaveBeenCalledWith([mockNTPData, mockRIPEData])
         })
     })

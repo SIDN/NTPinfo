@@ -23,7 +23,6 @@ def load_config() -> dict[str, Any]:
         return cast(dict[str, Any], yaml.safe_load(f))
 
 
-load_dotenv()
 config = load_config()
 
 
