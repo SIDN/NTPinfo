@@ -4,7 +4,7 @@
  * @returns the time formatted as an ISO8601 string, up to second precision
  */
 export const dateFormatConversion = (time: number): string => {
-    const date = new Date(time)
+    const date = new Date(time - 60000)
     const iso = date.toISOString()
     return iso.split('.')[0] + 'Z'
 }
