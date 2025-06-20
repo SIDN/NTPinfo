@@ -145,7 +145,7 @@
 
   margin-left: 1.5rem;
   margin-right: 1rem;
-  margin-top: 0;
+  margin-top: 2.4rem;
   grid-area: summary;
   background-color: var(--bg-secondary);
   color: var(--txt-white);
@@ -158,6 +158,12 @@
   gap: 0.75rem;
 
   border: 1px solid var(--border-color);
+}
+
+@media (max-width: 1246px) {
+  .graph-box {
+    margin-top: 0;
+  }
 }
 
 @media (max-width: 700px) {

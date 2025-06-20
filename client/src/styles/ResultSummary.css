@@ -15,11 +15,11 @@ h2#not-found {
 
 .results-section {
   display: flex;
-  gap: 1rem;
   padding-inline: 1rem;
   flex-wrap: wrap;
   align-items: stretch;
   padding-left: 1.5rem;
+  flex-direction: column;
 }
 
 @media (max-width: 700px) {
@@ -69,7 +69,12 @@ h2#not-found {
   justify-content: flex-start;
   align-items: center;
   margin-top: auto;
+  width: 100%;
+  margin-bottom: 1rem;
+  margin-left: 0.25rem;
+  font-weight: 600;
 }
+
 .res-label {
   color: var(--clr-font-white);
   font-weight: 600;
@@ -81,6 +86,7 @@ h2#not-found {
   align-items: center;
   gap: 0.5rem;
 }
+
 .result-and-title {
   display: flex;
   flex-direction: column;
@@ -156,7 +162,7 @@ h2#not-found {
   width: 250px;
   background-color: var(--bg-secondary);
   color: var(--txt-white);
-  text-align: left;
+  text-align: justify;
   padding: 8px;
   border-radius: var(--radius);
   border: 1px solid var(--border-color);
@@ -191,4 +197,11 @@ h2#not-found {
   font-size: 1.1rem;
   text-align: center;
   color: var(--text-white);
+}
+
+.result-boxes-container {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: stretch;
 }
