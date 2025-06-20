@@ -136,13 +136,17 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus, er
                     </div>
                     <div className="result-and-title">
                         <div className="res-label">From the RIPE Atlas probe (Close to you)
-                            <div className="tooltip-container">
-                                <span className="tooltip-icon">?</span>
-                                <div className="tooltip-text">
-                                    RIPE Atlas tries to choose a probe near the user to perform more accurate measurements. This can take longer.
-                                </div>
+                        <div className="tooltip-container">
+                        {((ripeStatus === "timeout" || ripeStatus === "error") && <span className="tooltip-icon fail">!</span>) ||
+                        (<span className="tooltip-icon success">?</span>)}
+                            <div className="tooltip-text">
+                                {(ripeStatus === "timeout" && <span>RIPE Measurement timed out. <br /> </span>) ||
+                                (ripeStatus === "error" && <span>RIPE Measurement failed. <br /></span>) }
+                                RIPE Atlas tries to choose a probe near the user to perform more accurate measurements. This can take longer.
                             </div>
                         </div>
+                    </div>
+
                         { ((ripeStatus === "complete" || (ripeStatus === "timeout")) &&
                     (
                     <div className="result-box" id="ripe-details">
