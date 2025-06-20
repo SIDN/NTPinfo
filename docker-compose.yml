@@ -15,7 +15,7 @@ services:
       interval: 5s
       retries: 5
     networks:
-      - my-net1
+      - my-net
 
   backend:
     build:
@@ -29,7 +29,7 @@ services:
     ports:
       - "8000:8000"
     networks:
-      - my-net1
+      - my-net
 
   frontend:
     build:
@@ -41,11 +41,17 @@ services:
     ports:
       - "5173:80"
     networks:
-      - my-net1
+      - my-net
 
 volumes:
   pgdata:
 
 networks:
-  my-net1:
-    external: true
+  my-net:
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: ${DOCKER_NETWORK_SUBNET}
+          gateway: ${DOCKER_NETWORK_GATEWAY}
