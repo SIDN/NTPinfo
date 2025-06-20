@@ -4,8 +4,8 @@ import { RIPEResp } from "../utils/types"
 
     /**
      * trigger the RIPE measurement for the backend by using a POST request
-     * @param payload the same payload as the measurement API
-     * @returns the data returned by the call as RIPEResp, which contains the measurement id and vantage point ip
+     * @param payload the same payload as the measurement API, the server to be measured from and if the measurement is using IPv6 or not
+     * @returns the data returned by the call as RIPEResp(which contains the measurement id, vantage point ip and coordinates of the vantage point),
      * the loading status of the trigger call, the error that was caught in case of a bug, and a function to call the trigger function directly
      */
 export const useTriggerRipeMeasurement = () => {

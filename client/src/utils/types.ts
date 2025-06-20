@@ -9,7 +9,7 @@ export type NTPData = {
   ip: string
   server_name: string
   is_anycast: boolean
-  country_code: string // add
+  country_code: string
   coordinates: LatLngTuple
   ntp_server_ref_parent_ip: string | null
   ref_id: string
@@ -21,13 +21,13 @@ export type NTPData = {
   RTT: number
   stratum: number
   precision: number
-  root_delay: number // add
-  poll: number // add
-  root_dispersion: number // add
+  root_delay: number
+  poll: number
+  root_dispersion: number
   ntp_last_sync_time: [number,number]
   leap: number
   jitter: number | null
-  nr_measurements_jitter: number // add - show when hovering over the jitter
+  nr_measurements_jitter: number
   asn_ntp_server: string
   time: number
 }
