@@ -119,7 +119,6 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
     client_ip: Optional[str] = client_ip_fetch(request=request, wanted_ip_type=wanted_ip_type)
     try:
         response = measure(server, wanted_ip_type, session, client_ip)
-        # print(response)
         if response is not None:
             new_format = []
             for r in response:
