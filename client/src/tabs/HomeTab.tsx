@@ -45,7 +45,8 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     allNtpMeasurements,
     ripeMeasurementResp,
     ripeMeasurementStatus,
-    ipv6Selected
+    ipv6Selected,
+    measurementSessionActive
   } = cache;
 
   // still local UI state
@@ -74,7 +75,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
   // const [allNtpMeasurements, setAllNtpMeasurements] = useState<NTPData[] | null>(null)
 
   //Varaibles to log and use API hooks
-  const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus} = useFetchIPData()
+  const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus, errorMessage: apiErrDetail} = useFetchIPData()
   const {fetchData: fetchHistoricalData} = useFetchHistoricalIPData()
   const {triggerMeasurement} = useTriggerRipeMeasurement()
   const {
@@ -83,6 +84,22 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     error: ripeMeasurementError
   } = useFetchRIPEData(measurementId)
 
+  // Update cache when loading state changes
+  useEffect(() => {
+    updateCache({ isLoading: apiDataLoading });
+  }, [apiDataLoading, updateCache]);
+
+  // End measurement session when RIPE measurements complete or fail
+  useEffect(() => {
+    if (measurementSessionActive && ripeMeasurementStatus) {
+      if (ripeMeasurementStatus === 'complete' ||
+          ripeMeasurementStatus === 'timeout' ||
+          ripeMeasurementStatus === 'error') {
+        updateCache({ measurementSessionActive: false });
+      }
+    }
+  }, [ripeMeasurementStatus, measurementSessionActive, updateCache]);
+
   useEffect(() => {
     if (!ripeMeasurementStatus || ripeMeasurementStatus === "complete") return;
     updateCache({
@@ -90,7 +107,6 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
       ripeMeasurementStatus: fetchedRIPEStatus,
     });
   }, [ripeMeasurementResp, ripeMeasurementStatus, updateCache, fetchedRIPEData, fetchedRIPEStatus]);
-
 
   //
   //functions for handling state changes
@@ -111,7 +127,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     // setNtpData(null)
     // setChartData(null)
 
-    // Reset cached values for a fresh run
+    // Reset cached values for a fresh run and start measurement session
     updateCache({
       measurementId: null,
       measured: false,
@@ -119,6 +135,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
       ripeMeasurementResp: null,
       ripeMeasurementStatus: null,
       chartData: null,
+      measurementSessionActive: true  // Start measurement session
     })
 
     /**
@@ -135,6 +152,20 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
      */
     const fullurlMeasurementData = `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/`
     const apiMeasurementResp = await fetchMeasurementData(fullurlMeasurementData, payload)
+
+    // If main measurement failed, end the session
+    if (!apiMeasurementResp) {
+      updateCache({
+        measured: true,
+        ntpData: null,
+        chartData: null,
+        allNtpMeasurements: null,
+        ripeMeasurementResp: null,
+        ripeMeasurementStatus: 'error',
+        measurementSessionActive: false  // End session
+      })
+      return
+    }
 
     /**
      * Get data from past day from historical data endpoint to chart in the graph.
@@ -161,7 +192,8 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
       chartData,
       allNtpMeasurements: apiMeasurementResp ?? null,
       ripeMeasurementResp: null,          // clear old map
-      ripeMeasurementStatus: undefined,        //  “     ”
+      ripeMeasurementStatus: undefined,        //  "     "
+      measurementSessionActive: true      // Keep session active for RIPE measurements
     })
 
     /**
@@ -178,13 +210,26 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     const ripeTriggerResp = await triggerMeasurement(ripePayload)
     // setVantagePointIp(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.vantage_point_ip)
     // setMeasurementId(ripeTriggerResp === null ? null : ripeTriggerResp.parsedData.measurementId)
-    updateCache({
-      //vantagePointInfo: ripeTriggerResp?.parsedData.coordinates && ripeTriggerResp?.parsedData.vantage_point_ip ? [ripeTriggerResp.parsedData.coordinates, ripeTriggerResp.parsedData.vantage_point_ip] : null,
-      vantagePointInfo: [ripeTriggerResp?.parsedData.coordinates, ripeTriggerResp?.parsedData.vantage_point_ip],
-      measurementId: ripeTriggerResp?.parsedData.measurementId ?? null,
-      ripeMeasurementResp: null,          // will be filled by hook
-      ripeMeasurementStatus: 'pending',
-    })
+
+    if (ripeTriggerResp === null) {
+      // If RIPE measurement trigger failed, end the session
+      updateCache({
+        vantagePointInfo: null,
+        measurementId: null,
+        ripeMeasurementResp: null,
+        ripeMeasurementStatus: 'error',
+        measurementSessionActive: false  // End session
+      })
+    } else {
+      updateCache({
+        //vantagePointInfo: ripeTriggerResp?.parsedData.coordinates && ripeTriggerResp?.parsedData.vantage_point_ip ? [ripeTriggerResp.parsedData.coordinates, ripeTriggerResp.parsedData.vantage_point_ip] : null,
+        vantagePointInfo: [ripeTriggerResp?.parsedData.coordinates, ripeTriggerResp?.parsedData.vantage_point_ip],
+        measurementId: ripeTriggerResp?.parsedData.measurementId ?? null,
+        ripeMeasurementResp: null,          // will be filled by hook
+        ripeMeasurementStatus: 'pending',
+        measurementSessionActive: true      // Keep session active
+      })
+    }
   }
 
   /**
@@ -219,6 +264,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         <ResultSummary data={ntpData}
                        ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null}
                        err={apiErrorLoading}
+                       errMessage={apiErrDetail}
                        httpStatus={respStatus}
                        ripeErr={ripeMeasurementError}
                        ripeStatus={ripeMeasurementStatus}/>
@@ -252,7 +298,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
           </div>
         </div>
       </div>)) || (!ntpData && !apiDataLoading && measured &&
-      <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus}
+      <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus} errMessage={apiErrDetail}
       ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null} ripeErr={ripeMeasurementError} ripeStatus={ripeMeasurementStatus}/>)}
 
       {/*Buttons to download results in JSON and CSV format as well as open a popup displaying historical data*/}

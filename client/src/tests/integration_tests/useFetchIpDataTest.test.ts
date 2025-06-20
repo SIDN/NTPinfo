@@ -172,5 +172,6 @@ describe('useFetchIPData', () => {
         expect(result.current.httpStatus).toBe(503)
         expect(result.current.error).not.toBeNull()
         expect(result.current.error?.message).toBe("Request failed with status code 503")
+        expect(result.current.errorMessage).toBe("Server is not reachable.")
     })
 })
