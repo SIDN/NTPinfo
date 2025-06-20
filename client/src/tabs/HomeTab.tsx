@@ -46,7 +46,6 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     ripeMeasurementResp,
     ripeMeasurementStatus,
     ipv6Selected,
-    isLoading,
     measurementSessionActive
   } = cache;
 
