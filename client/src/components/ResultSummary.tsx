@@ -30,16 +30,18 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus} :
         }
     }, [data, httpStatus, err, ripeErr])
 
-    if (data == null)
-        return <h2 id="not-found">{err ? `Error ${httpStatus}: ${statusMessage}` : `Unknown error occurred`}</h2>
-
     useEffect(() => {
-        if((ripeStatus === "complete") && ripeData){
-            setServerStatus(calculateStatus(data,ripeData))
+        if((ripeStatus === "complete") && ripeData && data){
+            setServerStatus(calculateStatus(data, ripeData))
         }
         else
             setServerStatus(null)
-    },[data,ripeData,ripeStatus])
+    }, [data,ripeData,ripeStatus])
+
+    if (data == null)
+        return <h2 id="not-found">{err ? `Error ${httpStatus}: ${statusMessage}` : `Unknown error occurred`}</h2>
+
+    
 
     // Helper to determine which icon to show for a metric
     function getMetricIcons(ntpValue: number | undefined, ripeValue: number | undefined, lowerIsBetter = true) {
