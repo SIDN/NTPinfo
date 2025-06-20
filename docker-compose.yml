@@ -14,6 +14,8 @@ services:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
       retries: 5
+    networks:
+      - my-net1
 
   backend:
     build:
@@ -26,6 +28,8 @@ services:
         condition: service_healthy
     ports:
       - "8000:8000"
+    networks:
+      - my-net1
 
   frontend:
     build:
@@ -36,6 +40,12 @@ services:
         VITE_STATUS_THRESHOLD: ${VITE_STATUS_THRESHOLD}
     ports:
       - "5173:80"
+    networks:
+      - my-net1
 
 volumes:
   pgdata:
+
+networks:
+  my-net1:
+    external: true
