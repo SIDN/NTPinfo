@@ -14,14 +14,14 @@ which contains all of the front-end of the application. It uses `React` with `Vi
 ## Table of Contents
 
 - [Server](#server)
-  - [Database design](#database-design)
-  - [Server Setup and Running](#server-setup-and-running)
+    - [Database design](#database-design)
+    - [Server Setup and Running](#server-setup-and-running)
 - [Client](#client)
-  - [Client Setup and Running](#client-setup-and-running)
-  - [Global Types](#global-types)
-  - [API Usage](#api-usage)
-  - [API Hooks](#api-hooks)
-  - [TypeScript Components](#typescript-components)
+    - [Client Setup and Running](#client-setup-and-running)
+    - [Global Types](#global-types)
+    - [API Usage](#api-usage)
+    - [API Hooks](#api-hooks)
+    - [TypeScript Components](#typescript-components)
 
 ### Server
 
@@ -70,7 +70,8 @@ To set up and run the backend server, follow these steps:
     LICENSE_KEY={geolite key}
     UPDATE_CRON_SCHEDULE=*/1 * * * *
     ```
-   Besides, the config file with public data for the server is `server/server_config.yaml` and it contains the following variables:
+   Besides, the config file with public data for the server is `server/server_config.yaml` and it contains the following
+   variables:
 
       ```yaml
         ntp:
@@ -124,14 +125,18 @@ To set up and run the backend server, follow these steps:
 
 4. **Prepare the PostgreSQL database**
 
-    You need to create an empty database called "measurements" in PostgreSQL. Do not worry about the tables, everything is handled when you run the server.
+   You need to create an empty database called "measurements" in PostgreSQL. Do not worry about the tables, everything
+   is handled when you run the server.
+
 ---
+
 5. **Download the max mind and BGP tools databases, and schedule running this file once every day**
 
-    This will initialise the local dbs for geolocation and detecting anycast, and will schedule downloading them every day at 1 AM.
-    Be sure that you are in the root folder, and `.env` file has all variables.
+   This will initialise the local dbs for geolocation and detecting anycast, and will schedule downloading them every
+   day at 1 AM.
+   Be sure that you are in the root folder, and `.env` file has all variables.
 
-    If you want to schedule updating the databases, run this:
+   If you want to schedule updating the databases, run this:
 
     ```bash
     cd ..
@@ -148,12 +153,16 @@ To set up and run the backend server, follow these steps:
     ```
 
    **Common errors**:
-   - If you run `update_geolite_and_bgptools_dbs.sh` from Linux or WSL, the file `.env` may contain invisible Windows carriage return characters and this may make the `.sh` script to fail. You can see them using `cat -A .env`. Look for any "^M"
-       at the end of lines. You can remove them by running this command: `dos2unix .env`. This should solve the problem.
-   - If you are using Linux or WSL and you received `/bin/bash^M: bad interpreter: No such file or directory` then it may mean that your script has Windows-style line endings (CRLF, \r\n) instead of Unix-style (LF, \n)
-   - If downloading the Geolite databases fails, consider that downloading them has a daily limit per account. (This limit is only for geolite databases)
+    - If you run `update_geolite_and_bgptools_dbs.sh` from Linux or WSL, the file `.env` may contain invisible Windows
+      carriage return characters and this may make the `.sh` script to fail. You can see them using `cat -A .env`. Look
+      for any "^M"
+      at the end of lines. You can remove them by running this command: `dos2unix .env`. This should solve the problem.
+    - If you are using Linux or WSL and you received `/bin/bash^M: bad interpreter: No such file or directory` then it
+      may mean that your script has Windows-style line endings (CRLF, \r\n) instead of Unix-style (LF, \n)
+    - If downloading the Geolite databases fails, consider that downloading them has a daily limit per account. (This
+      limit is only for geolite databases)
 
-    **Notes**:
+   **Notes**:
     - Be sure to schedule running this file once every day, if you want up-to-date information.
 
 ---
@@ -164,7 +173,8 @@ To set up and run the backend server, follow these steps:
     uvicorn server.app.main:create_app --reload --factory
     ```
 
-    You should see the server running now!
+   You should see the server running now!
+
 ### Client
 
 #### Client Setup and Running
@@ -173,19 +183,19 @@ To set up and run the client, follow these steps:
 
 1. **Ensure you have the prerequisites installed**
 
-  - [Node.js](https://nodejs.org/)
-  - npm (comes bundled with Node.js)
+- [Node.js](https://nodejs.org/)
+- npm (comes bundled with Node.js)
 
-    ```bash
-    node -v
-    npm -v
-    ```
+  ```bash
+  node -v
+  npm -v
+  ```
 
-    If not, install from https://nodejs.org/
+  If not, install from https://nodejs.org/
 
 2. **Create `.env` file in client**
 
-    Create a `.env` file in `client` and add the following to the file:
+   Create a `.env` file in `client` and add the following to the file:
     ```dotenv
     VITE_SERVER_HOST_ADDRESS=http://localhost:8000/ # address of our server (back-end)
     VITE_STATUS_THRESHOLD=1000 # in ms
@@ -193,7 +203,7 @@ To set up and run the client, follow these steps:
 
 3. **Install the dependencies**
 
-    Ensure you are in the client folder
+   Ensure you are in the client folder
     ```bash
     cd ./client
     npm install
@@ -204,7 +214,8 @@ To set up and run the client, follow these steps:
     ```bash
     npm run dev
     ```
-    Everything should be set now!
+   Everything should be set now!
+
 #### Global types
 
 The global types that are used across multiple components are stored in ```client\src\utils\types.ts```.
@@ -212,6 +223,7 @@ The global types that are used across multiple components are stored in ```clien
 * **NTPData**
     * This data type is used for storing the relevant variables of the measurements that displayed on the website and
       used for the visualisation of data. It stores the following:
+
 >        * Offset
 >        * Round-trip time
 >        * Stratum of the NTP server
@@ -224,21 +236,28 @@ The global types that are used across multiple components are stored in ```clien
 >        * Root dispersion of the NTP server
 >        * Root delay of the NTP server
 >        * The IP address of the vantage point
+
 * **RIPEData**
-    * This data type is used for storing the relevant variables received and displayed from the measurements taken from the
+    * This data type is used for storing the relevant variables received and displayed from the measurements taken from
+      the
       measurents taken by RIPE Atlas. it stores the following:
+
 >        * An NTPData variable with all its data
 >        * The ID of the probe that perfomed the measurement
 >        * The country the probe is stored in
 >        * The geolocation of the probe
 >        * If the ripe measurement results were actually received
 >        * The measurement ID of the measurement the probe was a part of
+
 * **RIPEResp**
     * This data type is used for the response of the trigger call for the RIPE measurement. It stores the following:
+
 >      * The measurement ID of the measurement that is going to start
 >      * the IP of the vantage point that initiated the RIPE measurement
+
 * **Measurement**
     * This data type is used for determining what measurement should be shown on the graphs.
+
 >      It consists of a composite type of the form: ```"RTT" | "offset"```
 
 #### API Usage
@@ -247,111 +266,119 @@ There are currently `5` different API endpoints used by the front-end of the app
 These can all be found in ```client\src\hooks```.
 
 They all use ```axios``` for the requests, and each have a different function they implement.
-The helper functions for transforming data and  the global types used can all be found in ```client\utils```
+The helper functions for transforming data and the global types used can all be found in ```client\utils```
 
 ##### **API Hooks**
 
 1. **useFetchIPData**
 
-    This hook provides the query of the user as a payload to backend. It can be either an IP or a domain name.
+   This hook provides the query of the user as a payload to backend. It can be either an IP or a domain name.
 
-    It performs a **POST** request to the backend to measure the given NTP server.
-    If the query is a domain name, the result consists of all NTP servers that it measures from the domain name, if it's an IP, only the NTP
-    server corresponding to that specific IP.
-    It parses the JSON received from the backend my using the method ```transformJSONDataToNTPData```.
+   It performs a **POST** request to the backend to measure the given NTP server.
+   If the query is a domain name, the result consists of all NTP servers that it measures from the domain name, if it's
+   an IP, only the NTP
+   server corresponding to that specific IP.
+   It parses the JSON received from the backend my using the method ```transformJSONDataToNTPData```.
 
-    It returns a **5-tuple**:
+   It returns a **5-tuple**:
 
-    | Return value     | Description                                                  |
-    |------------------|--------------------------------------------------------------|
-    | ```data```       | An array of NTP results                                      |
-    | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
-    | ```error```      | Error object if one occured                                  |
-    | ```httpStatus``` | The HTTP status of the request                               |
-    | ```fetchData```  | A function for initiating the POST request                   |
+   | Return value     | Description                                                  |
+                                                 |------------------|--------------------------------------------------------------|
+   | ```data```       | An array of NTP results                                      |
+   | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
+   | ```error```      | Error object if one occured                                  |
+   | ```httpStatus``` | The HTTP status of the request                               |
+   | ```fetchData```  | A function for initiating the POST request                   |
 
 2. **useFetchHistoricalIPData**
 
-    This hook provides the data over a specific period of time for the server queried by the user.
+   This hook provides the data over a specific period of time for the server queried by the user.
 
-    It performs a **GET** request to the backend to fetch historical data.
-    The server can, similarly to the previous hook, be either an IP or a domain name.
-    The start time and end times are used in the ISO8601 format.
-    It parses the JSON received from the backend my using the method ```transformJSONDataToNTPData```.
+   It performs a **GET** request to the backend to fetch historical data.
+   The server can, similarly to the previous hook, be either an IP or a domain name.
+   The start time and end times are used in the ISO8601 format.
+   It parses the JSON received from the backend my using the method ```transformJSONDataToNTPData```.
 
-    It returns a **4-tuple**:
+   It returns a **4-tuple**:
 
-    | Return value     | Description                                                  |
-    |------------------|--------------------------------------------------------------|
-    | ```data```       | An array of NTP results                                      |
-    | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
-    | ```error```      | Error object if one occured                                  |
-    | ```fetchData```  | A function for initiating the GET request                    |
+   | Return value     | Description                                                  |
+                                                 |------------------|--------------------------------------------------------------|
+   | ```data```       | An array of NTP results                                      |
+   | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
+   | ```error```      | Error object if one occured                                  |
+   | ```fetchData```  | A function for initiating the GET request                    |
 
 
 3. **useTriggerRipeMeasurement**
 
-    This hook is what send the trigger for the RIPE measurement to be started.
+   This hook is what send the trigger for the RIPE measurement to be started.
 
-    It performs a **POST** requst to the backend with the queried server as a payload to trigger the measurement.
-    As a result it gets a confirmation that the measurement started, as well as the measurement ID of the measurement started, and the IP of the
-    vantage point that started the RIPE measurement.
-    It parses the JSON received in place, since it a simple response.
+   It performs a **POST** requst to the backend with the queried server as a payload to trigger the measurement.
+   As a result it gets a confirmation that the measurement started, as well as the measurement ID of the measurement
+   started, and the IP of the
+   vantage point that started the RIPE measurement.
+   It parses the JSON received in place, since it a simple response.
 
-    It returns a **4-tuple**:
+   It returns a **4-tuple**:
 
-    | Return value     | Description                                                  |
-    |------------------|--------------------------------------------------------------|
-    | ```data```       | The response of the trigger as ```RIPERest```                |
-    | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
-    | ```error```      | Error object if one occured                                  |
-    | ```fetchData```  | A function for initiating the POST request                   |
+   | Return value     | Description                                                  |
+                                                 |------------------|--------------------------------------------------------------|
+   | ```data```       | The response of the trigger as ```RIPERest```                |
+   | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
+   | ```error```      | Error object if one occured                                  |
+   | ```fetchData```  | A function for initiating the POST request                   |
 
 4. **useFetchRipeData**
 
-    This hook is what is used to receive the actual RIPE measurement data from the backend.
+   This hook is what is used to receive the actual RIPE measurement data from the backend.
 
-    It perfoms **polling** on the backend's endpoint to regularly update the data it receives.
-    This is beacuse RIPE doesn't offer all the data at once, instead slowly sending the measurements from the probes its done.
-    It has an adjustable polling rate from the method signature.
-    Since the polling may begin before the RIPE measurement is ready, in the case it receives HTTP 405 from the backend (Method not allowed),
-    it has a separate timer to retry after.
-    The polling continues until there is an error, the measurement is complete, the measurement times out, or until a new one begins.
-    In the case of the new measurement beggining, the previous polling call is cancelled in order to prevent interleaving and other issues.
+   It perfoms **polling** on the backend's endpoint to regularly update the data it receives.
+   This is beacuse RIPE doesn't offer all the data at once, instead slowly sending the measurements from the probes its
+   done.
+   It has an adjustable polling rate from the method signature.
+   Since the polling may begin before the RIPE measurement is ready, in the case it receives HTTP 405 from the backend (
+   Method not allowed),
+   it has a separate timer to retry after.
+   The polling continues until there is an error, the measurement is complete, the measurement times out, or until a new
+   one begins.
+   In the case of the new measurement beggining, the previous polling call is cancelled in order to prevent interleaving
+   and other issues.
 
-    It returns a **3-tuple** consisting of:
+   It returns a **3-tuple** consisting of:
 
-    | Return value | Description                                                  |
-    |--------------|--------------------------------------------------------------|
-    | ```result``` | An array of RIPE results                                     |
-    | ```status``` | compound type indicating the current state of the measurement|
-    | ```error```  | Error object if one occured                                  |
+   | Return value | Description                                                  |
+                                                 |--------------|--------------------------------------------------------------|
+   | ```result``` | An array of RIPE results                                     |
+   | ```status``` | compound type indicating the current state of the measurement|
+   | ```error```  | Error object if one occured                                  |
 
-- The compound type used for indicating the status is:  ```"pending" | "partial_results" | "complete" | "timeout" | "error"```
+- The compound type used for indicating the status is:
+  ```"pending" | "partial_results" | "complete" | "timeout" | "error"```
 
 5. **useIpInfo**
 
-    This hook is for fetching the geolocation of IPs in a way that does not require data communication with the backend
+   This hook is for fetching the geolocation of IPs in a way that does not require data communication with the backend
 
-    It makes used of ```ip-api``` for the retreival of geolocation data from IPs via a **GET**.
-    It saves both the coordinates retrieved and the country code.
-    It is only used for getting the location of the NTP servers queried, as well as the vantage point.
-    It saves the result as a ```IpInfoData``` data variable which consists of:
-      - a ```[number,number]``` type: ```coordinates```
-      - a `string` type: ```country_code```
-    This type is not saved in ```client\utils``` since it is not widely used like the other types there
+   It makes used of ```ip-api``` for the retreival of geolocation data from IPs via a **GET**.
+   It saves both the coordinates retrieved and the country code.
+   It is only used for getting the location of the NTP servers queried, as well as the vantage point.
+   It saves the result as a ```IpInfoData``` data variable which consists of:
+    - a ```[number,number]``` type: ```coordinates```
+    - a `string` type: ```country_code```
+      This type is not saved in ```client\utils``` since it is not widely used like the other types there
 
-    It returns a **5-tuple**:
+   It returns a **5-tuple**:
 
-    | Return value     | Description                                                  |
-    |------------------|--------------------------------------------------------------|
-    | ```data```       | Geolocation data fetched as ```IpInfoData```                 |
-    | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
-    | ```error```      | Error object if one occured                                  |
-    | ```fetchData```  | A function for initiating the GET request                    |
-    | ```clearIP```    | A function for resetting the state of ```data```             |
+   | Return value     | Description                                                  |
+                                                 |------------------|--------------------------------------------------------------|
+   | ```data```       | Geolocation data fetched as ```IpInfoData```                 |
+   | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
+   | ```error```      | Error object if one occured                                  |
+   | ```fetchData```  | A function for initiating the GET request                    |
+   | ```clearIP```    | A function for resetting the state of ```data```             |
 
-    It is important to note that if the IP address provided is private, then the ```coordinates``` field of the result will have the following format: ```[undefined, undefined]```
+   It is important to note that if the IP address provided is private, then the ```coordinates``` field of the result
+   will have the following format: ```[undefined, undefined]```
 
 #### TypeScript Components
 
@@ -386,6 +413,102 @@ different components.
     * It shows the location of the probes, NTP server(s) and vantage point
     * The icons used can be found in `src\assets`
     * Each point on the map show some information related to it, such as:
-      - RTT, Offset and probe ID for the RIPE probes
-      - IP and name for the NTP server(s)
-      - IP and location for the vantage point
+        - RTT, Offset and probe ID for the RIPE probes
+        - IP and name for the NTP server(s)
+        - IP and location for the vantage point
+
+# Docker Setup
+
+To run the full stack (server + client + database) using `docker-compose`, follow these steps:
+
+---
+
+### 1. Install Docker
+
+Follow the instructions for your OS here:  
+👉 [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/)
+
+---
+
+### 2. Install `docker-compose` (Linux)
+
+```bash
+sudo apt update
+sudo apt install docker-compose
+```
+
+---
+
+### 3. Add a .env file in the root directory
+
+**Create a `.env` file** in the `root` directory (the same directory with you `docker-compose.yml`) with your accounts
+credentials in the following format:
+
+```dotenv
+DB_NAME={db_name}
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_HOST=localhost (or "db" if you run the project with docker)
+DB_PORT=5432
+IPINFO_LITE_API_TOKEN={API}
+ripe_api_token={ripe API with persmission to perform measurments}
+ripe_account_email={email of your ripe account (you need to have credits)}
+ACCOUNT_ID={geolite account id}
+LICENSE_KEY={geolite key}
+UPDATE_CRON_SCHEDULE=*/1 * * * *
+VITE_SERVER_HOST_ADDRESS=http://localhost:8000
+VITE_STATUS_THRESHOLD=1000
+DOCKER_NETWORK_SUBNET=2001:db8:1::/64
+DOCKER_NETWORK_GATEWAY=2001:db8:1::1
+```
+
+---
+
+### 4. Build the Docker containers
+
+From the root of the project:
+
+```bash
+docker-compose build
+```
+
+---
+
+### 5. Start the containers
+
+```bash
+docker-compose up
+```
+
+Use `-d` to run it in the background:
+
+```bash
+docker-compose up -d
+```
+
+> Make sure there is not any network name `my-net` already in use.
+
+This can be checked by running:
+
+```bash
+docker network ls
+```
+
+---
+
+### 6. Shut down the containers
+
+To gracefully stop all services:
+
+```bash
+docker-compose down
+```
+
+---
+
+## Everything should now be running at:
+
+- **Frontend**: [http://localhost:5173](http://localhost:5173)
+- **Backend API**: [http://localhost:8000](http://localhost:8000)
+
+> Make sure ports `5173` (frontend) and `8000` (backend) are not in use before starting the containers.
