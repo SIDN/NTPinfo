@@ -68,3 +68,4 @@ psycopg[binary,pool]
 geoip2
 sphinx
 sphinx-rtd-theme
+gunicorn
