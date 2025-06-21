@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NTPData } from '../utils/types.ts';
-import LineChart from '../components/LineGraph';
 import { Measurement } from '../utils/types.ts';
-import { TimeInput } from '../components/TimeInput.tsx';
 import Header from '../components/Header.tsx';
 import StatisticsDisplay from '../components/StatisticsDisplay';
+import DynamicGraph from '../components/DynamicGraph.tsx';
 import '../styles/HistoricalDataTab.css';
 
 // Define the props interface
@@ -15,70 +14,35 @@ interface HistoricalDataTabProps {
 // Create a functional component
 const HistoricalDataTab: React.FC<HistoricalDataTabProps> = ({ data }) => {
   const [selMeasurement, setSelMeasurement] = useState<Measurement>("RTT");
-  const [selOption, setSelOption] = useState("Last Day");
-  const [customFrom, setCustomFrom] = useState<string>("");
-  const [customTo, setCustomTo] = useState<string>("");
+  const [currentServer, setCurrentServer] = useState<string>("");
 
-  const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelMeasurement(event.target.value as Measurement);
-  };
-
-  const dropdown = {
-    options: ["Last Hour", "Last Day", "Last Week", "Custom"],
-    selectedOption: selOption,
-    onSelectionChange: setSelOption,
-  };
+  // Extract server name from the initial data prop
+  useEffect(() => {
+    if (data && data.size > 0) {
+      const serverName = Array.from(data.keys())[0];
+      setCurrentServer(serverName);
+    }
+  }, [data]);
 
   return (
     <div className="historical-data-tab">
       <Header />
-      <div className="form-row">
-        <TimeInput
-          options={dropdown.options}
-          selectedOption={selOption}
-          onSelectionChange={setSelOption}
-          customFrom={customFrom}
-          customTo={customTo}
-          onFromChange={setCustomFrom}
-          onToChange={setCustomTo}
-        />
-        <div className="historical-radio-toggle">
-          <input
-            type="radio"
-            id="offset"
-            name="measurement"
-            value="offset"
-            checked={selMeasurement === 'offset'}
-            onChange={handleMeasurementChange}
-          />
-          <label htmlFor="offset">Offset</label>
-
-          <input
-            type="radio"
-            id="rtt"
-            name="measurement"
-            value="RTT"
-            checked={selMeasurement === 'RTT'}
-            onChange={handleMeasurementChange}
-          />
-          <label htmlFor="rtt">Round-trip time</label>
-        </div>
-      </div>
       <div className="graph-statistics-container">
         <div className="data-display-container">
-            <StatisticsDisplay
+          <StatisticsDisplay
             data={data}
             selectedMeasurement={selMeasurement}
+          />
+          <div className="chart-box">
+            <DynamicGraph
+              servers={currentServer ? [currentServer] : []}
+              selectedMeasurement={selMeasurement}
+              onMeasurementChange={setSelMeasurement}
+              legendDisplay={false}
+              showTimeInput={true}
+              existingData={data}
             />
-            <div className="chart-box">
-            <LineChart
-                data={data}
-                selectedMeasurement={selMeasurement}
-                selectedOption={selOption}
-                customRange={{ from: customFrom, to: customTo }}
-                legendDisplay={false}
-            />
-            </div>
+          </div>
         </div>
       </div>
     </div>

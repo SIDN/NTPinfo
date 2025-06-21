@@ -1,16 +1,25 @@
 import '../styles/InputSection.css'
 import React, { useState } from 'react';
+import { RipeStatus } from '../utils/types';
 
 interface InputProps {
     onClick: (query: string, useIPv6: boolean) => void;
     loading: boolean;
     ipv6Selected: boolean;
     onIPv6Toggle: (value: boolean) => void;
+    ripeMeasurementStatus?: RipeStatus | null;
+    measurementSessionActive?: boolean;
 }
 
-const InputSection: React.FC<InputProps> = ({ onClick, loading, ipv6Selected, onIPv6Toggle }) => {
+const InputSection: React.FC<InputProps> = ({ onClick, loading, ipv6Selected, onIPv6Toggle, ripeMeasurementStatus, measurementSessionActive }) => {
     const [query, setQuery] = useState('');
     const useIPv6 = ipv6Selected;
+
+    // Check if any measurement is in progress
+    const isMeasurementInProgress = (loading ||
+        ripeMeasurementStatus === "pending" ||
+        ripeMeasurementStatus === "partial_results") && measurementSessionActive;
+
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setQuery(event.target.value);
     };
@@ -36,8 +45,9 @@ const InputSection: React.FC<InputProps> = ({ onClick, loading, ipv6Selected, on
                             if (e.key === "Enter") {handleClick()}
                         }}
                         placeholder="time.google.com"
+                        disabled={isMeasurementInProgress}
                     />
-                    <button onClick={handleClick} disabled={!query.trim() || loading}>
+                    <button onClick={handleClick} disabled={!query.trim() || isMeasurementInProgress}>
                         Measure
                     </button>
                 </div>
@@ -49,6 +59,7 @@ const InputSection: React.FC<InputProps> = ({ onClick, loading, ipv6Selected, on
                         id="ipv4"
                         checked={!useIPv6}
                         onChange={() => onIPv6Toggle(false)}
+                        disabled={isMeasurementInProgress}
                     />
                     <label htmlFor="ipv4">IPv4</label>
 
@@ -58,6 +69,7 @@ const InputSection: React.FC<InputProps> = ({ onClick, loading, ipv6Selected, on
                         id="ipv6"
                         checked={useIPv6}
                         onChange={() => onIPv6Toggle(true)}
+                        disabled={isMeasurementInProgress}
                     />
                     <label htmlFor="ipv6">IPv6</label>
                 </form>
