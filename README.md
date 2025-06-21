@@ -1,6 +1,12 @@
 ### **Group 15d**
 
-# Are your time servers on time. Active Internet Measurements to evaluate time servers.
+# Are your time servers on time? Active Internet Measurements to evaluate time servers.
+
+<p align="center">
+  <img src="assets/NtpInfoLogo.png" alt="Project Logo" style="width:100%; max-width:100%;"/>
+</p>
+
+---
 
 ## Product Structure
 
@@ -13,28 +19,19 @@ which contains all of the front-end of the application. It uses `React` with `Vi
 
 ## Table of Contents
 
-- [Server](#server)
-    - [Database design](#database-design)
-    - [Server Setup and Running](#server-setup-and-running)
-- [Client](#client)
-    - [Client Setup and Running](#client-setup-and-running)
-    - [Global Types](#global-types)
-    - [API Usage](#api-usage)
-    - [API Hooks](#api-hooks)
-    - [TypeScript Components](#typescript-components)
+- [Server Setup and Running](#server-setup-and-running)
+- [Client Setup and Running](#client-setup-and-running)
+- [Docker Setup](#docker-setup)
+- [Contributing](#contributing)
 
-### Server
+### Server Setup and Running
 
-#### Database design
+There are 2 ways in starting the server. The first one is to manually configure it, and the second one is using a docker
+container.
 
-The database used to store measurements uses `PostgreSQL` for its persistance.
+To set up and run the back-end server, follow these steps:
 
-The design for the two tables used to store data are shown in `database-schema.md`
-
-#### Server Setup and Running
-
-To set up and run the backend server, follow these steps:
-
+#### Locally configure the server
 ---
 
 1. **Create a virtual environment**:
@@ -55,23 +52,56 @@ To set up and run the backend server, follow these steps:
 
 ---
 
-2. **Create a `.env` file** in the `root` directory with your accounts credentials in the following format:
+2. **Install and prepare PostgreSQL database**
+
+2.1. Go to: https://www.enterprisedb.com/downloads/postgres-postgresql-downloads and select the version of PostgreSQL
+you want to install.
+2.2. Go to download file location
+Double click the .exe file
+Follow through the installation process and keep track of:
+where you installed it,
+the superuser (usually postgres),
+the port (usually 5432),
+the password (you should remember this one)
+2.3. pgAdmin should automatically be installed, so accept to install it when prompted.
+2.4. Restart your computer.
+2.5. pgAdmin should be in your system if you followed the installation correctly. Open it, click on Server and put in
+your password if necessary.
+2.6. Right click on Databases, click "Create" and create an empty database, preferably named "measurements". Tables will
+be handled once you run the back-end server, so do not worry about them right now.
+
+---
+
+3. **Create a `.env` file** in the `root` directory with your accounts credentials in the following format:
 
     ```dotenv
-    DB_NAME={db_name}
+    # needed for back-end (server)
+    # the database that you want to use from PostgreSQL, preferably named "measurements"
+    DB_NAME=measurements
     DB_USER=postgres
     DB_PASSWORD=postgres
-    DB_HOST=localhost (or "db" if you run the project with docker)
+    # change DB_HOST to "localhost" if you run the project locally
+    DB_HOST=db
     DB_PORT=5432
-    IPINFO_LITE_API_TOKEN={API}
     ripe_api_token={ripe API with persmission to perform measurments}
     ripe_account_email={email of your ripe account (you need to have credits)}
     ACCOUNT_ID={geolite account id}
     LICENSE_KEY={geolite key}
-    UPDATE_CRON_SCHEDULE=*/1 * * * *
+    # once every day
+    UPDATE_CRON_SCHEDULE=0 0 * * *
+    CLIENT_URL=http://localhost:5173
+
+    #needed for front-end (client)
+    DOCKER_NETWORK_SUBNET=2001:db8:1::/64
+    DOCKER_NETWORK_GATEWAY=2001:db8:1::1
+    VITE_CLIENT_HOST=localhost
+    VITE_CLIENT_PORT=5173
+    VITE_SERVER_HOST_ADDRESS=http://localhost:8000
+    # in milliseconds, choose a value you think is reasonable for the offset threshold
+    VITE_STATUS_THRESHOLD=1000
     ```
    Besides, the config file with public data for the server is `server/server_config.yaml` and it contains the following
-   variables:
+   variables that you can change:
 
       ```yaml
         ntp:
@@ -114,19 +144,12 @@ To set up and run the backend server, follow these steps:
 
 ---
 
-3. **Install the backend dependencies**:
+4. **Install the backend dependencies**:
 
     ```bash
     cd server
     pip install -r requirements.txt
     ```
-
----
-
-4. **Prepare the PostgreSQL database**
-
-   You need to create an empty database called "measurements" in PostgreSQL. Do not worry about the tables, everything
-   is handled when you run the server.
 
 ---
 
@@ -147,7 +170,7 @@ To set up and run the backend server, follow these steps:
    ```bash
     pwd
     ```
-   Or if you want to manually run the script to download the databases without scheduling:
+   Or if you just want to download the databases once without scheduling:
     ```bash
       ./update_geolite_and_bgptools_dbs.sh
     ```
@@ -158,12 +181,14 @@ To set up and run the backend server, follow these steps:
       for any "^M"
       at the end of lines. You can remove them by running this command: `dos2unix .env`. This should solve the problem.
     - If you are using Linux or WSL and you received `/bin/bash^M: bad interpreter: No such file or directory` then it
-      may mean that your script has Windows-style line endings (CRLF, \r\n) instead of Unix-style (LF, \n)
+      may mean that your script has Windows-style line endings (CRLF, \r\n) instead of Unix-style (LF, \n). Another
+      solution to change from CRLF to LF is to open the file in VS Code and to change them to LF.
     - If downloading the Geolite databases fails, consider that downloading them has a daily limit per account. (This
       limit is only for geolite databases)
 
    **Notes**:
-    - Be sure to schedule running this file once every day, if you want up-to-date information.
+    - Be sure to schedule running this file once every day or to manually update them, if you want up-to-date
+      information.
 
 ---
 
@@ -175,31 +200,32 @@ To set up and run the backend server, follow these steps:
 
    You should see the server running now!
 
-### Client
-
 #### Client Setup and Running
 
-To set up and run the client, follow these steps:
+To set up and run the client, follow these steps carefully:
 
 1. **Ensure you have the prerequisites installed**
 
 - [Node.js](https://nodejs.org/)
-- npm (comes bundled with Node.js)
+    - npm (comes bundled with Node.js)
 
-  ```bash
-  node -v
-  npm -v
-  ```
-
-  If not, install from https://nodejs.org/
+      ```bash
+      node -v
+      npm -v
+      ```
+      If not, install from https://nodejs.org/
 
 2. **Create `.env` file in client**
 
    Create a `.env` file in `client` and add the following to the file:
     ```dotenv
-    VITE_SERVER_HOST_ADDRESS=http://localhost:8000/ # address of our server (back-end)
-    VITE_STATUS_THRESHOLD=1000 # in ms
-    ```    
+    # address of our server (back-end)
+    VITE_SERVER_HOST_ADDRESS=http://localhost:8000/
+    VITE_STATUS_THRESHOLD=1000
+    VITE_CLIENT_HOST=localhost
+    VITE_CLIENT_PORT=5173
+    CLIENT_URL=http://localhost:5173
+     ```
 
 3. **Install the dependencies**
 
@@ -215,207 +241,6 @@ To set up and run the client, follow these steps:
     npm run dev
     ```
    Everything should be set now!
-
-#### Global types
-
-The global types that are used across multiple components are stored in ```client\src\utils\types.ts```.
-
-* **NTPData**
-    * This data type is used for storing the relevant variables of the measurements that displayed on the website and
-      used for the visualisation of data. It stores the following:
-
->        * Offset
->        * Round-trip time
->        * Stratum of the NTP server
->        * Jitter
->        * Precision of the NTP server
->        * Time at which the measurement taken as UNIX time
->        * IP address of the NTP server
->        * Name of the NTP server
->        * Reference ID of the reference of the NTP server
->        * Root dispersion of the NTP server
->        * Root delay of the NTP server
->        * The IP address of the vantage point
-
-* **RIPEData**
-    * This data type is used for storing the relevant variables received and displayed from the measurements taken from
-      the
-      measurents taken by RIPE Atlas. it stores the following:
-
->        * An NTPData variable with all its data
->        * The ID of the probe that perfomed the measurement
->        * The country the probe is stored in
->        * The geolocation of the probe
->        * If the ripe measurement results were actually received
->        * The measurement ID of the measurement the probe was a part of
-
-* **RIPEResp**
-    * This data type is used for the response of the trigger call for the RIPE measurement. It stores the following:
-
->      * The measurement ID of the measurement that is going to start
->      * the IP of the vantage point that initiated the RIPE measurement
-
-* **Measurement**
-    * This data type is used for determining what measurement should be shown on the graphs.
-
->      It consists of a composite type of the form: ```"RTT" | "offset"```
-
-#### API Usage
-
-There are currently `5` different API endpoints used by the front-end of the application,
-These can all be found in ```client\src\hooks```.
-
-They all use ```axios``` for the requests, and each have a different function they implement.
-The helper functions for transforming data and the global types used can all be found in ```client\utils```
-
-##### **API Hooks**
-
-1. **useFetchIPData**
-
-   This hook provides the query of the user as a payload to backend. It can be either an IP or a domain name.
-
-   It performs a **POST** request to the backend to measure the given NTP server.
-   If the query is a domain name, the result consists of all NTP servers that it measures from the domain name, if it's
-   an IP, only the NTP
-   server corresponding to that specific IP.
-   It parses the JSON received from the backend my using the method ```transformJSONDataToNTPData```.
-
-   It returns a **5-tuple**:
-
-   | Return value     | Description                                                  |
-                                                 |------------------|--------------------------------------------------------------|
-   | ```data```       | An array of NTP results                                      |
-   | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
-   | ```error```      | Error object if one occured                                  |
-   | ```httpStatus``` | The HTTP status of the request                               |
-   | ```fetchData```  | A function for initiating the POST request                   |
-
-2. **useFetchHistoricalIPData**
-
-   This hook provides the data over a specific period of time for the server queried by the user.
-
-   It performs a **GET** request to the backend to fetch historical data.
-   The server can, similarly to the previous hook, be either an IP or a domain name.
-   The start time and end times are used in the ISO8601 format.
-   It parses the JSON received from the backend my using the method ```transformJSONDataToNTPData```.
-
-   It returns a **4-tuple**:
-
-   | Return value     | Description                                                  |
-                                                 |------------------|--------------------------------------------------------------|
-   | ```data```       | An array of NTP results                                      |
-   | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
-   | ```error```      | Error object if one occured                                  |
-   | ```fetchData```  | A function for initiating the GET request                    |
-
-
-3. **useTriggerRipeMeasurement**
-
-   This hook is what send the trigger for the RIPE measurement to be started.
-
-   It performs a **POST** requst to the backend with the queried server as a payload to trigger the measurement.
-   As a result it gets a confirmation that the measurement started, as well as the measurement ID of the measurement
-   started, and the IP of the
-   vantage point that started the RIPE measurement.
-   It parses the JSON received in place, since it a simple response.
-
-   It returns a **4-tuple**:
-
-   | Return value     | Description                                                  |
-                                                 |------------------|--------------------------------------------------------------|
-   | ```data```       | The response of the trigger as ```RIPERest```                |
-   | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
-   | ```error```      | Error object if one occured                                  |
-   | ```fetchData```  | A function for initiating the POST request                   |
-
-4. **useFetchRipeData**
-
-   This hook is what is used to receive the actual RIPE measurement data from the backend.
-
-   It perfoms **polling** on the backend's endpoint to regularly update the data it receives.
-   This is beacuse RIPE doesn't offer all the data at once, instead slowly sending the measurements from the probes its
-   done.
-   It has an adjustable polling rate from the method signature.
-   Since the polling may begin before the RIPE measurement is ready, in the case it receives HTTP 405 from the backend (
-   Method not allowed),
-   it has a separate timer to retry after.
-   The polling continues until there is an error, the measurement is complete, the measurement times out, or until a new
-   one begins.
-   In the case of the new measurement beggining, the previous polling call is cancelled in order to prevent interleaving
-   and other issues.
-
-   It returns a **3-tuple** consisting of:
-
-   | Return value | Description                                                  |
-                                                 |--------------|--------------------------------------------------------------|
-   | ```result``` | An array of RIPE results                                     |
-   | ```status``` | compound type indicating the current state of the measurement|
-   | ```error```  | Error object if one occured                                  |
-
-- The compound type used for indicating the status is:
-  ```"pending" | "partial_results" | "complete" | "timeout" | "error"```
-
-5. **useIpInfo**
-
-   This hook is for fetching the geolocation of IPs in a way that does not require data communication with the backend
-
-   It makes used of ```ip-api``` for the retreival of geolocation data from IPs via a **GET**.
-   It saves both the coordinates retrieved and the country code.
-   It is only used for getting the location of the NTP servers queried, as well as the vantage point.
-   It saves the result as a ```IpInfoData``` data variable which consists of:
-    - a ```[number,number]``` type: ```coordinates```
-    - a `string` type: ```country_code```
-      This type is not saved in ```client\utils``` since it is not widely used like the other types there
-
-   It returns a **5-tuple**:
-
-   | Return value     | Description                                                  |
-                                                 |------------------|--------------------------------------------------------------|
-   | ```data```       | Geolocation data fetched as ```IpInfoData```                 |
-   | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
-   | ```error```      | Error object if one occured                                  |
-   | ```fetchData```  | A function for initiating the GET request                    |
-   | ```clearIP```    | A function for resetting the state of ```data```             |
-
-   It is important to note that if the IP address provided is private, then the ```coordinates``` field of the result
-   will have the following format: ```[undefined, undefined]```
-
-#### TypeScript Components
-
-For the better running, understanding and modularity of the code, several sections of the front-end were split into
-different components.
-
-* **DownloadButton**
-* **Hero**
-* **InputSection**
-* **LineGraph**
-    * A component that uses ChartJS to create line graph for the data provided. Uses the `Measurement` type to make the
-      graph show either delay or offset
-      as measures on the y-axis. These values are taken from data provided to the component as an array of `NTPData`.
-    * The `Measurement` type conists of either the strings ``delay`` or ``offset``, to indicate which of the desired
-      measure will be indicated.
-    * On the x-axis is shows the time of measurement, as a string of a `Date` object, taken from the `time` field of
-      `NTPData`.
-* **LoadingSpinner**
-* **ResultSummary**
-* **TimeInput**
-* **Visualization**
-    * The popup that appears when pressing the "View Historical Data" button. It contains all the possible options for
-      choosing which data to visualize
-    * Contains **Dropdowns** for choosing the desired time period.
-    * The `Custom` button allows the user to input a time period of their choice using the new fields that appear.
-    * The `Delay` and `Offset` radios are used to pick the option of which measurement to be shown.
-    * The **DownloadButtons** allow the user to download the data for the data during the selected time period.
-* **WorldMap**
-    * This component renders a map for all the geolocation data to be visualized
-    * Makes use of `Leaflet` for rendering the map
-    * The base tile used is ***Dark Matter*** offered by [CARTO](https://carto.com/)
-    * It shows the location of the probes, NTP server(s) and vantage point
-    * The icons used can be found in `src\assets`
-    * Each point on the map show some information related to it, such as:
-        - RTT, Offset and probe ID for the RIPE probes
-        - IP and name for the NTP server(s)
-        - IP and location for the vantage point
 
 # Docker Setup
 
@@ -442,48 +267,50 @@ sudo apt install docker-compose
 ### 3. Add a .env file in the root directory
 
 **Create a `.env` file** in the `root` directory (the same directory with you `docker-compose.yml`) with your accounts
-credentials in the following format:
-
-```dotenv
-DB_NAME={db_name}
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_HOST=localhost (or "db" if you run the project with docker)
-DB_PORT=5432
-IPINFO_LITE_API_TOKEN={API}
-ripe_api_token={ripe API with persmission to perform measurments}
-ripe_account_email={email of your ripe account (you need to have credits)}
-ACCOUNT_ID={geolite account id}
-LICENSE_KEY={geolite key}
-UPDATE_CRON_SCHEDULE=*/1 * * * *
-VITE_SERVER_HOST_ADDRESS=http://localhost:8000
-VITE_STATUS_THRESHOLD=1000
-DOCKER_NETWORK_SUBNET=2001:db8:1::/64
-DOCKER_NETWORK_GATEWAY=2001:db8:1::1
-```
+credentials. (You can see this `.env` at the above of the page)
 
 ---
 
 ### 4. Build the Docker containers
 
-From the root of the project:
+From the root of the project, run this, but make sure that Docker Desktop is open:
 
 ```bash
-docker-compose build
+sudo docker-compose build
 ```
+
+or this command if the first one failed:
+
+```bash
+sudo docker-compose build --no-cache
+```
+
+**Common Errors**
+
+- If it fails, and you received error `error during connect`, then make sure that you have Docker Desktop open.
 
 ---
 
 ### 5. Start the containers
 
 ```bash
-docker-compose up
+sudo docker-compose up
 ```
+
+### **‼️️ Very Important ‼️**
+
+- Every time after you run `sudo docker-compose up` and it failed, and you want to try again, you need to run
+  `sudo docker-compose down` before trying again. This also applies when **you want to build again**.
+
+**Common Errors**
+
+- If it fails with `exec /app/docker-entrypoint.sh: no such file or directory, exited with code 255` then it means that
+  the file `docker-entrypoint.sh` (or `update.sh`) has CRLF format, and you need to change it to LF.
 
 Use `-d` to run it in the background:
 
 ```bash
-docker-compose up -d
+sudo docker-compose up -d
 ```
 
 > Make sure there is not any network name `my-net` already in use.
@@ -491,7 +318,7 @@ docker-compose up -d
 This can be checked by running:
 
 ```bash
-docker network ls
+sudo docker network ls
 ```
 
 ---
@@ -501,8 +328,18 @@ docker network ls
 To gracefully stop all services:
 
 ```bash
-docker-compose down
+sudo docker-compose down
 ```
+
+### This must be done every time changes have been done, or one of the containers failed.
+
+### If you also want to delete the database you must run it like this:
+
+```bash
+sudo docker-compose down -v
+```
+
+### This will remove all volumes, which in our case, that's just the database, and is useful if you encounter issues with it.
 
 ---
 
@@ -512,3 +349,16 @@ docker-compose down
 - **Backend API**: [http://localhost:8000](http://localhost:8000)
 
 > Make sure ports `5173` (frontend) and `8000` (backend) are not in use before starting the containers.
+
+## Contributing
+
+We appreciate any new contributions from the open-source community
+
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also
+simply open an issue with the tag "enhancement".
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b branch-name`)
+3. Commit your Changes (`git commit -m 'Added feature'`)
+4. Push to the Branch (`git push origin branch-name`)
+5. Open a Pull Request
