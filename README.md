@@ -13,22 +13,13 @@ which contains all of the front-end of the application. It uses `React` with `Vi
 
 ## Table of Contents
 
-- [Server](#server)
-    - [Database design](#database-design)
-    - [Server Setup and Running](#server-setup-and-running)
-- [Client](#client)
-    - [Client Setup and Running](#client-setup-and-running)
+- [Server Setup and Running](#server-setup-and-running)
+- [Client Setup and Running](#client-setup-and-running)
 - [Docker Setup](#docker-setup)
 - [Contributing](#contributing)
-### Server
 
-#### Database design
+### Server Setup and Running
 
-The database used to store measurements uses `PostgreSQL` for its persistance.
-
-The design for the two tables used to store data are shown in `database-schema.md`
-
-#### Server Setup and Running
 
 There are 2 ways in starting the server. The first one is to manually configure it, and the second one is using a docker container.
 
