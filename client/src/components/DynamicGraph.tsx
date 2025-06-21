@@ -79,7 +79,7 @@ export default function DynamicGraph({
     const startDateISO = dateFormatConversion(startDate);
     const endDateISO = dateFormatConversion(endDate);
 
-    console.log(`Fetching historical data for ${servers.length} servers from ${startDateISO} to ${endDateISO}`);
+    // console.log(`Fetching historical data for ${servers.length} servers from ${startDateISO} to ${endDateISO}`);
 
     const newData = new Map<string, NTPData[]>();
 
@@ -88,18 +88,18 @@ export default function DynamicGraph({
       .filter(server => server.trim())
       .map(async (server) => {
         const historicalDataUrl = `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/history/?server=${server}&start=${startDateISO}&end=${endDateISO}`;
-        console.log(`Fetching data for server: ${server}`);
+        // console.log(`Fetching data for server: ${server}`);
         const historicalData = await fetchHistoricalData(historicalDataUrl);
         if (historicalData) {
           newData.set(server, historicalData);
-          console.log(`Successfully fetched ${historicalData.length} data points for ${server}`);
+          // console.log(`Successfully fetched ${historicalData.length} data points for ${server}`);
         } else {
-          console.warn(`Failed to fetch data for server: ${server}`);
+          // console.warn(`Failed to fetch data for server: ${server}`);
         }
       });
 
     await Promise.all(fetchPromises);
-    console.log(`Completed fetching data for all servers`);
+    // console.log(`Completed fetching data for all servers`);
     setData(newData);
   };
 
@@ -154,7 +154,7 @@ export default function DynamicGraph({
         </div>
         <div className="error-div">
           <p>There was an error loading historical data.</p>
-          <p>Please check the server names and try again.</p>
+          <p>Please check the chosen time period.</p>
         </div>
       </div>
     );
