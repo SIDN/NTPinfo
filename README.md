@@ -1,6 +1,6 @@
 ### **Group 15d**
 
-# Are your time servers on time. Active Internet Measurements to evaluate time servers.
+# Are your time servers on time? Active Internet Measurements to evaluate time servers.
 
 ## Product Structure
 
@@ -19,7 +19,7 @@ which contains all of the front-end of the application. It uses `React` with `Vi
 - [Client](#client)
     - [Client Setup and Running](#client-setup-and-running)
 - [Docker Setup](#docker-setup)
-
+- [Contributing](#contributing)
 ### Server
 
 #### Database design
@@ -57,18 +57,18 @@ To set up and run the back-end server, follow these steps:
 
 2. **Install and prepare PostgreSQL database**
 
-  1. Go to: https://www.enterprisedb.com/downloads/postgres-postgresql-downloads and select the version of PostgreSQL you want to install.
-  2. Go to download file location
+  2.1. Go to: https://www.enterprisedb.com/downloads/postgres-postgresql-downloads and select the version of PostgreSQL you want to install.
+  2.2. Go to download file location
       Double click the .exe file
       Follow through the installation process and keep track of:
         where you installed it, 
         the superuser (usually postgres), 
         the port (usually 5432),
         the password (you should remember this one)
-  3. pgAdmin should automatically be installed, so accept to install it when prompted.
-  4. Restart your computer.
-  5. pgAdmin should be in your system if you followed the installation correctly. Open it, click on Server and put in your password if necessary.
-  6. Right click on Databases, click "Create" and create an empty database, preferably named "measurements". Tables will be handled once you run the back-end server, so do not worry about them right now.
+  2.3. pgAdmin should automatically be installed, so accept to install it when prompted.
+  2.4. Restart your computer.
+  2.5. pgAdmin should be in your system if you followed the installation correctly. Open it, click on Server and put in your password if necessary.
+  2.6. Right click on Databases, click "Create" and create an empty database, preferably named "measurements". Tables will be handled once you run the back-end server, so do not worry about them right now.
 
 ---
 3. **Create a `.env` file** in the `root` directory with your accounts credentials in the following format:
@@ -279,7 +279,7 @@ docker-compose build
 ```
 or this command if the first one failed:
 ```bash
-docker-compse build --no-cache
+docker-compose build --no-cache
 ```
 
 **Common Errors**
@@ -331,3 +331,14 @@ docker-compose down
 > Make sure ports `5173` (frontend) and `8000` (backend) are not in use before starting the containers.
 
 
+## Contributing
+
+We appreciate any new contributions from the open-source community
+
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b branch-name`)
+3. Commit your Changes (`git commit -m 'Added feature'`)
+4. Push to the Branch (`git push origin branch-name`)
+5. Open a Pull Request
