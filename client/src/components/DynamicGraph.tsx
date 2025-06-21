@@ -59,6 +59,13 @@ export default function DynamicGraph({
         if (customFrom && customTo) {
           startDate = new Date(customFrom).getTime();
           endDate = new Date(customTo).getTime();
+          // Ensure startDate and endDate don't exceed current time
+          if (startDate > now) {
+            startDate = now;
+          }
+          if (endDate > now) {
+            endDate = now;
+          }
         } else {
           // Fallback to last day if custom dates are not set
           startDate = now - 86400000;
