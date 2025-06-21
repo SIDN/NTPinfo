@@ -7,6 +7,7 @@ import DownloadButton from '../components/DownloadButton'
 
 import LoadingSpinner from '../components/LoadingSpinner'
 import LineChart from '../components/LineGraph'
+import DynamicGraph from '../components/DynamicGraph.tsx'
 import { useFetchIPData } from '../hooks/useFetchIPData.ts'
 import { useFetchHistoricalIPData } from '../hooks/useFetchHistoricalIPData.ts'
 import { useFetchRIPEData } from '../hooks/useFetchRipeData.ts'
@@ -272,29 +273,14 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         {/* Div for the visualization graph, and the radios for setting the what measurement to show */}
         <div className="graphs">
           <div className='graph-box'>
-            <div className="radio-toggle">
-              <input
-                type="radio"
-                id="offset"
-                name="measurement"
-                value="offset"
-                checked={selMeasurement === 'offset'}
-                onChange={handleMeasurementChange}
-              />
-              <label htmlFor="offset">Offset</label>
-
-              <input
-                type="radio"
-                id="rtt"
-                name="measurement"
-                value="RTT"
-                checked={selMeasurement === 'RTT'}
-                onChange={handleMeasurementChange}
-              />
-              <label htmlFor="rtt">Round-trip time</label>
-            </div>
-
-            <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day" legendDisplay={false}/>
+            <DynamicGraph
+              servers={chartData ? Array.from(chartData.keys()) : []}
+              selectedMeasurement={selMeasurement}
+              onMeasurementChange={(measurement) => updateCache({ selMeasurement: measurement })}
+              legendDisplay={false}
+              showTimeInput={false}
+              existingData={chartData}
+            />
           </div>
         </div>
       </div>)) || (!ntpData && !apiDataLoading && measured &&
