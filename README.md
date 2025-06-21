@@ -2,6 +2,13 @@
 
 # Are your time servers on time? Active Internet Measurements to evaluate time servers.
 
+<p align="center">
+  <img src="assets/NtpInfoLogo.png" alt="Project Logo" style="width:100%; max-width:100%;"/>
+</p>
+
+
+---
+
 ## Product Structure
 
 The product is split into 2 parts. The first one is the server side, that handles the
@@ -11,6 +18,8 @@ an API to send data to the front end and client side. The second part is the cli
 which contains all of the front-end of the application. It uses `React` with `Vite`, base
 `CSS` for styling, `ChartJS` for data visualization, and `axios` for API interaction.
 
+---
+
 ## Table of Contents
 
 - [Server Setup and Running](#server-setup-and-running)
@@ -18,10 +27,12 @@ which contains all of the front-end of the application. It uses `React` with `Vi
 - [Docker Setup](#docker-setup)
 - [Contributing](#contributing)
 
+---
+
 ### Server Setup and Running
 
-
-There are 2 ways in starting the server. The first one is to manually configure it, and the second one is using a docker container.
+There are 2 ways in starting the server. The first one is to manually configure it, and the second one is using a docker
+container.
 
 To set up and run the back-end server, follow these steps:
 
@@ -48,30 +59,33 @@ To set up and run the back-end server, follow these steps:
 
 2. **Install and prepare PostgreSQL database**
 
-  2.1. Go to: https://www.enterprisedb.com/downloads/postgres-postgresql-downloads and select the version of PostgreSQL you want to install.
-  2.2. Go to download file location
-      Double click the .exe file
-      Follow through the installation process and keep track of:
-        where you installed it, 
-        the superuser (usually postgres), 
-        the port (usually 5432),
-        the password (you should remember this one)
-  2.3. pgAdmin should automatically be installed, so accept to install it when prompted.
-  2.4. Restart your computer.
-  2.5. pgAdmin should be in your system if you followed the installation correctly. Open it, click on Server and put in your password if necessary.
-  2.6. Right click on Databases, click "Create" and create an empty database, preferably named "measurements". Tables will be handled once you run the back-end server, so do not worry about them right now.
+2.1. Go to: https://www.enterprisedb.com/downloads/postgres-postgresql-downloads and select the version of PostgreSQL
+you want to install.
+2.2. Go to download file location
+Double click the .exe file
+Follow through the installation process and keep track of:
+where you installed it,
+the superuser (usually postgres),
+the port (usually 5432),
+the password (you should remember this one)
+2.3. pgAdmin should automatically be installed, so accept to install it when prompted.
+2.4. Restart your computer.
+2.5. pgAdmin should be in your system if you followed the installation correctly. Open it, click on Server and put in
+your password if necessary.
+2.6. Right click on Databases, click "Create" and create an empty database, preferably named "measurements". Tables will
+be handled once you run the back-end server, so do not worry about them right now.
 
 ---
+
 3. **Create a `.env` file** in the `root` directory with your accounts credentials in the following format:
 
     ```dotenv
     #needed for back-end (server)
-    DB_NAME={db_name} # the database that you want to use from PostgreSQL, preferably named "measurements"
+    DB_NAME=measurements # the database that you want to use from PostgreSQL, preferably named "measurements"
     DB_USER=postgres
     DB_PASSWORD=postgres
-    DB_HOST=localhost (or "db" if you run the project with docker)
+    DB_HOST=db# (or "localhost" if you run the project locally)
     DB_PORT=5432
-    IPINFO_LITE_API_TOKEN={API}
     ripe_api_token={ripe API with persmission to perform measurments}
     ripe_account_email={email of your ripe account (you need to have credits)}
     ACCOUNT_ID={geolite account id}
@@ -86,7 +100,6 @@ To set up and run the back-end server, follow these steps:
     VITE_CLIENT_PORT=5173 # change to desired value
     VITE_SERVER_HOST_ADDRESS=http://localhost:8000
     VITE_STATUS_THRESHOLD=1000 # in milliseconds, choose a value you think is reasonable for the offset threshold
-    
     ```
    Besides, the config file with public data for the server is `server/server_config.yaml` and it contains the following
    variables that you can change:
@@ -141,7 +154,6 @@ To set up and run the back-end server, follow these steps:
 
 ---
 
-
 5. **Download the max mind and BGP tools databases, and schedule running this file once every day**
 
    This will initialise the local dbs for geolocation and detecting anycast, and will schedule downloading them every
@@ -170,13 +182,14 @@ To set up and run the back-end server, follow these steps:
       for any "^M"
       at the end of lines. You can remove them by running this command: `dos2unix .env`. This should solve the problem.
     - If you are using Linux or WSL and you received `/bin/bash^M: bad interpreter: No such file or directory` then it
-      may mean that your script has Windows-style line endings (CRLF, \r\n) instead of Unix-style (LF, \n). Another 
-   solution to change from CRLF to LF is to open the file in VS Code and to change them to LF.
+      may mean that your script has Windows-style line endings (CRLF, \r\n) instead of Unix-style (LF, \n). Another
+      solution to change from CRLF to LF is to open the file in VS Code and to change them to LF.
     - If downloading the Geolite databases fails, consider that downloading them has a daily limit per account. (This
       limit is only for geolite databases)
 
    **Notes**:
-    - Be sure to schedule running this file once every day or to manually update them, if you want up-to-date information.
+    - Be sure to schedule running this file once every day or to manually update them, if you want up-to-date
+      information.
 
 ---
 
@@ -188,8 +201,6 @@ To set up and run the back-end server, follow these steps:
 
    You should see the server running now!
 
-
-
 #### Client Setup and Running
 
 To set up and run the client, follow these steps carefully:
@@ -197,13 +208,14 @@ To set up and run the client, follow these steps carefully:
 1. **Ensure you have the prerequisites installed**
 
 - [Node.js](https://nodejs.org/)
-  - npm (comes bundled with Node.js)
+    - npm (comes bundled with Node.js)
 
-    ```bash
-    node -v
-    npm -v
-    ```
-    If not, install from https://nodejs.org/
+      ```bash
+      node -v
+      npm -v
+      ```
+      If not, install from https://nodejs.org/
+
 2. **Create `.env` file in client**
 
    Create a `.env` file in `client` and add the following to the file:
@@ -214,7 +226,7 @@ To set up and run the client, follow these steps carefully:
     VITE_CLIENT_PORT=5173 # change to desired value
     CLIENT_URL=http://localhost:5173 # change to desired value
      ```
-    
+
 3. **Install the dependencies**
 
    Ensure you are in the client folder
@@ -229,8 +241,6 @@ To set up and run the client, follow these steps carefully:
     npm run dev
     ```
    Everything should be set now!
-
-
 
 # Docker Setup
 
@@ -266,28 +276,37 @@ credentials. (You can see this `.env` at the above of the page)
 From the root of the project, run this, but make sure that Docker Desktop is open:
 
 ```bash
-docker-compose build
+sudo docker-compose build
 ```
+
 or this command if the first one failed:
+
 ```bash
-docker-compose build --no-cache
+sudo docker-compose build --no-cache
 ```
 
 **Common Errors**
+
 - If it fails, and you received error `error during connect`, then make sure that you have Docker Desktop open.
+
 ---
 
 ### 5. Start the containers
 
 ```bash
-docker-compose up
+sudo docker-compose up
 ```
-**Common Errors**
-- If it fails with `exec /app/docker-entrypoint.sh: no such file or directory, exited with code 255` then it means that 
-the file `docker-entrypoint.sh` (or `update.sh`) has CRLF format, and you need to change it to LF.
 
-**Very Important**
-- Every time after you run `docker-compose up` and it failed, and you want to try again, you need to run `docker-compose down` before trying again.
+### **‼️️ Very Important ‼️**
+
+- Every time after you run `sudo docker-compose up` and it failed, and you want to try again, you need to run
+  `docker-compose down` before trying again. This also applies when **you want to build again**.
+
+**Common Errors**
+
+- If it fails with `exec /app/docker-entrypoint.sh: no such file or directory, exited with code 255` then it means that
+  the file `docker-entrypoint.sh` (or `update.sh`) has CRLF format, and you need to change it to LF.
+
 Use `-d` to run it in the background:
 
 ```bash
@@ -312,6 +331,8 @@ To gracefully stop all services:
 docker-compose down
 ```
 
+### This must be done every time changes have been done, or one of the containers failed.
+
 ---
 
 ## Everything should now be running at:
@@ -321,12 +342,12 @@ docker-compose down
 
 > Make sure ports `5173` (frontend) and `8000` (backend) are not in use before starting the containers.
 
-
 ## Contributing
 
 We appreciate any new contributions from the open-source community
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also
+simply open an issue with the tag "enhancement".
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b branch-name`)
