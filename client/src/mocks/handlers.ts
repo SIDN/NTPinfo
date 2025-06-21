@@ -1,5 +1,9 @@
 import { http, HttpResponse } from 'msw'
 
+/**
+ * Handlers for all of the endpoints, have good and bad weather cases
+ * Contain data taken directly from server responses
+ */
 export const handlers = [
     http.post<never, {server: string, ipv6_measurement: boolean}, {measurement: any[]} | { detail: string }>(
         '/measurements/', async ({request: req}) => {
