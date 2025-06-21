@@ -33,8 +33,11 @@ The design for the two tables used to store data are shown in `database-schema.m
 
 #### Server Setup and Running
 
+There aer 2 ways in starting the server. The first one is manually configured it, and the second one is using a docker container.
+
 To set up and run the backend server, follow these steps:
 
+#### Locally configure the server
 ---
 
 1. **Create a virtual environment**:
@@ -55,10 +58,17 @@ To set up and run the backend server, follow these steps:
 
 ---
 
-2. **Create a `.env` file** in the `root` directory with your accounts credentials in the following format:
+2. **Install and prepare PostreSQL database**
+
+Make sure you have PostgreSQL installed and create an empty database. We recommend to name it something like "measurements". You will use the name of your database in DB_NAME later.
+You need to create an empty database called "measurements" in PostgreSQL. Do not worry about the tables, everything
+   is handled when you run the server.
+
+---
+3. **Create a `.env` file** in the `root` directory with your accounts credentials in the following format:
 
     ```dotenv
-    DB_NAME={db_name}
+    DB_NAME={db_name} # the database that you want to use from PostgreSQL
     DB_USER=postgres
     DB_PASSWORD=postgres
     DB_HOST=localhost (or "db" if you run the project with docker)
@@ -68,10 +78,17 @@ To set up and run the backend server, follow these steps:
     ripe_account_email={email of your ripe account (you need to have credits)}
     ACCOUNT_ID={geolite account id}
     LICENSE_KEY={geolite key}
-    UPDATE_CRON_SCHEDULE=*/1 * * * *
+    UPDATE_CRON_SCHEDULE=0 0 * * * # once every day
+    VITE_SERVER_HOST_ADDRESS=http://localhost:8000
+    VITE_STATUS_THRESHOLD=1000
+    DOCKER_NETWORK_SUBNET=2001:db8:1::/64
+    DOCKER_NETWORK_GATEWAY=2001:db8:1::1
+    VITE_CLIENT_HOST=localhost # change to desired value
+    VITE_CLIENT_PORT=5173 # change to desired value
+    CLIENT_URL=http://localhost:5173 # change to desired value
     ```
    Besides, the config file with public data for the server is `server/server_config.yaml` and it contains the following
-   variables:
+   variables that you can change:
 
       ```yaml
         ntp:
@@ -114,7 +131,7 @@ To set up and run the backend server, follow these steps:
 
 ---
 
-3. **Install the backend dependencies**:
+4. **Install the backend dependencies**:
 
     ```bash
     cd server
@@ -123,12 +140,6 @@ To set up and run the backend server, follow these steps:
 
 ---
 
-4. **Prepare the PostgreSQL database**
-
-   You need to create an empty database called "measurements" in PostgreSQL. Do not worry about the tables, everything
-   is handled when you run the server.
-
----
 
 5. **Download the max mind and BGP tools databases, and schedule running this file once every day**
 
@@ -147,7 +158,7 @@ To set up and run the backend server, follow these steps:
    ```bash
     pwd
     ```
-   Or if you want to manually run the script to download the databases without scheduling:
+   Or if you just want to download the databases once without scheduling:
     ```bash
       ./update_geolite_and_bgptools_dbs.sh
     ```
@@ -158,12 +169,13 @@ To set up and run the backend server, follow these steps:
       for any "^M"
       at the end of lines. You can remove them by running this command: `dos2unix .env`. This should solve the problem.
     - If you are using Linux or WSL and you received `/bin/bash^M: bad interpreter: No such file or directory` then it
-      may mean that your script has Windows-style line endings (CRLF, \r\n) instead of Unix-style (LF, \n)
+      may mean that your script has Windows-style line endings (CRLF, \r\n) instead of Unix-style (LF, \n). Another 
+   solution to change from CRLF to LF is to open the file in VS Code and to change them to LF.
     - If downloading the Geolite databases fails, consider that downloading them has a daily limit per account. (This
       limit is only for geolite databases)
 
    **Notes**:
-    - Be sure to schedule running this file once every day, if you want up-to-date information.
+    - Be sure to schedule running this file once every day or to manually update them, if you want up-to-date information.
 
 ---
 
@@ -265,157 +277,7 @@ The global types that are used across multiple components are stored in ```clien
 There are currently `5` different API endpoints used by the front-end of the application,
 These can all be found in ```client\src\hooks```.
 
-They all use ```axios``` for the requests, and each have a different function they implement.
-The helper functions for transforming data and the global types used can all be found in ```client\utils```
 
-##### **API Hooks**
-
-1. **useFetchIPData**
-
-   This hook provides the query of the user as a payload to backend. It can be either an IP or a domain name.
-
-   It performs a **POST** request to the backend to measure the given NTP server.
-   If the query is a domain name, the result consists of all NTP servers that it measures from the domain name, if it's
-   an IP, only the NTP
-   server corresponding to that specific IP.
-   It parses the JSON received from the backend my using the method ```transformJSONDataToNTPData```.
-
-   It returns a **5-tuple**:
-
-   | Return value     | Description                                                  |
-                                                 |------------------|--------------------------------------------------------------|
-   | ```data```       | An array of NTP results                                      |
-   | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
-   | ```error```      | Error object if one occured                                  |
-   | ```httpStatus``` | The HTTP status of the request                               |
-   | ```fetchData```  | A function for initiating the POST request                   |
-
-2. **useFetchHistoricalIPData**
-
-   This hook provides the data over a specific period of time for the server queried by the user.
-
-   It performs a **GET** request to the backend to fetch historical data.
-   The server can, similarly to the previous hook, be either an IP or a domain name.
-   The start time and end times are used in the ISO8601 format.
-   It parses the JSON received from the backend my using the method ```transformJSONDataToNTPData```.
-
-   It returns a **4-tuple**:
-
-   | Return value     | Description                                                  |
-                                                 |------------------|--------------------------------------------------------------|
-   | ```data```       | An array of NTP results                                      |
-   | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
-   | ```error```      | Error object if one occured                                  |
-   | ```fetchData```  | A function for initiating the GET request                    |
-
-
-3. **useTriggerRipeMeasurement**
-
-   This hook is what send the trigger for the RIPE measurement to be started.
-
-   It performs a **POST** requst to the backend with the queried server as a payload to trigger the measurement.
-   As a result it gets a confirmation that the measurement started, as well as the measurement ID of the measurement
-   started, and the IP of the
-   vantage point that started the RIPE measurement.
-   It parses the JSON received in place, since it a simple response.
-
-   It returns a **4-tuple**:
-
-   | Return value     | Description                                                  |
-                                                 |------------------|--------------------------------------------------------------|
-   | ```data```       | The response of the trigger as ```RIPERest```                |
-   | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
-   | ```error```      | Error object if one occured                                  |
-   | ```fetchData```  | A function for initiating the POST request                   |
-
-4. **useFetchRipeData**
-
-   This hook is what is used to receive the actual RIPE measurement data from the backend.
-
-   It perfoms **polling** on the backend's endpoint to regularly update the data it receives.
-   This is beacuse RIPE doesn't offer all the data at once, instead slowly sending the measurements from the probes its
-   done.
-   It has an adjustable polling rate from the method signature.
-   Since the polling may begin before the RIPE measurement is ready, in the case it receives HTTP 405 from the backend (
-   Method not allowed),
-   it has a separate timer to retry after.
-   The polling continues until there is an error, the measurement is complete, the measurement times out, or until a new
-   one begins.
-   In the case of the new measurement beggining, the previous polling call is cancelled in order to prevent interleaving
-   and other issues.
-
-   It returns a **3-tuple** consisting of:
-
-   | Return value | Description                                                  |
-                                                 |--------------|--------------------------------------------------------------|
-   | ```result``` | An array of RIPE results                                     |
-   | ```status``` | compound type indicating the current state of the measurement|
-   | ```error```  | Error object if one occured                                  |
-
-- The compound type used for indicating the status is:
-  ```"pending" | "partial_results" | "complete" | "timeout" | "error"```
-
-5. **useIpInfo**
-
-   This hook is for fetching the geolocation of IPs in a way that does not require data communication with the backend
-
-   It makes used of ```ip-api``` for the retreival of geolocation data from IPs via a **GET**.
-   It saves both the coordinates retrieved and the country code.
-   It is only used for getting the location of the NTP servers queried, as well as the vantage point.
-   It saves the result as a ```IpInfoData``` data variable which consists of:
-    - a ```[number,number]``` type: ```coordinates```
-    - a `string` type: ```country_code```
-      This type is not saved in ```client\utils``` since it is not widely used like the other types there
-
-   It returns a **5-tuple**:
-
-   | Return value     | Description                                                  |
-                                                 |------------------|--------------------------------------------------------------|
-   | ```data```       | Geolocation data fetched as ```IpInfoData```                 |
-   | ```loading```    | ```boolean``` indicating if the measurement is still ongoing |
-   | ```error```      | Error object if one occured                                  |
-   | ```fetchData```  | A function for initiating the GET request                    |
-   | ```clearIP```    | A function for resetting the state of ```data```             |
-
-   It is important to note that if the IP address provided is private, then the ```coordinates``` field of the result
-   will have the following format: ```[undefined, undefined]```
-
-#### TypeScript Components
-
-For the better running, understanding and modularity of the code, several sections of the front-end were split into
-different components.
-
-* **DownloadButton**
-* **Hero**
-* **InputSection**
-* **LineGraph**
-    * A component that uses ChartJS to create line graph for the data provided. Uses the `Measurement` type to make the
-      graph show either delay or offset
-      as measures on the y-axis. These values are taken from data provided to the component as an array of `NTPData`.
-    * The `Measurement` type conists of either the strings ``delay`` or ``offset``, to indicate which of the desired
-      measure will be indicated.
-    * On the x-axis is shows the time of measurement, as a string of a `Date` object, taken from the `time` field of
-      `NTPData`.
-* **LoadingSpinner**
-* **ResultSummary**
-* **TimeInput**
-* **Visualization**
-    * The popup that appears when pressing the "View Historical Data" button. It contains all the possible options for
-      choosing which data to visualize
-    * Contains **Dropdowns** for choosing the desired time period.
-    * The `Custom` button allows the user to input a time period of their choice using the new fields that appear.
-    * The `Delay` and `Offset` radios are used to pick the option of which measurement to be shown.
-    * The **DownloadButtons** allow the user to download the data for the data during the selected time period.
-* **WorldMap**
-    * This component renders a map for all the geolocation data to be visualized
-    * Makes use of `Leaflet` for rendering the map
-    * The base tile used is ***Dark Matter*** offered by [CARTO](https://carto.com/)
-    * It shows the location of the probes, NTP server(s) and vantage point
-    * The icons used can be found in `src\assets`
-    * Each point on the map show some information related to it, such as:
-        - RTT, Offset and probe ID for the RIPE probes
-        - IP and name for the NTP server(s)
-        - IP and location for the vantage point
 
 # Docker Setup
 
