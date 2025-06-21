@@ -64,6 +64,10 @@ const grayIcon = new L.Icon({
   popupAnchor: [0, -8]
 })
 
+/**
+ * Icons for the NTP servers seen on the map.
+ * The server is grayed out if there was no response from it from our server and if the probes couldn't contact it either
+ */
 const ntpServerIcon = new L.Icon({
   iconUrl: ntpServerImg,
   iconSize: [30, 30],
@@ -80,6 +84,9 @@ const unavailableNtpServerIcon = new L.Icon({
   zIndexOffset: 1000
 })
 
+/**
+ * A map marker icon used to show the vantage point on the map
+ */
 const vantagePointIcon = new L.Icon({
   iconUrl: vantagePointImg,
   iconSize: [30, 30],
@@ -98,6 +105,9 @@ interface MapComponentProps {
   status: string | null
 }
 
+/**
+ * Custom type used to save information about the different measurements received in the component
+ */
 type LocationInfo = {
   location: LatLngTuple
   ip: string
@@ -109,9 +119,12 @@ type LocationInfo = {
  * Depends on the size of the map component on the page
  * Made to change the zoom in a responsive way with the change of the map size
  * It changes zoom when the probes update, until the user interact with the map
+ * It takes into consideration only the known data points that will be shown on the map
  * @param probes the geolocation of all the probes to the shown on the map
- * @param ripeNtpServer the geolocation of the NTP server that the RIPE measurement was performed on
- * @param measurementNtpServer the geolocation of the NTP server that the vantage point measured on
+ * @param ripeNtpServer the geolocation of all NTP servers that only the RIPE probes contacted
+ * @param measurementNtpServer the geolocation all NTP servers that only our back-end measured on
+ * @param intersectionNtpServers the geolocation all the NTP servers measured by both RIPE probes and our back-end
+ * @param unavailableNtpServers the geolocation of all the NTP servers that the vantage point couldn't contact
  * @param vantagePoint the geolocation of the vantage point that the measurement was taken from
  */
 const FitMapBounds = ({probes, ripeNtpServers, measurementNtpServers, intersectionNtpServers, unavailableNtpServers, vantagePoint}: {probes: LatLngTuple[] | null,
@@ -167,11 +180,13 @@ const FitMapBounds = ({probes, ripeNtpServers, measurementNtpServers, intersecti
 }
 
 /**
- * A function to draw connecting lines from each probe to the NTP server on the map
- * It also draws a line from the vantage point to the NTP server it measured
+ * A function to draw connecting lines on the map
+ * It draws lines from each RIPE probe to the NTP server it measured
+ * It also draws lines from the vantage point to every NTP server it measured
  * @param probes the geolocation of all the probes to the shown on the map
- * @param ripeNtpServer the geolocation of the NTP server that the RIPE measurement was performed on
- * @param measurementNtpServer the geolocation of the NTP server that the vantage point measured on
+ * @param measurementNtpServer the geolocation all NTP server that only our back-end measured on
+ * @param intersectionNtpServers the geolocation all the NTP servers measured by both RIPE probes and our back-end
+ * @param unavailableNtpServers the geolocation of all the NTP servers that the vantage point couldn't contact
  * @param vantagePoint the geolocation of the vantage point that the measurement was taken from
  */
 const DrawConnectingLines = ({probes, measurementNtpServers, intersectionNtpServers, unavailableNtpServers, vantagePoint}: {probes: RIPEData[] | null,
@@ -197,6 +212,11 @@ const DrawConnectingLines = ({probes, measurementNtpServers, intersectionNtpServ
   return null
 }
 
+/**
+ * Function to load the legend
+ * It loads it once on initial load, and stops doing it on subsequent reloads
+ * Shows what each possible icon on the map means
+ */
 const LegendControl = () => {
   const map = useMap()
   const legendRef = useRef<L.Control | null>(null)
@@ -281,24 +301,27 @@ const stringifyRTTAndOffset = (value: number): string => {
  * Shows the status of the map(loading, finished, error)
  * Each probe is shown on the map with an icon of a different color depending on the RTT measured by it
  * Besides this, the vantage point and the NTP server(s) are also shown
- * The NTP server that the RIPE probes measured on is compared with the whole list of NTP servers measured by the vantage point
- * If one of the NTP servers measured by the vantage point is the same as the one used for the RIPE measurement, only one NTP server will appear on the map
+ * The NTP servers that are measured by both the vantage point or one of the probes are only shown once
+ * This is done by looking at the location, as they could have a different IP, but be in the same location
  * Each probe has a popup which shows the following:
  *  The RIPE probe ID, with a link to its page on the RIPE Atlas website
  *  The RTT measured
  *  The offset measured
  *  The location of the probe
  * The NTP server(s) has a popup showing the following:
- *  Possibly, if the probes or the vantage point did measurements on the server
+ *  Who measured on the server
  *  The name of the NTP server
  *  The IP of the specifc NTP server which was used
  * The vantage point has a popup that shows:
  *  The IP of the vantage point
  *  The location of the vantage point
- * The map has lines drawn in between each probe and the NTP server for better visualization
- * It also has a line between the vantage point and the NTP server it measured on
+ * The map has lines drawn in between icons to better illustract which probe and vantage point measured what server
  * The map's zoom get automatically readjusted depending on the size of the map on the page
+ * Each server measured, both by the probes and the vantage point, is checked for Anycast.
+ * In the case that Anycast is detected, this information is displayed to the user.
  * @param probes Data of all the measured probes, as an array of RIPEData values
+ * @param ntpServers Data of all the NTP severs that the vantage point measured as an array of NTPData
+ * @param vantagePointInfo The IP and location of the vantage point if received as information from the back-end
  * @param status the current status of the polling of the RIPE measurements
  * @returns a WorldMap component showing all probes, the NTP server and relevant values for all of them
  */
@@ -312,7 +335,17 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
 
   const [isAnycast, setIsAnycast] = useState<boolean>(false)
 
+  /**
+   * Effect used for categorizing the NTP servers measured into:
+   * Measured by only RIPE probes
+   * Measured by only the vantage point
+   * Measured by both
+   * NTP servers that the vantage point didnt manage to connect to
+   */
   useEffect(() => {
+    /**
+     * Checks done in case that either RIPE or the vantage point didn't return results
+     */
     if (!probes && !ntpServers) return
 
     if (!probes && ntpServers) {
@@ -355,6 +388,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
       return
     }
 
+    //sanity check requred by React
     if (!probes || !ntpServers) return
 
     const probeIPMap = new Map<string, RIPEData>()
@@ -414,6 +448,9 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
     setFailedLocations(Array.from(failedLocations.values()))
   }, [probes,ntpServers])
 
+  /**
+   * Effect to check if the NTP servers used use anycast, which would lead to less accurate geolocation data
+   */
   useEffect(() => {
     if (!probes || !ntpServers) return
 

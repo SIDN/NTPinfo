@@ -27,7 +27,7 @@ export type NTPData = {
   ntp_last_sync_time: [number,number]
   leap: number
   jitter: number | null
-  nr_measurements_jitter: number // add - show when hovering over the jitter
+  nr_measurements_jitter: number
   asn_ntp_server: string
   time: number
 }
