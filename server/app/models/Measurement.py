@@ -1,7 +1,8 @@
 from ipaddress import IPv4Address, IPv6Address
 
+import sqlalchemy
 from sqlalchemy import ForeignKey, Integer, SmallInteger, Double, Text, BigInteger, PrimaryKeyConstraint, TypeDecorator, \
-    String, Dialect
+    String, Dialect, Index
 from sqlalchemy.orm import relationship, mapped_column, Mapped
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.sql.type_api import TypeEngine
@@ -29,6 +30,18 @@ class IPAddress(TypeDecorator):
 
 class Measurement(Base):
     __tablename__ = "measurements"
+
+    __table_args__ = (
+        Index(
+            "idx_meas_name_nn",
+            "ntp_server_name",
+            postgresql_where=sqlalchemy.text("ntp_server_name IS NOT NULL")
+        ),
+        # Regular index on IP
+        Index("idx_meas_server_ip", "ntp_server_ip"),
+        # Foreign‑key join
+        Index("idx_meas_time_id", "time_id"),
+    )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     vantage_point_ip: Mapped[str] = mapped_column(IPAddress, nullable=True)
