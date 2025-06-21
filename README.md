@@ -333,6 +333,14 @@ sudo docker-compose down
 
 ### This must be done every time changes have been done, or one of the containers failed.
 
+### If you also want to delete the database you must run it like this:
+
+```bash
+sudo docker-compose down -v
+```
+
+### This will remove all volumes, which in our case, that's just the database, and is useful if you encounter issues with it.
+
 ---
 
 ## Everything should now be running at:
