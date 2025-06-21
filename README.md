@@ -18,10 +18,7 @@ which contains all of the front-end of the application. It uses `React` with `Vi
     - [Server Setup and Running](#server-setup-and-running)
 - [Client](#client)
     - [Client Setup and Running](#client-setup-and-running)
-    - [Global Types](#global-types)
-    - [API Usage](#api-usage)
-    - [API Hooks](#api-hooks)
-    - [TypeScript Components](#typescript-components)
+- [Docker Setup](#docker-setup)
 
 ### Server
 
@@ -33,9 +30,9 @@ The design for the two tables used to store data are shown in `database-schema.m
 
 #### Server Setup and Running
 
-There aer 2 ways in starting the server. The first one is manually configured it, and the second one is using a docker container.
+There are 2 ways in starting the server. The first one is to manually configure it, and the second one is using a docker container.
 
-To set up and run the backend server, follow these steps:
+To set up and run the back-end server, follow these steps:
 
 #### Locally configure the server
 ---
@@ -58,17 +55,27 @@ To set up and run the backend server, follow these steps:
 
 ---
 
-2. **Install and prepare PostreSQL database**
+2. **Install and prepare PostgreSQL database**
 
-Make sure you have PostgreSQL installed and create an empty database. We recommend to name it something like "measurements". You will use the name of your database in DB_NAME later.
-You need to create an empty database called "measurements" in PostgreSQL. Do not worry about the tables, everything
-   is handled when you run the server.
+  1. Go to: https://www.enterprisedb.com/downloads/postgres-postgresql-downloads and select the version of PostgreSQL you want to install.
+  2. Go to download file location
+      Double click the .exe file
+      Follow through the installation process and keep track of:
+        where you installed it, 
+        the superuser (usually postgres), 
+        the port (usually 5432),
+        the password (you should remember this one)
+  3. pgAdmin should automatically be installed, so accept to install it when prompted.
+  4. Restart your computer.
+  5. pgAdmin should be in your system if you followed the installation correctly. Open it, click on Server and put in your password if necessary.
+  6. Right click on Databases, click "Create" and create an empty database, preferably named "measurements". Tables will be handled once you run the back-end server, so do not worry about them right now.
 
 ---
 3. **Create a `.env` file** in the `root` directory with your accounts credentials in the following format:
 
     ```dotenv
-    DB_NAME={db_name} # the database that you want to use from PostgreSQL
+    #needed for back-end (server)
+    DB_NAME={db_name} # the database that you want to use from PostgreSQL, preferably named "measurements"
     DB_USER=postgres
     DB_PASSWORD=postgres
     DB_HOST=localhost (or "db" if you run the project with docker)
@@ -79,13 +86,16 @@ You need to create an empty database called "measurements" in PostgreSQL. Do not
     ACCOUNT_ID={geolite account id}
     LICENSE_KEY={geolite key}
     UPDATE_CRON_SCHEDULE=0 0 * * * # once every day
-    VITE_SERVER_HOST_ADDRESS=http://localhost:8000
-    VITE_STATUS_THRESHOLD=1000
+    CLIENT_URL=http://localhost:5173 # change to desired value
+
+    #needed for front-end (client)
     DOCKER_NETWORK_SUBNET=2001:db8:1::/64
     DOCKER_NETWORK_GATEWAY=2001:db8:1::1
     VITE_CLIENT_HOST=localhost # change to desired value
     VITE_CLIENT_PORT=5173 # change to desired value
-    CLIENT_URL=http://localhost:5173 # change to desired value
+    VITE_SERVER_HOST_ADDRESS=http://localhost:8000
+    VITE_STATUS_THRESHOLD=1000 # in milliseconds, choose a value you think is reasonable for the offset threshold
+    
     ```
    Besides, the config file with public data for the server is `server/server_config.yaml` and it contains the following
    variables that you can change:
@@ -320,7 +330,4 @@ docker-compose down
 
 > Make sure ports `5173` (frontend) and `8000` (backend) are not in use before starting the containers.
 
-#### API Usage
 
-There are currently `5` different API endpoints used by the front-end of the application,
-These can all be found in ```client\src\hooks```.
