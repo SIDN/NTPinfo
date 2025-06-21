@@ -27,8 +27,11 @@ cron
 # run fastapi app
 #exec uvicorn server.app.main:create_app --factory --host 0.0.0.0 --port 8000
 
+# Ensure we can import `server` as a top-level package
+export PYTHONPATH=/app
+
 echo "Creating tables if not exist..."
-python3 -c 'from server.app.db_config import init_engine; from server.app.models.Base import Base; Base.metadata.create_all(bind=init_engine())'
+python3 server/scripts/create_tables.py
 
 # run fastapi on
 # workers = (2 x number_of_cores) + 1

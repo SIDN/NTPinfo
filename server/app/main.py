@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from typing import Union, Any, AsyncGenerator
 from fastapi import FastAPI, Request, Response
@@ -40,20 +41,27 @@ def create_app(dev: bool = True) -> FastAPI:
             print(f"Configuration error: {e}")
             raise
 
+    # @asynccontextmanager
+    # async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:
+    #     """
+    #     Application lifespan context manager.
+    #
+    #     Initializes the database schema if in development mode.
+    #
+    #     Args:
+    #         app (FastAPI): The FastAPI application instance.
+    #
+    #     Yields:
+    #         None
+    #     """
+    #     if dev:
+    #         engine = init_engine()
+    #         Base.metadata.create_all(bind=engine)
+    #     yield
+
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:
-        """
-        Application lifespan context manager.
-
-        Initializes the database schema if in development mode.
-
-        Args:
-            app (FastAPI): The FastAPI application instance.
-
-        Yields:
-            None
-        """
-        if dev:
+        if os.getenv("APP_ENV") == "development":
             engine = init_engine()
             Base.metadata.create_all(bind=engine)
         yield
@@ -61,6 +69,7 @@ def create_app(dev: bool = True) -> FastAPI:
     app = FastAPI(
         lifespan=lifespan,
         title="NTPInfo API",
+        root_path="/api",
         description=(
             "API of the NTPInfo website. Through this API measurements of NTP servers "
             "can be performed based on IP or domain name. The API has 4 main routes "
@@ -76,7 +85,7 @@ def create_app(dev: bool = True) -> FastAPI:
     app.include_router(router)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:5173"],
+        allow_origins=["http://localhost:5173", "https://myapp.local"],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
