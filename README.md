@@ -187,32 +187,33 @@ You need to create an empty database called "measurements" in PostgreSQL. Do not
 
    You should see the server running now!
 
-### Client
+
 
 #### Client Setup and Running
 
-To set up and run the client, follow these steps:
+To set up and run the client, follow these steps carefully:
 
 1. **Ensure you have the prerequisites installed**
 
 - [Node.js](https://nodejs.org/)
-- npm (comes bundled with Node.js)
+  - npm (comes bundled with Node.js)
 
-  ```bash
-  node -v
-  npm -v
-  ```
-
-  If not, install from https://nodejs.org/
-
+    ```bash
+    node -v
+    npm -v
+    ```
+    If not, install from https://nodejs.org/
 2. **Create `.env` file in client**
 
    Create a `.env` file in `client` and add the following to the file:
     ```dotenv
     VITE_SERVER_HOST_ADDRESS=http://localhost:8000/ # address of our server (back-end)
     VITE_STATUS_THRESHOLD=1000 # in ms
-    ```    
-
+    VITE_CLIENT_HOST=localhost # change to desired value
+    VITE_CLIENT_PORT=5173 # change to desired value
+    CLIENT_URL=http://localhost:5173 # change to desired value
+     ```
+    
 3. **Install the dependencies**
 
    Ensure you are in the client folder
@@ -227,55 +228,6 @@ To set up and run the client, follow these steps:
     npm run dev
     ```
    Everything should be set now!
-
-#### Global types
-
-The global types that are used across multiple components are stored in ```client\src\utils\types.ts```.
-
-* **NTPData**
-    * This data type is used for storing the relevant variables of the measurements that displayed on the website and
-      used for the visualisation of data. It stores the following:
-
->        * Offset
->        * Round-trip time
->        * Stratum of the NTP server
->        * Jitter
->        * Precision of the NTP server
->        * Time at which the measurement taken as UNIX time
->        * IP address of the NTP server
->        * Name of the NTP server
->        * Reference ID of the reference of the NTP server
->        * Root dispersion of the NTP server
->        * Root delay of the NTP server
->        * The IP address of the vantage point
-
-* **RIPEData**
-    * This data type is used for storing the relevant variables received and displayed from the measurements taken from
-      the
-      measurents taken by RIPE Atlas. it stores the following:
-
->        * An NTPData variable with all its data
->        * The ID of the probe that perfomed the measurement
->        * The country the probe is stored in
->        * The geolocation of the probe
->        * If the ripe measurement results were actually received
->        * The measurement ID of the measurement the probe was a part of
-
-* **RIPEResp**
-    * This data type is used for the response of the trigger call for the RIPE measurement. It stores the following:
-
->      * The measurement ID of the measurement that is going to start
->      * the IP of the vantage point that initiated the RIPE measurement
-
-* **Measurement**
-    * This data type is used for determining what measurement should be shown on the graphs.
-
->      It consists of a composite type of the form: ```"RTT" | "offset"```
-
-#### API Usage
-
-There are currently `5` different API endpoints used by the front-end of the application,
-These can all be found in ```client\src\hooks```.
 
 
 
@@ -304,36 +256,24 @@ sudo apt install docker-compose
 ### 3. Add a .env file in the root directory
 
 **Create a `.env` file** in the `root` directory (the same directory with you `docker-compose.yml`) with your accounts
-credentials in the following format:
-
-```dotenv
-DB_NAME={db_name}
-DB_USER=postgres
-DB_PASSWORD=postgres
-DB_HOST=localhost (or "db" if you run the project with docker)
-DB_PORT=5432
-IPINFO_LITE_API_TOKEN={API}
-ripe_api_token={ripe API with persmission to perform measurments}
-ripe_account_email={email of your ripe account (you need to have credits)}
-ACCOUNT_ID={geolite account id}
-LICENSE_KEY={geolite key}
-UPDATE_CRON_SCHEDULE=*/1 * * * *
-VITE_SERVER_HOST_ADDRESS=http://localhost:8000
-VITE_STATUS_THRESHOLD=1000
-DOCKER_NETWORK_SUBNET=2001:db8:1::/64
-DOCKER_NETWORK_GATEWAY=2001:db8:1::1
-```
+credentials. (You can see this `.env` at the above of the page)
 
 ---
 
 ### 4. Build the Docker containers
 
-From the root of the project:
+From the root of the project, run this, but make sure that Docker Desktop is open:
 
 ```bash
 docker-compose build
 ```
+or this command if the first one failed:
+```bash
+docker-compse build --no-cache
+```
 
+**Common Errors**
+- If it fails, and you received error `error during connect`, then make sure that you have Docker Desktop open.
 ---
 
 ### 5. Start the containers
@@ -341,7 +281,12 @@ docker-compose build
 ```bash
 docker-compose up
 ```
+**Common Errors**
+- If it fails with `exec /app/docker-entrypoint.sh: no such file or directory, exited with code 255` then it means that 
+the file `docker-entrypoint.sh` (or `update.sh`) has CRLF format, and you need to change it to LF.
 
+**Very Important**
+- Every time after you run `docker-compose up` and it failed, and you want to try again, you need to run `docker-compose down` before trying again.
 Use `-d` to run it in the background:
 
 ```bash
@@ -374,3 +319,8 @@ docker-compose down
 - **Backend API**: [http://localhost:8000](http://localhost:8000)
 
 > Make sure ports `5173` (frontend) and `8000` (backend) are not in use before starting the containers.
+
+#### API Usage
+
+There are currently `5` different API endpoints used by the front-end of the application,
+These can all be found in ```client\src\hooks```.
