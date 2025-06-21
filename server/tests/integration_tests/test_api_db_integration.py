@@ -1,3 +1,4 @@
+import time
 from datetime import datetime, timezone, timedelta
 
 from server.app.utils.load_config_data import get_rate_limit_per_client_ip
@@ -9,7 +10,7 @@ def test_perform_measurement(client):
     end = datetime.now(timezone.utc)
 
     resp_get_before = client.get("/measurements/history/", params={
-        "server": "91.210.128.220",
+        "server": "216.239.35.4",
         "start": (end - timedelta(minutes=10)).isoformat(),
         "end": end.isoformat()
     }, headers=headers)
@@ -18,7 +19,7 @@ def test_perform_measurement(client):
     cnt = 0
     headers = {"X-Forwarded-For": "83.35.24.20"}
     client.app.state.limiter.reset() # reset the rate limit
-    response = client.post("/measurements/", json={"server": "91.210.128.220"},
+    response = client.post("/measurements/", json={"server": "216.239.35.4"},
                            headers=headers)
     assert response.status_code == 200 or response.status_code == 400
     if response.status_code == 200:
@@ -29,7 +30,7 @@ def test_perform_measurement(client):
     end = datetime.now(timezone.utc)
     headers = {"X-Forwarded-For": "83.45.24.30"}
     resp_get_after = client.get("/measurements/history/", params={
-        "server": "91.210.128.220",
+        "server": "216.239.35.4",
         "start": (end - timedelta(minutes=10)).isoformat(),
         "end": end.isoformat()
     }, headers=headers)
@@ -62,7 +63,7 @@ def test_perform_multiple_measurements(client):
     end = datetime.now(timezone.utc)
 
     resp_get_before = client.get("/measurements/history/", params={
-        "server": "91.210.128.220",
+        "server": "216.239.35.4",
         "start": (end - timedelta(minutes=10)).isoformat(),
         "end": end.isoformat()
     })
@@ -70,17 +71,18 @@ def test_perform_multiple_measurements(client):
     cnt = 0
     for _ in range(3):
         client.app.state.limiter.reset() # reset the rate limit
-        response = client.post("/measurements/", json={"server": "91.210.128.220"},
+        response = client.post("/measurements/", json={"server": "216.239.35.4"},
                                headers=headers)
         assert response.status_code == 200 or response.status_code == 400
         if response.status_code == 200:
             cnt += 1
             assert "measurement" in response.json()
         assert len(response.json()) == 1
+        time.sleep(1)
 
     end = datetime.now(timezone.utc)
     resp_get_after = client.get("/measurements/history/", params={
-        "server": "91.210.128.220",
+        "server": "216.239.35.4",
         "start": (end - timedelta(minutes=10)).isoformat(),
         "end": end.isoformat()
     })
@@ -95,7 +97,7 @@ def test_perform_multiple_measurement_rate_limiting(client):
     end = datetime.now(timezone.utc)
 
     resp_get_before = client.get("/measurements/history/", params={
-        "server": "91.210.128.220",
+        "server": "216.239.35.4",
         "start": (end - timedelta(minutes=10)).isoformat(),
         "end": end.isoformat()
     })
@@ -112,8 +114,6 @@ def test_perform_multiple_measurement_rate_limiting(client):
             if response.status_code == 429:
                 limit_reached = 1
                 break
-            # assert "measurement" in response.json()
-            # assert len(response.json()) == 1
         assert limit_reached == 1
 
 def test_perform_multiple_measurement_rate_limiting_historical_data(client):
@@ -147,7 +147,7 @@ def test_perform_measurement_empty_server(client):
 
     end = datetime.now(timezone.utc)
     resp_get_after = client.get("/measurements/history/", params={
-        "server": "91.210.128.220",
+        "server": "216.239.35.4",
         "start": (end - timedelta(minutes=10)).isoformat(),
         "end": end.isoformat()
     })
