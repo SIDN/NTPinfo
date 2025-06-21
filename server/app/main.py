@@ -106,7 +106,5 @@ if __name__ == "__main__":
 
     uvicorn.run("server.app.main:create_app", reload=True)
 
-# 👇 Add this conditional for Gunicorn usage
 if __name__ != "__main__":
-    # When run by Gunicorn, we want production mode
     app = create_app(dev=False)
