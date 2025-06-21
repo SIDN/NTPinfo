@@ -14,7 +14,6 @@ from server.app.rate_limiter import limiter
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 import os
-from dotenv import load_dotenv
 
 def create_app(dev: bool = True) -> FastAPI:
     """
@@ -59,7 +58,6 @@ def create_app(dev: bool = True) -> FastAPI:
             Base.metadata.create_all(bind=engine)
         yield
 
-    load_dotenv()
     app = FastAPI(
         lifespan=lifespan,
         title="NTPInfo API",
