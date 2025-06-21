@@ -1,10 +1,11 @@
 from ipaddress import IPv4Address, IPv6Address
 from unittest.mock import patch, MagicMock, mock_open
 import pytest
+from fastapi import HTTPException, Request
 
 from server.app.utils.load_config_data import get_mask_ipv4, get_mask_ipv6
 from server.app.utils.ip_utils import ref_id_to_ip_or_name, get_ip_family, get_area_of_ip, get_ip_network_details, \
-    ip_to_str, is_this_ip_anycast, randomize_ip, get_server_ip_if_possible
+    ip_to_str, is_this_ip_anycast, randomize_ip, get_server_ip_if_possible, is_private_ip, client_ip_fetch
 
 
 def test_ip_to_str():
@@ -92,6 +93,62 @@ def test_get_server_ip_if_possible_exception(mock_get_server_ip):
     mock_get_server_ip.side_effect = [None, "3.4.5.6"]
 
     assert get_server_ip_if_possible(6) == "3.4.5.6"
+
+@patch("server.app.utils.ip_utils.try_converting_ip")
+@patch("server.app.utils.ip_utils.get_server_ip")
+def test_client_ip_fetch_not_client_ip_found(mock_server_ip, mock_try_converting):
+    mock_server_ip.return_value = "3.4.5.6"
+    mock_try_converting.return_value = "4.5.6.7"
+    mock_request = MagicMock()
+    mock_request.headers.get.return_value = None
+    mock_request.client = MagicMock()
+    mock_request.client.host = "192.168.0.1"  # private IP
+
+    assert client_ip_fetch(mock_request, 4) == "3.4.5.6"
+
+@patch("server.app.utils.ip_utils.try_converting_ip")
+@patch("server.app.utils.ip_utils.get_server_ip")
+def test_client_ip_fetch_not_ip(mock_server_ip, mock_try_converting):
+    mock_server_ip.return_value = "3.4.5.6"
+    mock_try_converting.return_value = "4.5.6.7"
+    mock_request = MagicMock()
+    mock_request.headers.get.return_value = "something"
+    mock_request.client = MagicMock()
+    mock_request.client.host = "192.168.0.1"
+
+    assert client_ip_fetch(mock_request, 4) == "3.4.5.6"
+
+@patch("server.app.utils.ip_utils.try_converting_ip")
+@patch("server.app.utils.ip_utils.get_server_ip")
+def test_client_ip_fetch_private(mock_server_ip, mock_try_converting):
+    mock_server_ip.return_value = "3.4.5.6"
+    mock_try_converting.return_value = "2400:44a0:1::"
+    mock_request = MagicMock()
+    mock_request.headers.get.return_value = "192.0.0.1"
+    mock_request.client = MagicMock()
+    mock_request.client.host = "192.0.0.1"
+
+    assert client_ip_fetch(mock_request, 4) == "3.4.5.6"
+    assert client_ip_fetch(mock_request, 6) == "2400:44a0:1::"
+
+
+@patch("server.app.utils.ip_utils.try_converting_ip")
+@patch("server.app.utils.ip_utils.get_server_ip")
+def test_client_ip_fetch_exception(mock_server_ip, mock_try_converting):
+    mock_server_ip.side_effect = Exception("fail")
+    mock_try_converting.return_value = "4.5.6.7"
+    mock_request = MagicMock()
+    mock_request.headers.get.return_value = "192.0.0.1"
+    mock_request.client = MagicMock()
+    mock_request.client.host = "192.0.0.1"
+
+    with pytest.raises(HTTPException):
+        assert client_ip_fetch(mock_request, 4)
+
+def test_is_private():
+    assert is_private_ip("blabla") == False
+    assert is_private_ip("84.96.120.251") == False
+    assert is_private_ip("192.0.0.1") == True
 
 def test_is_this_ip_anycast_input_errors():
     assert is_this_ip_anycast(None) is False

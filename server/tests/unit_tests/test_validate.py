@@ -1,6 +1,6 @@
 from ipaddress import IPv4Address, IPv6Address
 
-from server.app.utils.validate import is_ip_address, is_valid_domain_name
+from server.app.utils.validate import is_ip_address, is_valid_domain_name, sanitize_string
 from server.app.utils.validate import ensure_utc
 from server.app.utils.validate import parse_ip
 from datetime import datetime, timezone, tzinfo, timedelta
@@ -37,3 +37,15 @@ def test_is_valid_domain_name():
     assert is_valid_domain_name("a,,d..j") is False
     assert is_valid_domain_name("..") is False
     assert is_valid_domain_name("aaa") is True
+
+def test_sanitize_string():
+    assert sanitize_string(None) == None
+    assert sanitize_string("abv") == "abv"
+    assert sanitize_string("") == ""
+    assert sanitize_string("a.B\x00vc\x00") == "a.Bvc"
+    assert sanitize_string("tb\x0Evc\x1Fz") == "tbvcz"
+    assert sanitize_string("\x00ab\x0Evc\x1Fz") == "abvcz"
+    assert sanitize_string("\x00\x00\x11\x0E\x1FZ") == "Z"
+    assert sanitize_string("\x00\x00\x11\x0E\x1F") == ""
+    assert sanitize_string("\x00ă\x00\x11ț\x0Eș\x1F") == "ățș"
+    assert sanitize_string("\x00\x00\x11\x0E\x1F\x1F") == ""

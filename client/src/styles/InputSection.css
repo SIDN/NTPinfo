@@ -46,8 +46,7 @@
 }
 
 .input-bar button:disabled {
-  background-color: var(--clr-red-2);
-  opacity: 0.7;
+  background-color: #ed7f84;
   cursor: auto;
 }
 

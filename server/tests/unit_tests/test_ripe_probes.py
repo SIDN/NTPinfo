@@ -439,17 +439,24 @@ def test_get_available_probes_asn_and_prefix(mock_probe_request, mock_geolocatio
     mock_geolocation.return_value = (1.0, 1.0)
     mock_probe1 = MagicMock()
     mock_probe1.id = 2
+    mock_probe1.geometry = {"coordinates": [1.5, 17]}
+    mock_probe1_duplicate = MagicMock()
+    mock_probe1_duplicate.id = 2
+    mock_probe1_duplicate.geometry = {"coordinates": [1.5, 17]}
     mock_probe2 = MagicMock()
-    mock_probe2.id = 234
+    mock_probe2.id = 12000
+    mock_probe2.geometry = {"coordinates": [16.5, -1.7]}
     mock_probe3 = MagicMock()
     mock_probe3.id = 43
+    mock_probe3.geometry = {"coordinates": [-45, 0.07]}
     mock_probe4 = MagicMock()
     mock_probe4.id = 878
+    mock_probe4.geometry = {"coordinates": [23, -41]}
     mock_probe_request.return_value = [mock_probe1, mock_probe2, mock_probe3, mock_probe4]
 
     # test ipv4
     result = get_available_probes_asn_and_prefix("80.211.238.247", "AS12345", "80.211.224.0/20", "ipv4")
-    assert result == [2, 234, 43, 878]
+    assert result == [12000, 2, 43, 878]
     assert mock_probe_request.call_count == 1
     args, kwargs = mock_probe_request.call_args
     assert kwargs["prefix_v4"] == "80.211.224.0/20"
@@ -460,7 +467,7 @@ def test_get_available_probes_asn_and_prefix(mock_probe_request, mock_geolocatio
     mock_probe_request.reset_mock()
     result = get_available_probes_asn_and_prefix("2001:db8:3333:4444:5555:6666:7777:8888", "AS12345", "2a06:93c0::/29",
                                                  "ipv6")
-    assert result == [2, 234, 43, 878]
+    assert result == [12000, 2, 43, 878]
     assert mock_probe_request.call_count == 1
     args, kwargs = mock_probe_request.call_args
     assert kwargs["prefix_v6"] == "2a06:93c0::/29"
@@ -474,17 +481,24 @@ def test_get_available_probes_asn_and_prefix_stop_iteration(mock_probe_request, 
     mock_geolocation.return_value = (1.0, 1.0)
     mock_probe1 = MagicMock()
     mock_probe1.id = 2
+    mock_probe1.geometry = {"coordinates": [1.5, 17]}
+    mock_probe1_duplicate = MagicMock()
+    mock_probe1_duplicate.id = 2
+    mock_probe1_duplicate.geometry = {"coordinates": [1.5, 17]}
     mock_probe2 = MagicMock()
     mock_probe2.id = 234
+    mock_probe2.geometry = {"coordinates": [16.5, -1.5]}
     mock_probe3 = MagicMock()
     mock_probe3.id = 43
+    mock_probe3.geometry = {"coordinates": [-45, 0.07]}
     mock_probe4 = MagicMock()
     mock_probe4.id = 878
-    mock_probe_request.return_value = [mock_probe1, mock_probe2, 5, mock_probe4]
+    mock_probe4.geometry = {"coordinates": None}
+    mock_probe_request.return_value = [mock_probe1, mock_probe1_duplicate, mock_probe2, 5, mock_probe4]
 
     # test ipv4
     result = get_available_probes_asn_and_prefix("80.211.238.247", "AS12345", "80.211.224.0/20", "ipv4")
-    assert result == [2, 234, 878]
+    assert result == [234, 2, 878]
     assert mock_probe_request.call_count == 1
     args, kwargs = mock_probe_request.call_args
     assert kwargs["prefix_v4"] == "80.211.224.0/20"
@@ -497,7 +511,7 @@ def test_get_available_probes_asn_and_prefix_stop_iteration(mock_probe_request, 
     mock_probe_request.reset_mock()
     result = get_available_probes_asn_and_prefix("2001:db8:3333:4444:5555:6666:7777:8888", "AS12345", "2a06:93c0::/29",
                                                  "ipv6")
-    assert result == [2, 234, 878]
+    assert result == [234, 2, 878]
     assert mock_probe_request.call_count == 1
     args, kwargs = mock_probe_request.call_args
     assert kwargs["prefix_v6"] == "2a06:93c0::/29"
@@ -512,6 +526,9 @@ def test_get_available_probes_asn_and_country(mock_probe_request, mock_geolocati
     mock_probe1 = MagicMock()
     mock_probe1.id = 2
     mock_probe1.geometry = {"coordinates": [1.5, 17]}
+    mock_probe1_duplicate = MagicMock()
+    mock_probe1_duplicate.id = 2
+    mock_probe1_duplicate.geometry = {"coordinates": [1.5, 17]}
     mock_probe2 = MagicMock()
     mock_probe2.id = 234
     mock_probe2.geometry = {"coordinates": [16.5, -1.5]}
@@ -521,7 +538,7 @@ def test_get_available_probes_asn_and_country(mock_probe_request, mock_geolocati
     mock_probe4 = MagicMock()
     mock_probe4.id = 8784
     mock_probe4.geometry = {"coordinates": [23, -41]}
-    mock_probe_request.return_value = [mock_probe1, mock_probe2, mock_probe3, mock_probe4]
+    mock_probe_request.return_value = [mock_probe1, mock_probe1_duplicate, mock_probe2, mock_probe3, mock_probe4]
 
     # test ipv4
     result = get_available_probes_asn_and_country("80.211.238.247", "AS12345", "NL", "ipv4")
@@ -550,15 +567,19 @@ def test_get_available_probes_asn_and_country_stop_iteration(mock_probe_request,
     mock_probe1 = MagicMock()
     mock_probe1.id = 2
     mock_probe1.geometry = {"coordinates": [1.5, 17]}
+    mock_probe1_duplicate = MagicMock()
+    mock_probe1_duplicate.id = 2
+    mock_probe1_duplicate.geometry = {"coordinates": [1.5, 17]}
     mock_probe2 = MagicMock()
+    # missing geometry for probe 2
     mock_probe2.id = 234
     mock_probe3 = MagicMock()
     mock_probe3.id = 43
     mock_probe3.geometry = {"coordinates": [-45, 0.07]}
     mock_probe4 = MagicMock()
     mock_probe4.id = 8784
-    mock_probe4.geometry = {"coordinates": [23, -41]}
-    mock_probe_request.return_value = [mock_probe1, mock_probe2, "n", mock_probe4]
+    mock_probe4.geometry = {"coordinates": None}
+    mock_probe_request.return_value = [mock_probe1, mock_probe1_duplicate, mock_probe2, "n", mock_probe4]
 
     # test ipv4
     result = get_available_probes_asn_and_country("80.211.238.247", "AS12345", "NL", "ipv4")
@@ -588,17 +609,24 @@ def test_get_available_probes_asn(mock_probe_request, mock_geolocation):
     mock_geolocation.return_value = (1.0, 1.0)
     mock_probe1 = MagicMock()
     mock_probe1.id = 2
+    mock_probe1.geometry = {"coordinates": [1.5, 17]}
+    mock_probe1_duplicate = MagicMock()
+    mock_probe1_duplicate.id = 2
+    mock_probe1_duplicate.geometry = {"coordinates": [1.5, 17]}
     mock_probe2 = MagicMock()
     mock_probe2.id = 234
+    mock_probe2.geometry = {"coordinates": [16.5, -1.5]}
     mock_probe3 = MagicMock()
     mock_probe3.id = 43
+    mock_probe3.geometry = {"coordinates": [-45, 0.07]}
     mock_probe4 = MagicMock()
     mock_probe4.id = 878
-    mock_probe_request.return_value = [mock_probe1, mock_probe2, mock_probe3, mock_probe4]
+    mock_probe4.geometry = {"coordinates": [23, -41]}
+    mock_probe_request.return_value = [mock_probe1, mock_probe1_duplicate, mock_probe2, mock_probe3, mock_probe4]
 
     # test ipv4
     result = get_available_probes_asn("80.211.238.247", "AS12345", "ipv4")
-    assert result == [2, 234, 43, 878]
+    assert result == [234, 2, 43, 878]
     assert mock_probe_request.call_count == 1
     args, kwargs = mock_probe_request.call_args
     assert kwargs["asn"] == 12345
@@ -608,7 +636,7 @@ def test_get_available_probes_asn(mock_probe_request, mock_geolocation):
     # test ipv6
     mock_probe_request.reset_mock()
     result = get_available_probes_asn("2001:db8:3333:4444:5555:6666:7777:8888", "AS67890", "ipv6")
-    assert result == [2, 234, 43, 878]
+    assert result == [234, 2, 43, 878]
     assert mock_probe_request.call_count == 1
     args, kwargs = mock_probe_request.call_args
     assert kwargs["asn"] == 67890
@@ -622,15 +650,24 @@ def test_get_available_probes_asn_stop_iteration(mock_probe_request, mock_geoloc
     mock_geolocation.return_value = (1.0, 1.0)
     mock_probe1 = MagicMock()
     mock_probe1.id = 2
+    mock_probe1.geometry = {"coordinates": [1.5, 17]}
+    mock_probe1_duplicate = MagicMock()
+    mock_probe1_duplicate.id = 2
+    mock_probe1_duplicate.geometry = {"coordinates": [1.5, 17]}
     mock_probe2 = MagicMock()
     mock_probe2.id = 234
+    mock_probe2.geometry = {"coordinates": [16.5, -1.5]}
+    mock_probe3 = MagicMock()
+    mock_probe3.id = 43
+    mock_probe3.geometry = {"coordinates": [-45, 0.07]}
     mock_probe4 = MagicMock()
     mock_probe4.id = 878
-    mock_probe_request.return_value = [mock_probe1, mock_probe2, 3, mock_probe4]
+    mock_probe4.geometry = {"coordinates": None}
+    mock_probe_request.return_value = [mock_probe1, mock_probe1_duplicate, mock_probe2, 3, mock_probe4]
 
     # test ipv4
     result = get_available_probes_asn("80.211.238.247", "12347", "ipv4")
-    assert result == [2, 234, 878]
+    assert result == [234, 2, 878]
     assert mock_probe_request.call_count == 1
     args, kwargs = mock_probe_request.call_args
     assert kwargs["asn"] == 12347
@@ -642,7 +679,7 @@ def test_get_available_probes_asn_stop_iteration(mock_probe_request, mock_geoloc
     # test ipv6
     mock_probe_request.reset_mock()
     result = get_available_probes_asn("2001:db8:3333:4444:5555:6666:7777:8888", "AS12340", "ipv6")
-    assert result == [2, 234, 878]
+    assert result == [234, 2, 878]
     assert mock_probe_request.call_count == 1
     args, kwargs = mock_probe_request.call_args
     assert kwargs["asn"] == 12340
@@ -658,17 +695,24 @@ def test_get_available_probes_prefix(mock_probe_request, mock_geolocation):
     mock_geolocation.return_value = (1.0, 1.0)
     mock_probe1 = MagicMock()
     mock_probe1.id = 2
+    mock_probe1.geometry = {"coordinates": [1.5, 17]}
+    mock_probe1_duplicate = MagicMock()
+    mock_probe1_duplicate.id = 2
+    mock_probe1_duplicate.geometry = {"coordinates": [1.5, 17]}
     mock_probe2 = MagicMock()
     mock_probe2.id = 234
+    mock_probe2.geometry = {"coordinates": [16.5, -1.5]}
     mock_probe3 = MagicMock()
     mock_probe3.id = 43
+    mock_probe3.geometry = {"coordinates": [-45, 0.07]}
     mock_probe4 = MagicMock()
     mock_probe4.id = 878
-    mock_probe_request.return_value = [mock_probe1, mock_probe2, mock_probe3, mock_probe4]
+    mock_probe4.geometry = {"coordinates": [23, -41]}
+    mock_probe_request.return_value = [mock_probe1, mock_probe1_duplicate, mock_probe2, mock_probe3, mock_probe4]
 
     # test ipv4
     result = get_available_probes_prefix("80.211.238.247", "80.211.224.0/20", "ipv4")
-    assert result == [2, 234, 43, 878]
+    assert result == [234, 2, 43, 878]
     assert mock_probe_request.call_count == 1
     args, kwargs = mock_probe_request.call_args
     assert kwargs["prefix_v4"] == "80.211.224.0/20"
@@ -678,7 +722,7 @@ def test_get_available_probes_prefix(mock_probe_request, mock_geolocation):
     # test ipv6
     mock_probe_request.reset_mock()
     result = get_available_probes_prefix("2001:db8:3333:4444:5555:6666:7777:8888", "2a06:93c0::/29", "ipv6")
-    assert result == [2, 234, 43, 878]
+    assert result == [234, 2, 43, 878]
     assert mock_probe_request.call_count == 1
     args, kwargs = mock_probe_request.call_args
     assert kwargs["prefix_v6"] == "2a06:93c0::/29"
@@ -692,17 +736,24 @@ def test_get_available_probes_prefix_stop_iteration(mock_probe_request, mock_geo
     mock_geolocation.return_value = (1.0, 1.0)
     mock_probe1 = MagicMock()
     mock_probe1.id = 2
+    mock_probe1.geometry = {"coordinates": [1.5, 17]}
+    mock_probe1_duplicate = MagicMock()
+    mock_probe1_duplicate.id = 2
+    mock_probe1_duplicate.geometry = {"coordinates": [1.5, 17]}
     mock_probe2 = MagicMock()
     mock_probe2.id = 234
+    mock_probe2.geometry = {"coordinates": [16.5, -1.5]}
     mock_probe3 = MagicMock()
     mock_probe3.id = 43
+    mock_probe3.geometry = {"coordinates": [-45, 0.07]}
     mock_probe4 = MagicMock()
     mock_probe4.id = 878
-    mock_probe_request.return_value = [mock_probe1, mock_probe2, 5, mock_probe4]
+    mock_probe4.geometry = {"coordinates": None}
+    mock_probe_request.return_value = [mock_probe1, mock_probe1_duplicate, mock_probe2, 5, mock_probe4]
 
     # test ipv4
     result = get_available_probes_prefix("80.211.238.247", "80.211.224.0/20", "ipv4")
-    assert result == [2, 234, 878]
+    assert result == [234, 2, 878]
     assert mock_probe_request.call_count == 1
     args, kwargs = mock_probe_request.call_args
     assert kwargs["prefix_v4"] == "80.211.224.0/20"
@@ -712,7 +763,7 @@ def test_get_available_probes_prefix_stop_iteration(mock_probe_request, mock_geo
     # test ipv6
     mock_probe_request.reset_mock()
     result = get_available_probes_prefix("2001:db8:3333:4444:5555:6666:7777:8888", "2a06:93c0::/29", "ipv6")
-    assert result == [2, 234, 878]
+    assert result == [234, 2, 878]
     assert mock_probe_request.call_count == 1
     args, kwargs = mock_probe_request.call_args
     assert kwargs["prefix_v6"] == "2a06:93c0::/29"
@@ -727,6 +778,9 @@ def test_get_available_probes_country(mock_probe_request, mock_geolocation):
     mock_probe1 = MagicMock()
     mock_probe1.id = 2
     mock_probe1.geometry = {"coordinates": [1.5, 17]}
+    mock_probe1_duplicate = MagicMock()
+    mock_probe1_duplicate.id = 2
+    mock_probe1_duplicate.geometry = {"coordinates": [1.5, 17]}
     mock_probe2 = MagicMock()
     mock_probe2.id = 234
     mock_probe2.geometry = {"coordinates": [16.5, -1.5]}
@@ -736,7 +790,7 @@ def test_get_available_probes_country(mock_probe_request, mock_geolocation):
     mock_probe4 = MagicMock()
     mock_probe4.id = 8784
     mock_probe4.geometry = {"coordinates": [23, -41]}
-    mock_probe_request.return_value = [mock_probe1, mock_probe2, mock_probe3, mock_probe4]
+    mock_probe_request.return_value = [mock_probe1, mock_probe1_duplicate, mock_probe2, mock_probe3, mock_probe4]
 
     # test ipv4
     result = get_available_probes_country("80.211.238.247", "NL", "ipv4")
@@ -746,7 +800,7 @@ def test_get_available_probes_country(mock_probe_request, mock_geolocation):
     assert kwargs["country_code"] == "NL"
     assert kwargs["tags"] == "system-ipv4-works"
     assert kwargs["status"] == 1
-
+    #{2: 1779.9601472512863, 234: 1745.6443045128183, 43: 5115.719370019957, 8784: 5171.937818291266}
     # test ipv6
     mock_probe_request.reset_mock()
     result = get_available_probes_country("2001:db8:3333:4444:5555:6666:7777:8888", "RO", "ipv6")
@@ -772,7 +826,7 @@ def test_get_available_probes_country_stop_iteration(mock_probe_request, mock_ge
     mock_probe3.geometry = {"coordinates": [-45, 0.07]}
     mock_probe4 = MagicMock()
     mock_probe4.id = 8784
-    mock_probe4.geometry = {"coordinates": [23, -41]}
+    mock_probe4.geometry = {"coordinates": None}
     mock_probe_request.return_value = [mock_probe1, mock_probe2, "n", mock_probe4]
 
     # test ipv4

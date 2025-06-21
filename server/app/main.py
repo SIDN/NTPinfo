@@ -13,7 +13,7 @@ from server.app.api.routing import router
 from server.app.rate_limiter import limiter
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-
+import os
 
 def create_app(dev: bool = True) -> FastAPI:
     """
@@ -76,7 +76,7 @@ def create_app(dev: bool = True) -> FastAPI:
     app.include_router(router)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:5173"],
+        allow_origins=[os.getenv("CLIENT_URL", "http://localhost:5173")],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

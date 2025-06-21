@@ -4,5 +4,5 @@ interface LoadingSpinnerProps {
 }
 
 export default function LoadingSpinner({size}: LoadingSpinnerProps) {
-    return <div className={`loading-spinner ${size}`}> </div>
+    return <div className={`loading-spinner ${size}`} role="loading"> </div>
 }

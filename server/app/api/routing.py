@@ -2,12 +2,13 @@ from fastapi import HTTPException, APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
 
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Optional
 from fastapi.responses import JSONResponse
 
 from sqlalchemy.orm import Session
 from starlette.responses import HTMLResponse
 
+from server.app.utils.load_config_data import get_rate_limit_per_client_ip
 from server.app.dtos.RipeMeasurementResponse import RipeResult
 from server.app.dtos.NtpMeasurementResponse import MeasurementResponse
 from server.app.dtos.RipeMeasurementTriggerResponse import RipeMeasurementTriggerResponse
@@ -67,7 +68,7 @@ Compute a live NTP synchronization measurement for a specified server.
         500: {"description": "Internal server error"}
     }
 )
-@limiter.limit("5/second")
+@limiter.limit(get_rate_limit_per_client_ip())
 async def read_data_measurement(payload: MeasurementRequest, request: Request,
                                 session: Session = Depends(get_db)) -> JSONResponse:
     """
@@ -77,7 +78,6 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
     It uses the `measure()` function to perform the NTP synchronization measurement,
     and formats the result using `get_format()`. User can choose whether they want to measure IPv4 of IPv6,
     but this will take effect only for domain names. If user inputs an IP, we will measure the type of that IP.
-
 
     Args:
         payload (MeasurementRequest):
@@ -98,7 +98,7 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
         HTTPException: 500 - If an unexpected server error occurs.
 
     Notes:
-        - This endpoint is also limited to 5 requests per second to prevent abuse and reduce server load.
+        - This endpoint is also limited to <`see config file`> to prevent abuse and reduce server load.
     """
     server = payload.server
     if len(server) == 0:
@@ -109,16 +109,16 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
     # In case the input is an IP and not a domain name, then "wanted_ip_type" will be ignored and the IP type of the IP will be used.
     wanted_ip_type = override_desired_ip_type_if_input_is_ip(server, wanted_ip_type)
 
-    # get the client IP (if possible the same type as wanted_ip_type)
-    client_ip: Optional[str] = client_ip_fetch(request=request, wanted_ip_type=wanted_ip_type)
     # for IPv6 measurements, we need to communicate using IPv6. (we need to have the same protocol as the target)
     this_server_ip_strict = get_server_ip(wanted_ip_type)  # strict means we want exactly this type
     if this_server_ip_strict is None:  # which means we cannot perform this type of NTP measurements from our server
         raise HTTPException(status_code=422,
                             detail=f"Our server cannot perform IPv{wanted_ip_type} measurements currently. Try the other IP type.")
+
+    # get the client IP (the same type as wanted_ip_type)
+    client_ip: Optional[str] = client_ip_fetch(request=request, wanted_ip_type=wanted_ip_type)
     try:
         response = measure(server, wanted_ip_type, session, client_ip)
-        # print(response)
         if response is not None:
             new_format = []
             for r in response:
@@ -137,7 +137,7 @@ async def read_data_measurement(payload: MeasurementRequest, request: Request,
         raise e
     except DNSError as e:
         print(e)
-        raise HTTPException(status_code=422, detail="Domain name cannot be resolved.")
+        raise HTTPException(status_code=422, detail="Domain name is invalid or cannot be resolved.")
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail=f"Server error: {str(e)}.")
@@ -161,7 +161,7 @@ Fetch historic NTP measurement data for a given server over a specified time ran
         500: {"description": "Server error or database access issue"}
     }
 )
-@limiter.limit("5/second")
+@limiter.limit(get_rate_limit_per_client_ip())
 async def read_historic_data_time(server: str,
                                   start: datetime, end: datetime, request: Request,
                                   session: Session = Depends(get_db)) -> JSONResponse:
@@ -187,7 +187,7 @@ async def read_historic_data_time(server: str,
         HTTPException: 500 - If there's an internal server error, such as a database access issue (`MeasurementQueryError`) or any other unexpected server-side exception.
 
     Notes:
-        - This endpoint is also limited to 5 requests per minute to prevent abuse and reduce server load.
+        - This endpoint is also limited to <`see config file`> to prevent abuse and reduce server load.
     """
     if len(server) == 0:
         raise HTTPException(status_code=400, detail="Either 'ip' or 'domain name' must be provided")
@@ -232,7 +232,7 @@ Initiate a RIPE Atlas NTP measurement for the specified server.
         500: {"description": "Internal server error"}
     }
 )
-@limiter.limit("5/second")
+@limiter.limit(get_rate_limit_per_client_ip())
 async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request) -> JSONResponse:
     """
     Trigger a RIPE Atlas NTP measurement for a specified server.
@@ -263,7 +263,7 @@ async def trigger_ripe_measurement(payload: MeasurementRequest, request: Request
         HTTPException: 503 - If we could not get client IP address or our server's IP address.
 
     Notes:
-        - This endpoint is also limited to 5 requests per minute to prevent abuse and reduce server load.
+        - This endpoint is also limited to <`see config file`> to prevent abuse and reduce server load.
     """
     server = payload.server
     wanted_ip_type = 6 if payload.ipv6_measurement else 4
@@ -322,7 +322,7 @@ Retrieve the result of a previously triggered RIPE Atlas NTP measurement.
         500: {"description": "Internal server error"}
     }
 )
-@limiter.limit("5/second")
+@limiter.limit(get_rate_limit_per_client_ip())
 async def get_ripe_measurement_result(measurement_id: str, request: Request) -> JSONResponse:
     """
     Retrieve the results of a previously triggered RIPE Atlas measurement.
@@ -380,7 +380,7 @@ async def get_ripe_measurement_result(measurement_id: str, request: Request) -> 
 
     Notes:
         - A measurement is considered "complete" only when all requested probes have responded.
-        - The endpoint is rate-limited to 5 requests per second to prevent abuse and manage system load.
+        - The endpoint is rate-limited to <`see config file`> to prevent abuse and manage system load.
     """
     try:
         ripe_measurement_result, status = fetch_ripe_data(measurement_id=measurement_id)

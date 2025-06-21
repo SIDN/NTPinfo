@@ -1,7 +1,11 @@
 import { http, HttpResponse } from 'msw'
 
+/**
+ * Handlers for all of the endpoints, have good and bad weather cases
+ * Contain data taken directly from server responses
+ */
 export const handlers = [
-    http.post<{}, {server: string, ipv6_measurement: boolean}, {measurement: any[]} | { detail: string }>(
+    http.post<never, {server: string, ipv6_measurement: boolean}, {measurement: any[]} | { detail: string }>(
         '/measurements/', async ({request: req}) => {
             const body = await req.json()
             const mockMeasurement: any[] = [
@@ -44,6 +48,7 @@ export const handlers = [
                     "root_delay": 0,
                     "poll": 6,
                     "root_dispersion": 0.0001678466796875,
+                    "asn_ntp_server": "6185",
                     "ntp_last_sync_time": {
                         "seconds": 3959231196,
                         "fraction": 2094338048
@@ -91,6 +96,7 @@ export const handlers = [
                     "root_delay": 0,
                     "poll": 6,
                     "root_dispersion": 0.0001373291015625,
+                    "asn_ntp_server": "6185",
                     "ntp_last_sync_time": {
                         "seconds": 3959231198,
                         "fraction": 2253635584
@@ -138,6 +144,7 @@ export const handlers = [
                     "root_delay": 0,
                     "poll": 6,
                     "root_dispersion": 0.0001068115234375,
+                    "asn_ntp_server": "6185",
                     "ntp_last_sync_time": {
                         "seconds": 3959231200,
                         "fraction": 3654258688
@@ -185,6 +192,7 @@ export const handlers = [
                     "root_delay": 0,
                     "poll": 6,
                     "root_dispersion": 0.00018310546875,
+                    "asn_ntp_server": "6185",
                     "ntp_last_sync_time": {
                         "seconds": 3959231196,
                         "fraction": 3131183104
@@ -251,6 +259,7 @@ export const handlers = [
                     "root_delay": 0,
                     "poll": 6,
                     "root_dispersion": 0.0001678466796875,
+                    "asn_ntp_server": "6185",
                     "ntp_last_sync_time": {
                         "seconds": 3958798908,
                         "fraction": 2094313472
@@ -298,6 +307,7 @@ export const handlers = [
                     "root_delay": 0,
                     "poll": 6,
                     "root_dispersion": 0.0001983642578125,
+                    "asn_ntp_server": "6185",
                     "ntp_last_sync_time": {
                         "seconds": 3958798906,
                         "fraction": 645177344
@@ -345,6 +355,7 @@ export const handlers = [
                     "root_delay": 0,
                     "poll": 6,
                     "root_dispersion": 0.000213623046875,
+                    "asn_ntp_server": "6185",
                     "ntp_last_sync_time": {
                         "seconds": 3958798904,
                         "fraction": 3654199296
@@ -392,6 +403,7 @@ export const handlers = [
                     "root_delay": 0,
                     "poll": 6,
                     "root_dispersion": 0.0001678466796875,
+                    "asn_ntp_server": "6185",
                     "ntp_last_sync_time": {
                         "seconds": 3958798907,
                         "fraction": 2075832320
@@ -414,7 +426,7 @@ export const handlers = [
             return HttpResponse.json({measurements: mockHistoricalMeasurement}, {status: 200})
         }
     ),
-    http.post<{}, {server: string, ipv6_measurement: boolean}, {
+    http.post<never, {server: string, ipv6_measurement: boolean}, {
         measurement_id?: string;
         vantage_point_ip?: string;
         vantage_point_location?: { country_code: string; coordinates: [number, number] };
@@ -488,6 +500,7 @@ export const handlers = [
                     "precision": 9.53674e-7,
                     "root_delay": 0,
                     "root_dispersion": 0.00018310477025806904,
+                    "asn_ntp_server": "6185",
                     "ref_id": "GPSs",
                     "probe_count_per_type": {
                         "asn": 9,
@@ -551,6 +564,7 @@ export const handlers = [
                     "precision": 4.76837e-7,
                     "root_delay": 0,
                     "root_dispersion": 0.000152587890625,
+                    "asn_ntp_server": "6185",
                     "ref_id": "GPSs",
                     "probe_count_per_type": {
                         "asn": 9,
@@ -614,6 +628,7 @@ export const handlers = [
                     "precision": 9.53674e-7,
                     "root_delay": 0,
                     "root_dispersion": 0.00016784691251814365,
+                    "asn_ntp_server": "6185",
                     "ref_id": "GPSs",
                     "probe_count_per_type": {
                         "asn": 9,

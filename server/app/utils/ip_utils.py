@@ -267,8 +267,8 @@ def client_ip_fetch(request: Request, wanted_ip_type: int) -> str | None:
     """
     try:
         client_ip = request.headers.get("X-Forwarded-For", request.client.host if request.client is not None else None)
-        # if it is None or if it is private (a private IP is useless for us)
-        if client_ip is None or is_private_ip(client_ip):
+        # if it is None or if it is private (a private IP is useless for us) or invalid
+        if client_ip is None or is_private_ip(client_ip) or is_ip_address(client_ip) is None:
             client_ip = ip_to_str(get_server_ip(wanted_ip_type))
 
         # test if you got the desired IP address type
@@ -358,7 +358,6 @@ def is_this_ip_anycast(searched_ip: Optional[str]) -> bool:
                     else:
                         whole_network = ipaddress.IPv6Network(line, strict=False)
                     if ip in whole_network:
-                        print(line)
                         return True
                 except Exception:
                     continue

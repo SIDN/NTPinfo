@@ -43,6 +43,7 @@ describe('useFetchIPData', () => {
             leap: 0,
             jitter: 0.8551980300704615,
             nr_measurements_jitter: 8,
+            asn_ntp_server: "6185",
             time: 1750242407000
         },
         {
@@ -70,6 +71,7 @@ describe('useFetchIPData', () => {
             leap: 0,
             jitter: 1.5482209225207348,
             nr_measurements_jitter: 8,
+            asn_ntp_server: "6185",
             time: 1750242407000
         },
         {
@@ -97,6 +99,7 @@ describe('useFetchIPData', () => {
             leap: 0,
             jitter: 0.8562105498953563,
             nr_measurements_jitter: 8,
+            asn_ntp_server: "6185",
             time: 1750242407000
         },
         {
@@ -124,6 +127,7 @@ describe('useFetchIPData', () => {
             leap: 0,
             jitter: 0,
             nr_measurements_jitter: 1,
+            asn_ntp_server: "6185",
             time: 1750242407000
         }
         ]
@@ -168,5 +172,6 @@ describe('useFetchIPData', () => {
         expect(result.current.httpStatus).toBe(503)
         expect(result.current.error).not.toBeNull()
         expect(result.current.error?.message).toBe("Request failed with status code 503")
+        expect(result.current.errorMessage).toBe("Server is not reachable.")
     })
 })

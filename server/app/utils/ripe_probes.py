@@ -30,7 +30,7 @@ def get_probes(client_ip: str, ip_family_of_ntp_server: int,
     Raises:
         InputError: If the client IP address is invalid.
     """
-    # get the details. (this will take around 150-200ms)
+    # get the details about the client IP.
     ip_family: int = get_ip_family(client_ip)
     ip_asn, ip_country, ip_area = get_ip_network_details(client_ip)
     ip_prefix = None
@@ -77,8 +77,8 @@ def get_probes(client_ip: str, ip_family_of_ntp_server: int,
 
 def get_best_probes_with_multiple_attributes(client_ip: str, current_probes_set: set[int], ip_asn: Optional[str],
                                              ip_prefix: Optional[str], ip_country: Optional[str], ip_family: int,
-                                             probes_requested: int = get_ripe_number_of_probes_per_measurement()) -> \
-        tuple[int, set[int]]:
+                                             probes_requested: int = get_ripe_number_of_probes_per_measurement()) \
+        -> tuple[int, set[int]]:
     """
     This method tries to get probes that has the same ASN and prefix OR the same ASN and country and subtract them
     from the probes_requested. These probes have the highest priority as they have multiple attributes as the client IP
@@ -338,18 +338,28 @@ def get_available_probes_asn_and_prefix(client_ip: str, ip_asn: str, ip_prefix: 
     }
     probes = ProbeRequest(
         return_objects=True,
-        fields="id",
-        page_size=300,
+        fields=["id", "geometry"],
+        page_size=400,
         **filters,
     )
-    probe_ids_list: list[int] = []
+    lat_client, lon_client = get_coordinates_for_ip(client_ip)
+    probe_ids_dist: dict[int, float] = {}  # each id is mapped to its distance
+
     for p in probes:
         try:
-            probe_ids_list.append(p.id)
+            if p.id in probe_ids_dist:
+                continue
+            coordinates = getattr(p, "geometry", {}).get("coordinates")
+            if coordinates:
+                lon, lat = coordinates
+                dist: float = calculate_haversine_distance(lat, lon, lat_client, lon_client)
+                probe_ids_dist[p.id] = dist
+            else:
+                probe_ids_dist[p.id] = 1000000  # some large value to put this probe at the end of the list
         except Exception as e:
             print(f"error (safe): {e}")
 
-    # print(f"asn and prefix list{len(probe_ids_list)}")
+    probe_ids_list: list[int] = sorted(probe_ids_dist, key=lambda k: probe_ids_dist[k])
     return probe_ids_list
 
 
@@ -387,23 +397,25 @@ def get_available_probes_asn_and_country(client_ip: str, ip_asn: str, ip_country
         page_size=300,
         **filters,
     )
+
     lat_client, lon_client = get_coordinates_for_ip(client_ip)
-    probe_ids_dist_list: list[tuple[int, float]] = []
+    probe_ids_dist: dict[int, float] = {}  # each id is mapped to its distance
+
     for p in probes:
         try:
+            if p.id in probe_ids_dist:
+                continue
             coordinates = getattr(p, "geometry", {}).get("coordinates")
             if coordinates:
                 lon, lat = coordinates
                 dist: float = calculate_haversine_distance(lat, lon, lat_client, lon_client)
-                probe_ids_dist_list.append((p.id, dist))
+                probe_ids_dist[p.id] = dist
             else:
-                probe_ids_dist_list.append((p.id, 1000000))  # some large value to put this probe at the end of the list
+                probe_ids_dist[p.id] = 100000.0  # some large value to put this probe at the end of the list
         except Exception as e:
             print(f"error (safe): {e}")
-    probe_ids_dist_list.sort(key=lambda x: x[1])
-    probe_ids_list: list[int] = [i for (i, d) in probe_ids_dist_list]
 
-    # print(f"asn and country list {len(probe_ids_list)}")
+    probe_ids_list: list[int] = sorted(probe_ids_dist, key=lambda k: probe_ids_dist[k])
     return probe_ids_list
 
 
@@ -423,8 +435,6 @@ def get_available_probes_asn(client_ip: str, ip_asn: str, ip_type: str) -> list[
     Raises:
         Exception: If the input is invalid.
     """
-    # in wsl, this command would be for example:
-    # ripe-atlas probe-search --prefix NL --status 1 --tag system-ipv4-works
     try:
         ip_asn_number = int(ip_asn.lstrip("AS").lstrip("as"))
     except ValueError as e:
@@ -437,17 +447,28 @@ def get_available_probes_asn(client_ip: str, ip_asn: str, ip_type: str) -> list[
     }
     probes = ProbeRequest(
         return_objects=True,
-        fields=["id"],
-        page_size=250,
+        fields=["id", "geometry"],
+        page_size=250, # we do not have a lot of probes there usually, 250 should be ok
         **filters,
     )
-    probe_ids_list: list[int] = []
+
+    lat_client, lon_client = get_coordinates_for_ip(client_ip)
+    probe_ids_dist: dict[int, float] = {}  # each id is mapped to its distance
     for p in probes:
         try:
-            probe_ids_list.append(p.id)
+            if p.id in probe_ids_dist:
+                continue
+            coordinates = getattr(p, "geometry", {}).get("coordinates")
+            if coordinates:
+                lon, lat = coordinates
+                dist: float = calculate_haversine_distance(lat, lon, lat_client, lon_client)
+                probe_ids_dist[p.id] = dist
+            else:
+                probe_ids_dist[p.id] = 2000000  # some large value to put this probe at the end of the list
         except Exception as e:
             print(f"error (safe): {e}")
-    # print(f"asn list {len(probe_ids_list)}")
+
+    probe_ids_list: list[int] = sorted(probe_ids_dist, key=lambda k: probe_ids_dist[k])
     return probe_ids_list
 
 
@@ -467,8 +488,6 @@ def get_available_probes_prefix(client_ip: str, ip_prefix: str, ip_type: str) ->
     Raises:
         Exception: If the input is invalid.
     """
-    # in wsl, this command would be for example:
-    # ripe-atlas probe-search --prefix NL --status 1 --tag system-ipv4-works
     prefix_type: str = "prefix_v4" if ip_type == "ipv4" else "prefix_v6"
     filters = {
         prefix_type: ip_prefix,
@@ -478,17 +497,27 @@ def get_available_probes_prefix(client_ip: str, ip_prefix: str, ip_type: str) ->
     }
     probes = ProbeRequest(
         return_objects=True,
-        fields=["id"],
+        fields=["id", "geometry"],
         page_size=250,
         **filters,
     )
-    probe_ids_list: list[int] = []
+    lat_client, lon_client = get_coordinates_for_ip(client_ip)
+
+    probe_ids_dist: dict[int, float] = {}  # each id is mapped to its distance
     for p in probes:
         try:
-            probe_ids_list.append(p.id)
+            # we want to ignore duplicates
+            if p.id not in probe_ids_dist:
+                coordinates_prefix = getattr(p, "geometry", {}).get("coordinates")
+                if coordinates_prefix:
+                    lon, lat = coordinates_prefix
+                    dist: float = calculate_haversine_distance(lat, lon, lat_client, lon_client)
+                    probe_ids_dist[p.id] = dist
+                else:
+                    probe_ids_dist[p.id] = 1000000  # some large value to put this probe at the end of the list
         except Exception as e:
             print(f"error (safe): {e}")
-    # print(f"prefix list{len(probe_ids_list)}")
+    probe_ids_list: list[int] = sorted(probe_ids_dist, key=lambda k: probe_ids_dist[k])
     return probe_ids_list
 
 
@@ -519,29 +548,27 @@ def get_available_probes_country(client_ip: str, country_code: str, ip_type: str
     probes = ProbeRequest(
         return_objects=True,
         fields=["id", "geometry"],
-        page_size=600,
+        page_size=600, # we need a large value here as we have multiple probes. (it is like a buffer size)
         **filters,
     )
     lat_client, lon_client = get_coordinates_for_ip(client_ip)
-    probe_ids_dist_list: list[tuple[int, float]] = []
+    probe_ids_dist: dict[int, float] = {} # each id is mapped to its distance
     for p in probes:
         try:
+            if p.id in probe_ids_dist:
+                continue
             coordinates = getattr(p, "geometry", {}).get("coordinates")
             if coordinates:
                 lon, lat = coordinates
                 dist: float = calculate_haversine_distance(lat, lon, lat_client, lon_client)
-                probe_ids_dist_list.append((p.id, dist))
+                probe_ids_dist[p.id] = dist
             else:
-                probe_ids_dist_list.append((p.id, 1000000))  # some large value to put this probe at the end of the list
+                probe_ids_dist[p.id] = 1000000.0  # some large value to put this probe at the end of the list
         except Exception as e:
             print(f"error (safe): {e}")
 
-    probe_ids_dist_list.sort(key=lambda x: x[1])
-    probe_ids_list: list[int] = [i for (i, d) in probe_ids_dist_list]
-
-    # print(f"country list{len(probe_ids_list)}")
+    probe_ids_list: list[int] = sorted(probe_ids_dist, key=lambda k: probe_ids_dist[k])
     return probe_ids_list
-
 
 def consume_probes(probes_requested: int, current_probes_set: set[int], probes_ids: list[int]) -> tuple[int, set[int]]:
     """
@@ -559,21 +586,10 @@ def consume_probes(probes_requested: int, current_probes_set: set[int], probes_i
     """
     if probes_requested < 0:
         raise InputError("Probes_requested cannot be negative")
-    # c = 0
     for pb in probes_ids:
         if pb not in current_probes_set:
             current_probes_set.add(pb)
             probes_requested -= 1
-            # c += 1
             if probes_requested <= 0:
-                # print(c)
                 return 0, current_probes_set
-    # print(c)
     return probes_requested, current_probes_set
-
-# import time
-# start = time.time()
-# ipp="2a06:93c0::24"#"145.94.210.165"
-# print(get_probes("89.46.74.148",6,10))
-# end = time.time()
-# print(end - start)
