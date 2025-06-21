@@ -6,7 +6,6 @@
   <img src="assets/NtpInfoLogo.png" alt="Project Logo" style="width:100%; max-width:100%;"/>
 </p>
 
-
 ---
 
 ## Product Structure
@@ -18,16 +17,12 @@ an API to send data to the front end and client side. The second part is the cli
 which contains all of the front-end of the application. It uses `React` with `Vite`, base
 `CSS` for styling, `ChartJS` for data visualization, and `axios` for API interaction.
 
----
-
 ## Table of Contents
 
 - [Server Setup and Running](#server-setup-and-running)
 - [Client Setup and Running](#client-setup-and-running)
 - [Docker Setup](#docker-setup)
 - [Contributing](#contributing)
-
----
 
 ### Server Setup and Running
 
@@ -300,7 +295,7 @@ sudo docker-compose up
 ### **‼️️ Very Important ‼️**
 
 - Every time after you run `sudo docker-compose up` and it failed, and you want to try again, you need to run
-  `docker-compose down` before trying again. This also applies when **you want to build again**.
+  `sudo docker-compose down` before trying again. This also applies when **you want to build again**.
 
 **Common Errors**
 
@@ -310,7 +305,7 @@ sudo docker-compose up
 Use `-d` to run it in the background:
 
 ```bash
-docker-compose up -d
+sudo docker-compose up -d
 ```
 
 > Make sure there is not any network name `my-net` already in use.
@@ -318,7 +313,7 @@ docker-compose up -d
 This can be checked by running:
 
 ```bash
-docker network ls
+sudo docker network ls
 ```
 
 ---
@@ -328,7 +323,7 @@ docker network ls
 To gracefully stop all services:
 
 ```bash
-docker-compose down
+sudo docker-compose down
 ```
 
 ### This must be done every time changes have been done, or one of the containers failed.
