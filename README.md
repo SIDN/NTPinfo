@@ -1,6 +1,8 @@
 ### **Group 15d**
 
-# Are your time servers on time? Active Internet Measurements to evaluate time servers.
+# Are your time servers on time?
+
+## Active Internet Measurements to evaluate time servers.
 
 <p align="center">
   <img src="assets/NtpInfoLogo.png" alt="Project Logo" style="width:100%; max-width:100%;"/>
@@ -10,12 +12,28 @@
 
 ## Product Structure
 
-The product is split into 2 parts. The first one is the server side, that handles the
-measurements and API calls to `ntplib` and the Ripe Atlas API, stores measurements
-in the database and interacts with it to retrieve historical data, and has classes and
-an API to send data to the front end and client side. The second part is the client,
-which contains all of the front-end of the application. It uses `React` with `Vite`, base
-`CSS` for styling, `ChartJS` for data visualization, and `axios` for API interaction.
+The product is split into 2 parts:
+
+### Server Side
+
+- Handles time measurement logic and API interactions.
+- Uses `ntplib` and the **RIPE Atlas API** for performing measurements.
+- Stores results in a PostgreSQL database.
+- Provides an API to:
+    - Trigger and manage measurements
+    - Access historical data
+    - Communicate with the front-end
+
+### Client Side
+
+- Built with `React` and `Vite`
+- Uses:
+    - `ChartJS` for data visualization
+    - `axios` for interacting with the API
+    - Base `CSS` for styling
+- Presents all the data in a user-friendly dashboard
+
+---
 
 ## Table of Contents
 
@@ -24,15 +42,16 @@ which contains all of the front-end of the application. It uses `React` with `Vi
 - [Docker Setup](#docker-setup)
 - [Contributing](#contributing)
 
-### Server Setup and Running
+---
+
+## Server Setup and Running
 
 There are 2 ways in starting the server. The first one is to manually configure it, and the second one is using a docker
 container.
 
 To set up and run the back-end server, follow these steps:
 
-#### Locally configure the server
----
+### Locally configure the server
 
 1. **Create a virtual environment**:
 
@@ -50,27 +69,32 @@ To set up and run the back-end server, follow these steps:
         .\venv\Scripts\activate
         ```
 
----
 
 2. **Install and prepare PostgreSQL database**
 
-2.1. Go to: https://www.enterprisedb.com/downloads/postgres-postgresql-downloads and select the version of PostgreSQL
-you want to install.
-2.2. Go to download file location
-Double click the .exe file
-Follow through the installation process and keep track of:
-where you installed it,
-the superuser (usually postgres),
-the port (usually 5432),
-the password (you should remember this one)
-2.3. pgAdmin should automatically be installed, so accept to install it when prompted.
-2.4. Restart your computer.
-2.5. pgAdmin should be in your system if you followed the installation correctly. Open it, click on Server and put in
-your password if necessary.
-2.6. Right click on Databases, click "Create" and create an empty database, preferably named "measurements". Tables will
-be handled once you run the back-end server, so do not worry about them right now.
+   2.1. Go to: https://www.enterprisedb.com/downloads/postgres-postgresql-downloads and select the version of PostgreSQL
+   you want to install.
 
----
+   2.2. Go to download file location
+   Double click the `.exe` file  
+   Follow through the installation process and keep track of:
+
+    - where you installed it
+    - the superuser (usually `postgres`)
+    - the port (usually `5432`)
+    - the password (**you should remember this one**)
+
+   2.3. `pgAdmin` should automatically be installed, so accept to install it when prompted.
+
+   2.4. Restart your computer.
+
+   2.5. `pgAdmin` should be in your system if you followed the installation correctly.  
+   Open it, click on **Server** and put in your password if necessary.
+
+   2.6. Right click on **Databases**, click **Create** and create an empty database, preferably named
+   `"measurements"`.  
+   Tables will be handled once you run the back-end server, so do not worry about them right now.
+
 
 3. **Create a `.env` file** in the `root` directory with your accounts credentials in the following format:
 
@@ -151,8 +175,6 @@ be handled once you run the back-end server, so do not worry about them right no
     pip install -r requirements.txt
     ```
 
----
-
 5. **Download the max mind and BGP tools databases, and schedule running this file once every day**
 
    This will initialise the local dbs for geolocation and detecting anycast, and will schedule downloading them every
@@ -190,7 +212,6 @@ be handled once you run the back-end server, so do not worry about them right no
     - Be sure to schedule running this file once every day or to manually update them, if you want up-to-date
       information.
 
----
 
 6. **Run the server (from the root directory)**:
 
@@ -200,7 +221,9 @@ be handled once you run the back-end server, so do not worry about them right no
 
    You should see the server running now!
 
-#### Client Setup and Running
+---
+
+### Client Setup and Running
 
 To set up and run the client, follow these steps carefully:
 
@@ -242,108 +265,106 @@ To set up and run the client, follow these steps carefully:
     ```
    Everything should be set now!
 
-# Docker Setup
+---
+
+## Docker Setup
 
 To run the full stack (server + client + database) using `docker-compose`, follow these steps:
 
 ---
 
-### 1. Install Docker
+1. **Install Docker**
 
-Follow the instructions for your OS here:  
-👉 [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/)
+   Follow the instructions for your OS here:
+   👉 [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/)
 
----
 
-### 2. Install `docker-compose` (Linux)
+2. **Install `docker-compose` (Linux)**
 
-```bash
-sudo apt update
-sudo apt install docker-compose
-```
+   ```bash
+   sudo apt update
+   sudo apt install docker-compose
+   ```
 
----
 
-### 3. Add a .env file in the root directory
+3. **Add a .env file in the root directory**
 
-**Create a `.env` file** in the `root` directory (the same directory with you `docker-compose.yml`) with your accounts
-credentials. (You can see this `.env` at the above of the page)
+   **Create a `.env` file** in the `root` directory (the same directory with you `docker-compose.yml`) with your
+   accounts
+   credentials. (You can see this `.env` at the above of the page)
 
----
 
-### 4. Build the Docker containers
+4. **Build the Docker containers**
 
-From the root of the project, run this, but make sure that Docker Desktop is open:
+   From the root of the project, run this, but make sure that Docker Desktop is open:
 
-```bash
-sudo docker-compose build
-```
+   ```bash
+   sudo docker-compose build
+   ```
 
-or this command if the first one failed:
+   or this command if the first one failed:
 
-```bash
-sudo docker-compose build --no-cache
-```
+   ```bash
+   sudo docker-compose build --no-cache
+   ```
 
-**Common Errors**
+   **Common Errors**
 
-- If it fails, and you received error `error during connect`, then make sure that you have Docker Desktop open.
+    - If it fails, and you received error `error during connect`, then make sure that you have Docker Desktop open.
 
----
 
-### 5. Start the containers
+5. **Start the containers**
 
-```bash
-sudo docker-compose up
-```
+   ```bash
+   sudo docker-compose up
+   ```
 
-### **‼️️ Very Important ‼️**
+   ### **‼️️ Very Important ‼️**
 
-- Every time after you run `sudo docker-compose up` and it failed, and you want to try again, you need to run
-  `sudo docker-compose down` before trying again. This also applies when **you want to build again**.
+    - Every time after you run `sudo docker-compose up` and it failed, and you want to try again, you need to run
+      `sudo docker-compose down` before trying again. This also applies when **you want to build again**.
 
-**Common Errors**
+   **Common Errors**
 
-- If it fails with `exec /app/docker-entrypoint.sh: no such file or directory, exited with code 255` then it means that
-  the file `docker-entrypoint.sh` (or `update.sh`) has CRLF format, and you need to change it to LF.
+    - If it fails with `exec /app/docker-entrypoint.sh: no such file or directory, exited with code 255` then it means
+      that
+      the file `docker-entrypoint.sh` (or `update.sh`) has CRLF format, and you need to change it to LF.
 
-Use `-d` to run it in the background:
+   Use `-d` to run it in the background:
 
-```bash
-sudo docker-compose up -d
-```
+   ```bash
+   sudo docker-compose up -d
+   ```
 
-> Make sure there is not any network name `my-net` already in use.
+   > Make sure there is not any network name `my-net` already in use.
 
-This can be checked by running:
+   This can be checked by running:
 
-```bash
-sudo docker network ls
-```
+   ```bash
+   sudo docker network ls
+   ```
 
----
+6. **Shut down the containers**
 
-### 6. Shut down the containers
+   To gracefully stop all services:
 
-To gracefully stop all services:
+   ```bash
+   sudo docker-compose down
+   ```
 
-```bash
-sudo docker-compose down
-```
+   ### This must be done every time changes have been done, or one of the containers failed.
 
-### This must be done every time changes have been done, or one of the containers failed.
+   ### If you also want to delete the database you must run it like this:
 
-### If you also want to delete the database you must run it like this:
+   ```bash
+   sudo docker-compose down -v
+   ```
 
-```bash
-sudo docker-compose down -v
-```
-
-### This will remove all volumes, which in our case, that's just the database, and is useful if you encounter issues with it.
+   ### This will remove all volumes, which in our case, that's just the database, and is useful if you encounter issues with it.
 
 ---
 
-## Everything should now be running at:
+### Everything should now be running at:
 
 - **Frontend**: [http://localhost:5173](http://localhost:5173)
 - **Backend API**: [http://localhost:8000](http://localhost:8000)

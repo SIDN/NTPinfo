@@ -1,157 +1,174 @@
 Server Setup and Running
 ========================
 
-To set up and run the backend server, follow these steps:
+There are two ways to start the server: manually configuring it or using a Docker container.
 
-1. Create a virtual environment
--------------------------------
+To set up and run the back-end server manually, follow the steps below.
 
-.. code-block:: bash
+Locally Configure the Server
+----------------------------
 
-   python -m venv venv
+1. **Create a virtual environment**
 
-Then activate the virtual environment:
+   .. code-block:: bash
 
-- On **macOS/Linux**:
+      python -m venv venv
 
-  .. code-block:: bash
+   Then activate the virtual environment:
 
-     source venv/bin/activate
+   - On **macOS/Linux**:
 
-- On **Windows**:
+     .. code-block:: bash
 
-  .. code-block:: bash
+        source venv/bin/activate
 
-     .\venv\Scripts\activate
+   - On **Windows**:
 
-2. Create a `.env` file
-------------------------
+     .. code-block:: bash
 
-In the project **root** directory, create a file named ``.env`` with your account credentials:
+        .\venv\Scripts\activate
 
-.. code-block:: ini
+2. **Install and prepare PostgreSQL database**
 
-   DB_NAME={db_name}
-   DB_USER=postgres
-   DB_PASSWORD=postgres
-   DB_HOST=localhost
-   DB_PORT=5432
-   IPINFO_LITE_API_TOKEN={API}
-   ripe_api_token={ripe API with persmission to perform measurments}
-   ripe_account_email={email of your ripe account}
-   ACCOUNT_ID={geolite account id}
-   LICENSE_KEY={geolite key}
+   2.1. Visit: https://www.enterprisedb.com/downloads/postgres-postgresql-downloads
+   Select and download your preferred version of PostgreSQL.
 
-In addition, the config file with public data is located at ``server/server_config.yaml``:
+   2.2. Go to the download location and double-click the `.exe` file.
+   Follow the installation steps and keep track of:
+   - Installation directory
+   - Superuser (usually ``postgres``)
+   - Port (usually ``5432``)
+   - Password (**save this**)
 
-.. code-block:: yaml
+   2.3. Ensure `pgAdmin` is installed during setup.
 
-   ntp:
-     version: 4
-     timeout_measurement_s: 7  # in seconds
-     number_of_measurements_for_calculating_jitter: 8
+   2.4. Restart your computer.
 
-   edns:
-     mask_ipv4: 24  # bits
-     mask_ipv6: 56  # bits
-     default_order_of_edns_servers:
-       - "8.8.8.8"
-       - "1.1.1.1"
-       - "2001:4860:4860::8888"
-     edns_timeout_s: 3  # in seconds
+   2.5. Open `pgAdmin`, access the **Server**, and enter your password if needed.
 
-   ripe_atlas:
-     timeout_per_probe_ms: 4000
-     packets_per_probe: 3
-     number_of_probes_per_measurement: 3
+   2.6. Right-click **Databases**, click **Create**, and create a new database, preferably named ``measurements``.
 
-   bgp_tools:
-     anycast_prefixes_v4_url: "https://raw.githubusercontent.com/bgptools/anycast-prefixes/master/anycatch-v4-prefixes.txt"
-     anycast_prefixes_v6_url: "https://raw.githubusercontent.com/bgptools/anycast-prefixes/master/anycatch-v6-prefixes.txt"
+   .. note::
+      Tables will be created once the back-end server runs, so no need to create them now.
 
-   max_mind:
-     path_city: "GeoLite2-City.mmdb"
-     path_country: "GeoLite2-Country.mmdb"
-     path_asn: "GeoLite2-ASN.mmdb"
+3. **Create a `.env` file** in the root directory:
 
-.. note::
+   .. code-block:: ini
 
-   - Make sure PostgreSQL is running and accessible with the credentials in ``.env``.
-   - If any required variable in the config is missing or invalid, the server will not start and will show which variable is incorrect.
+      # needed for back-end (server)
+      DB_NAME=measurements
+      DB_USER=postgres
+      DB_PASSWORD=postgres
+      DB_HOST=db
+      DB_PORT=5432
+      ripe_api_token={ripe API with permission to perform measurements}
+      ripe_account_email={email of your ripe account}
+      ACCOUNT_ID={geolite account id}
+      LICENSE_KEY={geolite key}
+      UPDATE_CRON_SCHEDULE=0 0 * * *
+      CLIENT_URL=http://localhost:5173
 
-3. Install backend dependencies
--------------------------------
+      # needed for front-end (client)
+      DOCKER_NETWORK_SUBNET=2001:db8:1::/64
+      DOCKER_NETWORK_GATEWAY=2001:db8:1::1
+      VITE_CLIENT_HOST=localhost
+      VITE_CLIENT_PORT=5173
+      VITE_SERVER_HOST_ADDRESS=http://localhost:8000
+      VITE_STATUS_THRESHOLD=1000
 
-.. code-block:: bash
+   Additionally, the configuration file `server/server_config.yaml` contains editable variables:
 
-   cd server
-   pip install -r requirements.txt
+   .. code-block:: yaml
 
-4. Schedule maxmind and BGP tools DB downloads
-----------------------------------------------
+      ntp:
+        version: 4
+        timeout_measurement_s: 7
+        number_of_measurements_for_calculating_jitter: 8
+        server_timeout: 60
 
-This step initializes the local databases for geolocation and anycast detection, and sets up automatic daily updates.
+      edns:
+        mask_ipv4: 24
+        mask_ipv6: 56
+        default_order_of_edns_servers:
+          - "8.8.8.8"
+          - "1.1.1.1"
+          - "2001:4860:4860::8888"
+        edns_timeout_s: 3
 
-Make sure you are in the root directory and that ``.env`` is configured.
+      ripe_atlas:
+        timeout_per_probe_ms: 4000
+        packets_per_probe: 3
+        number_of_probes_per_measurement: 3
 
-.. code-block:: bash
+      bgp_tools:
+        anycast_prefixes_v4_url: "https://raw.githubusercontent.com/bgptools/anycast-prefixes/master/anycatch-v4-prefixes.txt"
+        anycast_prefixes_v6_url: "https://raw.githubusercontent.com/bgptools/anycast-prefixes/master/anycatch-v6-prefixes.txt"
 
-   cd ..
-   crontab -e
+      max_mind:
+        path_city: "GeoLite2-City.mmdb"
+        path_country: "GeoLite2-Country.mmdb"
+        path_asn: "GeoLite2-ASN.mmdb"
 
-Add the following line:
+   .. note::
+      Make sure PostgreSQL is running and accessible with the provided credentials.
+      The server will inform you if any variables are missing or misconfigured.
 
-.. code-block:: bash
+4. **Install backend dependencies**
 
-   0 1 * * * /bin/bash /full_path_to/update_geolite_and_bgptools_dbs.sh >> /full_path_to/update_geolite_and_bgptools_dbs.log 2>&1
+   .. code-block:: bash
 
-Replace ``/full_path_to`` with the output of:
+      cd server
+      pip install -r requirements.txt
 
-.. code-block:: bash
+5. **Download MaxMind and BGP Tools databases and schedule updates**
 
-   pwd
+   To initialize and schedule database updates (run from the root directory):
 
-To run the update script manually:
+   .. code-block:: bash
 
-.. code-block:: bash
+      cd ..
+      crontab -e
+      0 1 * * * /bin/bash /full_path_to/update_geolite_and_bgptools_dbs.sh >> /full_path_to/update_geolite_and_bgptools_dbs.log 2>&1
 
-   ./update_geolite_and_bgptools_dbs.sh
+   Replace ``/full_path_to`` with the output of:
 
-Common errors
-^^^^^^^^^^^^^
+   .. code-block:: bash
 
-- If the ``.env`` file was created on Windows, it may contain invisible carriage return characters (``^M``), which can cause the shell script to fail.
+      pwd
 
-  Use:
+   Or to download once without scheduling:
 
-  .. code-block:: bash
+   .. code-block:: bash
 
-     cat -A .env
-     dos2unix .env
+      ./update_geolite_and_bgptools_dbs.sh
 
-- If you see:
+   **Common Errors**
 
-  .. code-block:: bash
+   - Windows-style line endings in `.env` may break Linux/WSL scripts. Use:
 
-     /bin/bash^M: bad interpreter: No such file or directory
+     .. code-block:: bash
 
-  This means your script likely has CRLF line endings instead of LF. Convert using:
+        dos2unix .env
 
-  .. code-block:: bash
+   - For `bad interpreter` error on WSL/Linux:
 
-     dos2unix update_geolite_and_bgptools_dbs.sh
+     Convert CRLF to LF using VS Code or:
 
-- Downloading the GeoLite databases has a daily limit per account.
+     .. code-block:: bash
 
-.. note::
+        dos2unix update_geolite_and_bgptools_dbs.sh
 
-   You should schedule this script to run every day.
+   - Geolite downloads are limited per account per day.
 
-5. Run the server
------------------
+   .. note::
+      Update the databases regularly for accurate results.
 
-.. code-block:: bash
+6. **Run the server**
 
-   uvicorn server.app.main:create_app --reload --factory
+   From the root directory, run:
 
-You should now see the server running!
+   .. code-block:: bash
+
+      uvicorn server.app.main:create_app --reload --factory
+
+   The server should now be running!
