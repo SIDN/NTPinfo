@@ -75,26 +75,30 @@ be handled once you run the back-end server, so do not worry about them right no
 3. **Create a `.env` file** in the `root` directory with your accounts credentials in the following format:
 
     ```dotenv
-    #needed for back-end (server)
-    DB_NAME=measurements # the database that you want to use from PostgreSQL, preferably named "measurements"
+    # needed for back-end (server)
+    # the database that you want to use from PostgreSQL, preferably named "measurements"
+    DB_NAME=measurements
     DB_USER=postgres
     DB_PASSWORD=postgres
-    DB_HOST=db# (or "localhost" if you run the project locally)
+    # change DB_HOST to "localhost" if you run the project locally
+    DB_HOST=db
     DB_PORT=5432
     ripe_api_token={ripe API with persmission to perform measurments}
     ripe_account_email={email of your ripe account (you need to have credits)}
     ACCOUNT_ID={geolite account id}
     LICENSE_KEY={geolite key}
-    UPDATE_CRON_SCHEDULE=0 0 * * * # once every day
-    CLIENT_URL=http://localhost:5173 # change to desired value
+    # once every day
+    UPDATE_CRON_SCHEDULE=0 0 * * *
+    CLIENT_URL=http://localhost:5173
 
     #needed for front-end (client)
     DOCKER_NETWORK_SUBNET=2001:db8:1::/64
     DOCKER_NETWORK_GATEWAY=2001:db8:1::1
-    VITE_CLIENT_HOST=localhost # change to desired value
-    VITE_CLIENT_PORT=5173 # change to desired value
+    VITE_CLIENT_HOST=localhost
+    VITE_CLIENT_PORT=5173
     VITE_SERVER_HOST_ADDRESS=http://localhost:8000
-    VITE_STATUS_THRESHOLD=1000 # in milliseconds, choose a value you think is reasonable for the offset threshold
+    # in milliseconds, choose a value you think is reasonable for the offset threshold
+    VITE_STATUS_THRESHOLD=1000
     ```
    Besides, the config file with public data for the server is `server/server_config.yaml` and it contains the following
    variables that you can change:
@@ -215,11 +219,12 @@ To set up and run the client, follow these steps carefully:
 
    Create a `.env` file in `client` and add the following to the file:
     ```dotenv
-    VITE_SERVER_HOST_ADDRESS=http://localhost:8000/ # address of our server (back-end)
-    VITE_STATUS_THRESHOLD=1000 # in ms
-    VITE_CLIENT_HOST=localhost # change to desired value
-    VITE_CLIENT_PORT=5173 # change to desired value
-    CLIENT_URL=http://localhost:5173 # change to desired value
+    # address of our server (back-end)
+    VITE_SERVER_HOST_ADDRESS=http://localhost:8000/
+    VITE_STATUS_THRESHOLD=1000
+    VITE_CLIENT_HOST=localhost
+    VITE_CLIENT_PORT=5173
+    CLIENT_URL=http://localhost:5173
      ```
 
 3. **Install the dependencies**
