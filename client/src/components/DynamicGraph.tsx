@@ -82,6 +82,11 @@ export default function DynamicGraph({
   const fetchHistoricalDataForPeriod = async () => {
     if (servers.length === 0 || !showTimeInput) return;
 
+    // Don't fetch data if custom option is selected but both fields aren't filled
+    if (selOption === "Custom" && (!customFrom || !customTo)) {
+      return;
+    }
+
     const { startDate, endDate } = getTimeRange();
     const startDateISO = dateFormatConversion(startDate);
     const endDateISO = dateFormatConversion(endDate);
