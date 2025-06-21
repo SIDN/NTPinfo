@@ -338,17 +338,28 @@ def get_available_probes_asn_and_prefix(client_ip: str, ip_asn: str, ip_prefix: 
     }
     probes = ProbeRequest(
         return_objects=True,
-        fields="id",
-        page_size=300,
+        fields=["id", "geometry"],
+        page_size=400,
         **filters,
     )
-    probe_ids_list: list[int] = []
+    lat_client, lon_client = get_coordinates_for_ip(client_ip)
+    probe_ids_dist: dict[int, float] = {}  # each id is mapped to its distance
+
     for p in probes:
         try:
-            probe_ids_list.append(p.id)
+            if p.id in probe_ids_dist:
+                continue
+            coordinates = getattr(p, "geometry", {}).get("coordinates")
+            if coordinates:
+                lon, lat = coordinates
+                dist: float = calculate_haversine_distance(lat, lon, lat_client, lon_client)
+                probe_ids_dist[p.id] = dist
+            else:
+                probe_ids_dist[p.id] = 1000000  # some large value to put this probe at the end of the list
         except Exception as e:
             print(f"error (safe): {e}")
 
+    probe_ids_list: list[int] = sorted(probe_ids_dist, key=lambda k: probe_ids_dist[k])
     return probe_ids_list
 
 
@@ -386,22 +397,25 @@ def get_available_probes_asn_and_country(client_ip: str, ip_asn: str, ip_country
         page_size=300,
         **filters,
     )
+
     lat_client, lon_client = get_coordinates_for_ip(client_ip)
-    probe_ids_dist_list: list[tuple[int, float]] = []
+    probe_ids_dist: dict[int, float] = {}  # each id is mapped to its distance
+
     for p in probes:
         try:
+            if p.id in probe_ids_dist:
+                continue
             coordinates = getattr(p, "geometry", {}).get("coordinates")
             if coordinates:
                 lon, lat = coordinates
                 dist: float = calculate_haversine_distance(lat, lon, lat_client, lon_client)
-                probe_ids_dist_list.append((p.id, dist))
+                probe_ids_dist[p.id] = dist
             else:
-                probe_ids_dist_list.append((p.id, 1000000))  # some large value to put this probe at the end of the list
+                probe_ids_dist[p.id] = 100000.0  # some large value to put this probe at the end of the list
         except Exception as e:
             print(f"error (safe): {e}")
-    probe_ids_dist_list.sort(key=lambda x: x[1])
-    probe_ids_list: list[int] = [i for (i, d) in probe_ids_dist_list]
 
+    probe_ids_list: list[int] = sorted(probe_ids_dist, key=lambda k: probe_ids_dist[k])
     return probe_ids_list
 
 
@@ -433,17 +447,28 @@ def get_available_probes_asn(client_ip: str, ip_asn: str, ip_type: str) -> list[
     }
     probes = ProbeRequest(
         return_objects=True,
-        fields=["id"],
-        page_size=250,
+        fields=["id", "geometry"],
+        page_size=250, # we do not have a lot of probes there usually, 250 should be ok
         **filters,
     )
-    probe_ids_list: list[int] = []
+
+    lat_client, lon_client = get_coordinates_for_ip(client_ip)
+    probe_ids_dist: dict[int, float] = {}  # each id is mapped to its distance
     for p in probes:
         try:
-            probe_ids_list.append(p.id)
+            if p.id in probe_ids_dist:
+                continue
+            coordinates = getattr(p, "geometry", {}).get("coordinates")
+            if coordinates:
+                lon, lat = coordinates
+                dist: float = calculate_haversine_distance(lat, lon, lat_client, lon_client)
+                probe_ids_dist[p.id] = dist
+            else:
+                probe_ids_dist[p.id] = 2000000  # some large value to put this probe at the end of the list
         except Exception as e:
             print(f"error (safe): {e}")
 
+    probe_ids_list: list[int] = sorted(probe_ids_dist, key=lambda k: probe_ids_dist[k])
     return probe_ids_list
 
 
@@ -472,17 +497,27 @@ def get_available_probes_prefix(client_ip: str, ip_prefix: str, ip_type: str) ->
     }
     probes = ProbeRequest(
         return_objects=True,
-        fields=["id"],
+        fields=["id", "geometry"],
         page_size=250,
         **filters,
     )
-    probe_ids_list: list[int] = []
+    lat_client, lon_client = get_coordinates_for_ip(client_ip)
+
+    probe_ids_dist: dict[int, float] = {}  # each id is mapped to its distance
     for p in probes:
         try:
-            probe_ids_list.append(p.id)
+            # we want to ignore duplicates
+            if p.id not in probe_ids_dist:
+                coordinates_prefix = getattr(p, "geometry", {}).get("coordinates")
+                if coordinates_prefix:
+                    lon, lat = coordinates_prefix
+                    dist: float = calculate_haversine_distance(lat, lon, lat_client, lon_client)
+                    probe_ids_dist[p.id] = dist
+                else:
+                    probe_ids_dist[p.id] = 1000000  # some large value to put this probe at the end of the list
         except Exception as e:
             print(f"error (safe): {e}")
-
+    probe_ids_list: list[int] = sorted(probe_ids_dist, key=lambda k: probe_ids_dist[k])
     return probe_ids_list
 
 
@@ -513,28 +548,27 @@ def get_available_probes_country(client_ip: str, country_code: str, ip_type: str
     probes = ProbeRequest(
         return_objects=True,
         fields=["id", "geometry"],
-        page_size=600,
+        page_size=600, # we need a large value here as we have multiple probes. (it is like a buffer size)
         **filters,
     )
     lat_client, lon_client = get_coordinates_for_ip(client_ip)
-    probe_ids_dist_list: list[tuple[int, float]] = []
+    probe_ids_dist: dict[int, float] = {} # each id is mapped to its distance
     for p in probes:
         try:
+            if p.id in probe_ids_dist:
+                continue
             coordinates = getattr(p, "geometry", {}).get("coordinates")
             if coordinates:
                 lon, lat = coordinates
                 dist: float = calculate_haversine_distance(lat, lon, lat_client, lon_client)
-                probe_ids_dist_list.append((p.id, dist))
+                probe_ids_dist[p.id] = dist
             else:
-                probe_ids_dist_list.append((p.id, 1000000))  # some large value to put this probe at the end of the list
+                probe_ids_dist[p.id] = 1000000.0  # some large value to put this probe at the end of the list
         except Exception as e:
             print(f"error (safe): {e}")
 
-    probe_ids_dist_list.sort(key=lambda x: x[1])
-    probe_ids_list: list[int] = [i for (i, d) in probe_ids_dist_list]
-
+    probe_ids_list: list[int] = sorted(probe_ids_dist, key=lambda k: probe_ids_dist[k])
     return probe_ids_list
-
 
 def consume_probes(probes_requested: int, current_probes_set: set[int], probes_ids: list[int]) -> tuple[int, set[int]]:
     """
