@@ -6,7 +6,7 @@ import ResultSummary from '../components/ResultSummary'
 import DownloadButton from '../components/DownloadButton'
 
 import LoadingSpinner from '../components/LoadingSpinner'
-import LineChart from '../components/LineGraph'
+import DynamicGraph from '../components/DynamicGraph.tsx'
 import { useFetchIPData } from '../hooks/useFetchIPData.ts'
 import { useFetchHistoricalIPData } from '../hooks/useFetchHistoricalIPData.ts'
 import { useFetchRIPEData } from '../hooks/useFetchRipeData.ts'
@@ -16,7 +16,6 @@ import WorldMap from '../components/WorldMap.tsx'
 import Header from '../components/Header.tsx';
 
 import { NTPData} from '../utils/types.ts'
-import { Measurement } from '../utils/types.ts'
 
 import 'leaflet/dist/leaflet.css'
 import { useTriggerRipeMeasurement } from '../hooks/useTriggerRipeMeasurement.ts'
@@ -238,8 +237,8 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
   // const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
   //   setSelMeasurement(event.target.value as Measurement);
   // }
-  const handleMeasurementChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    updateCache({ selMeasurement: e.target.value as Measurement })
+  // const handleMeasurementChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+  //   updateCache({ selMeasurement: e.target.value as Measurement })
 
   return (
     <div className="home-tab-outer">
@@ -248,7 +247,14 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     {/* The main container for the app, containing the input section, results and graph, and the map */}
     <div className="app-container">
       <div className="input-wrapper">
-        <InputSection onClick={handleInput} loading={apiDataLoading} ipv6Selected={ipv6Selected} onIPv6Toggle={handleIPv6Toggle} />
+        <InputSection
+          onClick={handleInput}
+          loading={apiDataLoading}
+          ipv6Selected={ipv6Selected}
+          onIPv6Toggle={handleIPv6Toggle}
+          ripeMeasurementStatus={ripeMeasurementStatus}
+          measurementSessionActive={measurementSessionActive}
+        />
       </div>
       {/* <h3 id="disclaimer">DISCLAIMER: Your IP may be used to get a RIPE probe close to you for the most accurate data. Your IP will not be stored.</h3> */}
         <div className="result-text">
@@ -272,29 +278,14 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         {/* Div for the visualization graph, and the radios for setting the what measurement to show */}
         <div className="graphs">
           <div className='graph-box'>
-            <div className="radio-toggle">
-              <input
-                type="radio"
-                id="offset"
-                name="measurement"
-                value="offset"
-                checked={selMeasurement === 'offset'}
-                onChange={handleMeasurementChange}
-              />
-              <label htmlFor="offset">Offset</label>
-
-              <input
-                type="radio"
-                id="rtt"
-                name="measurement"
-                value="RTT"
-                checked={selMeasurement === 'RTT'}
-                onChange={handleMeasurementChange}
-              />
-              <label htmlFor="rtt">Round-trip time</label>
-            </div>
-
-            <LineChart data = {chartData} selectedMeasurement={selMeasurement} selectedOption="Last Day" legendDisplay={false}/>
+            <DynamicGraph
+              servers={chartData ? Array.from(chartData.keys()) : []}
+              selectedMeasurement={selMeasurement}
+              onMeasurementChange={(measurement) => updateCache({ selMeasurement: measurement })}
+              legendDisplay={false}
+              showTimeInput={false}
+              existingData={chartData}
+            />
           </div>
         </div>
       </div>)) || (!ntpData && !apiDataLoading && measured &&

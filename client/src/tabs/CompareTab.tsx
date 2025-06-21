@@ -1,56 +1,23 @@
 import { useState} from 'react'
 import '../styles/CompareTab.css'
-import { dateFormatConversion } from '../utils/dateFormatConversion'
-import { useFetchHistoricalIPData } from '../hooks/useFetchHistoricalIPData'
-import { TimeInput } from '../components/TimeInput'
-import LoadingSpinner from '../components/LoadingSpinner'
-import { NTPData, Measurement } from '../utils/types'
-import LineChart from '../components/LineGraph'
+import { Measurement } from '../utils/types'
 import Header from '../components/Header';
 import scaleUnbalancedIcon from '../assets/scale-unbalanced-svgrepo-com.png'
+import DynamicGraph from '../components/DynamicGraph.tsx';
 
 function CompareTab() {
 
     const [servers, setServers] = useState<string[]>(["", ""])
-    const [loading, setLoading] = useState(false)
     const [showData, setShowData] = useState(false)
-    const [selOption, setSelOption] = useState("Last Day")
     const [selMeasurement, setSelMeasurement] = useState<Measurement>("offset")
-    const [data, setData] = useState<Map<string, NTPData[]>>(new Map())
-    // "from" & "to" values for custom range
-    const [customFrom, setCustomFrom] = useState<string>("")
-    const [customTo,   setCustomTo]   = useState<string>("")
-
-    const [errMessage, setErrMessage] = useState<string | null>(null)
-    const {fetchData: fetchHistoricalData, loading: apiHistoricalLoading, error: apiHistoricalError} = useFetchHistoricalIPData()
 
     const handleCompare = async (servers: string[]) => {
-        setErrMessage(null)
-
         for (const sv of servers)
             if (sv.trim().length == 0) {
-                setErrMessage("Please fill in all servers")
                 return
             }
 
-        const trimmed = servers.map(s => s.trim())
-        const serverSet = [...new Set(trimmed)];
-        setLoading(true)
-        setShowData(false)
-
-        const startDate = dateFormatConversion(Date.now() - 86400000);
-        const endDate = dateFormatConversion(Date.now());
-        const map = new Map<string, NTPData[]>();
-        for (const server of serverSet) {
-            const historicalDataUrl = `${import.meta.env.VITE_SERVER_HOST_ADDRESS}/measurements/history/?server=${server}&start=${startDate}&end=${endDate}`;
-            const historicalData = await fetchHistoricalData(historicalDataUrl);
-            map.set(server, historicalData);
-            console.log(`called ${historicalDataUrl}`);
-        }
-
-        setLoading(false)
         setShowData(true)
-        setData(map);
     }
 
     const addServerInput = () => setServers([...servers, ""]);
@@ -59,10 +26,6 @@ function CompareTab() {
             const updated = [...servers];
             updated.splice(index, 1);
             setServers(updated);
-    }
-
-    const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSelMeasurement(event.target.value as Measurement);
     }
 
     const handleInputChange = (index: number, value: string) => {
@@ -104,82 +67,35 @@ function CompareTab() {
 
         <button className="add-rm-btn add" type="button" onClick={addServerInput}>+</button>
 
-        <TimeInput
-            options={["Last Hour", "Last Day", "Last Week", "Custom"]}
-            selectedOption={selOption}
-            onSelectionChange={setSelOption}
-            customFrom={customFrom}
-            customTo={customTo}
-            onFromChange={setCustomFrom}
-            onToChange={setCustomTo}
-        />
             <button type="submit"
                     className='submit-btn'
-                    disabled={servers.some(s => s.trim() === "") || apiHistoricalLoading}>
-                        {loading ? "Comparing..." : "Compare"}
+                    disabled={servers.some(s => s.trim() === "")}>
+                        Compare
             </button>
-            {errMessage && (<p className='error'>{errMessage}</p>)}
            </form>
            </div>
-            {(!loading && showData &&
-           (<div className='graph-container'>
-                <div className="radio-toggle">
-                    <input
-                        type="radio"
-                        id="offset"
-                        name="measurement"
-                        value="offset"
-                        checked={selMeasurement === 'offset'}
-                        onChange={handleMeasurementChange}
-                    />
-                    <label htmlFor="offset">Offset</label>
-
-                    <input
-                        type="radio"
-                        id="rtt"
-                        name="measurement"
-                        value="RTT"
-                        checked={selMeasurement === 'RTT'}
-                        onChange={handleMeasurementChange}
-                    />
-                    <label htmlFor="rtt">Round-trip time</label>
-                </div>
-
-
-                 <div className="chart-wrapper">
-                <LineChart
-                    data = {data}
-                    selectedMeasurement={selMeasurement}
-                    selectedOption={selOption}
-                    customRange={{ from: customFrom, to: customTo }}
-                    legendDisplay={true}/>
-                </div>
-
-            </div>)) ||
-            (loading && (<div className="loading-div">
-                            <p>Loading...</p>
-                            <LoadingSpinner size="large"/>
-                        </div>)) ||
-            (apiHistoricalError && (<div className='graph-container'>
-                    <div className="placeholder-text-compare">
-                    <p className="text-compare">There was an error.</p>
-                    <p className="text-compare">Check the server names and try again.</p>
-                    </div>
-
-                </div>))
-            || (
+            {(!showData &&
+            (
                 <div className='graph-container'>
                     <div className="placeholder-text-compare">
                     <img src={scaleUnbalancedIcon} alt="Compare Icon" className="chart-emoji" />
                     <p className="text-compare">Compare the accuracy of two NTP servers.</p>
                     <p className="text-compare">Their historical data will be shown here as a graph.</p>
                     </div>
-
                 </div>
-            )}
-
-
-
+            )) ||
+            (showData && (
+                <div className='graph-container'>
+                    <DynamicGraph
+                        servers={servers.filter(s => s.trim())}
+                        selectedMeasurement={selMeasurement}
+                        onMeasurementChange={setSelMeasurement}
+                        legendDisplay={true}
+                        showTimeInput={true}
+                    />
+                </div>
+            ))
+            }
         </div>
         </div>
     )
