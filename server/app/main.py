@@ -1,4 +1,3 @@
-import os
 from contextlib import asynccontextmanager
 from typing import Union, Any, AsyncGenerator
 from fastapi import FastAPI, Request, Response
@@ -14,6 +13,7 @@ from server.app.api.routing import router
 from server.app.rate_limiter import limiter
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+import os
 
 
 def create_app(dev: bool = True) -> FastAPI:
@@ -41,27 +41,20 @@ def create_app(dev: bool = True) -> FastAPI:
             print(f"Configuration error: {e}")
             raise
 
-    # @asynccontextmanager
-    # async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:
-    #     """
-    #     Application lifespan context manager.
-    #
-    #     Initializes the database schema if in development mode.
-    #
-    #     Args:
-    #         app (FastAPI): The FastAPI application instance.
-    #
-    #     Yields:
-    #         None
-    #     """
-    #     if dev:
-    #         engine = init_engine()
-    #         Base.metadata.create_all(bind=engine)
-    #     yield
-
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, Any]:
-        if os.getenv("APP_ENV") == "development":
+        """
+        Application lifespan context manager.
+
+        Initializes the database schema if in development mode.
+
+        Args:
+            app (FastAPI): The FastAPI application instance.
+
+        Yields:
+            None
+        """
+        if dev:
             engine = init_engine()
             Base.metadata.create_all(bind=engine)
         yield
@@ -85,7 +78,7 @@ def create_app(dev: bool = True) -> FastAPI:
     app.include_router(router)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:5173", "https://myapp.local"],
+        allow_origins=[os.getenv("CLIENT_URL", "http://localhost:5173")],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -112,3 +105,8 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run("server.app.main:create_app", reload=True)
+
+# 👇 Add this conditional for Gunicorn usage
+if __name__ != "__main__":
+    # When run by Gunicorn, we want production mode
+    app = create_app(dev=False)

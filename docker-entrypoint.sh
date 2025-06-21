@@ -35,4 +35,4 @@ python3 server/scripts/create_tables.py
 
 # run fastapi on
 # workers = (2 x number_of_cores) + 1
-exec gunicorn server.app.main:create_app --worker-class uvicorn.workers.UvicornWorker --bind "${SERVER_BIND}" --workers "${SERVER_WORKERS}" --access-logfile logs/access.log
+exec gunicorn server.app.main:app --worker-class uvicorn.workers.UvicornWorker --bind "${SERVER_BIND}" --workers "${SERVER_WORKERS}" --access-logfile logs/access.log

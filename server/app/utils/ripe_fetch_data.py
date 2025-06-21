@@ -161,8 +161,6 @@ def get_data_from_ripe_measurement(measurement_id: str) -> list[dict[str, Any]]:
 
     if not isinstance(json_data, list):
         raise RipeMeasurementError("Unexpected format: Expected list of results from RIPE API.")
-    # print("Status Code:", response.status_code)
-    # print("Response JSON:", response.json())
     return cast(list[dict[str, Any]], response.json())
 
 
@@ -200,8 +198,6 @@ def get_probe_data_from_ripe_by_id(probe_id: str) -> dict[str, Any]:
         raise RipeMeasurementError(f"Network error while fetching probe data for {probe_id}: {str(e)}")
     except ValueError:
         raise RipeMeasurementError("Invalid JSON response from RIPE API.")
-    # print("Status Code:", response.status_code)
-    # print("Response JSON:", response.json())
     return cast(dict[str, Any], json_data)
 
 
@@ -227,8 +223,6 @@ def parse_probe_data(probe_response: dict) -> ProbeData:
         return ProbeData(probe_id="-1", probe_addr=(None, None), probe_location=None)
 
     probe_id = probe_response.get('id', '-1')
-    # print(probe_response.get('address_v4'))
-    # print(probe_response.get('address_v6'))
     v4 = probe_response.get('address_v4')
     v6 = probe_response.get('address_v6')
     try:
@@ -408,12 +402,8 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
             ref_id=ref_id
         )
         ripe_measurements.append(ripe_measurement)
-        # print(ripe_measurement)
-    # print(len(ripe_measurements))
     return ripe_measurements, check_all_measurements_done(str(msm_id), len(ripe_measurements))
 
-# print(len(parse_data_from_ripe_measurement(get_data_from_ripe_measurement("105960562"))))
+# example how to use the methods:
 # print(parse_data_from_ripe_measurement(get_data_from_ripe_measurement("106323686")))
-# parse_data_from_ripe_measurement(get_data_from_ripe_measurement("107961234"))
 # print(parse_probe_data(get_probe_data_from_ripe_by_id("7304")))
-# print(check_all_measurements_done("105960562", 12))
