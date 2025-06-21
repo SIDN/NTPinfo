@@ -302,7 +302,7 @@ const stringifyRTTAndOffset = (value: number): string => {
  * Each probe is shown on the map with an icon of a different color depending on the RTT measured by it
  * Besides this, the vantage point and the NTP server(s) are also shown
  * The NTP servers that are measured by both the vantage point or one of the probes are only shown once
- * This is done by looking at the location, as they could have the same IP, but be in the same location
+ * This is done by looking at the location, as they could have a different IP, but be in the same location
  * Each probe has a popup which shows the following:
  *  The RIPE probe ID, with a link to its page on the RIPE Atlas website
  *  The RTT measured
@@ -317,6 +317,8 @@ const stringifyRTTAndOffset = (value: number): string => {
  *  The location of the vantage point
  * The map has lines drawn in between icons to better illustract which probe and vantage point measured what server
  * The map's zoom get automatically readjusted depending on the size of the map on the page
+ * Each server measured, both by the probes and the vantage point, is checked for Anycast.
+ * In the case that Anycast is detected, this information is displayed to the user.
  * @param probes Data of all the measured probes, as an array of RIPEData values
  * @param ntpServers Data of all the NTP severs that the vantage point measured as an array of NTPData
  * @param vantagePointInfo The IP and location of the vantage point if received as information from the back-end
@@ -333,7 +335,17 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
 
   const [isAnycast, setIsAnycast] = useState<boolean>(false)
 
+  /**
+   * Effect used for categorizing the NTP servers measured into:
+   * Measured by only RIPE probes
+   * Measured by only the vantage point
+   * Measured by both
+   * NTP servers that the vantage point didnt manage to connect to
+   */
   useEffect(() => {
+    /**
+     * Checks done in case that either RIPE or the vantage point didn't return results
+     */
     if (!probes && !ntpServers) return
 
     if (!probes && ntpServers) {
@@ -376,6 +388,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
       return
     }
 
+    //sanity check requred by React
     if (!probes || !ntpServers) return
 
     const probeIPMap = new Map<string, RIPEData>()
