@@ -120,6 +120,7 @@ export default function DynamicGraph({
     if (showTimeInput && servers.length > 0 && servers.some(s => s.trim())) {
       fetchHistoricalDataForPeriod();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selOption, customFrom, customTo, servers.join(','), showTimeInput]);
 
   const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {

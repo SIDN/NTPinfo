@@ -6,7 +6,6 @@ import ResultSummary from '../components/ResultSummary'
 import DownloadButton from '../components/DownloadButton'
 
 import LoadingSpinner from '../components/LoadingSpinner'
-import LineChart from '../components/LineGraph'
 import DynamicGraph from '../components/DynamicGraph.tsx'
 import { useFetchIPData } from '../hooks/useFetchIPData.ts'
 import { useFetchHistoricalIPData } from '../hooks/useFetchHistoricalIPData.ts'
@@ -17,7 +16,6 @@ import WorldMap from '../components/WorldMap.tsx'
 import Header from '../components/Header.tsx';
 
 import { NTPData} from '../utils/types.ts'
-import { Measurement } from '../utils/types.ts'
 
 import 'leaflet/dist/leaflet.css'
 import { useTriggerRipeMeasurement } from '../hooks/useTriggerRipeMeasurement.ts'
@@ -239,8 +237,8 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
   // const handleMeasurementChange = (event: React.ChangeEvent<HTMLInputElement>) => {
   //   setSelMeasurement(event.target.value as Measurement);
   // }
-  const handleMeasurementChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    updateCache({ selMeasurement: e.target.value as Measurement })
+  // const handleMeasurementChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+  //   updateCache({ selMeasurement: e.target.value as Measurement })
 
   return (
     <div className="home-tab-outer">
@@ -249,7 +247,14 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     {/* The main container for the app, containing the input section, results and graph, and the map */}
     <div className="app-container">
       <div className="input-wrapper">
-        <InputSection onClick={handleInput} loading={apiDataLoading} ipv6Selected={ipv6Selected} onIPv6Toggle={handleIPv6Toggle} />
+        <InputSection
+          onClick={handleInput}
+          loading={apiDataLoading}
+          ipv6Selected={ipv6Selected}
+          onIPv6Toggle={handleIPv6Toggle}
+          ripeMeasurementStatus={ripeMeasurementStatus}
+          measurementSessionActive={measurementSessionActive}
+        />
       </div>
       {/* <h3 id="disclaimer">DISCLAIMER: Your IP may be used to get a RIPE probe close to you for the most accurate data. Your IP will not be stored.</h3> */}
         <div className="result-text">

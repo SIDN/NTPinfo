@@ -79,6 +79,7 @@
     min-height: 300px;
     gap: 1rem;
     color: var(--text-white);
+    align-self: center;
 }
 
 .loading-div p {
