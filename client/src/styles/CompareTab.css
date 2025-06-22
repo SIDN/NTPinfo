@@ -288,7 +288,13 @@ p.error {
 .radio-toggle input[type="radio"] {
   appearance: none;
   -webkit-appearance: none;
-  display: none;
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
 }
 
 .radio-toggle label {
@@ -458,4 +464,22 @@ p.error {
     width: 100%;
     text-align: center;
   }
+}
+
+.compare-tab .dropdown-select:focus,
+.compare-tab .dt-input:focus {
+    outline: none !important;
+}
+
+.compare-tab .dropdown-select:focus-visible,
+.compare-tab .dt-input:focus-visible {
+    outline: 0.5px solid var(--text-white) !important;
+    outline-offset: 0.5px;
+}
+
+@supports selector(:focus-visible) {
+    .compare-tab .dropdown-select:focus:not(:focus-visible),
+    .compare-tab .dt-input:focus:not(:focus-visible) {
+        outline: none !important;
+    }
 }
