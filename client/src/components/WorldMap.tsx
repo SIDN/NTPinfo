@@ -506,9 +506,9 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
                 <Marker key={index} position={x.location} icon={ntpServerIcon}>
                   <Popup>
                     NTP Server (RIPE)<br/>
-                    IP: {x.ip}
+                    IP: {x.ip}<br/>
                     Name: {x.server_name}<br/>
-                    Location: {x.location}
+                    Location: {x.location[0]}, {x.location[1]}
                   </Popup>
                 </Marker>
               ))}
@@ -519,7 +519,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
                     NTP Server (Vantage Point)<br/>
                     IP: {x.ip}<br/>
                     Name: {x.server_name}<br/>
-                    Location: {x.location}
+                    Location: {x.location[0]}, {x.location[1]}
                   </Popup>
                 </Marker>
               ))}
@@ -530,7 +530,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
                     NTP Server<br/>
                     IP: {x.ip}<br/>
                     Name: {x.server_name}<br/>
-                    Location: {x.location}
+                    Location: {x.location[0]}, {x.location[1]}
                   </Popup>
                 </Marker>
               ))}
@@ -541,7 +541,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
                     NTP Server (Unavailable)<br/>
                     IP: {x.ip}<br/>
                     Name: {x.server_name}<br/>
-                    Location: {x.location}
+                    Location: {x.location[0]}, {x.location[1]}
                   </Popup>
                 </Marker>
               ))}
@@ -556,7 +556,7 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
                     <Popup>
                       Vantage Point<br/>
                       IP: {vantagePointInfo[1]}<br/>
-                      Location: {vantagePointInfo[0]}
+                      Location: {vantagePointInfo[0][0]}, {vantagePointInfo[0][1]}
                     </Popup>
                 </Marker>
                 <DrawConnectingLines probes={probes} measurementNtpServers = {ntpOnlyLocations.map(x=>x.location)}
