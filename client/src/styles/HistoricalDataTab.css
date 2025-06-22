@@ -19,6 +19,7 @@ a {
     flex-direction: column;
     gap: 0.5em;
     padding: 0;
+    height: 100vh;
 }
 
 .historical-data-tab h2 {
@@ -106,6 +107,8 @@ a {
     height: auto;
     min-height: 300px;
     overflow: visible;
+    display: flex;
+    flex-direction: column;
 }
 
 .data-display-container {
@@ -114,6 +117,7 @@ a {
     min-height: 0;
     align-items: flex-start;
     height: 100%;
+    flex: 1;
 }
 
 .statistics-container {
@@ -175,6 +179,7 @@ a {
     display: flex;
     align-items: center;
     justify-content: center;
+    height: 100%;
 }
 
 .chart-box canvas {
@@ -183,14 +188,6 @@ a {
     width: auto;
     height: auto;
     object-fit: contain;
-}
-
-.dropdown-select:hover,
-.dt-input:hover,
-.dropdown-select:focus,
-.dt-input:focus {
-    /* background-color: var(--clr-btn-selected-purple); */
-    outline: none;
 }
 
 .dropdown-select {
@@ -373,7 +370,13 @@ a {
 .historical-radio-toggle input[type="radio"] {
     appearance: none;
     -webkit-appearance: none;
-    display: none;
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
 }
 
 .historical-radio-toggle label {

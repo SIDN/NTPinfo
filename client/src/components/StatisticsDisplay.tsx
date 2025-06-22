@@ -14,10 +14,22 @@ const StatisticsDisplay: React.FC<StatisticsDisplayProps> = ({
   if (!data) return null;
 
   const calculateStats = (serverData: NTPData[]) => {
-    const values = serverData.map(d => d[selectedMeasurement]);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    const validValues = serverData
+      .map(d => d[selectedMeasurement])
+      .filter(value => value !== null && value !== undefined && !isNaN(value) && isFinite(value));
+
+    // show N/A if there are no values to show
+    if (validValues.length === 0) {
+      return {
+        min: "N/A",
+        max: "N/A",
+        avg: "N/A",
+      };
+    }
+
+    const min = Math.min(...validValues);
+    const max = Math.max(...validValues);
+    const avg = validValues.reduce((a, b) => a + b, 0) / validValues.length;
 
     return {
       min: min.toFixed(3),
@@ -30,21 +42,22 @@ const StatisticsDisplay: React.FC<StatisticsDisplayProps> = ({
     <div className="statistics-container">
       {Array.from(data.entries()).map(([server, serverData]) => {
         const stats = calculateStats(serverData);
+
         return (
           <div key={server} className="server-stats">
             <h3>{server}</h3>
             <div className="stats-grid">
               <div className="stat-item">
                 <span className="stat-label">Min:</span>
-                <span className="stat-value">{stats.min} ms</span>
+                <span className="stat-value">{stats.min}{stats.min !== "N/A" ? " ms" : ""}</span>
               </div>
               <div className="stat-item">
                 <span className="stat-label">Max:</span>
-                <span className="stat-value">{stats.max} ms</span>
+                <span className="stat-value">{stats.max}{stats.max !== "N/A" ? " ms" : ""}</span>
               </div>
               <div className="stat-item">
                 <span className="stat-label">Average:</span>
-                <span className="stat-value">{stats.avg} ms</span>
+                <span className="stat-value">{stats.avg}{stats.avg !== "N/A" ? " ms" : ""}</span>
               </div>
             </div>
           </div>

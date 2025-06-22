@@ -12,12 +12,6 @@
   gap: 2em;
   font-size: 0.8rem;
 }
-.compare-tab .dropdown-select:hover,
-.compare-tab .dt-input:hover,
-.compare-tab .dropdown-select:focus,
-.compare-tab .dt-input:focus {
-  outline: none;
-}
 
 .dropdown-label {
   font-size: 1.2em;
@@ -37,6 +31,7 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
 }
+
 
 .dropdown-select option {
   background-color: white;
@@ -168,4 +163,27 @@
     width: 100%;
     max-width: 300px;
   }
+}
+
+.compare-tab .dropdown-select:hover,
+.compare-tab .dt-input:hover {
+    outline: none;
+}
+
+.compare-tab .dropdown-select:focus,
+.compare-tab .dt-input:focus {
+    outline: none;
+}
+
+.compare-tab .dropdown-select:focus-visible,
+.compare-tab .dt-input:focus-visible {
+    outline: 0.5px solid var(--text-white);
+    outline-offset: 0.5px;
+}
+
+@supports selector(:focus-visible) {
+    .compare-tab .dropdown-select:focus:not(:focus-visible),
+    .compare-tab .dt-input:focus:not(:focus-visible) {
+        outline: none;
+    }
 }

@@ -87,7 +87,7 @@ a {
     height: 5rem;
     width: auto;
     object-fit: contain;
-    /* margin-right: 0.2rem; */
+    margin-right: -10%;
 }
 
 /* Media Queries */
