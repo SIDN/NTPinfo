@@ -215,7 +215,7 @@ export const handlers = [
     ),
     http.get<{server: string, start: string, end: string}, never, {measurements: any[]} | {detail: string}>(
         '/measurements/history/', ({request}) => {
-            const url = new URL(request.url, 'http://localhost')
+            const url = new URL(request.url, 'http://127.0.0.1')
             const start = url.searchParams.get('start')
             const end = url.searchParams.get('end')
 
@@ -434,7 +434,7 @@ export const handlers = [
         message?: string;
         detail?: string;
     }>(
-        'http://localhost:8000/measurements/ripe/trigger/', async ({request: req}) => {
+        'http://127.0.0.1:8000/measurements/ripe/trigger/', async ({request: req}) => {
             const {server} = await req.json()
             if (server === "time.apple.com"){
                 return HttpResponse.json({
@@ -462,7 +462,7 @@ export const handlers = [
         }
     ),
     http.get<{measurement_id: string}, never, { status: string, message: string, results: any[]} | {detail: string}>(
-        'http://localhost:8000/measurements/ripe/:measurement_id', ({params}) => {
+        'http://127.0.0.1:8000/measurements/ripe/:measurement_id', ({params}) => {
             const measurementId = params.measurement_id
             const mockRipeMeasurement = {
                 "status": "complete",
