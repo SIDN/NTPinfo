@@ -289,9 +289,9 @@ const getIconByRTT = (rtt: number, measured: boolean): L.Icon => {
  * @param value RTT/offset value measured by the probe
  * @returns a string indicating this specific value
  */
-const stringifyRTTAndOffset = (value: number): string => {
-  if (value === -1000) return "No Reply"
-  else return value.toString()
+const stringifyRTTAndOffset = (data: RIPEData): [string,string] => {
+  if (data.measurementData.RTT === -1000) return ["No Reply","No Reply"]
+  else return [data.measurementData.RTT.toString(),data.measurementData.offset.toString()]
 }
 
 /**
@@ -495,8 +495,8 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
               {probe_locations.map((pos, index) => (<Marker key = {index} position = {pos} icon = {icons[index]}>
                 <Popup>
                   Probe ID: <a href = {`https://atlas.ripe.net/probes/${probes[index].probe_id}/overview`} target='_blank' rel="noopener noreferrer">{probes[index].probe_id}</a><br/>
-                  Offset: {stringifyRTTAndOffset(probes[index].measurementData.offset)}<br/>
-                  RTT: {stringifyRTTAndOffset(probes[index].measurementData.RTT)}<br/>
+                  Offset: {stringifyRTTAndOffset(probes[index])[1]}<br/>
+                  RTT: {stringifyRTTAndOffset(probes[index])[0]}<br/>
                   Location: {pos[0]}, {pos[1]}
                 </Popup>
               </Marker>))}
