@@ -495,8 +495,8 @@ export default function WorldMap ({probes, ntpServers, vantagePointInfo, status}
               {probe_locations.map((pos, index) => (<Marker key = {index} position = {pos} icon = {icons[index]}>
                 <Popup>
                   Probe ID: <a href = {`https://atlas.ripe.net/probes/${probes[index].probe_id}/overview`} target='_blank' rel="noopener noreferrer">{probes[index].probe_id}</a><br/>
-                  Offset: {stringifyRTTAndOffset(probes[index])[1]}<br/>
-                  RTT: {stringifyRTTAndOffset(probes[index])[0]}<br/>
+                  Offset: {stringifyRTTAndOffset(probes[index])[1]}ms<br/>
+                  RTT: {stringifyRTTAndOffset(probes[index])[0]}ms<br/>
                   Location: {pos[0]}, {pos[1]}
                 </Popup>
               </Marker>))}
