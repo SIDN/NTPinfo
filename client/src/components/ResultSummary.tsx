@@ -134,14 +134,15 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus, er
                             <div className="metric"><span>ASN</span><span>{data?.asn_ntp_server !== undefined ? data.asn_ntp_server : "N/A"}</span></div>
                         </div>
                     </div>
-                    <div className="result-and-title">
+                    <div className="result-and-title" id="ripe-result">
                         <div className="res-label">From the RIPE Atlas probe (Close to you)
                         <div className="tooltip-container">
-                        {((ripeStatus === "timeout" || ripeStatus === "error") && <span className="tooltip-icon fail">!</span>) ||
+                        {((ripeStatus === "timeout" || ripeStatus === "error"|| ripeData?.measurementData.RTT === -1000.000) && <span className="tooltip-icon fail">!</span>) ||
                         (<span className="tooltip-icon success">?</span>)}
                             <div className="tooltip-text">
                                 {(ripeStatus === "timeout" && <span>RIPE Measurement timed out. <br /> </span>) ||
-                                (ripeStatus === "error" && <span>RIPE Measurement failed. <br /></span>) }
+                                (ripeStatus === "error" && <span>RIPE Measurement failed. <br /></span>) || 
+                                (ripeData?.measurementData.RTT === -1000.000 && <span> Probe failed to respond. <br /></span>)}
                                 RIPE Atlas tries to choose a probe near the user to perform more accurate measurements. This can take longer.
                             </div>
                         </div>
@@ -178,7 +179,7 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus, er
                             ) : 'N/A'}
                         </span></div>
                     </div>)) ||
-                    ((ripeStatus === "pending" || ripeStatus === "partial_results")&& (
+                    ((ripeStatus === "pending" || ripeStatus === "partial_results") && (
                         <div className="loading-container">
                             <p className="ripe-loading-text">Running RIPE measurements. This may take a while.</p>
                             <LoadingSpinner size="medium"/>
