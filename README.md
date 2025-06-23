@@ -113,14 +113,14 @@ To set up and run the back-end server, follow these steps:
     LICENSE_KEY={geolite key}
     # once every day
     UPDATE_CRON_SCHEDULE=0 0 * * *
-    CLIENT_URL=http://localhost:5173
+    CLIENT_URL=http://127.0.0.1:5173
 
     #needed for front-end (client)
     DOCKER_NETWORK_SUBNET=2001:db8:1::/64
     DOCKER_NETWORK_GATEWAY=2001:db8:1::1
-    VITE_CLIENT_HOST=localhost
+    VITE_CLIENT_HOST=127.0.0.1
     VITE_CLIENT_PORT=5173
-    VITE_SERVER_HOST_ADDRESS=http://localhost:8000
+    VITE_SERVER_HOST_ADDRESS=http://127.0.0.1:8000
     # in milliseconds, choose a value you think is reasonable for the offset threshold
     VITE_STATUS_THRESHOLD=1000
     ```
@@ -243,11 +243,11 @@ To set up and run the client, follow these steps carefully:
    Create a `.env` file in `client` and add the following to the file:
     ```dotenv
     # address of our server (back-end)
-    VITE_SERVER_HOST_ADDRESS=http://localhost:8000/
+    VITE_SERVER_HOST_ADDRESS=http://127.0.0.1:8000/
     VITE_STATUS_THRESHOLD=1000
-    VITE_CLIENT_HOST=localhost
+    VITE_CLIENT_HOST=127.0.0.1
     VITE_CLIENT_PORT=5173
-    CLIENT_URL=http://localhost:5173
+    CLIENT_URL=http://127.0.0.1:5173
      ```
 
 3. **Install the dependencies**
@@ -366,8 +366,8 @@ To run the full stack (server + client + database) using `docker-compose`, follo
 
 ### Everything should now be running at:
 
-- **Frontend**: [http://localhost:5173](http://localhost:5173)
-- **Backend API**: [http://localhost:8000](http://localhost:8000)
+- **Frontend**: [http://127.0.0.1:5173](http://127.0.0.1:5173)
+- **Backend API**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
 > Make sure ports `5173` (frontend) and `8000` (backend) are not in use before starting the containers.
 
