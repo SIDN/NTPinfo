@@ -109,8 +109,10 @@ client_tests:
     - npm ci
     - |
       if [ ! -f .env ]; then
-        echo "VITE_SERVER_HOST_ADDRESS=http://localhost:8000" > .env
+        echo "VITE_SERVER_HOST_ADDRESS=http://127.0.0.1:8000" > .env
         echo "VITE_STATUS_THRESHOLD=1000" >> .env
+        echo "VITE_CLIENT_HOST=127.0.0.1" >> .env 
+        echo "VITE_CLIENT_PORT=5173" >> .env
         echo ".env file created"
       else
         echo ".env file already exists, skipping creation"
