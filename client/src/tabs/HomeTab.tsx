@@ -31,6 +31,16 @@ interface HomeTabProps {
   onVisualizationDataChange: (data: Map<string, NTPData[]> | null) => void;
 }
 
+const selectResult = (ntpData: NTPData[] | null): NTPData | null => {
+  if(!ntpData) return null
+
+  for(const data of ntpData){
+    if(data.RTT !== -1)
+      return data
+  }
+  return ntpData[0]
+}
+
 // function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
 function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
 
@@ -178,7 +188,10 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
      * Update the stored data and show it again
      */
     // setMeasured(true)
-    const data = apiMeasurementResp ? apiMeasurementResp[0] : null
+
+    
+
+    const data = selectResult(apiMeasurementResp)
     const chartData = new Map<string, NTPData[]>()
     chartData.set(payload.server, apiHistoricalResp)
     // setAllNtpMeasurements(apiMeasurementResp ?? null)
