@@ -178,7 +178,12 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus, er
                             ) : 'N/A'}
                         </span></div>
                     </div>)) ||
-                    ((ripeStatus === "pending" || ripeStatus === "partial_results")&& (<LoadingSpinner size="medium"/>)) ||
+                    ((ripeStatus === "pending" || ripeStatus === "partial_results")&& (
+                        <div className="loading-container">
+                            <p className="ripe-loading-text">Running RIPE measurements. This may take a while.</p>
+                            <LoadingSpinner size="medium"/>
+                        </div>
+                    )) ||
                     (ripeStatus === "error" && (<p className="ripe-err">RIPE measurement failed</p>))}
                     </div>
 
