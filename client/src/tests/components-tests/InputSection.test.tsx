@@ -14,6 +14,8 @@ describe('InputSection', () => {
       loading: false,
       ipv6Selected: false,
       onIPv6Toggle,
+      ripeMeasurementStatus: null,
+      measurementSessionActive: false,
       ...propsOverride,
     };
 
@@ -69,7 +71,7 @@ describe('InputSection', () => {
     const onIPv6Toggle = vi.fn()
 
     let ipv6Selected = false
-    
+
      // triggers rerender to actually update the ipv6Selected variables
      const { rerender } = render(
       <InputSection
@@ -85,9 +87,13 @@ describe('InputSection', () => {
               loading={false}
               ipv6Selected={ipv6Selected}
               onIPv6Toggle={onIPv6Toggle}
+              ripeMeasurementStatus={null}
+              measurementSessionActive={false}
             />
           );
         }}
+        ripeMeasurementStatus={null}
+        measurementSessionActive={false}
       />
     );
 
@@ -99,11 +105,11 @@ describe('InputSection', () => {
     const ipv4Radio = screen.getByLabelText('IPv4');
     fireEvent.click(ipv4Radio);
     expect(onIPv6Toggle).toHaveBeenCalledWith(false);
-    
+
   });
 
   test('Disable button while loading', () => {
-    setup({ loading: true });
+    setup({ loading: true , measurementSessionActive: true});
 
     const input = screen.getByPlaceholderText(/time\.google\.com/i);
     const button = screen.getByRole('button', { name: /measure/i });

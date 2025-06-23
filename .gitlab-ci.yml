@@ -136,13 +136,28 @@ client_tests:
 #    expire_in: 1 week
 #  rules:
 #    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+build_docs:
+  stage: docs
+  script:
+    - source venv/bin/activate
+    - pip install sphinx sphinx-rtd-theme sphinx-autodoc-typehints sphinxcontrib-openapi
+    - cd docs
+    - make html
+  artifacts:
+    paths:
+      - docs/build/html
+  #    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-#pages:
-#  stage: docs
-#  script:
-#    - mv docs/build/html public
-#  artifacts:
-#    paths:
-#      - public
-#  rules:
-#    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+pages:
+  stage: docs
+  needs: [ build_docs ]
+  script:
+    - mv docs/build/html public
+  artifacts:
+    paths:
+      - public
+    #    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

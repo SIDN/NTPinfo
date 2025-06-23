@@ -111,6 +111,14 @@ export default function LineChart({data, selectedMeasurement, selectedOption, cu
       if (customRange?.from) startingPoint = new Date(customRange.from);
       if (customRange?.to)   endPoint     = new Date(customRange.to);
 
+      // Ensure startingPoint and endPoint don't exceed current time
+      if (startingPoint.getTime() > now.getTime()) {
+        startingPoint = new Date(now);
+      }
+      if (endPoint.getTime() > now.getTime()) {
+        endPoint = new Date(now);
+      }
+
       const { unit, fmt } = unitForSpan(endPoint.getTime() - startingPoint.getTime());
 
       customTimeUnit = unit;

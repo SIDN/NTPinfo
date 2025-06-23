@@ -1,0 +1,154 @@
+@import '../index.css';
+
+.historical-data-chart {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+}
+
+.time-input-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+}
+
+.measurement-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius);
+    padding: 2px;
+    box-shadow: var(--shadow);
+    min-width: 200px;
+    align-self: center;
+}
+
+.measurement-toggle input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+}
+
+.measurement-toggle label {
+    padding: 0.35rem 1.25rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    user-select: none;
+    color: var(--text-white, #9fa4b9);
+    border-radius: 8px;
+    /* transition: all 0.3s ease; */
+    white-space: nowrap;
+}
+
+.measurement-toggle input[type="radio"]:checked + label {
+    background: var(--bg-primary, #020718);
+    color: var(--text-white, #fff);
+    border-radius: 6px;
+}
+
+.measurement-toggle input[type="radio"]:focus + label {
+    outline: 0.5px solid var(--text-white);
+    outline-offset: 2px;
+}
+
+@supports selector(:focus-visible) {
+    .measurement-toggle input[type="radio"]:focus:not(:focus-visible) + label {
+        outline: none;
+    }
+}
+
+.chart-container {
+    flex: 1;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* background-color: var(--bg-secondary); */
+    /* border-radius: var(--radius); */
+    /* border: 1px solid var(--border-color); */
+    padding: 0.5rem;
+    overflow: visible;
+    height: 100%;
+}
+
+.loading-div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 300px;
+    gap: 1rem;
+    color: var(--text-white);
+    align-self: center;
+}
+
+.loading-div p {
+    color: var(--text-white);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.error-div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 300px;
+    gap: 1rem;
+    color: var(--text-white);
+    text-align: center;
+    padding: 2rem;
+}
+
+.error-div p {
+    color: var(--text-white);
+    font-size: 1.1rem;
+    margin: 0;
+    opacity: 0.9;
+}
+
+@media screen and (max-width: 768px) {
+    .historical-data-chart {
+        gap: 0.5rem;
+    }
+
+    .time-input-container {
+        padding: 0.5rem;
+    }
+
+    .measurement-toggle {
+        min-width: 180px;
+    }
+
+    .measurement-toggle label {
+        font-size: 0.85rem;
+        padding: 0.25rem 0.75rem;
+    }
+
+    .chart-container {
+        min-height: 250px;
+        padding: 0.5rem;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .chart-container {
+        min-height: 200px;
+        padding: 0.25rem;
+    }
+}

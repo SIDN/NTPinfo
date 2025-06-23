@@ -68,4 +68,6 @@ psycopg[binary,pool]
 geoip2
 sphinx
 sphinx-rtd-theme
+sphinx-autodoc-typehints
+sphinxcontrib-openapi
 gunicorn

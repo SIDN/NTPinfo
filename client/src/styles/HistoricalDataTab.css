@@ -19,6 +19,7 @@ a {
     flex-direction: column;
     gap: 0.5em;
     padding: 0;
+    height: 100vh;
 }
 
 .historical-data-tab h2 {
@@ -106,6 +107,8 @@ a {
     height: auto;
     min-height: 300px;
     overflow: visible;
+    display: flex;
+    flex-direction: column;
 }
 
 .data-display-container {
@@ -114,6 +117,7 @@ a {
     min-height: 0;
     align-items: flex-start;
     height: 100%;
+    flex: 1;
 }
 
 .statistics-container {
@@ -168,27 +172,22 @@ a {
 
 .chart-box {
     flex: 1;
-    height: 100%;
     min-height: 300px;
-    overflow: hidden;
+    overflow: visible;
     position: relative;
     width: 100%;
-    aspect-ratio: 16 / 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
 }
 
 .chart-box canvas {
+    max-width: 100%;
     max-height: 100%;
-    width: 100%;
+    width: auto;
     height: auto;
-    height: 100%;
-}
-
-.dropdown-select:hover,
-.dt-input:hover,
-.dropdown-select:focus,
-.dt-input:focus {
-    /* background-color: var(--clr-btn-selected-purple); */
-    outline: none;
+    object-fit: contain;
 }
 
 .dropdown-select {
@@ -265,13 +264,15 @@ a {
 
     .chart-box {
         width: 100%;
-        min-height: 250px;
+        min-height: 300px;
         margin: 1em 0;
+        aspect-ratio: 16/9;
     }
 
     .chart-box canvas {
-        aspect-ratio: 16/9;
-        max-width: 100%;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
     }
 
     .dt-input {
@@ -299,8 +300,14 @@ a {
     } */
 
     .chart-box {
-        min-height: 200px;
-        height: auto;
+        min-height: 250px;
+        aspect-ratio: 4/3;
+    }
+
+    .chart-box canvas {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
     }
 
     .dt-input {
@@ -320,6 +327,17 @@ a {
     .graph-statistics-container {
         margin: 0 0.5em;
         padding: 0.25em;
+    }
+
+    .chart-box {
+        min-height: 200px;
+        aspect-ratio: 1/1;
+    }
+
+    .chart-box canvas {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
     }
 
     .dt-input {
@@ -352,7 +370,13 @@ a {
 .historical-radio-toggle input[type="radio"] {
     appearance: none;
     -webkit-appearance: none;
-    display: none;
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
 }
 
 .historical-radio-toggle label {

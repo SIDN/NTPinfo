@@ -17,8 +17,8 @@ const AboutTab: React.FC = () => {
         <div className="about-features">
           <div className="feature">
             <span className="feature-icon"><img src={DataAnalysis} alt="Data Analysis" /></span>
-            <h3>Data Analysis</h3>
-            <p>Comprehensive tools for analyzing NTP data</p>
+            <h3>Measurement Analysis</h3>
+            <p>Analyze different metrics to determine the accuracy of NTP servers</p>
           </div>
           <div className="feature">
             <span className="feature-icon"><img src={Visualization} alt="Visualization" /></span>

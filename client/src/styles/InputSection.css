@@ -117,7 +117,12 @@
 .ip-options input[type="radio"] {
   appearance: none;
   -webkit-appearance: none;
-  display: none;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
 }
 
 .ip-options label {
@@ -136,10 +141,17 @@
   color: var(--text-white, #fff);
 }
 
-/* .ip-options input[type="radio"]:focus + label {
-  outline: 2px solid var(--clr-btn-selected-purple);
-  outline-offset: 2px;
-} */
+.ip-options input[type="radio"]:focus + label {
+  outline: 0.5px solid var(--text-white);
+    outline-offset: 2px;
+}
+
+@supports selector(:focus-visible) {
+  .measurement-toggle input[type="radio"]:focus:not(:focus-visible) + label {
+      outline: none;
+  }
+}
+
 
 @media (max-width: 700px) {
   .input-and-options {

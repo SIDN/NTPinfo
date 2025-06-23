@@ -11,7 +11,7 @@ import sys
 sys.path.insert(0, os.path.abspath('../..'))
 
 project = 'NTPinfo'
-copyright = '2025, TU Delft CSE 2000 Group 15d. Licensed under the MIT License.'
+copyright = '2025, TU Delft CSE 2000 Group 15d. Licensed under the MIT License'
 author = 'George-Matei Andrei, Horia-Andrei Botezatu, Mihai-Valentin Nicolae, Calin-Mihai Olaru, Serban Orza'
 
 # -- General configuration ---------------------------------------------------

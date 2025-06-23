@@ -59,7 +59,7 @@ def perform_ntp_measurement_domain_name_list(server_name: str, client_ip: Option
                 resulted_measurements.append(r)
                 ok = True
         except Exception as e:
-            print(f"Error in measure from name on ip {ip_str} :", e)
+            print(f"Error in measure from name on ip {ip_str} (this IP failed, maybe others succeeded):", e)
             empty_measurement = get_non_responding_ntp_measurement(ip_str, server_name, ntp_version)
             resulted_measurements.append(empty_measurement)
             continue
