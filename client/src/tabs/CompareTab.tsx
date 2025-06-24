@@ -40,6 +40,7 @@ function CompareTab() {
         <div className="compare-tab">
             <div className="compare-input">
                 <p>Enter the names or IPs of the NTP servers you want to compare.</p>
+                <p>This only compares historical data. No new measurements are done.</p>
                 <p>Click the "+" button to add more.</p>
             <form className="compare-form" onSubmit={(e) => {
                 e.preventDefault(); // Prevent page reload

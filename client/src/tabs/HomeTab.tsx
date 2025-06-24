@@ -31,6 +31,16 @@ interface HomeTabProps {
   onVisualizationDataChange: (data: Map<string, NTPData[]> | null) => void;
 }
 
+const selectResult = (ntpData: NTPData[] | null): NTPData | null => {
+  if(!ntpData) return null
+
+  for(const data of ntpData){
+    if(data.RTT !== -1)
+      return data
+  }
+  return ntpData[0]
+}
+
 // function HomeTab({ onVisualizationDataChange }: HomeTabProps) {
 function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
 
@@ -76,7 +86,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
   //Varaibles to log and use API hooks
   const {fetchData: fetchMeasurementData, loading: apiDataLoading, error: apiErrorLoading, httpStatus: respStatus, errorMessage: apiErrDetail} = useFetchIPData()
   const {fetchData: fetchHistoricalData} = useFetchHistoricalIPData()
-  const {triggerMeasurement} = useTriggerRipeMeasurement()
+  const {triggerMeasurement, error: ripeTriggerErr} = useTriggerRipeMeasurement()
   const {
     result: fetchedRIPEData,
     status: fetchedRIPEStatus,
@@ -178,7 +188,10 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
      * Update the stored data and show it again
      */
     // setMeasured(true)
-    const data = apiMeasurementResp ? apiMeasurementResp[0] : null
+
+    
+
+    const data = selectResult(apiMeasurementResp)
     const chartData = new Map<string, NTPData[]>()
     chartData.set(payload.server, apiHistoricalResp)
     // setAllNtpMeasurements(apiMeasurementResp ?? null)
@@ -272,8 +285,8 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
                        err={apiErrorLoading}
                        errMessage={apiErrDetail}
                        httpStatus={respStatus}
-                       ripeErr={ripeMeasurementError}
-                       ripeStatus={ripeMeasurementStatus}/>
+                       ripeErr={ripeTriggerErr ?? ripeMeasurementError}
+                       ripeStatus={ripeTriggerErr ? "error" : ripeMeasurementStatus}/>
 
         {/* Div for the visualization graph, and the radios for setting the what measurement to show */}
         <div className="graphs">
@@ -290,7 +303,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         </div>
       </div>)) || (!ntpData && !apiDataLoading && measured &&
       <ResultSummary data={ntpData} err={apiErrorLoading} httpStatus={respStatus} errMessage={apiErrDetail}
-      ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null} ripeErr={ripeMeasurementError} ripeStatus={ripeMeasurementStatus}/>)}
+      ripeData={ripeMeasurementResp?ripeMeasurementResp[0]:null} ripeErr={ripeTriggerErr ?? ripeMeasurementError} ripeStatus={ripeTriggerErr ? "error" :  ripeMeasurementStatus}/>)}
 
       {/*Buttons to download results in JSON and CSV format as well as open a popup displaying historical data*/}
       {/*The open popup button is commented out, because it is implemented as a separate tab*/}
