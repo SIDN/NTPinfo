@@ -35,7 +35,7 @@ const selectResult = (ntpData: NTPData[] | null): NTPData | null => {
   if(!ntpData) return null
 
   for(const data of ntpData){
-    if(data.RTT !== -1)
+    if(data.stratum !== -1)
       return data
   }
   return ntpData[0]
