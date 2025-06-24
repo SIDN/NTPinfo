@@ -73,9 +73,15 @@ export const useFetchRIPEData = (measurementId: string | null, intervalMs = 3000
             } catch (err: any) {
                 if (axios.isAxiosError(err) && err.response?.status === 405){
                     console.warn("Received 405, retrying in 2 seconds...")
+                    if (intervalRef.current) {
+                        clearInterval(intervalRef.current)
+                        intervalRef.current = null
+                    }
+
                     retryTimeoutRef.current = setTimeout(() => {
+                        intervalRef.current = setInterval(fetchResult, intervalMs)
                         fetchResult()
-                    }, 5000)
+                    }, 2000)
                 } else if (axios.isAxiosError(err) && err.response?.status === 504) {
                     setError(err)
                     setStatus("timeout")
