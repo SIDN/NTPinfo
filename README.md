@@ -130,12 +130,15 @@ To set up and run the back-end server, follow these steps:
     # in milliseconds, choose a value you think is reasonable for the offset threshold
     VITE_STATUS_THRESHOLD=1000
     # port to launch the back-end server (must match the local one in docker-compose)
+    # !! must be the same as the internal one in docker-compose !!
     SERVER_BIND=[::]:8000
     # how many workers the backend should work (2 * nr_of_cores + 1)
     SERVER_WORKERS=4
     # ports exposed from local machien used for local testing on localhost
     DB_DOCKER_PORT=15432
+    # when this is changed, CLIENT_URL must also be changed
     CLIENT_DOCKER_PORT=5173
+    # when this is changed, VITE_SERVER_HOST_ADDRESS must also be changed
     SERVER_DOCKER_PORT=8000
     # ports where website is served
     HTTP_PORT=80
