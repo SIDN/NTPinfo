@@ -69,9 +69,9 @@ def create_app(dev: bool = True) -> FastAPI:
             "that are presented in more detail below:"
         ),
         version="1.0.0",
-        docs_url="/docs",
-        redoc_url="/redoc",
-        openapi_url="/openapi.json"
+        docs_url="/docs" if dev else None,
+        redoc_url="/redoc" if dev else None,
+        openapi_url="/openapi.json" if dev else None,
     )
 
     app.state.limiter = limiter
