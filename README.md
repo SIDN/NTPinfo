@@ -326,9 +326,10 @@ To run the full stack (server + client + database) using `docker-compose`, follo
      --email your@email.com \
      -d yourdomain.com
    ```
-   Once completed, the certificates will be in `nginx/certbot/conf/live/yourdomain.com/`
+   Once completed, the certificates should be in `nginx/certbot/conf/live/yourdomain.com/`. These are then automatically
+   moved when running docker-compose to `etc/letsencrypt/live/yourdomain.com/`
 
-5. **Make sure to add the path to your certificates to `nginx/conf.d/default.conf`**
+5. **Make sure to add the docker path to your certificates to `nginx/conf.d/default.conf`**
 
    **This is an example**
 
