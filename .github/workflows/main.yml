@@ -129,10 +129,11 @@ jobs:
           echo "VITE_CLIENT_PORT=5173" >> .env
       - run: npm run test
       - name: Upload coverage
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: client-coverage
-          path: client/coverage
+          path: |
+            client/coverage
 
   # ---------------- DOCS BUILD ----------------
   build_docs:
@@ -151,10 +152,11 @@ jobs:
           cd docs
           make html
       - name: Upload built docs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: sphinx-docs
-          path: docs/build/html
+          path: |
+            docs/build/html
 
   # ---------------- DEPLOY DOCS TO GH PAGES ----------------
   deploy_docs:
