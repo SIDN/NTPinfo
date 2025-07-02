@@ -62,7 +62,7 @@ To set up and run the back-end server, follow these steps:
    Then activate the virtual environment:
     - On **macOS/Linux**:
         ```bash
-        source venv/bin/activate
+        source venv/bin/activate 
         ```
     - On **Windows**:
         ```bash
