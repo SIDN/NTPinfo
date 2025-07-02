@@ -1,3 +1,5 @@
+[![Docs](https://img.shields.io/badge/Docs-Live-blue)](https://botezatuhoria.github.io/NTPinfo/)
+
 ### **Group 15d**
 
 # Are your time servers on time?
