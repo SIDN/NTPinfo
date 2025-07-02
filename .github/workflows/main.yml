@@ -93,6 +93,7 @@ jobs:
           source venv/bin/activate
           echo "token=$ripe_api_token" > .env
           echo "email=$ripe_account_email" >> .env
+          export PYTHONPATH=$PYTHONPATH:$(pwd)  # <-- Add current directory to Python path
           pytest --cov=server --cov-report=term-missing server/tests/
           rm -f .env
 
