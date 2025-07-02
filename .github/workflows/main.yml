@@ -40,6 +40,7 @@ jobs:
   # ---------------- BACKEND LINT ----------------
   server_lint:
     runs-on: ubuntu-latest
+    needs: [ typecheck ]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -59,6 +60,7 @@ jobs:
   # ---------------- BACKEND TESTS ----------------
   server_tests:
     runs-on: ubuntu-latest
+    needs: [ typecheck, server_lint, client_lint ]
     services:
       postgres:
         image: postgres:15
@@ -100,6 +102,7 @@ jobs:
   # ---------------- CLIENT LINT ----------------
   client_lint:
     runs-on: ubuntu-latest
+    needs: [ typecheck ]
     defaults:
       run:
         working-directory: client
@@ -114,6 +117,7 @@ jobs:
   # ---------------- CLIENT TESTS ----------------
   client_tests:
     runs-on: ubuntu-latest
+    needs: [ typecheck, server_lint, client_lint ]
     defaults:
       run:
         working-directory: client
@@ -139,7 +143,7 @@ jobs:
   # ---------------- DOCS BUILD ----------------
   build_docs:
     runs-on: ubuntu-latest
-    needs: [ server_tests ]
+    needs: [ typecheck, server_lint, client_lint, client_tests, server_tests ]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -166,7 +170,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: sphinx-docs
           path: public
