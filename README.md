@@ -14,7 +14,7 @@
 
 ## Product Structure
 
-The product is split into 2 parts:
+The product is split into 2 main parts:
 
 ### Server Side
 
