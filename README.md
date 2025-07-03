@@ -1,4 +1,4 @@
-[![Docs](https://img.shields.io/badge/Docs-Live-blue)](https://botezatuhoria.github.io/NTPinfo/)
+[![Docs](https://img.shields.io/badge/Docs-Live-blue)](https://ntpinfo.github.io/NTPinfo/)
 
 ### **Group 15d**
 
@@ -14,7 +14,7 @@
 
 ## Product Structure
 
-The product is split into 2 main parts:
+The product is split into 2 parts:
 
 ### Server Side
 
