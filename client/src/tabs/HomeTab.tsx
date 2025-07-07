@@ -344,7 +344,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         Time.nl
       </a>
       <a href="https://atlas.ripe.net" target="_blank" rel="noopener noreferrer" aria-label="RIPE Atlas">
-        <img src={ripeAtlasLogo} alt="RIPE Atlas" className="footer-logo" />
+        <img src={ripeLogo} alt="RIPE Atlas" className="footer-logo" />
       </a>
     </div>
   </div>
