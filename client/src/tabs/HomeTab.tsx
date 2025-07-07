@@ -341,7 +341,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     <div className="powered-by-section">
       <span className="footer-label">Powered by</span>
       <a href="https://time.nl" target="_blank" rel="noopener noreferrer" className="footer-text-link">
-        TIMen.nl
+        Time.nl
       </a>
       <a href="https://atlas.ripe.net" target="_blank" rel="noopener noreferrer" aria-label="RIPE Atlas">
         <img src={ripeAtlasLogo} alt="RIPE Atlas" className="footer-logo" />
