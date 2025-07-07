@@ -69,6 +69,14 @@ body {
   background-color: var(--clr-btn-selected-purple);
 }
 
+.footer-logo {
+  height: auto;
+  width: 120px; /* Or whatever fixed size looks good */
+  object-fit: contain;
+  margin: 0 8px;
+  vertical-align: middle;
+}
+
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);
