@@ -21,7 +21,7 @@ import 'leaflet/dist/leaflet.css'
 import { useTriggerRipeMeasurement } from '../hooks/useTriggerRipeMeasurement.ts'
 import ConsentPopup from '../components/ConsentPopup.tsx'
 import ripeLogo from '../assets/ripe_ncc_white.png'
-
+import sidnLogo from './assets/sidnlabs-log.svg'
 // interface HomeTabProps {
 //     onVisualizationDataChange: (data: Map<string, NTPData[]> | null) => void;
 // }
@@ -325,13 +325,31 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
         )}
     </div>
     <footer className="home-footer">
-      <div className="footer-content">
-        <span className="powered-by">Powered by</span>
-        <a href="https://ripe.net" target="_blank" rel="noopener noreferrer" aria-label="RIPE NCC">
-          <img src={ripeLogo} alt="RIPE NCC" className="ripe-logo" />
-        </a>
-      </div>
-    </footer>
+  <div className="footer-content">
+    {/* Hosted by SIDN Labs (with logo) */}
+    <div className="hosted-by-section">
+      <span className="footer-label">Hosted by</span>
+      <a href="https://labs.sidn.nl" target="_blank" rel="noopener noreferrer" aria-label="SIDN Labs">
+        <figure className="footer-logo-figure">
+          <img src={sidnLogo} alt="SIDN Labs" className="footer-logo" />
+          <figcaption className="visually-hidden">SIDN Labs</figcaption>
+        </figure>
+      </a>
+    </div>
+
+    {/* Powered by TIMen.nl (text) and RIPE Atlas (logo) */}
+    <div className="powered-by-section">
+      <span className="footer-label">Powered by</span>
+      <a href="https://time.nl" target="_blank" rel="noopener noreferrer" className="footer-text-link">
+        TIMen.nl
+      </a>
+      <a href="https://atlas.ripe.net" target="_blank" rel="noopener noreferrer" aria-label="RIPE Atlas">
+        <img src={ripeAtlasLogo} alt="RIPE Atlas" className="footer-logo" />
+      </a>
+    </div>
+  </div>
+</footer>
+
     </div>
     );
 }
