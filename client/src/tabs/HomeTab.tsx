@@ -21,7 +21,7 @@ import 'leaflet/dist/leaflet.css'
 import { useTriggerRipeMeasurement } from '../hooks/useTriggerRipeMeasurement.ts'
 import ConsentPopup from '../components/ConsentPopup.tsx'
 import ripeLogo from '../assets/ripe_ncc_white.png'
-import sidnLogo from './assets/sidnlabs-log.svg'
+import sidnLogo from './assets/sidnlabs-log.svg';
 // interface HomeTabProps {
 //     onVisualizationDataChange: (data: Map<string, NTPData[]> | null) => void;
 // }
