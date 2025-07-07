@@ -69,13 +69,42 @@ body {
   background-color: var(--clr-btn-selected-purple);
 }
 
-.footer-logo {
-  height: auto;
-  width: 120px; /* Or whatever fixed size looks good */
-  object-fit: contain;
-  margin: 0 8px;
-  vertical-align: middle;
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
 }
+
+.powered-by-section,
+.hosted-by-section {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Adds space between elements */
+}
+
+.footer-label {
+  margin-right: 8px;
+  font-weight: bold;
+}
+
+.footer-and {
+  margin: 0 8px;
+  font-style: italic;
+  white-space: nowrap;
+}
+
+.footer-text-link {
+  text-decoration: underline;
+  color: inherit;
+}
+
+.footer-logo {
+  width: 120px;
+  height: auto;
+  object-fit: contain;
+}
+
 
 @keyframes logo-spin {
   from {

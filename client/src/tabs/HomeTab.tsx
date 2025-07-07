@@ -339,7 +339,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
       </a>
     </div>
 
-    {/* Powered by TIMen.nl (text) and RIPE Atlas (logo) */}
+    {/* Powered by TIME.nl (text) and RIPE Atlas (logo) */}
     <div className="powered-by-section">
       <span className="footer-label">Powered by</span>
       <a
@@ -350,6 +350,9 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
       >
         TIME.nl
       </a>
+
+      <span className="footer-and">and</span>
+
       <a
         href="https://atlas.ripe.net"
         target="_blank"
@@ -361,6 +364,7 @@ function HomeTab({ cache, setCache, onVisualizationDataChange }: HomeTabProps) {
     </div>
   </div>
 </footer>
+
 
 
     </div>
