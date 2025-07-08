@@ -99,8 +99,8 @@ body {
 }
 
 .footer-logo {
-  width: 100px;
-  height: auto;
+  width: auto;
+  height: 50px;
   object-fit: contain;
 }
 
