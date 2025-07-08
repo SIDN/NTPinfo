@@ -113,12 +113,15 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus, er
 
                 <div className="result-boxes-container">
                     <div className="result-and-title">
-                        <div className="res-label">From our NTP Client (Netherlands)
+                        <div className="res-label">
+                        Results from our server, synced with  <a href="https://time.nl" target="_blank" rel="noopener noreferrer">TIME.nl</a> (Stratum 1 synced server),  in  the Netherlands:
+
                             <div className="tooltip-container">
                             <span className="tooltip-icon">?</span>
                             <div className="tooltip-text">
-                               Our NTP Client is based in the Netherlands.
+                            Our backend synchronizes using <a href="https://en.wikipedia.org/wiki/Precision_Time_Protocol" target="_blank" rel="noopener noreferrer">PTP</a> to a Stratum 1 NTP server (<a href="https://www.meinbergglobal.com/" target="_blank" rel="noopener noreferrer">Meinberg</a>), which synchronizes its clock with GPS, Galileo, and <a href="https://en.wikipedia.org/wiki/DCF77" target="_blank" rel="noopener noreferrer">DCF77</a> signals. Service is provided by <a href="https://time.nl" target="_blank" rel="noopener noreferrer">TIME.nl</a>
                             </div>
+
                             </div>
                         </div>
                         <div className="result-box" id="main-details">
@@ -129,7 +132,7 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus, er
                             <div className="metric"><span title='A hierarchical level number indicating the distance from the reference clock'>Stratum</span><span>{data?.stratum !== undefined ? data.stratum : 'N/A'}</span></div>
                             <div className="metric"><span title='The IP address of the NTP server'>IP address</span><span>{data?.ip ? data.ip : 'N/A'}</span></div>
                             <div className="metric"><span>Vantage point IP</span><span>{data?.vantage_point_ip !== undefined ? data.vantage_point_ip : 'N/A'}</span></div>
-                            <div className="metric"><span>Country</span><span>{data?.country_code ? data.country_code : 'N/A'}</span></div>
+                            <div className="metric"><span>Vantage point's Country</span><span>{data?.country_code ? data.country_code : 'N/A'}</span></div>
                             <div className="metric"><span>Reference ID</span><span>{data?.ref_id}</span></div>
                             <div className="metric"><span title='The total round-trip delay to the primary reference source'>Root delay</span><span>{data?.root_delay !== undefined ? data.root_delay : 'N/A'}</span></div>
                             <div className="metric"><span title='The poll interval used by the probe during the measurement'>Poll interval</span><span>{data?.poll !== undefined ? `${Math.pow(2, data.poll)} s` : 'N/A'}</span></div>
@@ -138,7 +141,7 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus, er
                         </div>
                     </div>
                     <div className="result-and-title" id="ripe-result">
-                        <div className="res-label">From the RIPE Atlas probe (Close to you)
+                        Results from <a href="https://atlas.ripe.net" target="_blank" rel="noopener noreferrer">RIPE Atlas</a> probes close to your location:
                         <div className="tooltip-container">
                         {((ripeStatus === "timeout" || ripeStatus === "error"|| ripeData?.measurementData.RTT === -1000.000) && <span className="tooltip-icon fail">!</span>) ||
                         (<span className="tooltip-icon success">?</span>)}
@@ -161,7 +164,7 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus, er
                         <div className="metric"><span title='A hierarchical level number indicating the distance from the reference clock'>Stratum</span><span>{!isRipeMeasurementFailed && ripeData?.measurementData.stratum !== undefined ? ripeData.measurementData.stratum : 'N/A'}</span></div>
                         <div className="metric"><span title='The IP address of the NTP server'>IP address</span><span>{ripeData?.measurementData.ip}</span></div>
                         <div className="metric"><span>Vantage point IP</span><span>{ripeData?.measurementData.vantage_point_ip}</span></div>
-                        <div className="metric"><span>Country</span><span>{ripeData?.measurementData.country_code ? ripeData.measurementData.country_code : 'N/A'}</span></div>
+                        <div className="metric"><span>Vantage point's Country</span><span>{ripeData?.measurementData.country_code ? ripeData.measurementData.country_code : 'N/A'}</span></div>
                         <div className="metric"><span>Reference ID</span><span>{!isRipeMeasurementFailed && ripeData?.measurementData.ref_id ? ripeData.measurementData.ref_id : 'N/A'}</span></div>
                         <div className="metric"><span title='The total round-trip delay to the primary reference source'>Root delay</span><span>{!isRipeMeasurementFailed && ripeData?.measurementData.root_delay !== undefined ? ripeData.measurementData.root_delay : 'N/A'}</span></div>
                         <div className="metric"><span title='The poll interval used by the probe during the measurement'>Poll interval</span><span>{!isRipeMeasurementFailed && ripeData?.measurementData.poll !== undefined ? `${ripeData.measurementData.poll} s` : 'N/A'}</span></div>

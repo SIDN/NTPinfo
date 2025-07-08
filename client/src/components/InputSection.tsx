@@ -32,7 +32,7 @@ const InputSection: React.FC<InputProps> = ({ onClick, loading, ipv6Selected, on
         <div className="input-section">
             <div className="input-bar-text">
                 <p>
-                    Enter the domain name or IP address of the NTP server you want to measure.
+                    Enter the NTP server you want to evaluate (IP or domain name).
                 </p>
             </div>
             <div className="input-and-options">
