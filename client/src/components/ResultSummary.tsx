@@ -113,11 +113,12 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus, er
 
                 <div className="result-boxes-container">
                     <div className="result-and-title">
-                        <div className="res-label">Results from our server, synced with  <a href="https://time.nl" target="_blank" rel="noopener noreferrer">TIME.nl</a>
+                        <div className="res-label"> Results from our <a href="https://time.nl" target="_blank">TIME.nl</a> synced server:
+
                             <div className="tooltip-container">
                             <span className="tooltip-icon">?</span>
                             <div className="tooltip-text">
-                               Our backend synchronizes using <a href="https://en.wikipedia.org/wiki/Precision_Time_Protocol" target="_blank" rel="noopener noreferrer">PTP</a> to a Stratum 1 NTP server (<a href="https://www.meinbergglobal.com/" target="_blank" rel="noopener noreferrer">Meinberg</a>), which synchronizes its clock with GPS, Galileo, and <a href="https://en.wikipedia.org/wiki/DCF77" target="_blank" rel="noopener noreferrer">DCF77</a> signals. Service is provided by <a href="https://time.nl" target="_blank" rel="noopener noreferrer">TIME.nl</a>
+                               Our NTP Client is based in the Netherlands.
                             </div>
                             </div>
                         </div>
@@ -138,7 +139,7 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus, er
                         </div>
                     </div>
                     <div className="result-and-title" id="ripe-result">
-                        <div className="res-label">Results from <a href="https://atlas.ripe.net" target="_blank" rel="noopener noreferrer">RIPE Atlas</a> probes close to your location:
+                        <div className="res-label">Results from <a href="https://atlas.ripe.net" target="_blank">RIPE Atlas probes</a> (close to your location):
                         <div className="tooltip-container">
                         {((ripeStatus === "timeout" || ripeStatus === "error"|| ripeData?.measurementData.RTT === -1000.000) && <span className="tooltip-icon fail">!</span>) ||
                         (<span className="tooltip-icon success">?</span>)}
