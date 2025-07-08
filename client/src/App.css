@@ -70,10 +70,9 @@ body {
 }
 
 .footer-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  flex-shrink: 1;
+  overflow-x: auto;
 }
 
 .powered-by-section,
@@ -100,7 +99,7 @@ body {
 }
 
 .footer-logo {
-  width: 120px;
+  width: 100px;
   height: auto;
   object-fit: contain;
 }
