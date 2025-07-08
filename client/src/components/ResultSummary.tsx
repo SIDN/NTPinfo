@@ -113,7 +113,7 @@ function ResultSummary({data, ripeData, err, httpStatus, ripeErr, ripeStatus, er
 
                 <div className="result-boxes-container">
                     <div className="result-and-title">
-                        <div className="res-label">Results from our server, synced with  <a href="https://time.nl" target="_blank" rel="noopener noreferrer">TIME.nl</a> (Stratum 1 synced server,NL)
+                        <div className="res-label">Results from our server, synced with  <a href="https://time.nl" target="_blank" rel="noopener noreferrer">TIME.nl</a>
                             <div className="tooltip-container">
                             <span className="tooltip-icon">?</span>
                             <div className="tooltip-text">
