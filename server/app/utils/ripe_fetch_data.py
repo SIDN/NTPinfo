@@ -373,12 +373,12 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
                 client_recv_time=convert_float_to_precise_time(result.get('final-ts', -1.0))
             )
             #offset = result.get('offset', -1.0)
-            offset=(((result.get('origin-ts', -1.0) - result.get('receive-ts', -1.0 ))
-                      + (result.get('final-ts', -1.0)  -  result.get('transmit-ts', -1.0)  )) / 2)
+            #offset=(((result.get('origin-ts', -1.0) - result.get('receive-ts', -1.0 ))
+          #            + (result.get('final-ts', -1.0)  -  result.get('transmit-ts', -1.0)  )) / 2)
 
 
-             # offset=(((res_dict['origin-ts'] - res_dict['receive-ts']  )
-             #+ (res_dict['final-ts'] - res_dict['transmit-ts']  )) / 2)
+            offset=(((result['origin-ts'] - result['receive-ts']  )
+             + (result['final-ts'] - result['transmit-ts']  )) / 2)
             rtt = result.get('rtt', -1.0)
         else:
             timestamps = NtpTimestamps(*(PreciseTime(-1, 0) for _ in range(4)))
