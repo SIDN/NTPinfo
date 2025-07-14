@@ -9,6 +9,11 @@ import requests
 import dns.resolver
 import dns.reversename
 
+#next two lines  for debugging
+import csv
+from datetime import datetime
+
+
 from server.app.utils.load_config_data import get_ipv4_edns_server, get_ipv6_edns_server
 from server.app.utils.load_config_data import get_mask_ipv4, get_mask_ipv6
 from server.app.utils.location_resolver import get_asn_for_ip, get_country_for_ip, get_continent_for_ip
@@ -271,6 +276,16 @@ def client_ip_fetch(request: Request, wanted_ip_type: int) -> str | None:
             
             client_ip = client_ip.split(',')[0].strip()
 
+            
+        # Get current timestamp in ISO format
+        timestamp = datetime.utcnow().isoformat()
+        # Define log file path
+        log_file = "/tmp/log.csv"
+
+        # Append to CSV file
+        with open(log_file, mode='a', newline='') as file:
+          writer = csv.writer(file)
+          writer.writerow([timestamp, client_ip])
         # if it is None or if it is private (a private IP is useless for us) or invalid
         if client_ip is None or is_private_ip(client_ip) or is_ip_address(client_ip) is None:
             client_ip = ip_to_str(get_server_ip(wanted_ip_type))
