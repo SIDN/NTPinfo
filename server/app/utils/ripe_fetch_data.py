@@ -377,8 +377,8 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
           #            + (result.get('final-ts', -1.0)  -  result.get('transmit-ts', -1.0)  )) / 2)
 
 
-            offset=(((result['origin-ts'] - result['receive-ts']  )
-             + (result['final-ts'] - result['transmit-ts']  )) / 2)
+            offset=(((result['receive-ts'] - result['origin-ts'])+ (result['transmit-ts'] - result['final-ts'])) / 2)   
+
             rtt = result.get('rtt', -1.0)
         else:
             timestamps = NtpTimestamps(*(PreciseTime(-1, 0) for _ in range(4)))
