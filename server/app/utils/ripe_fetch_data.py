@@ -374,7 +374,7 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
             )
             #offset = result.get('offset', -1.0)
             offset=(((result.get('origin-ts', -1.0) - result.get('receive-ts', -1.0 ))
-                      + (result.get('final-ts', -1.0)  - - result.get('transmit-ts', -1.0)  )) / 2)
+                      + (result.get('final-ts', -1.0)  -  result.get('transmit-ts', -1.0)  )) / 2)
 
 
              # offset=(((res_dict['origin-ts'] - res_dict['receive-ts']  )
