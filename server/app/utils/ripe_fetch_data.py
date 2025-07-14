@@ -266,6 +266,15 @@ def is_failed_measurement(entry: dict[str, Any]) -> bool:
     return all(r.get("x") == "*" for r in result)
 
 
+
+def calc_offset(res_dict):
+    
+    offset=(((res_dict['receive-ts'] - res_dict['origin-ts'])
+             + (res_dict['transmit-ts'] - res_dict['final-ts'])) / 2)
+    return offset
+
+
+
 def successful_measurement(entry: dict[str, Any]) -> int | None:
     """
     Identifies the index of the successful measurement with the lowest offset.
@@ -287,7 +296,10 @@ def successful_measurement(entry: dict[str, Any]) -> int | None:
     for i, r in enumerate(result):
         if "origin-ts" in r and "offset" in r:
             try:
-                offset = abs(float(r["offset"]))
+
+                # Calculate the offset if not already present
+                #offset = abs(float(r["offset"]))
+                offset = calc_offset(r)
                 if offset < min_offset:
                     min_offset = offset
                     min_index = i
@@ -360,7 +372,13 @@ def parse_data_from_ripe_measurement(data_measurement: list[dict]) -> tuple[list
                 server_sent_time=convert_float_to_precise_time(result.get('transmit-ts', -1.0)),
                 client_recv_time=convert_float_to_precise_time(result.get('final-ts', -1.0))
             )
-            offset = result.get('offset', -1.0)
+            #offset = result.get('offset', -1.0)
+            offset=(((result.get('origin-ts', -1.0) - result.get('receive-ts', -1.0 ))
+                      + (result.get('final-ts', -1.0)  - - result.get('transmit-ts', -1.0)  )) / 2)
+
+
+             # offset=(((res_dict['origin-ts'] - res_dict['receive-ts']  )
+             #+ (res_dict['final-ts'] - res_dict['transmit-ts']  )) / 2)
             rtt = result.get('rtt', -1.0)
         else:
             timestamps = NtpTimestamps(*(PreciseTime(-1, 0) for _ in range(4)))
