@@ -1,6 +1,9 @@
 [![Docs](https://img.shields.io/badge/Docs-Live-blue)](https://ntpinfo.github.io/NTPinfo/)
 
-### **Group 15d**
+###  NTPinfo hosted on [https://ntpinfo.sidnlabs.nl](https://ntpinfo.sidnlabs.nl)
+
+* This fork is derived from the original's ones provided by TU Delft students
+* Their final report is available at the original project and here in this [PDF](docs/report/Final%20Report%20-%2015D.pdf)
 
 # Are your time servers on time?
 
